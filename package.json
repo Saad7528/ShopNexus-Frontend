@@ -1,27 +1,27 @@
 {
-  "name": "ShopNexus-Frontend",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "shopnexus-frontend",
+  "version": "0.1.0",
+  "private": true,
   "scripts": {
-  "dev": "tsx watch src/index.ts",
-  "build": "tsc",
-  "start": "node dist/index.js"
-},
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "devEngines": {
-    "packageManager": {
-      "name": "pnpm",
-      "version": "^11.22.0",
-      "onFail": "download"
-    }
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
   },
-  "type": "module",
+  "dependencies": {
+    "next": "16.3.1",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
   "devDependencies": {
-    "@types/node": "^26.2.0",
-    "tsx": "^4.23.12",
-    "typescript": "^7.0.2"
-  }
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.1",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  },
+  "packageManager": "pnpm@11.22.0"
 }

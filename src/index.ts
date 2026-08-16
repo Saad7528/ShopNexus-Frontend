@@ -1,1 +1,0 @@
-console.log("TypeScript with pnpm is working perfectly!");
