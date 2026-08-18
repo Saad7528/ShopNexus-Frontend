@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useCartStore } from '@/store/useCartStore';
+
 import { Tag, Check, Loader2, X } from 'lucide-react';
+import { useCartStore } from '@/store/useCartStore';
 
 export const CouponApply: React.FC = () => {
   const { appliedCoupon, discount, applyCoupon, removeCoupon, getTotals } = useCartStore();
