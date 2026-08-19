@@ -6,7 +6,7 @@ import { Star } from 'lucide-react';
 interface ReviewBreakdownProps {
   averageRating: number;
   totalReviews: number;
-  distribution: { [key: number]: number }; // e.g. { 5: 80, 4: 30, 3: 10, 2: 5, 1: 3 }
+  distribution: { [key: number]: number };
 }
 
 export const ReviewBreakdown: React.FC<ReviewBreakdownProps> = ({
