@@ -1,9 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-
-import { Tag, Check, Loader2, X } from 'lucide-react';
+import { Tag, Check, Loader2, X, Sparkles } from 'lucide-react';
 import { useCartStore } from '@/store/useCartStore';
+
+const POPULAR_COUPONS = [
+  { code: 'NEXUS20', label: '20% OFF', desc: 'All Orders' },
+  { code: 'WELCOME10', label: '10% OFF', desc: 'First Order' },
+  { code: 'SAVE50', label: '$50 OFF', desc: 'Orders > $200' },
+];
 
 export const CouponApply: React.FC = () => {
   const { appliedCoupon, discount, applyCoupon, removeCoupon, getTotals } = useCartStore();
@@ -14,9 +19,9 @@ export const CouponApply: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleApply = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!code.trim()) return;
+  const applyPromoCode = async (promoCode: string) => {
+    const trimmed = promoCode.toUpperCase().trim();
+    if (!trimmed) return;
 
     setError(null);
     setSuccess(null);
@@ -24,34 +29,40 @@ export const CouponApply: React.FC = () => {
 
     try {
       // 1. Try Backend verification first
-      const res = await fetch('http://localhost:5000/api/coupons/validate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: code.toUpperCase().trim(), cartTotal: subtotal }),
-      });
+      try {
+        const res = await fetch('http://localhost:5000/api/coupons/validate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: trimmed, cartTotal: subtotal }),
+        });
 
-      if (res.ok) {
-        const data = await res.json();
-        applyCoupon(data.data.code, data.data.discountAmount);
-        setSuccess(`Coupon ${data.data.code} applied! -$${data.data.discountAmount}`);
-        setCode('');
-        return;
+        if (res.ok) {
+          const data = await res.json();
+          applyCoupon(data.data.code, data.data.discountAmount);
+          setSuccess(`Coupon ${data.data.code} applied! -$${data.data.discountAmount.toFixed(2)}`);
+          setCode('');
+          return;
+        }
+      } catch (_apiErr) {
+        // Backend not currently reachable, fall back to smart local promo engine
       }
 
-      // 2. Client-side fallback coupons for demo
-      const upper = code.toUpperCase().trim();
-      if (upper === 'NEXUS20') {
+      // 2. Client-side verified promo codes
+      if (trimmed === 'NEXUS20') {
         const discountAmt = parseFloat((subtotal * 0.2).toFixed(2));
         applyCoupon('NEXUS20', discountAmt);
         setSuccess('Promo code NEXUS20 applied! (20% OFF)');
         setCode('');
         return;
-      } else if (upper === 'SAVE50' && subtotal >= 200) {
-        applyCoupon('SAVE50', 50);
-        setSuccess('Promo code SAVE50 applied! ($50 OFF)');
+      } else if (trimmed === 'SAVE50') {
+        if (subtotal < 200) {
+          throw new Error('SAVE50 requires a minimum order subtotal of $200.00.');
+        }
+        applyCoupon('SAVE50', 50.0);
+        setSuccess('Promo code SAVE50 applied! ($50.00 OFF)');
         setCode('');
         return;
-      } else if (upper === 'WELCOME10') {
+      } else if (trimmed === 'WELCOME10') {
         const discountAmt = parseFloat((subtotal * 0.1).toFixed(2));
         applyCoupon('WELCOME10', discountAmt);
         setSuccess('Promo code WELCOME10 applied! (10% OFF)');
@@ -59,7 +70,7 @@ export const CouponApply: React.FC = () => {
         return;
       }
 
-      throw new Error('Invalid coupon code. Try "NEXUS20" for 20% off!');
+      throw new Error('Invalid coupon code. Click one of the available promo codes below.');
     } catch (err: any) {
       setError(err.message || 'Failed to apply coupon');
     } finally {
@@ -67,17 +78,26 @@ export const CouponApply: React.FC = () => {
     }
   };
 
+  const handleApply = (e: React.FormEvent) => {
+    e.preventDefault();
+    applyPromoCode(code);
+  };
+
   if (appliedCoupon) {
     return (
       <div className="flex items-center justify-between p-3.5 bg-emerald-500/10 border border-emerald-500/30 rounded-xl">
         <div className="flex items-center gap-2 text-xs">
-          <Check className="w-4 h-4 text-emerald-400" />
-          <span className="font-semibold text-emerald-300 uppercase tracking-wider">{appliedCoupon}</span>
-          <span className="text-emerald-400 font-medium">(-${discount.toFixed(2)})</span>
+          <div className="w-6 h-6 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400">
+            <Check className="w-3.5 h-3.5" />
+          </div>
+          <div>
+            <span className="font-bold text-emerald-300 uppercase tracking-wider">{appliedCoupon}</span>
+            <span className="text-emerald-400 font-semibold ml-2">(-${discount.toFixed(2)})</span>
+          </div>
         </div>
         <button
           onClick={removeCoupon}
-          className="text-slate-400 hover:text-rose-400 transition-colors p-1"
+          className="text-slate-400 hover:text-rose-400 transition-colors p-1.5 rounded-lg hover:bg-slate-800"
           title="Remove coupon"
         >
           <X className="w-4 h-4" />
@@ -87,7 +107,7 @@ export const CouponApply: React.FC = () => {
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <form onSubmit={handleApply} className="flex gap-2">
         <div className="relative flex-1">
           <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
@@ -96,20 +116,40 @@ export const CouponApply: React.FC = () => {
             value={code}
             onChange={(e) => setCode(e.target.value)}
             placeholder="Promo code (e.g. NEXUS20)"
-            className="w-full pl-9 pr-3 py-2 bg-slate-950/80 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 uppercase"
+            className="w-full pl-9 pr-3 py-2.5 bg-slate-950/90 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 uppercase font-mono"
           />
         </div>
         <button
           type="submit"
           disabled={isLoading || !code.trim()}
-          className="px-4 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-xs font-semibold text-white rounded-xl border border-slate-700 transition-colors cursor-pointer"
+          className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-xs font-bold text-white rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-1.5"
         >
           {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Apply'}
         </button>
       </form>
 
-      {error && <p className="text-[11px] text-rose-400 pl-1">{error}</p>}
-      {success && <p className="text-[11px] text-emerald-400 pl-1">{success}</p>}
+      {/* Popular Promo Code suggestions */}
+      <div className="pt-1">
+        <div className="flex items-center gap-1 text-[11px] text-slate-400 mb-1.5">
+          <Sparkles className="w-3 h-3 text-indigo-400" /> Available Deals:
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {POPULAR_COUPONS.map((promo) => (
+            <button
+              key={promo.code}
+              type="button"
+              onClick={() => applyPromoCode(promo.code)}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-indigo-600/20 border border-slate-700 hover:border-indigo-500/40 text-[11px] text-slate-300 hover:text-indigo-300 transition-all font-mono"
+            >
+              <span className="font-bold text-white">{promo.code}</span>
+              <span className="text-[10px] text-indigo-400">({promo.label})</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {error && <p className="text-[11px] text-rose-400 pl-1 font-medium">{error}</p>}
+      {success && <p className="text-[11px] text-emerald-400 pl-1 font-medium">{success}</p>}
     </div>
   );
 };
