@@ -6,24 +6,33 @@ import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCartStore } from '@/store/useCartStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
-import { ShoppingBag, Heart, Search, Menu, X } from 'lucide-react';
+import { useAuthStore } from '@/store/useAuthStore';
+import {
+  ShoppingBag,
+  Heart,
+  Search,
+  Store,
+  ShieldCheck,
+  Zap,
+  Layers,
+  Menu,
+  X,
+  User,
+  LogOut,
+  ChevronDown,
+} from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const pathname = usePathname();
   const router = useRouter();
   const { openDrawer, getTotals } = useCartStore();
   const { items: wishlistItems } = useWishlistStore();
+  const { user, isAuthenticated, logout } = useAuthStore();
   const { itemCount } = getTotals();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  
-  // 2. Hydration Fix-এর জন্য isMounted স্টেট
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,6 +41,12 @@ export const Navbar: React.FC = () => {
       setSearchQuery('');
       setMobileMenuOpen(false);
     }
+  };
+
+  const handleLogout = () => {
+    logout();
+    setUserDropdownOpen(false);
+    router.push('/login');
   };
 
   const navLinks = [
@@ -134,6 +149,66 @@ export const Navbar: React.FC = () => {
               </span>
             </button>
 
+            {/* User Auth Profile / Login Button */}
+            {isAuthenticated && user ? (
+              <div className="relative">
+                <button
+                  onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                  className="flex items-center gap-2 p-1.5 pr-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-200 text-xs font-medium transition-all cursor-pointer"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-indigo-300 font-bold text-xs">
+                    {user.name ? user.name[0].toUpperCase() : 'U'}
+                  </div>
+                  <span className="hidden sm:inline max-w-[80px] truncate">{user.name.split(' ')[0]}</span>
+                  <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                </button>
+
+                {userDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl p-1.5 z-50 animate-in fade-in-50 zoom-in-95">
+                    <div className="px-3 py-2 border-b border-slate-800/80 mb-1">
+                      <p className="text-xs font-bold text-white truncate">{user.name}</p>
+                      <p className="text-[10px] text-slate-400 truncate">{user.email}</p>
+                    </div>
+                    {user.role === 'vendor' && (
+                      <Link
+                        href="/vendor/dashboard"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
+                      >
+                        <Store className="w-3.5 h-3.5 text-indigo-400" />
+                        Vendor Dashboard
+                      </Link>
+                    )}
+                    {user.role === 'admin' && (
+                      <Link
+                        href="/admin/dashboard"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
+                      >
+                        <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />
+                        Admin Dashboard
+                      </Link>
+                    )}
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer text-left"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      Sign Out
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-200 text-xs font-semibold hover:text-white transition-all"
+              >
+                <User className="w-3.5 h-3.5 text-indigo-400" />
+                Sign In
+              </Link>
+            )}
+
             {/* Mobile Menu Toggle */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -178,6 +253,15 @@ export const Navbar: React.FC = () => {
                   )}
                 </Link>
               ))}
+              {!isAuthenticated && (
+                <Link
+                  href="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-3.5 py-2 rounded-xl text-xs font-semibold text-indigo-400 hover:bg-slate-900 flex items-center gap-2"
+                >
+                  <User className="w-4 h-4" /> Sign In / Register
+                </Link>
+              )}
             </div>
           </div>
         )}
