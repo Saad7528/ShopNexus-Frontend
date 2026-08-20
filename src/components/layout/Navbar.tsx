@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // 1. useEffect ইম্পোর্ট করুন
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCartStore } from '@/store/useCartStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
@@ -61,16 +62,19 @@ export const Navbar: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-4">
           {/* Brand Logo */}
-          <Link href="/" className="flex items-center gap-2.5 flex-shrink-0 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/25 group-hover:scale-105 transition-transform">
-              <Layers className="w-5 h-5" />
+          <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
+            <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center group-hover:scale-105 transition-transform">
+              <Image
+                src="/images/ShopNexus-logo.png"
+                alt="ShopNexus Logo"
+                width={40}
+                height={40}
+                className="w-full h-full object-contain"
+              />
             </div>
             <div>
-              <span className="text-lg font-black tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
+              <span className="text-lg font-black tracking-tight bg-linear-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
                 ShopNexus
-              </span>
-              <span className="hidden sm:inline-block ml-1.5 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                Ecosystem
               </span>
             </div>
           </Link>
@@ -105,7 +109,7 @@ export const Navbar: React.FC = () => {
                 >
                   {link.label}
                   {link.badge && (
-                    <span className="ml-1.5 text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 animate-pulse">
+                    <span className="ml-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 animate-pulse">
                       {link.badge}
                     </span>
                   )}
@@ -114,7 +118,7 @@ export const Navbar: React.FC = () => {
             })}
           </nav>
 
-          {/* Action Icons: Wishlist, Cart Drawer, User */}
+          {/* Action Icons */}
           <div className="flex items-center gap-2.5">
             {/* Wishlist Button */}
             <Link
@@ -123,7 +127,8 @@ export const Navbar: React.FC = () => {
               title="View Wishlist"
             >
               <Heart className="w-4 h-4" />
-              {wishlistItems.length > 0 && (
+              {/* 3. Wishlist Count Conditional Render */}
+              {isMounted && wishlistItems.length > 0 && (
                 <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center shadow-lg shadow-rose-500/40">
                   {wishlistItems.length}
                 </span>
@@ -133,13 +138,14 @@ export const Navbar: React.FC = () => {
             {/* Cart Drawer Trigger Button */}
             <button
               onClick={openDrawer}
-              className="relative flex items-center gap-2 py-2 px-3.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/25 transition-all active:scale-95 cursor-pointer"
+              className="relative flex items-center gap-2 py-2 px-3.5 rounded-xl bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/25 transition-all active:scale-95 cursor-pointer"
               title="Open Shopping Cart"
             >
               <ShoppingBag className="w-4 h-4" />
               <span className="hidden sm:inline">Cart</span>
+              {/* 4. Cart itemCount Hydration Fix */}
               <span className="w-5 h-5 rounded-full bg-white/20 text-white text-[11px] font-bold flex items-center justify-center">
-                {itemCount}
+                {isMounted ? itemCount : 0}
               </span>
             </button>
 
@@ -213,7 +219,7 @@ export const Navbar: React.FC = () => {
           </div>
         </div>
 
-        {/* Mobile Navigation Drawer / Dropdown */}
+        {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
           <div className="lg:hidden py-4 border-t border-slate-800/80 space-y-3">
             <form onSubmit={handleSearch} className="relative">

@@ -63,7 +63,7 @@ export const Footer: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-600/10 border border-amber-500/20 flex items-center justify-center text-amber-400 flex-shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-amber-600/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
                 <Headphones className="w-5 h-5" />
               </div>
               <div>
