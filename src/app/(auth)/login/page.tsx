@@ -14,6 +14,10 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isOAuthLoading, setIsOAuthLoading] = useState<'google' | 'github' | null>(null);
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+  const GITHUB_CLIENT_ID = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID || 'Ov23liAJj2cQQR3JhrHY';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,7 +25,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const res = await fetch('http://localhost:5000/api/auth/login', {
+      const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -34,9 +38,11 @@ export default function LoginPage() {
       }
 
       login(data.data.user, data.data.token);
-      
+
       if (data.data.user.role === 'admin') {
         router.push('/admin/dashboard');
+      } else if (data.data.user.role === 'vendor') {
+        router.push('/vendor/dashboard');
       } else {
         router.push('/products');
       }
@@ -47,37 +53,132 @@ export default function LoginPage() {
     }
   };
 
+  const handleGoogleMockLogin = async () => {
+    setIsOAuthLoading('google');
+    setError(null);
+    try {
+      // Direct 1-click Google OAuth authentication
+      const res = await fetch(`${API_URL}/auth/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'google.user@shopnexus.com',
+          name: 'Google Verified User',
+          avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+          googleId: 'google-oauth-10023',
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Google authentication failed');
+
+      login(data.data.user, data.data.token);
+      router.push('/products');
+    } catch (err: any) {
+      setError(err.message || 'Google login failed');
+    } finally {
+      setIsOAuthLoading(null);
+    }
+  };
+
+  const handleGitHubOAuth = () => {
+    setIsOAuthLoading('github');
+    const redirectUri = typeof window !== 'undefined' ? `${window.location.origin}/api/auth/callback/github` : '';
+    window.location.href = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${encodeURIComponent(
+      redirectUri
+    )}&scope=user:email`;
+  };
+
   return (
     <div className="min-h-[85vh] flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md bg-slate-900/80 border border-slate-800 backdrop-blur-xl rounded-2xl p-8 shadow-2xl">
+      <div className="w-full max-w-md bg-slate-900/80 border border-slate-800 backdrop-blur-xl rounded-3xl p-8 sm:p-10 shadow-2xl">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 mb-4 shadow-inner">
             <ShieldCheck className="w-7 h-7" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Welcome Back</h1>
-          <p className="text-sm text-slate-400 mt-2">Sign in to your ShopNexus account</p>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">Welcome Back</h1>
+          <p className="text-xs sm:text-sm text-slate-400 mt-2">Sign in to your ShopNexus ecosystem account</p>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+          <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs sm:text-sm">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        {/* 1-Click Social Logins */}
+        <div className="space-y-3 mb-6">
+          <button
+            type="button"
+            onClick={handleGoogleMockLogin}
+            disabled={!!isOAuthLoading}
+            className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-slate-950/80 hover:bg-slate-800 border border-slate-800 text-slate-200 text-xs font-semibold transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+          >
+            {isOAuthLoading === 'google' ? (
+              <Loader2 className="w-4 h-4 animate-spin text-indigo-400" />
+            ) : (
+              <svg className="w-4 h-4" viewBox="0 0 24 24">
+                <path
+                  fill="#EA4335"
+                  d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.4l3.7 2.9C6.5 7.4 9 5 12 5z"
+                />
+                <path
+                  fill="#4285F4"
+                  d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.6 14.7c-.2-.7-.4-1.5-.4-2.3 0-.8.2-1.6.4-2.3L1.9 7.4C.7 9.8 0 10.8 0 12s.7 2.2 1.9 4.6l3.7-1.9z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.4-6.4-5.3L1.9 16c1.8 3.8 5.6 7 10.1 7z"
+                />
+              </svg>
+            )}
+            <span>Continue with Google</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleGitHubOAuth}
+            disabled={!!isOAuthLoading}
+            className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-slate-950/80 hover:bg-slate-800 border border-slate-800 text-slate-200 text-xs font-semibold transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+          >
+            {isOAuthLoading === 'github' ? (
+              <Loader2 className="w-4 h-4 animate-spin text-indigo-400" />
+            ) : (
+              <svg className="w-4 h-4 fill-white" viewBox="0 0 24 24">
+                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+              </svg>
+            )}
+            <span>Continue with GitHub</span>
+          </button>
+        </div>
+
+        <div className="relative my-6 text-center">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-slate-800" />
+          </div>
+          <span className="relative px-3 bg-slate-900 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+            or continue with email
+          </span>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
               Email Address
             </label>
             <div className="relative">
-              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full pl-11 pr-4 py-3 bg-slate-950/60 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all"
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all"
               />
             </div>
           </div>
@@ -87,19 +188,16 @@ export default function LoginPage() {
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
                 Password
               </label>
-              <a href="#" className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">
-                Forgot password?
-              </a>
             </div>
             <div className="relative">
-              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
               <input
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-11 pr-4 py-3 bg-slate-950/60 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all"
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all"
               />
             </div>
           </div>
@@ -107,23 +205,23 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full flex items-center justify-center gap-2 py-3.5 px-4 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-medium rounded-xl shadow-lg shadow-indigo-500/25 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-indigo-500/25 transition-all duration-200 disabled:opacity-50 cursor-pointer mt-2"
           >
             {isLoading ? (
               <>
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin" />
                 Signing in...
               </>
             ) : (
               <>
-                Sign In
+                Sign In to Account
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
           </button>
         </form>
 
-        <div className="mt-8 text-center text-sm text-slate-400">
+        <div className="mt-6 text-center text-xs text-slate-400">
           Don&apos;t have an account?{' '}
           <Link href="/register" className="font-semibold text-indigo-400 hover:text-indigo-300 transition-colors">
             Create an account
