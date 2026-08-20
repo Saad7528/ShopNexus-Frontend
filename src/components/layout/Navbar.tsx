@@ -61,9 +61,6 @@ export const Navbar: React.FC = () => {
               <span className="text-lg font-black tracking-tight bg-linear-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
                 ShopNexus
               </span>
-              <span className="hidden sm:inline-block ml-1.5 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                Ecosystem
-              </span>
             </div>
           </Link>
 
