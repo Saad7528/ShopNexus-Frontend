@@ -230,7 +230,7 @@ export default function CheckoutPage() {
                     type="button"
                     disabled={isProcessing}
                     onClick={handleCompleteOrder}
-                    className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 font-bold text-sm shadow-xl shadow-emerald-600/30 transition-all disabled:opacity-50"
+                    className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 font-bold text-sm shadow-xl shadow-emerald-600/30 transition-all disabled:opacity-50"
                   >
                     {isProcessing ? 'Authorizing & Placing...' : `Confirm & Place Order ($${total.toFixed(2)})`}
                   </button>
