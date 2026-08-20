@@ -4,6 +4,7 @@ import './globals.css';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { CartDrawer } from '@/components/cart/CartDrawer';
+import { ChatbotWidget } from '@/components/ai/ChatbotWidget';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -40,6 +41,9 @@ export default function RootLayout({
 
         {/* Main Application Body */}
         <main className="flex-1 w-full">{children}</main>
+
+        {/* Global Floating AI Shopping Assistant */}
+        <ChatbotWidget />
 
         {/* Global Footer */}
         <Footer />
