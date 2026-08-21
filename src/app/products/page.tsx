@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { ProductFilter } from '@/components/products/ProductFilter';
 import { ProductCard } from '@/components/products/ProductCard';
 import { useProductStore, Product } from '@/store/useProductStore';
-import { Sparkles, PackageSearch } from 'lucide-react';
+import { Sparkles, PackageSearch, RotateCcw } from 'lucide-react';
 
 const FALLBACK_PRODUCTS: Product[] = [
   {
@@ -45,19 +46,20 @@ const FALLBACK_PRODUCTS: Product[] = [
   },
   {
     _id: 'p3',
-    title: 'AuraStyle Minimalist Cashmere Wool Coat',
-    slug: 'aurastyle-cashmere-wool-coat',
-    description: 'Ethically sourced 100% cashmere wool with ergonomic tailoring for effortless elegance.',
-    category: 'Apparel',
-    brand: 'AuraStyle',
-    price: 340,
+    title: 'Apex RGB Mechanical Hot-Swap Keyboard',
+    slug: 'apex-rgb-mechanical-keyboard',
+    description: 'Custom lubed linear switches with sound-dampening silicone gasket and south-facing RGB.',
+    category: 'Gaming',
+    brand: 'NexusTech',
+    price: 189,
+    discountPrice: 149,
     stock: 22,
-    images: ['https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=800&q=80'],
-    vendorName: 'Aura Luxury',
+    images: ['https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=800&q=80'],
+    vendorName: 'Nexus Direct',
     isFlashSale: false,
     averageRating: 4.7,
-    totalReviews: 45,
-    tags: ['fashion', 'winter', 'cashmere'],
+    totalReviews: 62,
+    tags: ['gaming', 'keyboard', 'mechanical'],
   },
   {
     _id: 'p4',
@@ -95,93 +97,86 @@ const FALLBACK_PRODUCTS: Product[] = [
   },
   {
     _id: 'p6',
-    title: 'Nexus Mechanical Keyboard RGB Wireless',
-    slug: 'nexus-mechanical-keyboard-rgb',
-    description: 'Hot-swappable tactile switches with aircraft aluminum body and tri-mode connectivity.',
-    category: 'Electronics',
-    brand: 'NexusTech',
-    price: 165,
-    stock: 31,
-    images: ['https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=800&q=80'],
-    vendorName: 'Nexus Direct',
-    isFlashSale: false,
-    averageRating: 4.8,
-    totalReviews: 112,
-    tags: ['gaming', 'keyboard', 'mechanical'],
+    title: 'Studio True Wireless ANC Earbuds (Gen 3)',
+    slug: 'studio-tw-earbuds-gen-3',
+    description: 'Ultra-low latency wireless earbuds with custom dynamic drivers and IPX7 waterproofing.',
+    category: 'Audio',
+    brand: 'PureSound',
+    price: 179,
+    discountPrice: 139,
+    stock: 35,
+    images: ['https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800&q=80'],
+    vendorName: 'PureSound Audio Corp',
+    isFlashSale: true,
+    flashSaleDiscountPercent: 22,
+    averageRating: 4.9,
+    totalReviews: 87,
+    tags: ['earbuds', 'waterproof', 'wireless charging'],
   },
 ];
 
-export default function ProductsPage() {
-  const { search, category, brand, maxPrice, minRating, sortBy, isFlashSale } = useProductStore();
+function ProductsContent() {
+  const searchParams = useSearchParams();
+  const {
+    search,
+    category,
+    brand,
+    maxPrice,
+    minRating,
+    sortBy,
+    isFlashSale,
+    setSearch,
+    setCategory,
+    resetFilters,
+  } = useProductStore();
+
   const [products, setProducts] = useState<Product[]>(FALLBACK_PRODUCTS);
-  const [isLoading, setIsLoading] = useState(false);
+
+  // Sync URL search params with store
+  useEffect(() => {
+    const urlSearch = searchParams.get('search');
+    const urlCategory = searchParams.get('category');
+    if (urlSearch !== null) setSearch(urlSearch);
+    if (urlCategory !== null) setCategory(urlCategory);
+  }, [searchParams, setSearch, setCategory]);
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      setIsLoading(true);
-      try {
-        const queryParams = new URLSearchParams();
-        if (search) queryParams.append('search', search);
-        if (category) queryParams.append('category', category);
-        if (brand) queryParams.append('brand', brand);
-        if (maxPrice) queryParams.append('maxPrice', maxPrice.toString());
-        if (minRating) queryParams.append('minRating', minRating.toString());
-        if (sortBy) queryParams.append('sortBy', sortBy);
-        if (isFlashSale) queryParams.append('isFlashSale', 'true');
+    let filtered = [...FALLBACK_PRODUCTS];
+    if (search) {
+      filtered = filtered.filter(
+        (p) =>
+          p.title.toLowerCase().includes(search.toLowerCase()) ||
+          p.description.toLowerCase().includes(search.toLowerCase()) ||
+          p.brand.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+    if (category) filtered = filtered.filter((p) => p.category.toLowerCase() === category.toLowerCase());
+    if (brand) filtered = filtered.filter((p) => p.brand.toLowerCase() === brand.toLowerCase());
+    if (isFlashSale) filtered = filtered.filter((p) => p.isFlashSale);
+    if (maxPrice) filtered = filtered.filter((p) => (p.discountPrice || p.price) <= maxPrice);
+    if (minRating) filtered = filtered.filter((p) => p.averageRating >= minRating);
 
-        const res = await fetch(`http://localhost:5000/api/products?${queryParams.toString()}`);
-        if (res.ok) {
-          const json = await res.json();
-          if (json.data?.products?.length > 0) {
-            setProducts(json.data.products);
-            return;
-          }
-        }
-      } catch (_e) {
-        // Fallback to client-side filtering on mock data if backend not yet running
-      }
+    if (sortBy === 'price_asc') filtered.sort((a, b) => (a.discountPrice || a.price) - (b.discountPrice || b.price));
+    if (sortBy === 'price_desc') filtered.sort((a, b) => (b.discountPrice || b.price) - (a.discountPrice || a.price));
+    if (sortBy === 'rating') filtered.sort((a, b) => b.averageRating - a.averageRating);
 
-      // Client-side filter fallback
-      let filtered = [...FALLBACK_PRODUCTS];
-      if (search) {
-        filtered = filtered.filter(
-          (p) =>
-            p.title.toLowerCase().includes(search.toLowerCase()) ||
-            p.description.toLowerCase().includes(search.toLowerCase())
-        );
-      }
-      if (category) filtered = filtered.filter((p) => p.category === category);
-      if (brand) filtered = filtered.filter((p) => p.brand === brand);
-      if (isFlashSale) filtered = filtered.filter((p) => p.isFlashSale);
-      if (maxPrice) filtered = filtered.filter((p) => (p.discountPrice || p.price) <= maxPrice);
-      if (minRating) filtered = filtered.filter((p) => p.averageRating >= minRating);
-
-      if (sortBy === 'price_asc') filtered.sort((a, b) => (a.discountPrice || a.price) - (b.discountPrice || b.price));
-      if (sortBy === 'price_desc') filtered.sort((a, b) => (b.discountPrice || b.price) - (a.discountPrice || a.price));
-      if (sortBy === 'rating') filtered.sort((a, b) => b.averageRating - a.averageRating);
-
-      setProducts(filtered);
-      setIsLoading(false);
-    };
-
-    fetchProducts();
+    setProducts(filtered);
   }, [search, category, brand, maxPrice, minRating, sortBy, isFlashSale]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       {/* Header Banner */}
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-indigo-900/60 via-purple-900/40 to-slate-900/80 border border-indigo-500/20 p-8 sm:p-12 mb-10 shadow-2xl">
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-indigo-950/80 via-purple-950/50 to-slate-900/90 border border-indigo-500/20 p-8 sm:p-12 mb-10 shadow-2xl backdrop-blur-2xl">
         <div className="max-w-2xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-xs font-semibold uppercase tracking-wider mb-4">
             <Sparkles className="w-3.5 h-3.5" />
-            Curated Catalog.
+            Curated Catalog & Faceted Search
           </div>
-          
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight mb-3">
-            Explore Premium Products
+          <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight mb-3">
+            Explore Premium Innovations
           </h1>
-          <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-            Discover verified tech, apparel, and lifestyle innovations with real-time stock validation and multi-criteria filters.
+          <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
+            Discover audio acoustics, titanium electronics, and multi-vendor verified hardware with persistent cart ordering.
           </p>
         </div>
       </div>
@@ -196,18 +191,32 @@ export default function ProductsPage() {
         {/* Product Catalog Grid */}
         <main className="lg:col-span-3">
           <div className="flex items-center justify-between mb-6">
-            <p className="text-sm text-slate-400">
-              Showing <span className="font-semibold text-white">{products.length}</span> results
+            <p className="text-xs sm:text-sm text-slate-400">
+              Showing <span className="font-bold text-white">{products.length}</span> {products.length === 1 ? 'product' : 'products'}
             </p>
+            {(search || category || brand || isFlashSale) && (
+              <button
+                onClick={resetFilters}
+                className="inline-flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+              >
+                <RotateCcw className="w-3.5 h-3.5" /> Clear active filters
+              </button>
+            )}
           </div>
 
           {products.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 px-4 bg-slate-900/40 border border-slate-800/80 rounded-2xl text-center">
-              <PackageSearch className="w-12 h-12 text-slate-600 mb-3" />
-              <h3 className="text-lg font-semibold text-slate-200 mb-1">No products found</h3>
-              <p className="text-sm text-slate-400 max-w-sm">
-                Try adjusting your search criteria or resetting filters to view all available products.
+            <div className="flex flex-col items-center justify-center py-20 px-4 bg-slate-900/40 border border-slate-800 rounded-3xl text-center">
+              <PackageSearch className="w-14 h-14 text-slate-600 mb-4" />
+              <h3 className="text-lg font-bold text-white mb-1.5">No matching products found</h3>
+              <p className="text-xs text-slate-400 max-w-sm mb-6 leading-relaxed">
+                We couldn&apos;t find any items matching your current filters. Try changing your search query or reset your filters.
               </p>
+              <button
+                onClick={resetFilters}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-lg shadow-indigo-600/30 transition-all cursor-pointer"
+              >
+                <RotateCcw className="w-3.5 h-3.5" /> Reset All Filters
+              </button>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -219,5 +228,19 @@ export default function ProductsPage() {
         </main>
       </div>
     </div>
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="max-w-7xl mx-auto px-4 py-20 text-center text-slate-400 text-sm">
+          Loading catalog...
+        </div>
+      }
+    >
+      <ProductsContent />
+    </Suspense>
   );
 }
