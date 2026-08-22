@@ -1,213 +1,651 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { ProductFilter } from '@/components/products/ProductFilter';
 import { ProductCard } from '@/components/products/ProductCard';
 import { useProductStore, Product } from '@/store/useProductStore';
-import { Sparkles, PackageSearch } from 'lucide-react';
+import { Sparkles, PackageSearch, RotateCcw } from 'lucide-react';
 
 const FALLBACK_PRODUCTS: Product[] = [
+  // --- AUDIO & ACOUSTICS (6 Products) ---
   {
     _id: 'p1',
-    title: 'AuraSound Pro Active Noise-Cancelling Headphones',
-    slug: 'aurasound-pro-anc-headphones',
-    description: 'Studio-grade spatial audio with 40-hour ultra battery life and pure titanium drivers.',
+    title: 'Sony WH-1000XM5 Wireless Noise-Cancelling Headphones',
+    slug: 'sony-wh-1000xm5-anc-headphones',
+    description: 'Industry-leading noise cancellation with two processors and 8 microphones for unparalleled clarity.',
     category: 'Audio',
-    brand: 'PureSound',
-    price: 299,
-    discountPrice: 229,
-    stock: 14,
+    brand: 'Sony',
+    price: 399,
+    discountPrice: 329,
+    stock: 18,
     images: ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80'],
-    vendorName: 'PureSound Audio Corp',
+    vendorName: 'Apex Acoustic Studio',
     isFlashSale: true,
-    flashSaleDiscountPercent: 23,
+    flashSaleDiscountPercent: 17,
     averageRating: 4.9,
-    totalReviews: 128,
-    tags: ['wireless', 'noise-cancelling', 'bluetooth 5.3'],
+    totalReviews: 248,
+    tags: ['wireless', 'noise-cancelling', 'bluetooth 5.3', 'audio'],
   },
   {
     _id: 'p2',
-    title: 'Nexus Watch Ultra 2 OLED Smartwatch',
-    slug: 'nexus-watch-ultra-2',
-    description: 'Precision aerospace titanium casing with continuous biometric health tracking and ECG.',
-    category: 'Electronics',
-    brand: 'NexusTech',
-    price: 499,
-    discountPrice: 449,
-    stock: 4,
-    images: ['https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80'],
-    vendorName: 'Nexus Direct',
-    isFlashSale: true,
-    flashSaleDiscountPercent: 10,
+    title: 'Bose QuietComfort Ultra Spatial Audio Headphones',
+    slug: 'bose-qc-ultra-spatial-headphones',
+    description: 'Breakthrough spatialized audio for immersive listening with custom tuned active noise cancellation.',
+    category: 'Audio',
+    brand: 'Bose',
+    price: 429,
+    discountPrice: 379,
+    stock: 12,
+    images: ['https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800&q=80'],
+    vendorName: 'Apex Acoustic Studio',
+    isFlashSale: false,
     averageRating: 4.8,
-    totalReviews: 89,
-    tags: ['smartwatch', 'fitness', 'titanium'],
+    totalReviews: 142,
+    tags: ['spatial-audio', 'anc', 'comfort', 'audio'],
   },
   {
     _id: 'p3',
-    title: 'AuraStyle Minimalist Cashmere Wool Coat',
-    slug: 'aurastyle-cashmere-wool-coat',
-    description: 'Ethically sourced 100% cashmere wool with ergonomic tailoring for effortless elegance.',
-    category: 'Apparel',
-    brand: 'AuraStyle',
-    price: 340,
-    stock: 22,
-    images: ['https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=800&q=80'],
-    vendorName: 'Aura Luxury',
-    isFlashSale: false,
-    averageRating: 4.7,
-    totalReviews: 45,
-    tags: ['fashion', 'winter', 'cashmere'],
+    title: 'Apple AirPods Max Space Gray with Smart Case',
+    slug: 'apple-airpods-max-space-gray',
+    description: 'High-fidelity audio with dynamic head tracking and computational acoustics in anodized aluminum.',
+    category: 'Audio',
+    brand: 'Apple',
+    price: 549,
+    discountPrice: 479,
+    stock: 8,
+    images: ['https://images.unsplash.com/photo-1583394838336-acd977736f90?w=800&q=80'],
+    vendorName: 'Nexus Direct',
+    isFlashSale: true,
+    flashSaleDiscountPercent: 12,
+    averageRating: 4.9,
+    totalReviews: 320,
+    tags: ['apple', 'hifi', 'spatial-audio', 'audio'],
   },
   {
     _id: 'p4',
-    title: 'EcoLiving Smart Hydroponic Indoor Garden',
-    slug: 'ecoliving-smart-indoor-garden',
-    description: 'Automated spectrum LED lighting and smart watering reservoir for fresh herbs year-round.',
-    category: 'Home & Living',
-    brand: 'EcoLiving',
-    price: 189,
-    discountPrice: 149,
-    stock: 9,
-    images: ['https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=800&q=80'],
-    vendorName: 'Eco Living Global',
-    isFlashSale: true,
-    flashSaleDiscountPercent: 21,
-    averageRating: 4.6,
-    totalReviews: 67,
-    tags: ['smart home', 'garden', 'green'],
+    title: 'Marshall Stanmore III Bluetooth Home Speaker',
+    slug: 'marshall-stanmore-iii-speaker',
+    description: 'Iconic vintage styling with wider soundstage, room-filling sound, and brass control dials.',
+    category: 'Audio',
+    brand: 'Marshall',
+    price: 379,
+    discountPrice: 319,
+    stock: 15,
+    images: ['https://images.unsplash.com/photo-1545454675-3531b543be5d?w=800&q=80'],
+    vendorName: 'Apex Acoustic Studio',
+    isFlashSale: false,
+    averageRating: 4.7,
+    totalReviews: 96,
+    tags: ['speaker', 'bluetooth', 'vintage', 'audio'],
   },
   {
     _id: 'p5',
-    title: 'Veloce Carbon Fiber Running Shoes',
-    slug: 'veloce-carbon-running-shoes',
-    description: 'Full-length carbon propulsion plate and ultra-lightweight responsive foam cushioning.',
-    category: 'Footwear',
-    brand: 'Veloce',
-    price: 220,
-    stock: 18,
-    images: ['https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&q=80'],
-    vendorName: 'Veloce Sports',
-    isFlashSale: false,
-    averageRating: 4.9,
-    totalReviews: 94,
-    tags: ['marathon', 'running', 'carbon'],
+    title: 'Sennheiser Momentum 4 Wireless Audiophile Headphones',
+    slug: 'sennheiser-momentum-4-wireless',
+    description: '60-hour battery life with audiophile-grade 42mm transducer system and adaptive noise cancellation.',
+    category: 'Audio',
+    brand: 'Sennheiser',
+    price: 349,
+    discountPrice: 289,
+    stock: 22,
+    images: ['https://images.unsplash.com/photo-1484704849700-f032a568e944?w=800&q=80'],
+    vendorName: 'Apex Acoustic Studio',
+    isFlashSale: true,
+    flashSaleDiscountPercent: 17,
+    averageRating: 4.8,
+    totalReviews: 110,
+    tags: ['audiophile', '60hr-battery', 'anc', 'audio'],
   },
   {
     _id: 'p6',
-    title: 'Nexus Mechanical Keyboard RGB Wireless',
-    slug: 'nexus-mechanical-keyboard-rgb',
-    description: 'Hot-swappable tactile switches with aircraft aluminum body and tri-mode connectivity.',
-    category: 'Electronics',
-    brand: 'NexusTech',
-    price: 165,
-    stock: 31,
+    title: 'Shure MV7 USB/XLR Dynamic Podcast Microphone',
+    slug: 'shure-mv7-podcast-microphone',
+    description: 'Professional broadcast dynamic microphone with voice isolation technology and touch panel controls.',
+    category: 'Audio',
+    brand: 'Shure',
+    price: 249,
+    discountPrice: 219,
+    stock: 30,
+    images: ['https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800&q=80'],
+    vendorName: 'Nexus Direct',
+    isFlashSale: false,
+    averageRating: 4.9,
+    totalReviews: 185,
+    tags: ['microphone', 'podcast', 'studio', 'audio'],
+  },
+
+  // --- COMPUTING & WORKSTATION (6 Products) ---
+  {
+    _id: 'p7',
+    title: 'Keychron Q1 Pro Wireless Custom Mechanical Keyboard',
+    slug: 'keychron-q1-pro-mechanical-keyboard',
+    description: 'Full aluminum CNC machined body, double-gasket design, QMK/VIA programmable hot-swappable switches.',
+    category: 'Computing',
+    brand: 'Keychron',
+    price: 219,
+    discountPrice: 189,
+    stock: 25,
     images: ['https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=800&q=80'],
+    vendorName: 'Nexus Direct',
+    isFlashSale: true,
+    flashSaleDiscountPercent: 13,
+    averageRating: 4.9,
+    totalReviews: 175,
+    tags: ['mechanical-keyboard', 'hot-swap', 'rgb', 'computing'],
+  },
+  {
+    _id: 'p8',
+    title: 'Logitech MX Master 3S Ergonomic Wireless Mouse',
+    slug: 'logitech-mx-master-3s-mouse',
+    description: 'Quiet clicks with 8K DPI track-on-glass sensor and MagSpeed electromagnetic hyper-fast scrolling.',
+    category: 'Computing',
+    brand: 'Logitech',
+    price: 99,
+    discountPrice: 85,
+    stock: 40,
+    images: ['https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=800&q=80'],
+    vendorName: 'Nexus Direct',
+    isFlashSale: false,
+    averageRating: 4.9,
+    totalReviews: 540,
+    tags: ['mouse', 'ergonomic', 'productivity', 'computing'],
+  },
+  {
+    _id: 'p9',
+    title: 'Dell UltraSharp 32" 4K QD-OLED Professional Monitor',
+    slug: 'dell-ultrasharp-32-4k-oled',
+    description: 'Stunning 4K resolution with 99% DCI-P3 color accuracy, HDR400, and 90W USB-C power delivery hub.',
+    category: 'Computing',
+    brand: 'Dell',
+    price: 899,
+    discountPrice: 799,
+    stock: 7,
+    images: ['https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=800&q=80'],
+    vendorName: 'Silicon Pro Systems',
+    isFlashSale: true,
+    flashSaleDiscountPercent: 11,
+    averageRating: 4.8,
+    totalReviews: 82,
+    tags: ['monitor', '4k-oled', 'display', 'computing'],
+  },
+  {
+    _id: 'p10',
+    title: 'CalDigit TS4 Thunderbolt 4 18-Port Workstation Dock',
+    slug: 'caldigit-ts4-thunderbolt-4-dock',
+    description: 'Extreme connectivity with 98W laptop charging, 2.5GbE Ethernet, UHS-II SD card readers and dual 6K.',
+    category: 'Computing',
+    brand: 'CalDigit',
+    price: 399,
+    discountPrice: 349,
+    stock: 14,
+    images: ['https://images.unsplash.com/photo-1544652478-6653e09f18a2?w=800&q=80'],
+    vendorName: 'Silicon Pro Systems',
+    isFlashSale: false,
+    averageRating: 4.9,
+    totalReviews: 64,
+    tags: ['dock', 'thunderbolt4', 'workstation', 'computing'],
+  },
+  {
+    _id: 'p11',
+    title: 'BenQ ScreenBar Halo Monitor Light Bar with Wireless Dial',
+    slug: 'benq-screenbar-halo-light-bar',
+    description: 'Auto-dimming eye-care desk lamp with rear backlight illumination and zero screen glare.',
+    category: 'Computing',
+    brand: 'BenQ',
+    price: 179,
+    discountPrice: 149,
+    stock: 20,
+    images: ['https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80'],
+    vendorName: 'Silicon Pro Systems',
+    isFlashSale: true,
+    flashSaleDiscountPercent: 16,
+    averageRating: 4.7,
+    totalReviews: 93,
+    tags: ['desk-lamp', 'lightbar', 'ergonomics', 'computing'],
+  },
+  {
+    _id: 'p12',
+    title: 'Apple Magic Trackpad Multi-Touch Surface (Black)',
+    slug: 'apple-magic-trackpad-black',
+    description: 'Wireless and rechargeable trackpad with full suite of macOS gestures and Force Touch sensors.',
+    category: 'Computing',
+    brand: 'Apple',
+    price: 149,
+    discountPrice: 129,
+    stock: 35,
+    images: ['https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=800&q=80'],
     vendorName: 'Nexus Direct',
     isFlashSale: false,
     averageRating: 4.8,
-    totalReviews: 112,
-    tags: ['gaming', 'keyboard', 'mechanical'],
+    totalReviews: 120,
+    tags: ['trackpad', 'apple', 'minimalist', 'computing'],
+  },
+
+  // --- ELECTRONICS & GADGETS (6 Products) ---
+  {
+    _id: 'p13',
+    title: 'Anker Prime 27,650mAh 250W Multi-Device Power Bank',
+    slug: 'anker-prime-250w-powerbank',
+    description: 'Massive capacity with 250W ultra-fast output, smart digital display and companion app controls.',
+    category: 'Electronics',
+    brand: 'Anker',
+    price: 179,
+    discountPrice: 139,
+    stock: 28,
+    images: ['https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=800&q=80'],
+    vendorName: 'Nexus Direct',
+    isFlashSale: true,
+    flashSaleDiscountPercent: 22,
+    averageRating: 4.9,
+    totalReviews: 310,
+    tags: ['powerbank', 'fast-charging', 'anker', 'electronics'],
+  },
+  {
+    _id: 'p14',
+    title: 'DJI Osmo Pocket 3 4K 120fps Gimbal Camera',
+    slug: 'dji-osmo-pocket-3-gimbal',
+    description: '1-inch CMOS sensor with 3-axis mechanical stabilization and 2-inch rotatable OLED touchscreen.',
+    category: 'Electronics',
+    brand: 'DJI',
+    price: 519,
+    discountPrice: 479,
+    stock: 10,
+    images: ['https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=800&q=80'],
+    vendorName: 'Silicon Pro Systems',
+    isFlashSale: false,
+    averageRating: 4.9,
+    totalReviews: 215,
+    tags: ['camera', 'gimbal', '4k', 'electronics'],
+  },
+  {
+    _id: 'p15',
+    title: 'Belkin BoostCharge Pro 3-in-1 MagSafe Charging Stand',
+    slug: 'belkin-boostcharge-3in1-magsafe',
+    description: 'Fast 15W wireless charging stand for iPhone, Apple Watch Ultra, and AirPods simultaneously.',
+    category: 'Electronics',
+    brand: 'Belkin',
+    price: 149,
+    discountPrice: 119,
+    stock: 33,
+    images: ['https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800&q=80'],
+    vendorName: 'Nexus Direct',
+    isFlashSale: true,
+    flashSaleDiscountPercent: 20,
+    averageRating: 4.8,
+    totalReviews: 180,
+    tags: ['magsafe', 'wireless-charger', 'belkin', 'electronics'],
+  },
+  {
+    _id: 'p16',
+    title: 'Elgato Stream Deck MK.2 Studio Controller',
+    slug: 'elgato-stream-deck-mk2',
+    description: '15 customizable LCD keys to trigger broadcast actions, macro hotkeys, and app controls instantly.',
+    category: 'Electronics',
+    brand: 'Elgato',
+    price: 149,
+    discountPrice: 129,
+    stock: 19,
+    images: ['https://images.unsplash.com/photo-1612287233207-6819b52a5598?w=800&q=80'],
+    vendorName: 'Nexus Direct',
+    isFlashSale: false,
+    averageRating: 4.9,
+    totalReviews: 260,
+    tags: ['stream-deck', 'creator', 'hotkeys', 'electronics'],
+  },
+  {
+    _id: 'p17',
+    title: 'XGIMI Horizon Ultra 4K Dolby Vision Home Projector',
+    slug: 'xgimi-horizon-ultra-4k-projector',
+    description: 'Dual Light Laser + LED technology delivering 2300 ISO Lumens with built-in Harman Kardon acoustics.',
+    category: 'Electronics',
+    brand: 'XGIMI',
+    price: 1699,
+    discountPrice: 1499,
+    stock: 5,
+    images: ['https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80'],
+    vendorName: 'Silicon Pro Systems',
+    isFlashSale: true,
+    flashSaleDiscountPercent: 11,
+    averageRating: 4.8,
+    totalReviews: 45,
+    tags: ['projector', '4k', 'laser', 'electronics'],
+  },
+  {
+    _id: 'p18',
+    title: 'Sony Alpha A7 IV Full-Frame Mirrorless Camera',
+    slug: 'sony-alpha-a7-iv-mirrorless-camera',
+    description: '33MP BSI CMOS full-frame sensor with 4K 60p 10-bit video and real-time eye autofocus.',
+    category: 'Electronics',
+    brand: 'Sony',
+    price: 2499,
+    discountPrice: 2299,
+    stock: 6,
+    images: ['https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&q=80'],
+    vendorName: 'Nexus Direct',
+    isFlashSale: false,
+    averageRating: 4.9,
+    totalReviews: 190,
+    tags: ['camera', 'mirrorless', 'sony', 'electronics'],
+  },
+
+  // --- WEARABLES & SMART GEAR (6 Products) ---
+  {
+    _id: 'p19',
+    title: 'Apple Watch Ultra 2 Aerospace Titanium Smartwatch',
+    slug: 'apple-watch-ultra-2-titanium',
+    description: 'Rugged titanium case with 3000 nit display, precision dual-frequency GPS, and 36-hour battery life.',
+    category: 'Wearables',
+    brand: 'Apple',
+    price: 799,
+    discountPrice: 729,
+    stock: 11,
+    images: ['https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80'],
+    vendorName: 'Nexus Direct',
+    isFlashSale: true,
+    flashSaleDiscountPercent: 8,
+    averageRating: 4.9,
+    totalReviews: 380,
+    tags: ['smartwatch', 'apple', 'titanium', 'wearables'],
+  },
+  {
+    _id: 'p20',
+    title: 'Garmin Fenix 7 Pro Solar Multisport GPS Watch',
+    slug: 'garmin-fenix-7-pro-solar',
+    description: 'Solar charging power glass lens with built-in LED flashlight, topo maps, and endurance metrics.',
+    category: 'Wearables',
+    brand: 'Garmin',
+    price: 799,
+    discountPrice: 699,
+    stock: 14,
+    images: ['https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=800&q=80'],
+    vendorName: 'Veloce Sports',
+    isFlashSale: false,
+    averageRating: 4.9,
+    totalReviews: 160,
+    tags: ['garmin', 'gps', 'solar', 'wearables'],
+  },
+  {
+    _id: 'p21',
+    title: 'Oura Ring Gen 3 Horizon Smart Health Tracker',
+    slug: 'oura-ring-gen-3-horizon',
+    description: 'Discrete titanium smart ring providing research-grade sleep stages, readiness, and heart rate tracking.',
+    category: 'Wearables',
+    brand: 'Oura',
+    price: 349,
+    discountPrice: 299,
+    stock: 20,
+    images: ['https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=800&q=80'],
+    vendorName: 'Nexus Direct',
+    isFlashSale: true,
+    flashSaleDiscountPercent: 14,
+    averageRating: 4.7,
+    totalReviews: 210,
+    tags: ['oura-ring', 'sleep', 'biometrics', 'wearables'],
+  },
+  {
+    _id: 'p22',
+    title: 'Samsung Galaxy Watch 6 Classic Rotating Bezel',
+    slug: 'samsung-galaxy-watch-6-classic',
+    description: 'Signature physical rotating bezel with sapphire crystal glass and comprehensive body composition ECG.',
+    category: 'Wearables',
+    brand: 'Samsung',
+    price: 399,
+    discountPrice: 319,
+    stock: 22,
+    images: ['https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=800&q=80'],
+    vendorName: 'Nexus Direct',
+    isFlashSale: true,
+    flashSaleDiscountPercent: 20,
+    averageRating: 4.7,
+    totalReviews: 175,
+    tags: ['smartwatch', 'samsung', 'wearables'],
+  },
+  {
+    _id: 'p23',
+    title: 'Nomad Grade 5 Titanium Link Bracelet for Apple Watch',
+    slug: 'nomad-grade-5-titanium-band',
+    description: 'Ultra-lightweight Grade 5 titanium with custom DLC diamond-like scratch-resistant coating.',
+    category: 'Wearables',
+    brand: 'Nomad',
+    price: 299,
+    discountPrice: 249,
+    stock: 18,
+    images: ['https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800&q=80'],
+    vendorName: 'Nexus Direct',
+    isFlashSale: false,
+    averageRating: 4.8,
+    totalReviews: 89,
+    tags: ['titanium', 'watch-band', 'luxury', 'wearables'],
+  },
+  {
+    _id: 'p24',
+    title: 'Ray-Ban Meta Smart Glasses with AI & 12MP Camera',
+    slug: 'ray-ban-meta-smart-glasses',
+    description: 'Capture POV photos and 1080p video with open-ear speakers and hands-free Meta AI voice assistance.',
+    category: 'Wearables',
+    brand: 'Ray-Ban',
+    price: 299,
+    discountPrice: 269,
+    stock: 16,
+    images: ['https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=800&q=80'],
+    vendorName: 'Nexus Direct',
+    isFlashSale: false,
+    averageRating: 4.8,
+    totalReviews: 140,
+    tags: ['smart-glasses', 'meta-ai', 'camera', 'wearables'],
+  },
+
+  // --- SMART HOME & LIFESTYLE (6 Products) ---
+  {
+    _id: 'p25',
+    title: 'Philips Hue Play Gradient Ambient TV Lightstrip 65"',
+    slug: 'philips-hue-play-gradient-lightstrip',
+    description: 'Reacts in real-time to your screen content with multi-color gradient lighting immersion.',
+    category: 'Smart Home',
+    brand: 'Philips Hue',
+    price: 269,
+    discountPrice: 219,
+    stock: 15,
+    images: ['https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=800&q=80'],
+    vendorName: 'Eco Living Global',
+    isFlashSale: true,
+    flashSaleDiscountPercent: 18,
+    averageRating: 4.9,
+    totalReviews: 130,
+    tags: ['lighting', 'smart-home', 'philips-hue'],
+  },
+  {
+    _id: 'p26',
+    title: 'Dyson Purifier Hot+Cool Gen1 Air Purifier & Fan',
+    slug: 'dyson-purifier-hot-cool-gen1',
+    description: 'Fully sealed HEPA H13 filtration removes 99.97% of pollutants, with intelligent thermal regulation.',
+    category: 'Smart Home',
+    brand: 'Dyson',
+    price: 599,
+    discountPrice: 499,
+    stock: 9,
+    images: ['https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=800&q=80'],
+    vendorName: 'Eco Living Global',
+    isFlashSale: false,
+    averageRating: 4.9,
+    totalReviews: 180,
+    tags: ['purifier', 'dyson', 'smart-home', 'climate'],
+  },
+  {
+    _id: 'p27',
+    title: 'Nanoleaf Shapes Hexagons Modular LED Smart Panels',
+    slug: 'nanoleaf-shapes-hexagons-starter-kit',
+    description: 'Touch-sensitive modular smart lighting tiles with dynamic music visualizer rhythm synchronization.',
+    category: 'Smart Home',
+    brand: 'Nanoleaf',
+    price: 199,
+    discountPrice: 169,
+    stock: 24,
+    images: ['https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&q=80'],
+    vendorName: 'Eco Living Global',
+    isFlashSale: true,
+    flashSaleDiscountPercent: 15,
+    averageRating: 4.7,
+    totalReviews: 115,
+    tags: ['modular-lighting', 'rgb', 'smart-home'],
+  },
+  {
+    _id: 'p28',
+    title: 'Ecobee Smart Thermostat Premium with Voice Control',
+    slug: 'ecobee-smart-thermostat-premium',
+    description: 'Zinc bezel with built-in air quality monitor, radar occupancy sensing, and Apple HomeKit support.',
+    category: 'Smart Home',
+    brand: 'Ecobee',
+    price: 249,
+    discountPrice: 219,
+    stock: 17,
+    images: ['https://images.unsplash.com/photo-1545259741-2ea3ebf61fa3?w=800&q=80'],
+    vendorName: 'Eco Living Global',
+    isFlashSale: false,
+    averageRating: 4.8,
+    totalReviews: 95,
+    tags: ['thermostat', 'energy-saving', 'smart-home'],
+  },
+  {
+    _id: 'p29',
+    title: 'Level Lock+ Smart Deadbolt with Apple Home Key',
+    slug: 'level-lock-plus-smart-deadbolt',
+    description: 'Invisible smart lock technology hidden entirely inside the door with tap-to-unlock NFC.',
+    category: 'Smart Home',
+    brand: 'Level',
+    price: 329,
+    discountPrice: 279,
+    stock: 12,
+    images: ['https://images.unsplash.com/photo-1558002038-1055907df827?w=800&q=80'],
+    vendorName: 'Eco Living Global',
+    isFlashSale: true,
+    flashSaleDiscountPercent: 15,
+    averageRating: 4.7,
+    totalReviews: 70,
+    tags: ['smart-lock', 'security', 'homekey', 'smart-home'],
+  },
+  {
+    _id: 'p30',
+    title: 'Ember Smart Ceramic Temperature-Controlled Mug 2',
+    slug: 'ember-smart-temperature-mug-2',
+    description: 'Maintains your chosen hot beverage drinking temperature for 1.5 hours on a single charge.',
+    category: 'Smart Home',
+    brand: 'Ember',
+    price: 149,
+    discountPrice: 129,
+    stock: 30,
+    images: ['https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=800&q=80'],
+    vendorName: 'Eco Living Global',
+    isFlashSale: false,
+    averageRating: 4.9,
+    totalReviews: 240,
+    tags: ['smart-mug', 'temperature-control', 'smart-home'],
   },
 ];
 
-export default function ProductsPage() {
-  const { search, category, brand, maxPrice, minRating, sortBy, isFlashSale } = useProductStore();
+function ProductsContent() {
+  const searchParams = useSearchParams();
+  const {
+    search,
+    category,
+    brand,
+    maxPrice,
+    minRating,
+    sortBy,
+    isFlashSale,
+    setSearch,
+    setCategory,
+    resetFilters,
+  } = useProductStore();
+
   const [products, setProducts] = useState<Product[]>(FALLBACK_PRODUCTS);
-  const [isLoading, setIsLoading] = useState(false);
+
+  // Sync URL search params with store
+  useEffect(() => {
+    const urlSearch = searchParams.get('search');
+    const urlCategory = searchParams.get('category');
+    if (urlSearch !== null) setSearch(urlSearch);
+    if (urlCategory !== null) setCategory(urlCategory);
+  }, [searchParams, setSearch, setCategory]);
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      setIsLoading(true);
-      try {
-        const queryParams = new URLSearchParams();
-        if (search) queryParams.append('search', search);
-        if (category) queryParams.append('category', category);
-        if (brand) queryParams.append('brand', brand);
-        if (maxPrice) queryParams.append('maxPrice', maxPrice.toString());
-        if (minRating) queryParams.append('minRating', minRating.toString());
-        if (sortBy) queryParams.append('sortBy', sortBy);
-        if (isFlashSale) queryParams.append('isFlashSale', 'true');
+    let filtered = [...FALLBACK_PRODUCTS];
+    if (search) {
+      filtered = filtered.filter(
+        (p) =>
+          p.title.toLowerCase().includes(search.toLowerCase()) ||
+          p.description.toLowerCase().includes(search.toLowerCase()) ||
+          p.brand.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+    if (category) filtered = filtered.filter((p) => p.category.toLowerCase() === category.toLowerCase());
+    if (brand) filtered = filtered.filter((p) => p.brand.toLowerCase() === brand.toLowerCase());
+    if (isFlashSale) filtered = filtered.filter((p) => p.isFlashSale);
+    if (maxPrice) filtered = filtered.filter((p) => (p.discountPrice || p.price) <= maxPrice);
+    if (minRating) filtered = filtered.filter((p) => p.averageRating >= minRating);
 
-        const res = await fetch(`http://localhost:5000/api/products?${queryParams.toString()}`);
-        if (res.ok) {
-          const json = await res.json();
-          if (json.data?.products?.length > 0) {
-            setProducts(json.data.products);
-            return;
-          }
-        }
-      } catch (_e) {
-        // Fallback to client-side filtering on mock data if backend not yet running
-      }
+    if (sortBy === 'price_asc') filtered.sort((a, b) => (a.discountPrice || a.price) - (b.discountPrice || b.price));
+    if (sortBy === 'price_desc') filtered.sort((a, b) => (b.discountPrice || b.price) - (a.discountPrice || a.price));
+    if (sortBy === 'rating') filtered.sort((a, b) => b.averageRating - a.averageRating);
 
-      // Client-side filter fallback
-      let filtered = [...FALLBACK_PRODUCTS];
-      if (search) {
-        filtered = filtered.filter(
-          (p) =>
-            p.title.toLowerCase().includes(search.toLowerCase()) ||
-            p.description.toLowerCase().includes(search.toLowerCase())
-        );
-      }
-      if (category) filtered = filtered.filter((p) => p.category === category);
-      if (brand) filtered = filtered.filter((p) => p.brand === brand);
-      if (isFlashSale) filtered = filtered.filter((p) => p.isFlashSale);
-      if (maxPrice) filtered = filtered.filter((p) => (p.discountPrice || p.price) <= maxPrice);
-      if (minRating) filtered = filtered.filter((p) => p.averageRating >= minRating);
-
-      if (sortBy === 'price_asc') filtered.sort((a, b) => (a.discountPrice || a.price) - (b.discountPrice || b.price));
-      if (sortBy === 'price_desc') filtered.sort((a, b) => (b.discountPrice || b.price) - (a.discountPrice || a.price));
-      if (sortBy === 'rating') filtered.sort((a, b) => b.averageRating - a.averageRating);
-
-      setProducts(filtered);
-      setIsLoading(false);
-    };
-
-    fetchProducts();
+    setProducts(filtered);
   }, [search, category, brand, maxPrice, minRating, sortBy, isFlashSale]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       {/* Header Banner */}
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-indigo-900/60 via-purple-900/40 to-slate-900/80 border border-indigo-500/20 p-8 sm:p-12 mb-10 shadow-2xl">
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-indigo-950/80 via-purple-950/50 to-slate-900/90 border border-indigo-500/20 p-8 sm:p-12 mb-10 shadow-2xl backdrop-blur-2xl">
         <div className="max-w-2xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-xs font-semibold uppercase tracking-wider mb-4">
             <Sparkles className="w-3.5 h-3.5" />
-            Curated Catalog.
+            Curated Catalog & Faceted Search
           </div>
-          
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight mb-3">
-            Explore Premium Products
+          <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight mb-3">
+            Explore Premium Innovations
           </h1>
-          <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-            Discover verified tech, apparel, and lifestyle innovations with real-time stock validation and multi-criteria filters.
+          <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
+            Discover audio acoustics, workstation electronics, titanium wearables, and smart home hardware with persistent cart ordering.
           </p>
         </div>
       </div>
 
-      {/* Main Grid: Filters & Product Cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
+      {/* Main Grid Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Sidebar Filters */}
-        <aside className="lg:col-span-1 sticky top-24">
+        <aside className="lg:col-span-1">
           <ProductFilter />
         </aside>
 
         {/* Product Catalog Grid */}
         <main className="lg:col-span-3">
           <div className="flex items-center justify-between mb-6">
-            <p className="text-sm text-slate-400">
-              Showing <span className="font-semibold text-white">{products.length}</span> results
+            <p className="text-xs sm:text-sm text-slate-400">
+              Showing <span className="font-bold text-white">{products.length}</span> {products.length === 1 ? 'product' : 'products'}
             </p>
+            {(search || category || brand || isFlashSale) && (
+              <button
+                onClick={resetFilters}
+                className="inline-flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer"
+              >
+                <RotateCcw className="w-3.5 h-3.5" /> Clear active filters
+              </button>
+            )}
           </div>
 
           {products.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 px-4 bg-slate-900/40 border border-slate-800/80 rounded-2xl text-center">
-              <PackageSearch className="w-12 h-12 text-slate-600 mb-3" />
-              <h3 className="text-lg font-semibold text-slate-200 mb-1">No products found</h3>
-              <p className="text-sm text-slate-400 max-w-sm">
-                Try adjusting your search criteria or resetting filters to view all available products.
+            <div className="flex flex-col items-center justify-center py-20 px-4 bg-slate-900/40 border border-slate-800 rounded-3xl text-center">
+              <PackageSearch className="w-14 h-14 text-slate-600 mb-4" />
+              <h3 className="text-lg font-bold text-white mb-1.5">No matching products found</h3>
+              <p className="text-xs text-slate-400 max-w-sm mb-6 leading-relaxed">
+                We couldn&apos;t find any items matching your current filters. Try changing your search query or reset your filters.
               </p>
+              <button
+                onClick={resetFilters}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-lg shadow-indigo-600/30 transition-all cursor-pointer"
+              >
+                <RotateCcw className="w-3.5 h-3.5" /> Reset All Filters
+              </button>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -219,5 +657,19 @@ export default function ProductsPage() {
         </main>
       </div>
     </div>
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="max-w-7xl mx-auto px-4 py-20 text-center text-slate-400 text-sm">
+          Loading catalog...
+        </div>
+      }
+    >
+      <ProductsContent />
+    </Suspense>
   );
 }
