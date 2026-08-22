@@ -105,7 +105,7 @@ export default async function VendorShopPage({ params }: ShopPageProps) {
           </div>
         </div>
 
-        
+         {/* Storefront Catalog & Product Showcase Grid */}
         <div className="mt-12 space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold tracking-tight text-white">Store Catalog ({storeProducts.length} Items)</h2>
