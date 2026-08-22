@@ -72,7 +72,7 @@ export default async function VendorShopPage({ params }: ShopPageProps) {
         </div>
       </div>
 
-      {/* Vendor Profile Summary Bar */}
+      {/* Vendor Profile & Rating Summary Bar */}
       <div className="max-w-7xl mx-auto px-6 md:px-10 -mt-20 relative z-10">
         <div className="p-6 md:p-8 rounded-3xl bg-slate-900/80 border border-white/10 backdrop-blur-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-2xl">
           <div className="flex items-center gap-5">
