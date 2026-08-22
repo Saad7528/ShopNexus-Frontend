@@ -64,8 +64,15 @@ export const Navbar: React.FC = () => {
     { label: 'Home', href: '/' },
     { label: 'Catalog', href: '/products' },
     { label: 'Flash Deals', href: '/flash-sales', badge: 'HOT' },
-    { label: 'Vendor Hub', href: '/vendor/dashboard' },
-    { label: 'Admin Ops', href: '/admin/dashboard' },
+    ...(isMounted && user?.role === 'vendor'
+      ? [{ label: 'Vendor Hub', href: '/vendor/dashboard' }]
+      : []),
+    ...(isMounted && user?.role === 'admin'
+      ? [{ label: 'Admin Ops', href: '/admin/dashboard' }]
+      : []),
+    ...(!isMounted || !user || user.role === 'customer'
+      ? [{ label: 'Become a Seller', href: '/register' }]
+      : []),
   ];
 
   return (
@@ -74,12 +81,12 @@ export const Navbar: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 gap-4">
             {/* Brand Logo */}
-            <Link href="/" className="flex items-center gap-2.5 flex-shrink-0 group">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/25 group-hover:scale-105 transition-transform">
+            <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
+              <div className="w-10 h-10 rounded-xl bg-linear-to-tr from-indigo-600 via-indigo-500 to-purple-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/25 group-hover:scale-105 transition-transform">
                 <Layers className="w-5 h-5" />
               </div>
               <div>
-                <span className="text-lg font-black tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
+                <span className="text-lg font-black tracking-tight bg-linear-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
                   ShopNexus
                 </span>
                 <span className="hidden sm:inline-block ml-1.5 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
@@ -211,6 +218,14 @@ export const Navbar: React.FC = () => {
                         <p className="text-xs font-bold text-white truncate">{user.name}</p>
                         <p className="text-[10px] text-slate-400 truncate">{user.email}</p>
                       </div>
+                      <Link
+                        href="/profile"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
+                      >
+                        <User className="w-3.5 h-3.5 text-indigo-400" />
+                        My Profile & Orders
+                      </Link>
                       {user.role === 'vendor' && (
                         <Link
                           href="/vendor/dashboard"
@@ -225,9 +240,9 @@ export const Navbar: React.FC = () => {
                         <Link
                           href="/admin/dashboard"
                           onClick={() => setUserDropdownOpen(false)}
-                          className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
+                          className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-amber-300 hover:text-white hover:bg-amber-500/10 transition-colors"
                         >
-                          <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />
+                          <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
                           Admin Dashboard
                         </Link>
                       )}
