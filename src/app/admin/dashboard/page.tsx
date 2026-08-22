@@ -159,7 +159,7 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Chart Section */}
+        {/* 6-Month Revenue Growth & Order Trends Chart */}
         <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 backdrop-blur-xl">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
