@@ -64,8 +64,15 @@ export const Navbar: React.FC = () => {
     { label: 'Home', href: '/' },
     { label: 'Catalog', href: '/products' },
     { label: 'Flash Deals', href: '/flash-sales', badge: 'HOT' },
-    { label: 'Vendor Hub', href: '/vendor/dashboard' },
-    { label: 'Admin Ops', href: '/admin/dashboard' },
+    ...(isMounted && user?.role === 'vendor'
+      ? [{ label: 'Vendor Hub', href: '/vendor/dashboard' }]
+      : []),
+    ...(isMounted && user?.role === 'admin'
+      ? [{ label: 'Admin Ops', href: '/admin/dashboard' }]
+      : []),
+    ...(!isMounted || !user || user.role === 'customer'
+      ? [{ label: 'Become a Seller', href: '/register' }]
+      : []),
   ];
 
   return (
@@ -211,6 +218,14 @@ export const Navbar: React.FC = () => {
                         <p className="text-xs font-bold text-white truncate">{user.name}</p>
                         <p className="text-[10px] text-slate-400 truncate">{user.email}</p>
                       </div>
+                      <Link
+                        href="/profile"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
+                      >
+                        <User className="w-3.5 h-3.5 text-indigo-400" />
+                        My Profile & Orders
+                      </Link>
                       {user.role === 'vendor' && (
                         <Link
                           href="/vendor/dashboard"
@@ -225,9 +240,9 @@ export const Navbar: React.FC = () => {
                         <Link
                           href="/admin/dashboard"
                           onClick={() => setUserDropdownOpen(false)}
-                          className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
+                          className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-amber-300 hover:text-white hover:bg-amber-500/10 transition-colors"
                         >
-                          <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />
+                          <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
                           Admin Dashboard
                         </Link>
                       )}

@@ -17,6 +17,7 @@ export default function LoginPage() {
   const [isOAuthLoading, setIsOAuthLoading] = useState<'google' | 'github' | null>(null);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+  const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '366763068082-o3g1ov9e90gfibqkp4pbcetpmispn8i3.apps.googleusercontent.com';
   const GITHUB_CLIENT_ID = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID || 'Ov23liAJj2cQQR3JhrHY';
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -53,32 +54,13 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleMockLogin = async () => {
+  const handleGoogleLogin = () => {
     setIsOAuthLoading('google');
-    setError(null);
-    try {
-      // Direct 1-click Google OAuth authentication
-      const res = await fetch(`${API_URL}/auth/google`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: 'google.user@shopnexus.com',
-          name: 'Google Verified User',
-          avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
-          googleId: 'google-oauth-10023',
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Google authentication failed');
-
-      login(data.data.user, data.data.token);
-      router.push('/products');
-    } catch (err: any) {
-      setError(err.message || 'Google login failed');
-    } finally {
-      setIsOAuthLoading(null);
-    }
+    const redirectUri = typeof window !== 'undefined' ? `${window.location.origin}/api/auth/callback/google` : '';
+    const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(
+      redirectUri
+    )}&response_type=token&scope=openid%20email%20profile&include_granted_scopes=true&state=shopnexus_google_auth`;
+    window.location.href = googleAuthUrl;
   };
 
   const handleGitHubOAuth = () => {
@@ -110,7 +92,7 @@ export default function LoginPage() {
         <div className="space-y-3 mb-6">
           <button
             type="button"
-            onClick={handleGoogleMockLogin}
+            onClick={handleGoogleLogin}
             disabled={!!isOAuthLoading}
             className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-slate-950/80 hover:bg-slate-800 border border-slate-800 text-slate-200 text-xs font-semibold transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
           >
@@ -188,6 +170,12 @@ export default function LoginPage() {
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
                 Password
               </label>
+              <Link
+                href="/forgot-password"
+                className="text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 transition-colors"
+              >
+                Forgot password?
+              </Link>
             </div>
             <div className="relative">
               <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
