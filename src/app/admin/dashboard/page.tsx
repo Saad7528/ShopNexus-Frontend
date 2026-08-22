@@ -92,7 +92,7 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-       
+        {/* KPI Performance Metrics Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         
           <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 backdrop-blur-xl">
