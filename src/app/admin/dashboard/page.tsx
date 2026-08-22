@@ -47,6 +47,7 @@ const FALLBACK_METRICS: MetricsData = {
 export default function AdminDashboardPage() {
   const [metrics, setMetrics] = useState<MetricsData>(FALLBACK_METRICS);
 
+  // Telemetry & Metrics Data Fetcher
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
@@ -58,7 +59,7 @@ export default function AdminDashboardPage() {
           }
         }
       } catch (_e) {
-        // use fallback data
+        // Fallback telemetry dataset when offline
       }
     };
 
@@ -91,9 +92,9 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* KPI Cards Grid */}
+        {/* KPI Performance Metrics Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {/* Total Revenue */}
+        
           <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 backdrop-blur-xl">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Revenue</span>
@@ -158,7 +159,7 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Chart Section */}
+        {/* 6-Month Revenue Growth & Order Trends Chart */}
         <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 backdrop-blur-xl">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
