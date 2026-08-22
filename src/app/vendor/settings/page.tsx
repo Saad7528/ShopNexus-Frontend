@@ -120,7 +120,7 @@ export default function VendorSettingsPage() {
               </div>
             </div>
 
-           
+            {/* Customer Support Contact Information */}
             <div className="p-6 md:p-8 rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-xl space-y-5">
               <h2 className="text-lg font-bold text-white flex items-center gap-2">
                 <Mail className="w-5 h-5 text-indigo-400" /> Customer Support Contacts
