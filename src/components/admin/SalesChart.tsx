@@ -21,6 +21,10 @@ interface SalesChartProps {
   data: SalesDataPoint[];
 }
 
+// ==========================================
+// Sales & Order Revenue Analytics Chart Component
+// ==========================================
+
 export const SalesChart: React.FC<SalesChartProps> = ({ data }) => {
   return (
     <div className="w-full h-72">
