@@ -36,18 +36,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               Dashboard Overview
             </Link>
             <Link
-              href="/products"
+              href="/admin/inventory"
               className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition-colors"
             >
               <Package className="w-4 h-4" />
-              Products Management
+              Products & Inventory
             </Link>
             <Link
-              href="/cart"
+              href="/admin/orders"
               className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition-colors"
             >
               <ShoppingCart className="w-4 h-4" />
-              Orders & Cart
+              Orders & Fulfillment
             </Link>
             <Link
               href="/flash-sales"
@@ -56,13 +56,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Tag className="w-4 h-4" />
               Coupons & Flash Sales
             </Link>
-            <a
-              href="#"
-              className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition-colors"
-            >
-              <Users className="w-4 h-4" />
-              User RBAC Roles
-            </a>
           </nav>
         </div>
 

@@ -4,8 +4,31 @@ import React from 'react';
 import { useProductStore } from '@/store/useProductStore';
 import { Filter, RotateCcw, Search } from 'lucide-react';
 
-const CATEGORIES = ['All', 'Electronics', 'Apparel', 'Home & Living', 'Accessories', 'Audio', 'Footwear'];
-const BRANDS = ['All', 'NexusTech', 'AuraStyle', 'PureSound', 'EcoLiving', 'Veloce'];
+const CATEGORIES = [
+  'All',
+  'Audio',
+  'Wearables',
+  'Peripherals',
+  'Smart Home',
+  'Creator Gear',
+  'Gaming',
+  'Accessories',
+  'Apparel',
+];
+
+const BRANDS = [
+  'All',
+  'Sony',
+  'Apple',
+  'Bose',
+  'Keychron',
+  'Logitech',
+  'Sennheiser',
+  'Razer',
+  'Garmin',
+  'Shure',
+  'Anker',
+];
 
 export const ProductFilter: React.FC = () => {
   const {
@@ -104,16 +127,35 @@ export const ProductFilter: React.FC = () => {
         </div>
       </div>
 
-      {/* Price Range Slider */}
+      {/* Price Range Slider & Presets */}
       <div>
         <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
           <span className="font-semibold uppercase tracking-wider">Max Price</span>
-          <span className="font-bold text-white">${maxPrice}</span>
+          <span className="font-bold text-indigo-400">${maxPrice}</span>
         </div>
+
+        {/* Quick Budget Chips */}
+        <div className="grid grid-cols-4 gap-1 mb-2.5">
+          {[50, 150, 300, 1000].map((preset) => (
+            <button
+              key={preset}
+              type="button"
+              onClick={() => setPriceRange(minPrice, preset)}
+              className={`py-1 rounded-md text-[10px] font-semibold border transition-all ${
+                maxPrice === preset
+                  ? 'bg-indigo-600/30 border-indigo-500 text-indigo-300'
+                  : 'bg-slate-950/40 border-slate-800/80 text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              {preset >= 1000 ? 'All' : `<$${preset}`}
+            </button>
+          ))}
+        </div>
+
         <input
           type="range"
           min="10"
-          max="2000"
+          max="1000"
           step="10"
           value={maxPrice}
           onChange={(e) => setPriceRange(minPrice, Number(e.target.value))}
