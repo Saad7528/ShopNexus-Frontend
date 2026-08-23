@@ -9,6 +9,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useNotificationStore } from '@/store/useNotificationStore';
 import { VisualSearchModal } from '@/components/ai/VisualSearchModal';
 import { NotificationDrawer } from '@/components/notifications/NotificationDrawer';
+import { useThemeStore } from '@/store/useThemeStore';
 import {
   ShoppingBag,
   Heart,
@@ -24,6 +25,8 @@ import {
   ChevronDown,
   Bell,
   Camera,
+  Sun,
+  Moon,
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -33,6 +36,7 @@ export const Navbar: React.FC = () => {
   const { items: wishlistItems } = useWishlistStore();
   const { user, isAuthenticated, logout } = useAuthStore();
   const { unreadCount, openDrawer: openNotificationDrawer } = useNotificationStore();
+  const { theme, toggleTheme } = useThemeStore();
   const { itemCount } = getTotals();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -44,6 +48,17 @@ export const Navbar: React.FC = () => {
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Hide Navbar completely on Auth Pages and Admin Panel
+  const isAuthPage =
+    pathname === '/login' ||
+    pathname === '/register' ||
+    pathname === '/forgot-password' ||
+    pathname === '/reset-password';
+
+  const isAdminPage = pathname.startsWith('/admin');
+
+  if (isAuthPage || isAdminPage) return null;
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,10 +79,10 @@ export const Navbar: React.FC = () => {
     { label: 'Home', href: '/' },
     { label: 'Catalog', href: '/products' },
     { label: 'Flash Deals', href: '/flash-sales', badge: 'HOT' },
+    { label: 'About & FAQ', href: '/about' },
     ...(isMounted && user?.role === 'admin'
       ? [{ label: 'Admin Portal', href: '/admin/dashboard' }]
       : []),
-    ...(isMounted && user ? [{ label: 'Order Tracking', href: '/profile' }] : []),
   ];
 
   return (
@@ -139,6 +154,20 @@ export const Navbar: React.FC = () => {
 
             {/* Action Icons: Notification Bell, Wishlist, Cart Drawer, User */}
             <div className="flex items-center gap-2.5">
+              {/* Theme Toggle Button */}
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="p-2.5 rounded-xl bg-slate-900/70 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-amber-400 dark:hover:text-amber-300 transition-all cursor-pointer"
+                title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+              >
+                {isMounted && theme === 'light' ? (
+                  <Moon className="w-4 h-4 text-indigo-400" />
+                ) : (
+                  <Sun className="w-4 h-4 text-amber-400" />
+                )}
+              </button>
+
               {/* AI Visual Search Button (Mobile) */}
               <button
                 type="button"
