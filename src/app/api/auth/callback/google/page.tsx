@@ -43,7 +43,8 @@ function GoogleCallbackContent() {
           googleProfile = await profileRes.json();
         }
 
-        const backendRes = await fetch('http://localhost:5000/api/auth/google', {
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+        const backendRes = await fetch(`${API_URL}/auth/google`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -55,7 +56,13 @@ function GoogleCallbackContent() {
           }),
         });
 
-        const data = await backendRes.json();
+        let data: any = {};
+        try {
+          data = await backendRes.json();
+        } catch (_jsonErr) {
+          throw new Error(`Server returned unexpected response (${backendRes.status})`);
+        }
+
         if (!backendRes.ok || !data.success) {
           throw new Error(data.message || 'Failed to authenticate with backend.');
         }

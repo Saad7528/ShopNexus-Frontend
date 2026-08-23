@@ -30,7 +30,8 @@ export const CouponApply: React.FC = () => {
     try {
       // 1. Try Backend verification first
       try {
-        const res = await fetch('http://localhost:5000/api/coupons/validate', {
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+        const res = await fetch(`${API_URL}/coupons/validate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ code: trimmed, cartTotal: subtotal }),

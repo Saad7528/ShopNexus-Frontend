@@ -32,7 +32,12 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await res.json();
+      let data: any = {};
+      try {
+        data = await res.json();
+      } catch (_jsonErr) {
+        throw new Error(`Server connection issue (${res.status} ${res.statusText || 'Error'}). Please verify API URL.`);
+      }
 
       if (!res.ok) {
         throw new Error(data.message || 'Failed to login');
