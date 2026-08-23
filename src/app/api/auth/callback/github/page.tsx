@@ -20,13 +20,20 @@ function GitHubCallbackContent() {
           throw new Error('No authorization code returned from GitHub.');
         }
 
-        const backendRes = await fetch('http://localhost:5000/api/auth/github', {
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+        const backendRes = await fetch(`${API_URL}/auth/github`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ code }),
         });
 
-        const data = await backendRes.json();
+        let data: any = {};
+        try {
+          data = await backendRes.json();
+        } catch (_jsonErr) {
+          throw new Error(`Server returned unexpected response (${backendRes.status})`);
+        }
+
         if (!backendRes.ok || !data.success) {
           throw new Error(data.message || 'GitHub login failed.');
         }

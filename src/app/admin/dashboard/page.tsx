@@ -51,7 +51,8 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/admin/metrics');
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+        const res = await fetch(`${API_URL}/admin/metrics`);
         if (res.ok) {
           const json = await res.json();
           if (json.data) {
