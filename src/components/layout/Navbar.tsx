@@ -64,15 +64,10 @@ export const Navbar: React.FC = () => {
     { label: 'Home', href: '/' },
     { label: 'Catalog', href: '/products' },
     { label: 'Flash Deals', href: '/flash-sales', badge: 'HOT' },
-    ...(isMounted && user?.role === 'vendor'
-      ? [{ label: 'Vendor Hub', href: '/vendor/dashboard' }]
-      : []),
     ...(isMounted && user?.role === 'admin'
-      ? [{ label: 'Admin Ops', href: '/admin/dashboard' }]
+      ? [{ label: 'Admin Portal', href: '/admin/dashboard' }]
       : []),
-    ...(!isMounted || !user || user.role === 'customer'
-      ? [{ label: 'Become a Seller', href: '/register' }]
-      : []),
+    ...(isMounted && user ? [{ label: 'Order Tracking', href: '/profile' }] : []),
   ];
 
   return (

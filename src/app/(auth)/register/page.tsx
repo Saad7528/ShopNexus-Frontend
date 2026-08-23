@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
-import { UserPlus, Mail, Lock, User, Store, ArrowRight, Loader2 } from 'lucide-react';
+import { UserPlus, Mail, Lock, User, ArrowRight, Loader2 } from 'lucide-react';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -13,8 +13,6 @@ export default function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<'customer' | 'vendor'>('customer');
-  const [storeName, setStoreName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isOAuthLoading, setIsOAuthLoading] = useState<'google' | 'github' | null>(null);
@@ -29,16 +27,12 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      const payload: Record<string, string> = {
+      const payload = {
         name,
         email,
         password,
-        role,
+        role: 'customer',
       };
-
-      if (role === 'vendor') {
-        payload.storeName = storeName;
-      }
 
       const res = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
@@ -58,11 +52,7 @@ export default function RegisterPage() {
       }
 
       login(data.data.user, data.data.token);
-      if (role === 'vendor') {
-        router.push('/vendor/dashboard');
-      } else {
-        router.push('/products');
-      }
+      router.push('/products');
     } catch (err: any) {
       setError(err.message || 'An error occurred during registration.');
     } finally {
@@ -163,34 +153,6 @@ export default function RegisterPage() {
           </span>
         </div>
 
-        {/* Role Switcher */}
-        <div className="grid grid-cols-2 gap-3 mb-5">
-          <button
-            type="button"
-            onClick={() => setRole('customer')}
-            className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border text-xs font-semibold transition-all ${
-              role === 'customer'
-                ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-sm shadow-indigo-500/20'
-                : 'bg-slate-950/40 border-slate-800 text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <User className="w-4 h-4" />
-            Customer Buyer
-          </button>
-          <button
-            type="button"
-            onClick={() => setRole('vendor')}
-            className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border text-xs font-semibold transition-all ${
-              role === 'vendor'
-                ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-sm shadow-indigo-500/20'
-                : 'bg-slate-950/40 border-slate-800 text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <Store className="w-4 h-4" />
-            Vendor / Merchant
-          </button>
-        </div>
-
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
@@ -243,25 +205,6 @@ export default function RegisterPage() {
               />
             </div>
           </div>
-
-          {role === 'vendor' && (
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
-                Store / Brand Name
-              </label>
-              <div className="relative">
-                <Store className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                <input
-                  type="text"
-                  required
-                  value={storeName}
-                  onChange={(e) => setStoreName(e.target.value)}
-                  placeholder="TechNest Electronics"
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all"
-                />
-              </div>
-            </div>
-          )}
 
           <button
             type="submit"
