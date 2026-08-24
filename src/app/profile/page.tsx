@@ -27,91 +27,7 @@ import {
   Lock,
 } from 'lucide-react';
 
-interface OrderItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-  image: string;
-}
-
-interface UserOrder {
-  id: string;
-  orderNumber: string;
-  date: string;
-  items: OrderItem[];
-  subtotal: number;
-  shipping: number;
-  tax: number;
-  total: number;
-  paymentMethod: string;
-  paymentStatus: 'PAID' | 'PENDING';
-  status: 'PLACED' | 'CONFIRMED' | 'PACKAGING' | 'SHIPPED' | 'DELIVERED';
-  trackingNumber: string;
-  carrier: string;
-  estimatedDelivery: string;
-  shippingAddress: string;
-}
-
-const DEMO_ORDERS: UserOrder[] = [
-  {
-    id: 'ord_1',
-    orderNumber: 'NEX-849201',
-    date: 'August 21, 2026',
-    items: [
-      {
-        id: 'p1',
-        name: 'Sony WH-1000XM5 Wireless Headphones',
-        price: 329,
-        quantity: 1,
-        image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80',
-      },
-      {
-        id: 'p8',
-        name: 'Logitech MX Master 3S Ergonomic Mouse',
-        price: 85,
-        quantity: 1,
-        image: 'https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=800&q=80',
-      },
-    ],
-    subtotal: 414,
-    shipping: 0,
-    tax: 20.7,
-    total: 434.7,
-    paymentMethod: 'Stripe Card (•••• 4242)',
-    paymentStatus: 'PAID',
-    status: 'SHIPPED',
-    trackingNumber: 'SN-EXP-90218402',
-    carrier: 'Nexus Express Airway',
-    estimatedDelivery: 'August 24, 2026',
-    shippingAddress: 'House 42, Road 11, Banani Block-D, Dhaka 1213, Bangladesh',
-  },
-  {
-    id: 'ord_2',
-    orderNumber: 'NEX-720194',
-    date: 'August 14, 2026',
-    items: [
-      {
-        id: 'p19',
-        name: 'Apple Watch Ultra 2 Aerospace Titanium Smartwatch',
-        price: 729,
-        quantity: 1,
-        image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80',
-      },
-    ],
-    subtotal: 729,
-    shipping: 0,
-    tax: 36.45,
-    total: 765.45,
-    paymentMethod: 'SSLCommerz / bKash',
-    paymentStatus: 'PAID',
-    status: 'DELIVERED',
-    trackingNumber: 'SN-EXP-55910283',
-    carrier: 'Pathao Courier Priority',
-    estimatedDelivery: 'August 17, 2026',
-    shippingAddress: 'House 42, Road 11, Banani Block-D, Dhaka 1213, Bangladesh',
-  },
-];
+import { useOrderStore, UserOrder } from '@/store/useOrderStore';
 
 const PRESET_AVATARS = [
   'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&q=80',
@@ -124,8 +40,15 @@ const PRESET_AVATARS = [
 export default function ProfilePage() {
   const router = useRouter();
   const { user, token, setUser, logout, isAuthenticated } = useAuthStore();
-  const [activeTab, setActiveTab] = useState<'profile' | 'orders' | 'security'>('profile');
-  const [selectedOrder, setSelectedOrder] = useState<UserOrder | null>(DEMO_ORDERS[0]);
+  const { orders: userOrders } = useOrderStore();
+  const [activeTab, setActiveTab] = useState<'profile' | 'orders' | 'security'>('orders');
+  const [selectedOrder, setSelectedOrder] = useState<UserOrder | null>(null);
+
+  useEffect(() => {
+    if (userOrders && userOrders.length > 0 && !selectedOrder) {
+      setSelectedOrder(userOrders[0]);
+    }
+  }, [userOrders, selectedOrder]);
 
   // Form State
   const [name, setName] = useState('');
@@ -334,7 +257,7 @@ export default function ProfilePage() {
             >
               <Package className="w-4 h-4" /> Order History & Live Tracking
               <span className="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-[10px] font-mono font-bold">
-                {DEMO_ORDERS.length}
+                {userOrders.length}
               </span>
             </button>
             <button
@@ -516,67 +439,77 @@ export default function ProfilePage() {
             {/* Orders List */}
             <div className="lg:col-span-5 space-y-4">
               <h2 className="text-sm font-bold uppercase tracking-wider text-slate-300">
-                Purchased Orders ({DEMO_ORDERS.length})
+                Purchased Orders ({userOrders.length})
               </h2>
 
               <div className="space-y-3">
-                {DEMO_ORDERS.map((order) => {
-                  const isSelected = selectedOrder?.id === order.id;
-                  return (
-                    <div
-                      key={order.id}
-                      onClick={() => setSelectedOrder(order)}
-                      className={`p-5 rounded-2xl border transition-all cursor-pointer ${
-                        isSelected
-                          ? 'bg-indigo-950/40 border-indigo-500/50 shadow-xl shadow-indigo-950/50 ring-1 ring-indigo-500/20'
-                          : 'bg-slate-900/60 border-slate-800 hover:border-slate-700'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs font-mono font-bold text-white">{order.orderNumber}</span>
-                        <span
-                          className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
-                            order.status === 'DELIVERED'
-                              ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
-                              : 'bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 animate-pulse'
-                          }`}
-                        >
-                          {order.status}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="flex -space-x-3 overflow-hidden">
-                          {order.items.map((item, i) => (
-                            <div
-                              key={i}
-                              className="relative inline-block h-10 w-10 rounded-xl overflow-hidden ring-2 ring-slate-900 bg-slate-800"
-                            >
-                              <Image
-                                src={item.image}
-                                alt={item.name}
-                                fill
-                                sizes="40px"
-                                className="object-cover"
-                              />
-                            </div>
-                          ))}
+                {userOrders.length === 0 ? (
+                  <div className="p-8 text-center bg-slate-900/60 border border-slate-800 rounded-2xl">
+                    <Package className="w-8 h-8 text-slate-500 mx-auto mb-2" />
+                    <p className="text-sm text-slate-300 font-bold">No orders placed yet</p>
+                    <p className="text-xs text-slate-500 mt-1">Browse our store and place your first order!</p>
+                  </div>
+                ) : (
+                  userOrders.map((order) => {
+                    const isSelected = selectedOrder?.id === order.id;
+                    return (
+                      <div
+                        key={order.id}
+                        onClick={() => setSelectedOrder(order)}
+                        className={`p-5 rounded-2xl border transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-indigo-950/40 border-indigo-500/50 shadow-xl shadow-indigo-950/50 ring-1 ring-indigo-500/20'
+                            : 'bg-slate-900/60 border-slate-800 hover:border-slate-700'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-mono text-xs font-bold text-indigo-400">
+                            {order.orderNumber}
+                          </span>
+                          <span
+                            className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                              order.status === 'DELIVERED'
+                                ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
+                                : 'bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 animate-pulse'
+                            }`}
+                          >
+                            {order.status}
+                          </span>
                         </div>
-                        <div className="text-xs text-slate-400">
-                          {order.items.length} {order.items.length === 1 ? 'item' : 'items'} •{' '}
-                          <span className="font-bold text-white">${order.total.toFixed(2)}</span>
+
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="flex -space-x-3 overflow-hidden">
+                            {order.items.map((item, i) => (
+                              <div
+                                key={i}
+                                className="relative inline-block h-10 w-10 rounded-xl overflow-hidden ring-2 ring-slate-900 bg-slate-800"
+                              >
+                                <Image
+                                  src={item.image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200'}
+                                  alt={item.name}
+                                  fill
+                                  sizes="40px"
+                                  className="object-cover"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                          <div className="text-xs text-slate-400">
+                            {order.items.length} {order.items.length === 1 ? 'item' : 'items'} •{' '}
+                            <span className="font-bold text-white font-mono">৳{order.total.toLocaleString()} BDT</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between text-[11px] text-slate-500 pt-2 border-t border-slate-800/80">
+                          <span>{order.date}</span>
+                          <span className="text-indigo-400 font-semibold flex items-center gap-1">
+                            View Live Tracking <ChevronRight className="w-3 h-3" />
+                          </span>
                         </div>
                       </div>
-
-                      <div className="flex items-center justify-between text-[11px] text-slate-500 pt-2 border-t border-slate-800/80">
-                        <span>{order.date}</span>
-                        <span className="text-indigo-400 font-semibold flex items-center gap-1">
-                          View Live Tracking <ChevronRight className="w-3 h-3" />
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                )}
               </div>
             </div>
 
@@ -698,7 +631,7 @@ export default function ProfilePage() {
                             </div>
                           </div>
                           <span className="text-xs font-mono font-bold text-white">
-                            ${(item.price * item.quantity).toFixed(2)}
+                            ৳{(item.price * item.quantity).toLocaleString()}
                           </span>
                         </div>
                       ))}
@@ -709,7 +642,7 @@ export default function ProfilePage() {
                   <div className="pt-4 border-t border-slate-800 flex items-center justify-between text-sm">
                     <span className="text-slate-400">Total Charged ({selectedOrder.paymentMethod}):</span>
                     <span className="text-base font-mono font-black text-indigo-400">
-                      ${selectedOrder.total.toFixed(2)}
+                      ৳{selectedOrder.total.toLocaleString()} BDT
                     </span>
                   </div>
                 </div>

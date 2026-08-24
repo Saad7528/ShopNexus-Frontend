@@ -46,14 +46,14 @@ export default function CartPage() {
           <div className="space-y-2">
             <h1 className="text-3xl font-extrabold text-white tracking-tight">Your Cart is Empty</h1>
             <p className="text-slate-400 text-sm leading-relaxed">
-              Explore our catalog of premium electronics, audio gear, and lifestyle products.
+              Explore our catalog of official high-performance electronics and audio equipment.
             </p>
           </div>
           <Link
             href="/products"
             className="inline-flex items-center justify-center gap-2 w-full py-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold shadow-lg shadow-indigo-600/30 transition-all"
           >
-            Browse Products
+            Browse Products (৳ BDT)
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
@@ -73,13 +73,13 @@ export default function CartPage() {
         </div>
         <button
           onClick={clearCart}
-          className="inline-flex items-center gap-1.5 text-xs text-rose-400 hover:text-rose-300 transition-colors self-start sm:self-auto p-2 rounded-lg hover:bg-rose-500/10"
+          className="inline-flex items-center gap-1.5 text-xs text-rose-400 hover:text-rose-300 transition-colors self-start sm:self-auto p-2 rounded-lg hover:bg-rose-500/10 cursor-pointer"
         >
           <Trash2 className="w-4 h-4" /> Clear All Items
         </button>
       </div>
 
-      {/* Free Shipping Progress Banner */}
+      {/* Free Shipping Progress Banner in ৳ BDT */}
       <div className="mb-8 p-4 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur-xl">
         <div className="flex items-center justify-between text-xs sm:text-sm mb-2">
           <div className="flex items-center gap-2">
@@ -90,7 +90,7 @@ export default function CartPage() {
               </span>
             ) : (
               <span className="text-slate-300">
-                Add <strong className="text-white font-bold">${amountUntilFreeShipping.toFixed(2)}</strong> more to unlock <strong className="text-emerald-400">FREE Standard Delivery</strong>
+                Add <strong className="text-white font-bold font-mono">৳{amountUntilFreeShipping.toLocaleString()}</strong> more to unlock <strong className="text-emerald-400">FREE Standard Delivery</strong>
               </span>
             )}
           </div>
@@ -117,7 +117,7 @@ export default function CartPage() {
             ))}
           </div>
 
-          {/* Delivery Options Selector */}
+          {/* Delivery Options Selector in ৳ BDT */}
           <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 backdrop-blur-xl space-y-4">
             <h3 className="text-base font-bold text-white flex items-center gap-2">
               <Truck className="w-4 h-4 text-indigo-400" /> Shipping & Delivery Method
@@ -137,15 +137,15 @@ export default function CartPage() {
                     name="shipping"
                     checked={shippingMethod === 'standard'}
                     onChange={() => setShippingMethod('standard')}
-                    className="mt-1 text-indigo-600"
+                    className="mt-1 text-indigo-600 cursor-pointer"
                   />
                   <div>
-                    <p className="text-xs font-bold text-white">Standard Courier</p>
-                    <p className="text-[11px] text-slate-400 mt-0.5">3-5 Business Days Delivery</p>
+                    <p className="text-xs font-bold text-white">Inside Dhaka (Standard)</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">24-48 Hours Delivery</p>
                   </div>
                 </div>
-                <span className="text-xs font-bold text-white">
-                  {subtotal >= 150 ? <span className="text-emerald-400">FREE</span> : '$15.00'}
+                <span className="text-xs font-bold text-white font-mono">
+                  {subtotal >= 50000 ? <span className="text-emerald-400">FREE</span> : '৳60'}
                 </span>
               </label>
 
@@ -163,16 +163,16 @@ export default function CartPage() {
                     name="shipping"
                     checked={shippingMethod === 'express'}
                     onChange={() => setShippingMethod('express')}
-                    className="mt-1 text-indigo-600"
+                    className="mt-1 text-indigo-600 cursor-pointer"
                   />
                   <div>
                     <p className="text-xs font-bold text-white flex items-center gap-1">
-                      <Zap className="w-3.5 h-3.5 text-amber-400" /> Express Air Express
+                      <Zap className="w-3.5 h-3.5 text-amber-400" /> Outside Dhaka (All BD)
                     </p>
-                    <p className="text-[11px] text-slate-400 mt-0.5">Next-Day Priority Guaranteed</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Nationwide 48-72 Hours Priority</p>
                   </div>
                 </div>
-                <span className="text-xs font-bold text-white">$25.00</span>
+                <span className="text-xs font-bold text-white font-mono">৳120</span>
               </label>
             </div>
           </div>
@@ -186,8 +186,8 @@ export default function CartPage() {
             </div>
             <div className="p-4 rounded-xl bg-slate-900/40 border border-slate-800 flex flex-col items-center gap-2">
               <Truck className="w-6 h-6 text-indigo-400" />
-              <span className="font-semibold text-slate-200">Insured Worldwide Dispatch</span>
-              <span className="text-[11px] text-slate-500">Real-time live tracking updates</span>
+              <span className="font-semibold text-slate-200">Official Bangladesh Dispatch</span>
+              <span className="text-[11px] text-slate-500">Real-time parcel live tracking</span>
             </div>
             <div className="p-4 rounded-xl bg-slate-900/40 border border-slate-800 flex flex-col items-center gap-2">
               <RefreshCw className="w-6 h-6 text-purple-400" />
@@ -205,29 +205,29 @@ export default function CartPage() {
             <div className="space-y-3 text-xs sm:text-sm text-slate-300 pb-4 border-b border-slate-800">
               <div className="flex justify-between">
                 <span>Items Subtotal ({itemCount})</span>
-                <span className="font-semibold text-white font-mono">${subtotal.toFixed(2)}</span>
+                <span className="font-semibold text-white font-mono">৳{subtotal.toLocaleString()}</span>
               </div>
               {discount > 0 && (
                 <div className="flex justify-between text-emerald-400 font-medium">
                   <span>Coupon Savings</span>
-                  <span className="font-mono">-${discount.toFixed(2)}</span>
+                  <span className="font-mono">-৳{discount.toLocaleString()}</span>
                 </div>
               )}
               <div className="flex justify-between">
                 <span>Delivery Charge</span>
                 <span className="font-mono">
-                  {shippingFee === 0 ? <span className="text-emerald-400 font-semibold">FREE</span> : `$${shippingFee.toFixed(2)}`}
+                  {shippingFee === 0 ? <span className="text-emerald-400 font-semibold">FREE</span> : `৳${shippingFee.toLocaleString()}`}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span>Estimated Tax (5%)</span>
-                <span className="font-semibold text-white font-mono">${tax.toFixed(2)}</span>
+                <span>Estimated VAT (5%)</span>
+                <span className="font-semibold text-white font-mono">৳{tax.toLocaleString()}</span>
               </div>
             </div>
 
             <div className="flex justify-between items-baseline py-2 text-white">
               <span className="text-sm font-semibold">Total Amount</span>
-              <span className="text-2xl font-black text-indigo-400 font-mono">${total.toFixed(2)}</span>
+              <span className="text-2xl font-black text-indigo-400 font-mono">৳{total.toLocaleString()} BDT</span>
             </div>
 
             {/* Coupon Application Box */}
@@ -241,7 +241,7 @@ export default function CartPage() {
               href="/checkout"
               className="w-full flex items-center justify-center gap-2 py-4 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition-all text-sm active:scale-[0.99]"
             >
-              Proceed to Checkout
+              Proceed to Checkout (৳ BDT)
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
