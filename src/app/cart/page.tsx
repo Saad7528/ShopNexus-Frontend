@@ -186,8 +186,8 @@ export default function CartPage() {
             </div>
             <div className="p-4 rounded-xl bg-slate-900/40 border border-slate-800 flex flex-col items-center gap-2">
               <Truck className="w-6 h-6 text-indigo-400" />
-              <span className="font-semibold text-slate-200">Insured Worldwide Dispatch</span>
-              <span className="text-[11px] text-slate-500">Real-time live tracking updates</span>
+              <span className="font-semibold text-slate-200">Official Bangladesh Dispatch</span>
+              <span className="text-[11px] text-slate-500">Real-time parcel live tracking</span>
             </div>
             <div className="p-4 rounded-xl bg-slate-900/40 border border-slate-800 flex flex-col items-center gap-2">
               <RefreshCw className="w-6 h-6 text-purple-400" />
@@ -205,29 +205,29 @@ export default function CartPage() {
             <div className="space-y-3 text-xs sm:text-sm text-slate-300 pb-4 border-b border-slate-800">
               <div className="flex justify-between">
                 <span>Items Subtotal ({itemCount})</span>
-                <span className="font-semibold text-white font-mono">${subtotal.toFixed(2)}</span>
+                <span className="font-semibold text-white font-mono">৳{subtotal.toLocaleString()}</span>
               </div>
               {discount > 0 && (
                 <div className="flex justify-between text-emerald-400 font-medium">
                   <span>Coupon Savings</span>
-                  <span className="font-mono">-${discount.toFixed(2)}</span>
+                  <span className="font-mono">-৳{discount.toLocaleString()}</span>
                 </div>
               )}
               <div className="flex justify-between">
                 <span>Delivery Charge</span>
                 <span className="font-mono">
-                  {shippingFee === 0 ? <span className="text-emerald-400 font-semibold">FREE</span> : `$${shippingFee.toFixed(2)}`}
+                  {shippingFee === 0 ? <span className="text-emerald-400 font-semibold">FREE</span> : `৳${shippingFee.toLocaleString()}`}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span>Estimated Tax (5%)</span>
-                <span className="font-semibold text-white font-mono">${tax.toFixed(2)}</span>
+                <span>Estimated VAT (5%)</span>
+                <span className="font-semibold text-white font-mono">৳{tax.toLocaleString()}</span>
               </div>
             </div>
 
             <div className="flex justify-between items-baseline py-2 text-white">
               <span className="text-sm font-semibold">Total Amount</span>
-              <span className="text-2xl font-black text-indigo-400 font-mono">${total.toFixed(2)}</span>
+              <span className="text-2xl font-black text-indigo-400 font-mono">৳{total.toLocaleString()} BDT</span>
             </div>
 
             {/* Coupon Application Box */}
@@ -241,7 +241,7 @@ export default function CartPage() {
               href="/checkout"
               className="w-full flex items-center justify-center gap-2 py-4 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition-all text-sm active:scale-[0.99]"
             >
-              Proceed to Checkout
+              Proceed to Checkout (৳ BDT)
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
