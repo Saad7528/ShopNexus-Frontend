@@ -75,7 +75,7 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
                   <p className="text-xs text-slate-400 mt-1">{m.desc}</p>
                 </div>
               </div>
-
+              
               <div
                 className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-1 ${
                   isSelected ? 'border-indigo-500 bg-indigo-600' : 'border-slate-600'
