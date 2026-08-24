@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useChatbotStore } from '@/store/useChatbotStore';
 import { useCartStore } from '@/store/useCartStore';
 import {
@@ -21,6 +22,13 @@ import {
 } from 'lucide-react';
 
 export const ChatbotWidget: React.FC = () => {
+  const pathname = usePathname();
+  const isAuthPage =
+    pathname === '/login' ||
+    pathname === '/register' ||
+    pathname === '/forgot-password' ||
+    pathname === '/reset-password';
+
   const {
     isOpen,
     messages,
@@ -46,10 +54,12 @@ export const ChatbotWidget: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
 
+  if (isAuthPage) return null;
+
   const quickPrompts = [
-    { label: '🎧 Under $150 Audio', budget: 150, category: 'Audio' },
-    { label: '💻 Best Tech Setup', budget: 500, category: 'Electronics' },
-    { label: '⚡ Top Deals', budget: 100, category: 'All' },
+    { label: '🎧 Under ৳15,000 Audio', budget: 15000, category: 'Audio' },
+    { label: '💻 Best Tech Setup', budget: 50000, category: 'Electronics' },
+    { label: '⚡ Top Deals', budget: 10000, category: 'All' },
   ];
 
   const handleSendMessage = async (customText?: string, customBudget?: number, customCategory?: string) => {
@@ -317,7 +327,7 @@ export const ChatbotWidget: React.FC = () => {
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder="Ask anything (e.g., 'Laptop stand under $40')..."
+              placeholder="Ask anything (e.g., 'Laptop stand under ৳4,000')..."
               className="flex-1 px-3.5 py-2 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/40 font-sans"
             />
             <button
