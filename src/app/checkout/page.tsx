@@ -4,8 +4,11 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCartStore } from '@/store/useCartStore';
+import { useOrderStore } from '@/store/useOrderStore';
+import { useAuthStore } from '@/store/useAuthStore';
 import { AddressSelector, IShippingAddressForm } from '@/components/checkout/AddressSelector';
 import { PaymentMethodSelector, PaymentMethod } from '@/components/checkout/PaymentMethodSelector';
+import { MfsPaymentModal } from '@/components/checkout/MfsPaymentModal';
 import {
   ShieldCheck,
   CreditCard,
@@ -15,41 +18,110 @@ import {
   ArrowLeft,
   ArrowRight,
   Truck,
+  Building2,
+  Smartphone,
+  MessageSquare,
+  AlertCircle,
+  UserCheck,
 } from 'lucide-react';
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, clearCart } = useCartStore();
+  const { user } = useAuthStore();
 
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
+  const [deliveryZone, setDeliveryZone] = useState<'inside_dhaka' | 'outside_dhaka'>('inside_dhaka');
   const [shippingAddress, setShippingAddress] = useState<IShippingAddressForm>({
-    fullName: 'S.M. Amirul Islam Saad',
-    phoneNumber: '+880 1712-345678',
-    streetAddress: 'House 42, Road 11, Banani Block-D',
-    city: 'Dhaka',
+    fullName: user?.name || '',
+    phoneNumber: user?.phoneNumber || '+880 1',
+    streetAddress: user?.address || '',
+    city: user?.city || 'Dhaka',
     state: 'Dhaka Division',
-    zipCode: '1213',
+    zipCode: user?.zipCode || '1213',
     country: 'Bangladesh',
   });
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('stripe_card');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('mfs_bkash_nagad');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isMfsModalOpen, setIsMfsModalOpen] = useState(false);
+  const [mfsProvider, setMfsProvider] = useState<'bkash' | 'nagad'>('bkash');
+  const [smsNotificationToast, setSmsNotificationToast] = useState<{
+    phone: string;
+    msg: string;
+  } | null>(null);
 
+  // Dynamic delivery fee calculation: Inside Dhaka ৳60, Outside Dhaka ৳120
+  const deliveryFee = deliveryZone === 'inside_dhaka' ? 60 : 120;
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const shippingFee = subtotal > 150 || items.length === 0 ? 0 : 15;
-  const tax = subtotal * 0.05;
-  const total = subtotal + shippingFee + tax;
+  const vatTax = Math.round(subtotal * 0.05);
+  const total = subtotal + deliveryFee + vatTax;
 
-  const handleCompleteOrder = () => {
-    setIsProcessing(true);
+  const handleMfsPaymentSuccess = (trxId: string) => {
+    setIsMfsModalOpen(false);
+    completeOrderFinal(trxId);
+  };
+
+  const handleInitiateOrder = () => {
+    if (paymentMethod === 'mfs_bkash_nagad') {
+      setIsMfsModalOpen(true);
+    } else {
+      setIsProcessing(true);
+      setTimeout(() => {
+        completeOrderFinal('COD-VERIFIED');
+      }, 1200);
+    }
+  };
+
+  const completeOrderFinal = (trxId: string) => {
+    const mockOrderId = `NX-ORD-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    // Show simulated SMS alert
+    setSmsNotificationToast({
+      phone: shippingAddress.phoneNumber,
+      msg: `ShopNexus Order #${mockOrderId} Confirmed! Total ৳${total.toLocaleString()} BDT. Trx: ${trxId}. Delivery via Pathao Express.`,
+    });
+
+    // Persist order to useOrderStore for customer order history
+    const newOrderObj = {
+      id: `ord_${Date.now()}`,
+      orderNumber: mockOrderId,
+      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      items: items.map((it, idx) => ({
+        id: `item_${idx}`,
+        name: it.title,
+        price: it.price,
+        quantity: it.quantity,
+        image: it.image,
+      })),
+      subtotal,
+      shipping: deliveryFee,
+      tax: vatTax,
+      total,
+      paymentMethod:
+        paymentMethod === 'mfs_bkash_nagad'
+          ? `${mfsProvider === 'bkash' ? 'bKash' : 'Nagad'} Instant (${trxId})`
+          : paymentMethod === 'cash_on_delivery'
+          ? 'Cash on Delivery (COD)'
+          : 'Stripe Card (PAID)',
+      paymentStatus: (paymentMethod === 'cash_on_delivery' ? 'PENDING' : 'PAID') as 'PAID' | 'PENDING',
+      status: 'CONFIRMED' as const,
+      trackingNumber: `TRK-NX-${Math.floor(10000 + Math.random() * 90000)}`,
+      carrier: deliveryZone === 'inside_dhaka' ? 'Pathao Courier Express' : 'Steadfast Logistics',
+      estimatedDelivery: deliveryZone === 'inside_dhaka' ? 'Tomorrow, within 24h' : 'Within 48-72h',
+      shippingAddress: `${shippingAddress.streetAddress}, ${shippingAddress.city}, ${shippingAddress.country}`,
+    };
+
+    // Save to persistent customer order history
+    useOrderStore.getState().addOrder(newOrderObj);
+
     setTimeout(() => {
       clearCart();
-      const mockOrderId = `NEX-${Date.now().toString().slice(-6)}`;
-      router.push(`/checkout/success?orderId=${mockOrderId}&total=${total.toFixed(2)}`);
-    }, 1500);
+      router.push(`/checkout/success?orderId=${mockOrderId}&total=${total}&trx=${trxId}`);
+    }, 2800);
   };
 
   return (
-    <div className="min-h-screen bg-[#0b0f19] text-white p-6 md:p-10">
+    <div className="min-h-screen bg-[#0b0f19] text-white p-4 sm:p-6 md:p-10">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Top bar */}
         <div className="flex items-center justify-between">
@@ -60,16 +132,31 @@ export default function CheckoutPage() {
             <ArrowLeft className="w-4 h-4" /> Back to Cart
           </Link>
           <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-semibold bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20">
-            <Lock className="w-3.5 h-3.5" /> End-to-End SSL Encrypted
+            <Lock className="w-3.5 h-3.5" /> 256-Bit SSL Encrypted Checkout
           </div>
         </div>
+
+        {/* 📱 Simulated Live SMS Toast Notification */}
+        {smsNotificationToast && (
+          <div className="fixed top-6 right-6 z-50 max-w-sm bg-slate-900 border border-emerald-500/40 rounded-2xl p-4 shadow-2xl space-y-2 animate-slideDown">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-bold text-emerald-400 flex items-center gap-1.5">
+                <MessageSquare className="w-4 h-4" /> 📩 SMS Gateway Alert
+              </span>
+              <span className="font-mono text-[10px] text-slate-500">To: {smsNotificationToast.phone}</span>
+            </div>
+            <p className="text-xs text-slate-200 font-mono leading-relaxed bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+              {smsNotificationToast.msg}
+            </p>
+          </div>
+        )}
 
         {/* Step Indicator */}
         <div className="grid grid-cols-3 gap-2 sm:gap-4 max-w-2xl mx-auto">
           {[
-            { step: 1, label: 'Shipping', icon: MapPin },
-            { step: 2, label: 'Payment', icon: CreditCard },
-            { step: 3, label: 'Review', icon: CheckCircle2 },
+            { step: 1, label: 'Delivery Zone', icon: MapPin },
+            { step: 2, label: 'Payment Gateway', icon: CreditCard },
+            { step: 3, label: 'Review & Place', icon: CheckCircle2 },
           ].map((s) => {
             const Icon = s.icon;
             const isActive = currentStep === s.step;
@@ -84,7 +171,7 @@ export default function CheckoutPage() {
                     ? 'bg-indigo-600/20 border-indigo-500 text-white ring-2 ring-indigo-500/30'
                     : isDone
                     ? 'bg-slate-900/80 border-emerald-500/40 text-emerald-400'
-                    : 'bg-slate-900/40 border-white/5 text-slate-500'
+                    : 'bg-slate-900/40 border-slate-800 text-slate-500'
                 }`}
               >
                 <div
