@@ -49,10 +49,10 @@ export const CartItem: React.FC<CartItemProps> = ({ item }) => {
         </div>
 
         <div className="flex items-center justify-between mt-2.5">
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-xs font-bold text-white">${(item.price * item.quantity).toFixed(2)}</span>
+          <div className="flex items-baseline gap-1.5 font-mono">
+            <span className="text-xs font-bold text-white">৳{(item.price * item.quantity).toLocaleString()}</span>
             {item.quantity > 1 && (
-              <span className="text-[10px] text-slate-500">(${item.price.toFixed(2)}/ea)</span>
+              <span className="text-[10px] text-slate-500">(৳{item.price.toLocaleString()}/ea)</span>
             )}
           </div>
 
