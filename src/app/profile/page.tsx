@@ -27,91 +27,7 @@ import {
   Lock,
 } from 'lucide-react';
 
-interface OrderItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-  image: string;
-}
-
-interface UserOrder {
-  id: string;
-  orderNumber: string;
-  date: string;
-  items: OrderItem[];
-  subtotal: number;
-  shipping: number;
-  tax: number;
-  total: number;
-  paymentMethod: string;
-  paymentStatus: 'PAID' | 'PENDING';
-  status: 'PLACED' | 'CONFIRMED' | 'PACKAGING' | 'SHIPPED' | 'DELIVERED';
-  trackingNumber: string;
-  carrier: string;
-  estimatedDelivery: string;
-  shippingAddress: string;
-}
-
-const DEMO_ORDERS: UserOrder[] = [
-  {
-    id: 'ord_1',
-    orderNumber: 'NEX-849201',
-    date: 'August 21, 2026',
-    items: [
-      {
-        id: 'p1',
-        name: 'Sony WH-1000XM5 Wireless Headphones',
-        price: 329,
-        quantity: 1,
-        image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80',
-      },
-      {
-        id: 'p8',
-        name: 'Logitech MX Master 3S Ergonomic Mouse',
-        price: 85,
-        quantity: 1,
-        image: 'https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=800&q=80',
-      },
-    ],
-    subtotal: 414,
-    shipping: 0,
-    tax: 20.7,
-    total: 434.7,
-    paymentMethod: 'Stripe Card (•••• 4242)',
-    paymentStatus: 'PAID',
-    status: 'SHIPPED',
-    trackingNumber: 'SN-EXP-90218402',
-    carrier: 'Nexus Express Airway',
-    estimatedDelivery: 'August 24, 2026',
-    shippingAddress: 'House 42, Road 11, Banani Block-D, Dhaka 1213, Bangladesh',
-  },
-  {
-    id: 'ord_2',
-    orderNumber: 'NEX-720194',
-    date: 'August 14, 2026',
-    items: [
-      {
-        id: 'p19',
-        name: 'Apple Watch Ultra 2 Aerospace Titanium Smartwatch',
-        price: 729,
-        quantity: 1,
-        image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80',
-      },
-    ],
-    subtotal: 729,
-    shipping: 0,
-    tax: 36.45,
-    total: 765.45,
-    paymentMethod: 'SSLCommerz / bKash',
-    paymentStatus: 'PAID',
-    status: 'DELIVERED',
-    trackingNumber: 'SN-EXP-55910283',
-    carrier: 'Pathao Courier Priority',
-    estimatedDelivery: 'August 17, 2026',
-    shippingAddress: 'House 42, Road 11, Banani Block-D, Dhaka 1213, Bangladesh',
-  },
-];
+import { useOrderStore, UserOrder } from '@/store/useOrderStore';
 
 const PRESET_AVATARS = [
   'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&q=80',
@@ -124,8 +40,15 @@ const PRESET_AVATARS = [
 export default function ProfilePage() {
   const router = useRouter();
   const { user, token, setUser, logout, isAuthenticated } = useAuthStore();
-  const [activeTab, setActiveTab] = useState<'profile' | 'orders' | 'security'>('profile');
-  const [selectedOrder, setSelectedOrder] = useState<UserOrder | null>(DEMO_ORDERS[0]);
+  const { orders: userOrders } = useOrderStore();
+  const [activeTab, setActiveTab] = useState<'profile' | 'orders' | 'security'>('orders');
+  const [selectedOrder, setSelectedOrder] = useState<UserOrder | null>(null);
+
+  useEffect(() => {
+    if (userOrders && userOrders.length > 0 && !selectedOrder) {
+      setSelectedOrder(userOrders[0]);
+    }
+  }, [userOrders, selectedOrder]);
 
   // Form State
   const [name, setName] = useState('');
