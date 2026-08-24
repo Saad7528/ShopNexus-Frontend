@@ -26,29 +26,29 @@ function SuccessContent() {
 
       <div className="p-4 rounded-2xl bg-slate-800/60 border border-white/5 space-y-2 text-sm text-left">
         <div className="flex justify-between">
-          <span className="text-slate-400">Order Tracking Number:</span>
+          <span className="text-slate-400">Order Invoice ID:</span>
           <span className="font-mono font-bold text-white">{orderId}</span>
         </div>
         <div className="flex justify-between">
           <span className="text-slate-400">Total Charged:</span>
-          <span className="font-mono font-bold text-emerald-400">${total}</span>
+          <span className="font-mono font-bold text-emerald-400">৳{Number(total).toLocaleString()} BDT</span>
         </div>
         <div className="flex justify-between">
           <span className="text-slate-400">Estimated Delivery:</span>
-          <span className="font-medium text-white">Within 2 - 3 Business Days</span>
+          <span className="font-medium text-white">Within 24 - 48 Hours</span>
         </div>
       </div>
 
       <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
         <Link
-          href="/"
-          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-white/10 hover:bg-white/15 text-white font-semibold text-sm transition-colors"
+          href="/profile"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 transition-all cursor-pointer"
         >
-          <Home className="w-4 h-4" /> Return Home
+          <Package className="w-4 h-4" /> View Order in Profile
         </Link>
         <Link
           href="/products"
-          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm shadow-lg shadow-indigo-600/30 transition-all"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs transition-all cursor-pointer"
         >
           Continue Shopping <ArrowRight className="w-4 h-4" />
         </Link>
