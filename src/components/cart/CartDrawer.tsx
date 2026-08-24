@@ -54,7 +54,7 @@ export const CartDrawer: React.FC = () => {
                     </span>
                   ) : (
                     <span>
-                      Add <strong className="text-white">${amountUntilFreeShipping.toFixed(2)}</strong> more for <strong>FREE Delivery</strong>
+                      Add <strong className="text-white font-mono">৳{amountUntilFreeShipping.toLocaleString()}</strong> more for <strong>FREE Delivery</strong>
                     </span>
                   )}
                 </span>
@@ -103,27 +103,27 @@ export const CartDrawer: React.FC = () => {
               <div className="space-y-1.5 text-xs text-slate-400">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span className="font-semibold text-slate-200">${subtotal.toFixed(2)}</span>
+                  <span className="font-semibold text-slate-200 font-mono">৳{subtotal.toLocaleString()}</span>
                 </div>
                 {discount > 0 && (
                   <div className="flex justify-between text-emerald-400">
                     <span>Coupon Discount</span>
-                    <span>-${discount.toFixed(2)}</span>
+                    <span className="font-mono">-৳{discount.toLocaleString()}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
                   <span>Estimated Delivery</span>
-                  <span className={shippingFee === 0 ? 'text-emerald-400 font-semibold' : 'text-slate-200'}>
-                    {shippingFee === 0 ? 'FREE' : `$${shippingFee.toFixed(2)}`}
+                  <span className={shippingFee === 0 ? 'text-emerald-400 font-semibold' : 'text-slate-200 font-mono'}>
+                    {shippingFee === 0 ? 'FREE' : `৳${shippingFee.toLocaleString()}`}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Estimated Tax (5%)</span>
-                  <span className="font-semibold text-slate-200">${tax.toFixed(2)}</span>
+                  <span>Estimated VAT (5%)</span>
+                  <span className="font-semibold text-slate-200 font-mono">৳{tax.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-base font-bold text-white pt-2.5 border-t border-slate-800">
                   <span>Total Due</span>
-                  <span className="text-indigo-400 font-black text-lg">${total.toFixed(2)}</span>
+                  <span className="text-indigo-400 font-black text-lg font-mono">৳{total.toLocaleString()} BDT</span>
                 </div>
               </div>
 
