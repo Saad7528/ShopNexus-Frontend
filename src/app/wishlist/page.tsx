@@ -105,7 +105,7 @@ export default function WishlistPage() {
                 </div>
 
                 <div className="mt-4 pt-4 border-t border-white/10 flex items-center justify-between">
-                  <span className="text-base font-black text-white">${item.price.toFixed(2)}</span>
+                  <span className="text-base font-black text-white font-mono">৳{item.price.toLocaleString()}</span>
 
                   <button
                     type="button"
