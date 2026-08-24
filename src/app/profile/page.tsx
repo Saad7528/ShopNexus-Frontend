@@ -631,7 +631,7 @@ export default function ProfilePage() {
                             </div>
                           </div>
                           <span className="text-xs font-mono font-bold text-white">
-                            ${(item.price * item.quantity).toFixed(2)}
+                            ৳{(item.price * item.quantity).toLocaleString()}
                           </span>
                         </div>
                       ))}
@@ -642,7 +642,7 @@ export default function ProfilePage() {
                   <div className="pt-4 border-t border-slate-800 flex items-center justify-between text-sm">
                     <span className="text-slate-400">Total Charged ({selectedOrder.paymentMethod}):</span>
                     <span className="text-base font-mono font-black text-indigo-400">
-                      ${selectedOrder.total.toFixed(2)}
+                      ৳{selectedOrder.total.toLocaleString()} BDT
                     </span>
                   </div>
                 </div>
