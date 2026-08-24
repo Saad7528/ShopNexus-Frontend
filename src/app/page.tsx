@@ -136,7 +136,7 @@ export default function HomePage() {
   return (
     <div className="space-y-20 pb-20">
       {/* 1. Hero Section */}
-      <section className="relative overflow-hidden pt-12 md:pt-20 pb-16 border-b border-slate-800/80 bg-gradient-to-b from-slate-950 via-slate-900/50 to-slate-950">
+      <section className="relative overflow-hidden pt-12 md:pt-20 pb-16 border-b border-slate-800/80 bg-linear-to-b from-slate-950 via-slate-900/50 to-slate-950">
         {/* Ambient Glows */}
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-indigo-600/15 blur-[120px] rounded-full pointer-events-none" />
         <div className="absolute top-1/3 right-10 w-[300px] h-[250px] bg-purple-600/10 blur-[100px] rounded-full pointer-events-none" />
@@ -167,7 +167,7 @@ export default function HomePage() {
             <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
               <Link
                 href="/products"
-                className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-sm shadow-xl shadow-indigo-600/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-sm shadow-xl shadow-indigo-600/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
               >
                 Explore Product Catalog
                 <ArrowRight className="w-4 h-4" />
