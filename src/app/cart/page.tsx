@@ -46,14 +46,14 @@ export default function CartPage() {
           <div className="space-y-2">
             <h1 className="text-3xl font-extrabold text-white tracking-tight">Your Cart is Empty</h1>
             <p className="text-slate-400 text-sm leading-relaxed">
-              Explore our catalog of premium electronics, audio gear, and lifestyle products.
+              Explore our catalog of official high-performance electronics and audio equipment.
             </p>
           </div>
           <Link
             href="/products"
             className="inline-flex items-center justify-center gap-2 w-full py-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold shadow-lg shadow-indigo-600/30 transition-all"
           >
-            Browse Products
+            Browse Products (৳ BDT)
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
@@ -73,13 +73,13 @@ export default function CartPage() {
         </div>
         <button
           onClick={clearCart}
-          className="inline-flex items-center gap-1.5 text-xs text-rose-400 hover:text-rose-300 transition-colors self-start sm:self-auto p-2 rounded-lg hover:bg-rose-500/10"
+          className="inline-flex items-center gap-1.5 text-xs text-rose-400 hover:text-rose-300 transition-colors self-start sm:self-auto p-2 rounded-lg hover:bg-rose-500/10 cursor-pointer"
         >
           <Trash2 className="w-4 h-4" /> Clear All Items
         </button>
       </div>
 
-      {/* Free Shipping Progress Banner */}
+      {/* Free Shipping Progress Banner in ৳ BDT */}
       <div className="mb-8 p-4 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur-xl">
         <div className="flex items-center justify-between text-xs sm:text-sm mb-2">
           <div className="flex items-center gap-2">
@@ -90,7 +90,7 @@ export default function CartPage() {
               </span>
             ) : (
               <span className="text-slate-300">
-                Add <strong className="text-white font-bold">${amountUntilFreeShipping.toFixed(2)}</strong> more to unlock <strong className="text-emerald-400">FREE Standard Delivery</strong>
+                Add <strong className="text-white font-bold font-mono">৳{amountUntilFreeShipping.toLocaleString()}</strong> more to unlock <strong className="text-emerald-400">FREE Standard Delivery</strong>
               </span>
             )}
           </div>
