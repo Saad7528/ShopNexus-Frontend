@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import {
   Layers,
   ShieldCheck,
@@ -14,8 +15,20 @@ import {
 } from 'lucide-react';
 
 export const Footer: React.FC = () => {
+  const pathname = usePathname();
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
+
+  // Hide Footer on auth pages and Admin panel
+  const isAuthPage =
+    pathname === '/login' ||
+    pathname === '/register' ||
+    pathname === '/forgot-password' ||
+    pathname === '/reset-password';
+
+  const isAdminPage = pathname.startsWith('/admin');
+
+  if (isAuthPage || isAdminPage) return null;
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();

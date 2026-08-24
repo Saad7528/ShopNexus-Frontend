@@ -75,9 +75,9 @@ export const useCartStore = create<CartState>()(
               ...currentItem,
               quantity: Math.min(newQty, currentItem.stock),
             };
-            return { items: updated, isOpen: true };
+            return { items: updated };
           }
-          return { items: [...state.items, newItem], isOpen: true };
+          return { items: [...state.items, newItem] };
         }),
 
       removeItem: (productId) =>
@@ -105,30 +105,28 @@ export const useCartStore = create<CartState>()(
 
       getTotals: (): CartTotals => {
         const { items, discount, shippingMethod } = get();
-        const subtotal = parseFloat(
-          items.reduce((acc, item) => acc + item.price * item.quantity, 0).toFixed(2)
+        const subtotal = Math.round(
+          items.reduce((acc, item) => acc + item.price * item.quantity, 0)
         );
         const itemCount = items.reduce((acc, item) => acc + item.quantity, 0);
 
-        // Tiered shipping calculations
+        // Tiered shipping in ৳ BDT: Inside Dhaka 60, Outside 120
         let shippingFee = 0;
         if (subtotal > 0) {
           if (shippingMethod === 'express') {
-            shippingFee = 25.0;
+            shippingFee = 120;
           } else {
-            shippingFee = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : 15.0;
+            shippingFee = subtotal >= 50000 ? 0 : 60;
           }
         }
 
-        const tax = parseFloat((subtotal * 0.05).toFixed(2)); // 5% standard tax
-        const total = parseFloat(
-          Math.max(0, subtotal - discount + shippingFee + tax).toFixed(2)
-        );
+        const tax = Math.round(subtotal * 0.05); // 5% standard VAT
+        const total = Math.max(0, subtotal - discount + shippingFee + tax);
 
-        const amountUntilFreeShipping = Math.max(0, parseFloat((FREE_SHIPPING_THRESHOLD - subtotal).toFixed(2)));
+        const amountUntilFreeShipping = Math.max(0, 50000 - subtotal);
         const freeShippingProgress = Math.min(
           100,
-          Math.round((subtotal / FREE_SHIPPING_THRESHOLD) * 100)
+          Math.round((subtotal / 50000) * 100)
         );
 
         return {
