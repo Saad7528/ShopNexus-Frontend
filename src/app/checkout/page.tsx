@@ -195,15 +195,62 @@ export default function CheckoutPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Left Flow Steps (7 cols) */}
           <div className="lg:col-span-7 space-y-6">
+            {/* STEP 1: Shipping Address & Delivery Zone Calculator */}
             {currentStep === 1 && (
-              <div className="p-6 md:p-8 rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-xl space-y-6">
+              <div className="p-6 md:p-8 rounded-3xl bg-slate-900/60 border border-slate-800 backdrop-blur-xl space-y-6">
                 <div>
                   <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                    <MapPin className="w-5 h-5 text-indigo-400" /> 1. Shipping Address & Contact
+                    <MapPin className="w-5 h-5 text-indigo-400" /> 1. Shipping Address & Delivery Zone
                   </h2>
-                  <p className="text-sm text-slate-400 mt-1">
-                    Select or confirm where you want your order delivered.
+                  <p className="text-xs sm:text-sm text-slate-400 mt-1">
+                    Select your delivery destination zone for automatic courier fee calculation.
                   </p>
+                </div>
+
+                {/* 🚚 Automatic Delivery Fee Selector */}
+                <div className="space-y-3">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-400">
+                    Select Delivery Zone (Automatic Charge Calculation)
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div
+                      onClick={() => setDeliveryZone('inside_dhaka')}
+                      className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between space-y-2 ${
+                        deliveryZone === 'inside_dhaka'
+                          ? 'bg-indigo-600/15 border-indigo-500 ring-2 ring-indigo-500/30'
+                          : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-sm text-white flex items-center gap-2">
+                          <Building2 className="w-4 h-4 text-indigo-400" /> Inside Dhaka City
+                        </span>
+                        <span className="text-xs font-bold text-emerald-400 font-mono">৳60 BDT</span>
+                      </div>
+                      <p className="text-[11px] text-slate-400">
+                        Fast delivery within 24-48 Hours via Pathao Express Courier.
+                      </p>
+                    </div>
+
+                    <div
+                      onClick={() => setDeliveryZone('outside_dhaka')}
+                      className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between space-y-2 ${
+                        deliveryZone === 'outside_dhaka'
+                          ? 'bg-indigo-600/15 border-indigo-500 ring-2 ring-indigo-500/30'
+                          : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-sm text-white flex items-center gap-2">
+                          <Truck className="w-4 h-4 text-purple-400" /> Outside Dhaka (All BD)
+                        </span>
+                        <span className="text-xs font-bold text-emerald-400 font-mono">৳120 BDT</span>
+                      </div>
+                      <p className="text-[11px] text-slate-400">
+                        Nationwide delivery within 48-72 Hours via Steadfast / RedX.
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
                 <AddressSelector
@@ -215,7 +262,7 @@ export default function CheckoutPage() {
                   <button
                     type="button"
                     onClick={() => setCurrentStep(2)}
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-semibold text-sm shadow-lg shadow-indigo-600/30 transition-all"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-semibold text-sm shadow-lg shadow-indigo-600/30 transition-all cursor-pointer"
                   >
                     Continue to Payment <ArrowRight className="w-4 h-4" />
                   </button>
@@ -223,16 +270,51 @@ export default function CheckoutPage() {
               </div>
             )}
 
+            {/* STEP 2: Payment Gateway Selector */}
             {currentStep === 2 && (
-              <div className="p-6 md:p-8 rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-xl space-y-6">
+              <div className="p-6 md:p-8 rounded-3xl bg-slate-900/60 border border-slate-800 backdrop-blur-xl space-y-6">
                 <div>
                   <h2 className="text-xl font-bold text-white flex items-center gap-2">
                     <CreditCard className="w-5 h-5 text-indigo-400" /> 2. Payment Gateway
                   </h2>
-                  <p className="text-sm text-slate-400 mt-1">
-                    Choose your preferred secure payment method.
+                  <p className="text-xs sm:text-sm text-slate-400 mt-1">
+                    Choose your preferred secure payment method (bKash / Nagad Instant or Cash on Delivery).
                   </p>
                 </div>
+
+                {/* bKash / Nagad Choice Selector */}
+                {paymentMethod === 'mfs_bkash_nagad' && (
+                  <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2.5">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+                      Select Mobile Financial Provider:
+                    </span>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setMfsProvider('bkash')}
+                        className={`p-3 rounded-xl border flex items-center justify-center gap-2 font-bold text-xs transition-all cursor-pointer ${
+                          mfsProvider === 'bkash'
+                            ? 'bg-[#e2136e]/20 border-[#e2136e] text-[#e2136e] ring-2 ring-[#e2136e]/30'
+                            : 'bg-slate-900 border-slate-800 text-slate-400'
+                        }`}
+                      >
+                        <Smartphone className="w-4 h-4" /> bKash Instant
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setMfsProvider('nagad')}
+                        className={`p-3 rounded-xl border flex items-center justify-center gap-2 font-bold text-xs transition-all cursor-pointer ${
+                          mfsProvider === 'nagad'
+                            ? 'bg-[#f7941d]/20 border-[#f7941d] text-[#f7941d] ring-2 ring-[#f7941d]/30'
+                            : 'bg-slate-900 border-slate-800 text-slate-400'
+                        }`}
+                      >
+                        <Smartphone className="w-4 h-4" /> Nagad Instant
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 <PaymentMethodSelector
                   selectedMethod={paymentMethod}
@@ -243,14 +325,14 @@ export default function CheckoutPage() {
                   <button
                     type="button"
                     onClick={() => setCurrentStep(1)}
-                    className="px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:text-white"
+                    className="px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:text-white cursor-pointer"
                   >
                     Back to Shipping
                   </button>
                   <button
                     type="button"
                     onClick={() => setCurrentStep(3)}
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-semibold text-sm shadow-lg shadow-indigo-600/30 transition-all"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-semibold text-sm shadow-lg shadow-indigo-600/30 transition-all cursor-pointer"
                   >
                     Review Order Summary <ArrowRight className="w-4 h-4" />
                   </button>
