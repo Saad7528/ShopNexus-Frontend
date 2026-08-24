@@ -11,8 +11,8 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
-interface SalesDataPoint {
-  month: string;
+export interface SalesDataPoint {
+  label: string;
   revenue: number;
   orders: number;
 }
@@ -25,7 +25,7 @@ export const SalesChart: React.FC<SalesChartProps> = ({ data }) => {
   return (
     <div className="w-full h-72">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+        <AreaChart data={data} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
           <defs>
             <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4} />
@@ -37,21 +37,26 @@ export const SalesChart: React.FC<SalesChartProps> = ({ data }) => {
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-          <XAxis dataKey="month" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
+          <XAxis dataKey="label" stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
           <YAxis
             stroke="#64748b"
-            fontSize={12}
+            fontSize={11}
             tickLine={false}
             axisLine={false}
-            tickFormatter={(val) => `$${val / 1000}k`}
+            tickFormatter={(val) => `৳${val >= 100000 ? (val / 100000).toFixed(1) + 'L' : (val / 1000).toFixed(0) + 'k'}`}
           />
           <Tooltip
+            formatter={(value: any, name: any) => [
+              name === 'Revenue (৳)' ? `৳${Number(value).toLocaleString()} BDT` : `${value} Orders`,
+              name,
+            ]}
             contentStyle={{
               backgroundColor: '#0f172a',
               borderColor: '#334155',
               borderRadius: '0.75rem',
               color: '#f8fafc',
               fontSize: '12px',
+              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)',
             }}
           />
           <Area
@@ -61,7 +66,7 @@ export const SalesChart: React.FC<SalesChartProps> = ({ data }) => {
             strokeWidth={2.5}
             fillOpacity={1}
             fill="url(#colorRevenue)"
-            name="Revenue ($)"
+            name="Revenue (৳)"
           />
           <Area
             type="monotone"

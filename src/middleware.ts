@@ -5,8 +5,9 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get('token')?.value;
   const { pathname } = request.nextUrl;
 
-  // Protected paths requiring active authentication
-  const protectedPrefixes = ['/admin', '/profile', '/checkout'];
+  // Protected paths requiring active authentication (Admin and Profile)
+  // Note: /checkout is completely open for Guest Checkout without registration!
+  const protectedPrefixes = ['/admin', '/profile'];
   const isProtectedPath = protectedPrefixes.some((prefix) => pathname.startsWith(prefix));
 
   if (isProtectedPath && !token) {
@@ -19,5 +20,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/profile/:path*', '/checkout/:path*'],
+  matcher: ['/admin/:path*', '/profile/:path*'],
 };
