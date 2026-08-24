@@ -257,7 +257,7 @@ export default function ProfilePage() {
             >
               <Package className="w-4 h-4" /> Order History & Live Tracking
               <span className="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-[10px] font-mono font-bold">
-                {DEMO_ORDERS.length}
+                {userOrders.length}
               </span>
             </button>
             <button
@@ -439,67 +439,77 @@ export default function ProfilePage() {
             {/* Orders List */}
             <div className="lg:col-span-5 space-y-4">
               <h2 className="text-sm font-bold uppercase tracking-wider text-slate-300">
-                Purchased Orders ({DEMO_ORDERS.length})
+                Purchased Orders ({userOrders.length})
               </h2>
 
               <div className="space-y-3">
-                {DEMO_ORDERS.map((order) => {
-                  const isSelected = selectedOrder?.id === order.id;
-                  return (
-                    <div
-                      key={order.id}
-                      onClick={() => setSelectedOrder(order)}
-                      className={`p-5 rounded-2xl border transition-all cursor-pointer ${
-                        isSelected
-                          ? 'bg-indigo-950/40 border-indigo-500/50 shadow-xl shadow-indigo-950/50 ring-1 ring-indigo-500/20'
-                          : 'bg-slate-900/60 border-slate-800 hover:border-slate-700'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs font-mono font-bold text-white">{order.orderNumber}</span>
-                        <span
-                          className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
-                            order.status === 'DELIVERED'
-                              ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
-                              : 'bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 animate-pulse'
-                          }`}
-                        >
-                          {order.status}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="flex -space-x-3 overflow-hidden">
-                          {order.items.map((item, i) => (
-                            <div
-                              key={i}
-                              className="relative inline-block h-10 w-10 rounded-xl overflow-hidden ring-2 ring-slate-900 bg-slate-800"
-                            >
-                              <Image
-                                src={item.image}
-                                alt={item.name}
-                                fill
-                                sizes="40px"
-                                className="object-cover"
-                              />
-                            </div>
-                          ))}
+                {userOrders.length === 0 ? (
+                  <div className="p-8 text-center bg-slate-900/60 border border-slate-800 rounded-2xl">
+                    <Package className="w-8 h-8 text-slate-500 mx-auto mb-2" />
+                    <p className="text-sm text-slate-300 font-bold">No orders placed yet</p>
+                    <p className="text-xs text-slate-500 mt-1">Browse our store and place your first order!</p>
+                  </div>
+                ) : (
+                  userOrders.map((order) => {
+                    const isSelected = selectedOrder?.id === order.id;
+                    return (
+                      <div
+                        key={order.id}
+                        onClick={() => setSelectedOrder(order)}
+                        className={`p-5 rounded-2xl border transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-indigo-950/40 border-indigo-500/50 shadow-xl shadow-indigo-950/50 ring-1 ring-indigo-500/20'
+                            : 'bg-slate-900/60 border-slate-800 hover:border-slate-700'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-mono text-xs font-bold text-indigo-400">
+                            {order.orderNumber}
+                          </span>
+                          <span
+                            className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                              order.status === 'DELIVERED'
+                                ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
+                                : 'bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 animate-pulse'
+                            }`}
+                          >
+                            {order.status}
+                          </span>
                         </div>
-                        <div className="text-xs text-slate-400">
-                          {order.items.length} {order.items.length === 1 ? 'item' : 'items'} •{' '}
-                          <span className="font-bold text-white">${order.total.toFixed(2)}</span>
+
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="flex -space-x-3 overflow-hidden">
+                            {order.items.map((item, i) => (
+                              <div
+                                key={i}
+                                className="relative inline-block h-10 w-10 rounded-xl overflow-hidden ring-2 ring-slate-900 bg-slate-800"
+                              >
+                                <Image
+                                  src={item.image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200'}
+                                  alt={item.name}
+                                  fill
+                                  sizes="40px"
+                                  className="object-cover"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                          <div className="text-xs text-slate-400">
+                            {order.items.length} {order.items.length === 1 ? 'item' : 'items'} •{' '}
+                            <span className="font-bold text-white font-mono">৳{order.total.toLocaleString()} BDT</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between text-[11px] text-slate-500 pt-2 border-t border-slate-800/80">
+                          <span>{order.date}</span>
+                          <span className="text-indigo-400 font-semibold flex items-center gap-1">
+                            View Live Tracking <ChevronRight className="w-3 h-3" />
+                          </span>
                         </div>
                       </div>
-
-                      <div className="flex items-center justify-between text-[11px] text-slate-500 pt-2 border-t border-slate-800/80">
-                        <span>{order.date}</span>
-                        <span className="text-indigo-400 font-semibold flex items-center gap-1">
-                          View Live Tracking <ChevronRight className="w-3 h-3" />
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                )}
               </div>
             </div>
 
