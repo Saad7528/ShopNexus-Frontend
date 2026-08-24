@@ -52,7 +52,7 @@ export default async function VendorShopPage({ params }: ShopPageProps) {
 
   return (
     <div className="min-h-screen bg-[#0b0f19] text-white pb-16">
-      {/* Header Banner */}
+      {/* Storefront Header Hero Banner */}
       <div className="relative h-64 md:h-80 w-full bg-slate-800">
         <Image
           src={vendorInfo.banner}
@@ -72,7 +72,7 @@ export default async function VendorShopPage({ params }: ShopPageProps) {
         </div>
       </div>
 
-      {/* Vendor Profile Summary Bar */}
+      {/* Vendor Profile & Rating Summary Bar */}
       <div className="max-w-7xl mx-auto px-6 md:px-10 -mt-20 relative z-10">
         <div className="p-6 md:p-8 rounded-3xl bg-slate-900/80 border border-white/10 backdrop-blur-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-2xl">
           <div className="flex items-center gap-5">
@@ -105,7 +105,7 @@ export default async function VendorShopPage({ params }: ShopPageProps) {
           </div>
         </div>
 
-        {/* Storefront Products Grid */}
+         {/* Storefront Catalog & Product Showcase Grid */}
         <div className="mt-12 space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold tracking-tight text-white">Store Catalog ({storeProducts.length} Items)</h2>
