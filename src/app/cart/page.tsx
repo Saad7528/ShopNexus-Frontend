@@ -117,7 +117,7 @@ export default function CartPage() {
             ))}
           </div>
 
-          {/* Delivery Options Selector */}
+          {/* Delivery Options Selector in ৳ BDT */}
           <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 backdrop-blur-xl space-y-4">
             <h3 className="text-base font-bold text-white flex items-center gap-2">
               <Truck className="w-4 h-4 text-indigo-400" /> Shipping & Delivery Method
@@ -137,15 +137,15 @@ export default function CartPage() {
                     name="shipping"
                     checked={shippingMethod === 'standard'}
                     onChange={() => setShippingMethod('standard')}
-                    className="mt-1 text-indigo-600"
+                    className="mt-1 text-indigo-600 cursor-pointer"
                   />
                   <div>
-                    <p className="text-xs font-bold text-white">Standard Courier</p>
-                    <p className="text-[11px] text-slate-400 mt-0.5">3-5 Business Days Delivery</p>
+                    <p className="text-xs font-bold text-white">Inside Dhaka (Standard)</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">24-48 Hours Delivery</p>
                   </div>
                 </div>
-                <span className="text-xs font-bold text-white">
-                  {subtotal >= 150 ? <span className="text-emerald-400">FREE</span> : '$15.00'}
+                <span className="text-xs font-bold text-white font-mono">
+                  {subtotal >= 50000 ? <span className="text-emerald-400">FREE</span> : '৳60'}
                 </span>
               </label>
 
@@ -163,16 +163,16 @@ export default function CartPage() {
                     name="shipping"
                     checked={shippingMethod === 'express'}
                     onChange={() => setShippingMethod('express')}
-                    className="mt-1 text-indigo-600"
+                    className="mt-1 text-indigo-600 cursor-pointer"
                   />
                   <div>
                     <p className="text-xs font-bold text-white flex items-center gap-1">
-                      <Zap className="w-3.5 h-3.5 text-amber-400" /> Express Air Express
+                      <Zap className="w-3.5 h-3.5 text-amber-400" /> Outside Dhaka (All BD)
                     </p>
-                    <p className="text-[11px] text-slate-400 mt-0.5">Next-Day Priority Guaranteed</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Nationwide 48-72 Hours Priority</p>
                   </div>
                 </div>
-                <span className="text-xs font-bold text-white">$25.00</span>
+                <span className="text-xs font-bold text-white font-mono">৳120</span>
               </label>
             </div>
           </div>
