@@ -119,19 +119,19 @@ export default function AdminReviewsModerationPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-600 dark:text-orange-400 text-xs font-bold uppercase tracking-wider mb-2">
-              <Star className="w-3.5 h-3.5" />
-              Customer Trust & Social Proof
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-bold uppercase tracking-wider mb-2">
+              <MessageSquare className="w-3.5 h-3.5" />
+              Customer Social Proof & Moderation
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">Review Moderation & Photos</h1>
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
-              Approve customer product reviews, inspect verified buyer delivery photos, and moderate spam feedback.
+            <h1 className="text-2xl sm:text-3xl font-black text-white">Customer Photo Reviews Moderation</h1>
+            <p className="text-xs sm:text-sm text-slate-400 mt-1">
+              Review and approve customer ratings and attached product photos before they appear on the public storefront.
             </p>
           </div>
 
           <div className="flex items-center gap-3">
             {pendingCount > 0 && (
-              <span className="px-3.5 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs font-bold flex items-center gap-2">
+              <span className="px-3.5 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold flex items-center gap-2">
                 <Clock className="w-4 h-4" /> {pendingCount} Pending Approvals
               </span>
             )}
@@ -140,7 +140,7 @@ export default function AdminReviewsModerationPage() {
 
         {/* Toast */}
         {toastMsg && (
-          <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-300 text-xs sm:text-sm font-bold flex items-center gap-2">
+          <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs sm:text-sm font-bold flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4" />
             {toastMsg}
           </div>
@@ -148,7 +148,7 @@ export default function AdminReviewsModerationPage() {
 
         {/* Filter Tabs & Search */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex flex-wrap gap-1.5 p-1 bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
+          <div className="flex flex-wrap gap-1.5 p-1 bg-slate-900/80 border border-slate-800 rounded-2xl">
             {['All', 'Pending', 'Approved', 'Rejected'].map((tab) => (
               <button
                 key={tab}
@@ -156,8 +156,8 @@ export default function AdminReviewsModerationPage() {
                 onClick={() => setFilter(tab)}
                 className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   filter === tab
-                    ? 'bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white shadow-md shadow-orange-500/25'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                    : 'text-slate-400 hover:text-white'
                 }`}
               >
                 {tab}
@@ -166,13 +166,13 @@ export default function AdminReviewsModerationPage() {
           </div>
 
           <div className="max-w-xs w-full relative">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
             <input
               type="text"
               placeholder="Search reviewer or product..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none shadow-sm"
+              className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white text-xs focus:border-indigo-500 focus:outline-none"
             />
           </div>
         </div>
@@ -182,51 +182,51 @@ export default function AdminReviewsModerationPage() {
           {filteredReviews.map((rev) => (
             <div
               key={rev.id}
-              className="p-6 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 backdrop-blur-xl flex flex-col justify-between space-y-4 shadow-sm"
+              className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 backdrop-blur-xl flex flex-col justify-between space-y-4 shadow-xl"
             >
               <div className="space-y-3">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <span className="text-xs font-bold text-orange-600 dark:text-orange-400 block">{rev.productName}</span>
+                    <span className="text-xs font-bold text-indigo-400 block">{rev.productName}</span>
                     <div className="flex items-center gap-2 mt-1">
-                      <div className="flex items-center text-amber-500">
+                      <div className="flex items-center text-amber-400">
                         {Array.from({ length: 5 }).map((_, i) => (
                           <Star
                             key={i}
                             className={`w-3.5 h-3.5 ${
-                              i < rev.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-300 dark:text-slate-600'
+                              i < rev.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-600'
                             }`}
                           />
                         ))}
                       </div>
-                      <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">({rev.rating}/5 Stars)</span>
+                      <span className="text-[11px] text-slate-400 font-mono">({rev.rating}/5 Stars)</span>
                     </div>
                   </div>
 
                   <span
                     className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${
                       rev.status === 'Approved'
-                        ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+                        ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
                         : rev.status === 'Rejected'
-                        ? 'bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400'
-                        : 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400'
+                        ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
+                        : 'bg-amber-500/10 border-amber-500/30 text-amber-400'
                     }`}
                   >
                     {rev.status}
                   </span>
                 </div>
 
-                <p className="text-xs text-slate-700 dark:text-slate-200 leading-relaxed italic bg-slate-50 dark:bg-slate-950/60 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800/80">
+                <p className="text-xs text-slate-200 leading-relaxed italic bg-slate-950/60 p-3.5 rounded-2xl border border-slate-800/80">
                   "{rev.comment}"
                 </p>
 
                 {/* Customer Photo Attachment Preview */}
                 {rev.photoUrl && (
                   <div className="space-y-1.5">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                      <Camera className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" /> Attached Customer Photo:
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                      <Camera className="w-3.5 h-3.5 text-indigo-400" /> Attached Customer Photo:
                     </span>
-                    <div className="relative w-28 h-20 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+                    <div className="relative w-28 h-20 rounded-xl overflow-hidden bg-slate-950 border border-slate-800">
                       <Image src={rev.photoUrl} alt="Customer Review Photo" fill className="object-cover" />
                     </div>
                   </div>
@@ -234,10 +234,10 @@ export default function AdminReviewsModerationPage() {
               </div>
 
               {/* Reviewer Details & Actions */}
-              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
                 <div>
-                  <div className="text-xs font-bold text-slate-900 dark:text-white">{rev.customerName}</div>
-                  <span className="text-[10px] text-slate-400 dark:text-slate-500">{rev.customerEmail} • {rev.createdAt}</span>
+                  <div className="text-xs font-bold text-white">{rev.customerName}</div>
+                  <span className="text-[10px] text-slate-500">{rev.customerEmail} • {rev.createdAt}</span>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -255,7 +255,7 @@ export default function AdminReviewsModerationPage() {
                     <button
                       type="button"
                       onClick={() => handleUpdateStatus(rev.id, 'Rejected', rev.customerName)}
-                      className="px-3 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-600 dark:text-rose-400 border border-rose-500/30 font-bold text-xs transition-all cursor-pointer flex items-center gap-1"
+                      className="px-3 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 border border-rose-500/30 font-bold text-xs transition-all cursor-pointer flex items-center gap-1"
                     >
                       <XCircle className="w-3.5 h-3.5" /> Reject
                     </button>
@@ -264,7 +264,7 @@ export default function AdminReviewsModerationPage() {
                   <button
                     type="button"
                     onClick={() => handleDeleteReview(rev.id, rev.customerName)}
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 dark:text-slate-500 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-slate-800 transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>

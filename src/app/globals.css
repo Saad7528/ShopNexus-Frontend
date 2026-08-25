@@ -1,26 +1,128 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg-main: #090d16;
+  --bg-card: rgba(15, 23, 42, 0.75);
+  --bg-card-hover: rgba(15, 23, 42, 0.95);
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --border-color: rgba(30, 41, 59, 0.8);
+  --header-bg: rgba(9, 13, 22, 0.85);
+  --primary: #ff4400;
+  --primary-hover: #ff5500;
+  --primary-gradient: linear-gradient(135deg, #ff4400 0%, #ff7700 100%);
+  --accent-glow: rgba(255, 68, 0, 0.2);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+html.light {
+  --bg-main: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-card-hover: #ffffff;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+  --header-bg: rgba(255, 255, 255, 0.92);
+  --primary: #ff4400;
+  --primary-hover: #e03d00;
+  --accent-glow: rgba(255, 68, 0, 0.12);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* Base Body Transition */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Light Theme Clean Canvas Defaults */
+html.light body {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+html.dark body {
+  background-color: #090d16;
+  color: #f8fafc;
+}
+
+/* Clean Header & Footer */
+html.light header {
+  background-color: rgba(255, 255, 255, 0.92) !important;
+  border-bottom-color: #e2e8f0 !important;
+}
+
+html.dark header {
+  background-color: rgba(9, 13, 22, 0.88) !important;
+  border-bottom-color: rgba(30, 41, 59, 0.8) !important;
+}
+
+html.light footer {
+  background-color: #f8fafc !important;
+  border-top-color: #e2e8f0 !important;
+}
+
+html.dark footer {
+  background-color: #090d16 !important;
+  border-top-color: rgba(30, 41, 59, 0.8) !important;
+}
+
+/* Uparzo-inspired Custom Button & Gradient Utilities */
+.btn-uparzo-orange {
+  background: linear-gradient(135deg, #ff4400 0%, #ff7700 100%) !important;
+  box-shadow: 0 10px 25px -5px rgba(255, 68, 0, 0.35);
+  color: #ffffff !important;
+}
+
+.btn-uparzo-orange:hover {
+  background: linear-gradient(135deg, #f03e00 0%, #ff6600 100%) !important;
+  box-shadow: 0 14px 28px -5px rgba(255, 68, 0, 0.45);
+  color: #ffffff !important;
+}
+
+.text-gradient-orange {
+  background: linear-gradient(135deg, #ff4400 0%, #ff8800 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.glow-orange {
+  box-shadow: 0 0 20px rgba(255, 68, 0, 0.35);
+}
+
+@keyframes orangePulse {
+  0%, 100% { opacity: 0.25; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(1.05); }
+}
+
+.animate-orange-pulse {
+  animation: orangePulse 4s ease-in-out infinite;
+}
+
+/* Reusable Theme Utilities for Cards, Tables & Inputs */
+.nexus-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  border-radius: 1.25rem;
+  transition: all 0.2s ease;
+}
+
+html.light .nexus-card {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+}
+
+html.dark .nexus-card {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+}
+
+.nexus-input {
+  background-color: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
+}
+
+html.dark .nexus-input {
+  background-color: #0b0f19;
+  border-color: #1e293b;
+  color: #ffffff;
 }

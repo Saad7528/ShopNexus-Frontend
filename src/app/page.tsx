@@ -1,9 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ProductCard } from '@/components/products/ProductCard';
+import { TestimonialSlider } from '@/components/home/TestimonialSlider';
+import { HeroSection } from '@/components/home/HeroSection';
 import {
   Sparkles,
   ArrowRight,
@@ -11,7 +13,6 @@ import {
   ShieldCheck,
   Truck,
   TrendingUp,
-  Store,
   Star,
   Award,
   Layers,
@@ -21,6 +22,14 @@ import {
   Watch,
   Tv,
   CheckCircle2,
+  Camera,
+  Bot,
+  Tag,
+  Clock,
+  RotateCcw,
+  Lock,
+  Mail,
+  Send,
 } from 'lucide-react';
 
 const FEATURED_CATEGORIES = [
@@ -29,338 +38,393 @@ const FEATURED_CATEGORIES = [
     slug: 'Audio',
     icon: Headphones,
     itemCount: '1,240 items',
-    gradient: 'from-blue-600/20 to-indigo-600/30',
-    border: 'border-blue-500/30',
   },
   {
-    name: 'Smartphones & Tech',
-    slug: 'Electronics',
-    icon: Smartphone,
-    itemCount: '2,890 items',
-    gradient: 'from-purple-600/20 to-pink-600/30',
-    border: 'border-purple-500/30',
-  },
-  {
-    name: 'Gaming & Peripherals',
-    slug: 'Gaming',
-    icon: Gamepad2,
-    itemCount: '840 items',
-    gradient: 'from-emerald-600/20 to-teal-600/30',
-    border: 'border-emerald-500/30',
-  },
-  {
-    name: 'Wearables & Health',
+    name: 'Smart Wearables',
     slug: 'Wearables',
     icon: Watch,
-    itemCount: '620 items',
-    gradient: 'from-amber-600/20 to-orange-600/30',
-    border: 'border-amber-500/30',
+    itemCount: '890 items',
+  },
+  {
+    name: 'Keyboards & Peripherals',
+    slug: 'Peripherals',
+    icon: Gamepad2,
+    itemCount: '640 items',
+  },
+  {
+    name: 'Smart Home & Living',
+    slug: 'Smart Home',
+    icon: Tv,
+    itemCount: '520 items',
   },
 ];
 
 const SHOWCASE_PRODUCTS = [
   {
     _id: 'prod-001',
-    title: 'AuraSound Pro Active Noise-Cancelling Headphones',
-    slug: 'aurasound-pro-anc-headphones',
+    title: 'Sony WH-1000XM5 Wireless Noise-Cancelling Headphones',
+    slug: 'sony-wh-1000xm5-anc-headphones',
     description: 'Studio-grade spatial audio with 40-hour ultra battery life and pure titanium drivers.',
     category: 'Audio',
-    brand: 'PureSound',
-    price: 299,
-    discountPrice: 229,
-    stock: 14,
+    brand: 'Sony',
+    price: 38500,
+    discountPrice: 32500,
+    stock: 18,
     images: ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80'],
-    vendorName: 'PureSound Audio Corp',
+    vendorName: 'ShopNexus Official',
     isFlashSale: true,
-    flashSaleDiscountPercent: 23,
+    flashSaleDiscountPercent: 16,
     averageRating: 4.9,
-    totalReviews: 128,
+    totalReviews: 248,
     tags: ['wireless', 'noise-cancelling', 'bluetooth 5.3'],
   },
   {
     _id: 'prod-002',
-    title: 'Nexus Watch Ultra 2 OLED Smartwatch',
-    slug: 'nexus-watch-ultra-2',
-    description: 'Precision aerospace titanium casing with continuous biometric health tracking and ECG.',
-    category: 'Electronics',
-    brand: 'NexusTech',
-    price: 499,
-    discountPrice: 449,
+    title: 'Apple Watch Ultra 2 Aerospace Titanium Smartwatch',
+    slug: 'apple-watch-ultra-2',
+    description: 'Precision aerospace titanium casing with continuous biometric health tracking and dual-frequency GPS.',
+    category: 'Wearables',
+    brand: 'Apple',
+    price: 88900,
+    discountPrice: 79900,
     stock: 4,
     images: ['https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80'],
-    vendorName: 'Nexus Official Store',
+    vendorName: 'ShopNexus Official',
     isFlashSale: true,
     flashSaleDiscountPercent: 10,
-    averageRating: 4.8,
-    totalReviews: 94,
-    tags: ['oled', 'titanium', 'ecg', 'gps'],
+    averageRating: 5.0,
+    totalReviews: 184,
+    tags: ['wearable', 'gps', 'cellular'],
   },
   {
     _id: 'prod-003',
-    title: 'Apex RGB Mechanical Hot-Swap Keyboard',
-    slug: 'apex-rgb-mechanical-keyboard',
-    description: 'Custom lubed linear switches with sound-dampening silicone gasket and south-facing RGB.',
-    category: 'Gaming',
-    brand: 'NexusTech',
-    price: 189,
-    discountPrice: 149,
-    stock: 22,
+    title: 'Keychron Q1 Pro Custom QMK Wireless Mechanical Keyboard',
+    slug: 'keychron-q1-pro-mechanical-keyboard',
+    description: 'Full aluminum body with hot-swappable switches, double-gasket acoustic mounting, and south-facing RGB.',
+    category: 'Peripherals',
+    brand: 'Keychron',
+    price: 24500,
+    discountPrice: 21900,
+    stock: 12,
     images: ['https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=800&q=80'],
-    vendorName: 'Nexus Official Store',
+    vendorName: 'ShopNexus Official',
     isFlashSale: false,
-    averageRating: 4.7,
-    totalReviews: 62,
-    tags: ['mechanical', 'hot-swap', 'custom keyboard'],
+    flashSaleDiscountPercent: 0,
+    averageRating: 4.8,
+    totalReviews: 92,
+    tags: ['mechanical', 'hot-swap', 'wireless'],
   },
   {
     _id: 'prod-004',
-    title: 'Studio True Wireless ANC Earbuds (Gen 3)',
-    slug: 'studio-tw-earbuds-gen-3',
-    description: 'Ultra-low latency wireless earbuds with custom dynamic drivers and IPX7 waterproofing.',
-    category: 'Audio',
-    brand: 'PureSound',
-    price: 179,
-    discountPrice: 139,
-    stock: 35,
-    images: ['https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800&q=80'],
-    vendorName: 'PureSound Audio Corp',
-    isFlashSale: true,
-    flashSaleDiscountPercent: 22,
-    averageRating: 4.9,
-    totalReviews: 87,
-    tags: ['earbuds', 'waterproof', 'wireless charging'],
+    title: 'Philips Hue Smart Gradient Ambiance Lightstrip (2M)',
+    slug: 'philips-hue-gradient-lightstrip-2m',
+    description: 'Seamless blending of multiple vibrant light colors simultaneously with Matter and HomeKit support.',
+    category: 'Smart Home',
+    brand: 'Philips Hue',
+    price: 13900,
+    discountPrice: 11900,
+    stock: 25,
+    images: ['https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=800&q=80'],
+    vendorName: 'ShopNexus Official',
+    isFlashSale: false,
+    flashSaleDiscountPercent: 0,
+    averageRating: 4.7,
+    totalReviews: 64,
+    tags: ['smart-lighting', 'homekit', 'matter'],
   },
 ];
 
+const AI_SUPERPOWERS = [
+  {
+    title: 'Instant Visual Search',
+    icon: Camera,
+    desc: 'Drop any snapshot or camera image to locate visually similar hardware in milliseconds.',
+    tag: 'Computer Vision',
+  },
+  {
+    title: 'Personalized Recommendations',
+    icon: Sparkles,
+    desc: 'Dynamic neural scoring matches catalog items directly to your browsing taste and active cart.',
+    tag: 'Real-Time Vector',
+  },
+  {
+    title: '24/7 AI Shopping Assistant',
+    icon: Bot,
+    desc: 'Ask questions, filter by budget, or request product comparisons with our multi-model AI.',
+    tag: 'Gemini + Groq',
+  },
+  {
+    title: 'Dynamic Demand Pricing',
+    icon: Zap,
+    desc: 'Real-time algorithm evaluates catalog inventory thresholds and schedules flash deal savings.',
+    tag: 'Smart Pricing',
+  },
+  {
+    title: 'AI Descriptions & SEO Tags',
+    icon: Tag,
+    desc: 'Generative AI synthesizes deep specification summaries and discoverability tags.',
+    tag: 'Generative Copy',
+  },
+];
+
+
 export default function HomePage() {
+  const [timeLeft, setTimeLeft] = useState({ hours: 14, minutes: 32, seconds: 48 });
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [couponUnlocked, setCouponUnlocked] = useState(false);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev.seconds > 0) return { ...prev, seconds: prev.seconds - 1 };
+        if (prev.minutes > 0) return { ...prev, minutes: prev.minutes - 1, seconds: 59 };
+        if (prev.hours > 0) return { hours: prev.hours - 1, minutes: 59, seconds: 59 };
+        return { hours: 24, minutes: 0, seconds: 0 };
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const handleSubscribe = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newsletterEmail.trim()) {
+      setCouponUnlocked(true);
+    }
+  };
+
   return (
-    <div className="space-y-20 pb-20">
-      {/* 1. Hero Section */}
-      <section className="relative overflow-hidden pt-12 md:pt-20 pb-16 border-b border-slate-800/80 bg-gradient-to-b from-slate-950 via-slate-900/50 to-slate-950">
-        {/* Ambient Glows */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-indigo-600/15 blur-[120px] rounded-full pointer-events-none" />
-        <div className="absolute top-1/3 right-10 w-[300px] h-[250px] bg-purple-600/10 blur-[100px] rounded-full pointer-events-none" />
+    <div className="space-y-12 sm:space-y-20 pb-16">
+      {/* 🌟 1. WORLD-CLASS HYPER-INTERACTIVE HERO SECTION */}
+      <HeroSection />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center max-w-4xl mx-auto space-y-6">
-            {/* Pill Badge */}
-            <div className="inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-4 py-1.5 text-xs font-semibold text-indigo-300 backdrop-blur-md">
-              <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>ShopNexus v1.0 • Multi-Vendor E-Commerce Platform</span>
-            </div>
-
-            {/* Main Headline */}
-            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white">
-              The Next-Gen{' '}
-              <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                Multi-Vendor
-              </span>{' '}
-              Commerce Hub
-            </h1>
-
-            {/* Subtitle */}
-            <p className="max-w-2xl mx-auto text-base sm:text-lg text-slate-300 leading-relaxed font-normal">
-              Experience ultra-fast shopping, verified merchant storefronts, persistent real-time cart calculations, and atomic order checkouts.
-            </p>
-
-            {/* Action Buttons */}
-            <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
-              <Link
-                href="/products"
-                className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-sm shadow-xl shadow-indigo-600/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
-              >
-                Explore Product Catalog
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-              <Link
-                href="/flash-sales"
-                className="inline-flex items-center gap-2 px-7 py-4 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 text-slate-200 hover:text-white font-semibold text-sm transition-all"
-              >
-                <Zap className="w-4 h-4 text-amber-400" />
-                View Flash Deals
-              </Link>
-            </div>
-
-            {/* Live Platform KPI Stats Bar */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-12 max-w-4xl mx-auto">
-              <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-xl">
-                <span className="text-2xl sm:text-3xl font-black text-white">10K+</span>
-                <p className="text-xs text-slate-400 mt-0.5">Curated Products</p>
-              </div>
-              <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-xl">
-                <span className="text-2xl sm:text-3xl font-black text-indigo-400">500+</span>
-                <p className="text-xs text-slate-400 mt-0.5">Verified Merchants</p>
-              </div>
-              <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-xl">
-                <span className="text-2xl sm:text-3xl font-black text-emerald-400">99.9%</span>
-                <p className="text-xs text-slate-400 mt-0.5">On-Time Delivery</p>
-              </div>
-              <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-xl">
-                <span className="text-2xl sm:text-3xl font-black text-purple-400">4.9★</span>
-                <p className="text-xs text-slate-400 mt-0.5">Customer Rating</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 2. Featured Categories Section */}
+      {/* 🏷️ 3. CURATED CATEGORIES GRID */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">Featured Categories</h2>
-            <p className="text-xs sm:text-sm text-slate-400 mt-1">Explore top trending departments with instant filtering</p>
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Curated Categories</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Browse premium acoustics, wearables, and custom peripherals</p>
           </div>
-          <Link
-            href="/products"
-            className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 inline-flex items-center gap-1 transition-colors"
-          >
-            All Categories <ArrowRight className="w-3.5 h-3.5" />
+          <Link href="/products" className="text-xs font-bold text-orange-600 dark:text-orange-400 hover:text-orange-500 flex items-center gap-1">
+            View All <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {FEATURED_CATEGORIES.map((cat) => {
             const Icon = cat.icon;
             return (
               <Link
-                key={cat.slug}
-                href={`/products?category=${cat.slug}`}
-                className={`group p-6 rounded-2xl bg-gradient-to-br ${cat.gradient} border ${cat.border} backdrop-blur-xl hover:scale-[1.02] transition-all relative overflow-hidden`}
+                key={cat.name}
+                href={`/products?category=${encodeURIComponent(cat.slug)}`}
+                className="group p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 hover:border-orange-500 dark:hover:border-orange-500 shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-4 hover:scale-[1.02]"
               >
-                <div className="flex items-center justify-between">
-                  <div className="w-12 h-12 rounded-xl bg-slate-900/80 border border-white/10 flex items-center justify-center text-white group-hover:scale-110 transition-transform">
-                    <Icon className="w-6 h-6" />
-                  </div>
-                  <span className="text-xs font-mono text-slate-400">{cat.itemCount}</span>
+                <div className="w-12 h-12 rounded-xl bg-orange-500/10 dark:bg-orange-500/15 border border-orange-500/20 text-orange-600 dark:text-orange-400 flex items-center justify-center group-hover:bg-orange-500 group-hover:text-white transition-colors">
+                  <Icon className="w-6 h-6" />
                 </div>
-                <h3 className="text-base font-bold text-white mt-6 group-hover:text-indigo-300 transition-colors">
-                  {cat.name}
-                </h3>
-                <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
-                  Shop department <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-                </p>
+                <div>
+                  <h3 className="font-bold text-slate-900 dark:text-white text-sm group-hover:text-orange-500 dark:group-hover:text-orange-400 transition-colors">{cat.name}</h3>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400">{cat.itemCount}</span>
+                </div>
               </Link>
             );
           })}
         </div>
       </section>
 
-      {/* 3. Flash Deals & Trending Products Grid */}
+      {/* ⚡ 4. FLASH DEALS WITH COUNTDOWN */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="p-1 rounded-md bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                <Zap className="w-4 h-4 fill-amber-400" />
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">Trending & Flash Deals</h2>
+        <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-orange-50/80 via-white to-amber-50/60 dark:from-amber-500/10 dark:via-orange-500/10 dark:to-rose-500/10 border border-orange-200 dark:border-orange-500/20 shadow-sm dark:shadow-xl backdrop-blur-xl">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-orange-500/15 border border-orange-500/30 flex items-center justify-center text-orange-600 dark:text-orange-400">
+                <Zap className="w-6 h-6 fill-current animate-bounce" />
+              </div>
+              <div>
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">Flash Deals & Limited Drops</h2>
+                <p className="text-xs text-slate-600 dark:text-orange-300/80">Save up to 40% on verified hardware before timer resets</p>
+              </div>
             </div>
-            <p className="text-xs sm:text-sm text-slate-400 mt-1">High-demand audio gear and titanium electronics</p>
+
+            {/* Countdown Clock */}
+            <div className="flex items-center gap-2 font-mono text-xs font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-950/80 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm self-start sm:self-auto">
+              <Clock className="w-4 h-4 text-orange-500" />
+              <span className="text-orange-600 dark:text-orange-400">{String(timeLeft.hours).padStart(2, '0')}h</span> :
+              <span>{String(timeLeft.minutes).padStart(2, '0')}m</span> :
+              <span className="text-rose-500 dark:text-rose-400">{String(timeLeft.seconds).padStart(2, '0')}s</span>
+            </div>
           </div>
-          <Link
-            href="/products"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs font-semibold text-slate-200 transition-colors self-start sm:self-auto"
-          >
-            View Full Catalog ({SHOWCASE_PRODUCTS.length}+ Items)
-            <ArrowRight className="w-3.5 h-3.5" />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {SHOWCASE_PRODUCTS.map((prod) => (
+              <ProductCard key={prod._id} product={prod as any} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 🔥 5. BEST-SELLING COMPACT SHOWCASE */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <div className="inline-flex items-center gap-1.5 text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider mb-1">
+              <TrendingUp className="w-3.5 h-3.5" />
+              Top Rated Hardware
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Best Sellers of the Week</h2>
+          </div>
+          <Link href="/products" className="text-xs font-bold text-orange-600 dark:text-orange-400 hover:text-orange-500 flex items-center gap-1">
+            Shop Catalog <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {SHOWCASE_PRODUCTS.map((prod) => (
             <ProductCard key={prod._id} product={prod as any} />
           ))}
         </div>
       </section>
 
-      {/* 4. Multi-Vendor Merchant Onboarding Banner */}
+      {/* 🤖 6. 5 AI SUPERPOWERS SHOWCASE */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="relative rounded-3xl overflow-hidden border border-indigo-500/30 bg-gradient-to-r from-indigo-950/80 via-slate-900 to-purple-950/80 p-8 sm:p-12 backdrop-blur-2xl">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            <div className="lg:col-span-8 space-y-4">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 text-xs font-semibold border border-indigo-500/30">
-                <Store className="w-3.5 h-3.5" /> Merchant & Vendor Hub
-              </div>
-              <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
-                Scale Your Brand on ShopNexus Multi-Vendor Network
-              </h2>
-              <p className="text-sm text-slate-300 max-w-2xl leading-relaxed">
-                Launch your customized storefront, access real-time analytics KPIs, manage inventories with atomic transactions, and reach thousands of verified buyers.
-              </p>
-              <div className="flex flex-wrap gap-4 pt-2">
-                <Link
-                  href="/vendor/dashboard"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 transition-all"
-                >
-                  Enter Vendor Hub
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-                <Link
-                  href="/vendor/settings"
-                  className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 text-xs font-semibold transition-all"
-                >
-                  Configure Storefront
-                </Link>
-              </div>
-            </div>
+        <div className="p-8 rounded-3xl bg-slate-100/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-xl backdrop-blur-xl">
+          <div className="text-center max-w-2xl mx-auto mb-10">
+            <span className="px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-600 dark:text-orange-400 text-xs font-bold uppercase tracking-wider">
+              Autonomous Intelligence
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-3">The 5 AI Superpowers of ShopNexus</h2>
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">
+              Next-generation machine learning and generative vision embedded directly into your shopping flow.
+            </p>
+          </div>
 
-            <div className="lg:col-span-4 space-y-3 bg-slate-950/60 p-6 rounded-2xl border border-slate-800">
-              <h4 className="text-xs font-bold text-white uppercase tracking-wider">Merchant Perks</h4>
-              <ul className="space-y-2 text-xs text-slate-300">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  0% Commission for First 90 Days
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  Real-Time Sales & Revenue Charts
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  Automated Low-Stock Inventory Alerts
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  Verified Buyer Review Badges
-                </li>
-              </ul>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {AI_SUPERPOWERS.map((ai, i) => {
+              const Icon = ai.icon;
+              return (
+                <div
+                  key={ai.title}
+                  className="p-5 rounded-2xl bg-white dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800/80 hover:border-orange-500 dark:hover:border-orange-500 shadow-sm transition-all flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-600 dark:text-orange-400 mb-3">
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider block mb-1">
+                      {ai.tag}
+                    </span>
+                    <h3 className="font-bold text-slate-900 dark:text-white text-xs sm:text-sm mb-2">{ai.title}</h3>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">{ai.desc}</p>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800/60 text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+                    Feature 0{i + 1}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* 5. Trust & Quality Assurances */}
+      {/* 💎 7. BRAND STORY / WHY SHOPNEXUS */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-6 rounded-2xl bg-slate-900/50 border border-slate-800/80 backdrop-blur-xl space-y-3">
-            <div className="w-12 h-12 rounded-xl bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
-              <Truck className="w-6 h-6" />
-            </div>
-            <h3 className="text-base font-bold text-white">Tiered Express Shipping</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Enjoy free standard courier dispatch on all orders over $150.00, or choose next-day priority air delivery.
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center p-8 sm:p-12 rounded-3xl bg-gradient-to-br from-orange-50/80 via-white to-slate-50 dark:from-[#0b1120] dark:via-slate-900 dark:to-[#090d16] border border-orange-200/80 dark:border-slate-800 shadow-sm dark:shadow-2xl">
+          <div className="space-y-4">
+            <span className="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-widest">Why Choose ShopNexus</span>
+            <h2 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white leading-tight">
+              Direct-from-Brand Quality & Precision Engineering
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-normal">
+              Unlike fragmented marketplaces, ShopNexus operates as an authoritative single-brand ecosystem. Every acoustic headphone, custom keyboard switch, and smart wearable passes strict quality testing before reaching your hands.
             </p>
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <div className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-200 font-medium">
+                <CheckCircle2 className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
+                <span>100% Genuine Certified</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-200 font-medium">
+                <CheckCircle2 className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
+                <span>Official Brand Warranty</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-200 font-medium">
+                <CheckCircle2 className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
+                <span>Instant 24/7 AI Support</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-200 font-medium">
+                <CheckCircle2 className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
+                <span>Real-Time Parcel Tracker</span>
+              </div>
+            </div>
           </div>
 
-          <div className="p-6 rounded-2xl bg-slate-900/50 border border-slate-800/80 backdrop-blur-xl space-y-3">
-            <div className="w-12 h-12 rounded-xl bg-emerald-600/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-              <ShieldCheck className="w-6 h-6" />
-            </div>
-            <h3 className="text-base font-bold text-white">ACID Transaction Checkout</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Safe, atomic stock reservations backed by MongoDB sessions with Stripe, SSLCommerz, and COD support.
-            </p>
+          <div className="relative aspect-video rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-xl">
+            <Image
+              src="https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=1000&q=80"
+              alt="ShopNexus Precision Engineering"
+              fill
+              className="object-cover"
+            />
           </div>
+        </div>
+      </section>
 
-          <div className="p-6 rounded-2xl bg-slate-900/50 border border-slate-800/80 backdrop-blur-xl space-y-3">
-            <div className="w-12 h-12 rounded-xl bg-purple-600/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
-              <Award className="w-6 h-6" />
-            </div>
-            <h3 className="text-base font-bold text-white">Verified Customer Reviews</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Read authentic feedback and photo uploads from verified buyers with verified-purchaser trust badges.
+      {/* 💬 8. CUSTOMER REVIEWS & 3D TESTIMONIAL SLIDER */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-10">
+          <span className="inline-block px-3.5 py-1 rounded-full bg-orange-500/10 dark:bg-orange-500/15 border border-orange-500/25 text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-widest mb-3">
+            Voices of Success
+          </span>
+          <h2 className="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
+            What Our Customers Say
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-2 max-w-xl mx-auto">
+            Join thousands of global enthusiasts scaling their hardware setup with{' '}
+            <span className="font-bold text-orange-600 dark:text-orange-400">ShopNexus</span>.
+          </p>
+        </div>
+
+        <TestimonialSlider />
+      </section>
+
+      {/* 🎁 9. VIP NEWSLETTER & COUPON GENERATOR BANNER */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative overflow-hidden p-8 sm:p-12 rounded-3xl bg-gradient-to-r from-orange-50/90 via-white to-amber-50/60 dark:from-[#0b1120] dark:via-slate-900 dark:to-[#090d16] border border-orange-300/80 dark:border-orange-500/30 text-center shadow-xl">
+          <div className="absolute top-0 right-0 w-80 h-80 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="max-w-2xl mx-auto space-y-4 relative z-10">
+            <span className="px-3.5 py-1.5 rounded-full bg-orange-500/10 dark:bg-orange-500/15 text-orange-600 dark:text-orange-400 text-xs font-bold uppercase tracking-wider border border-orange-500/30">
+              VIP Club Drops
+            </span>
+            <h2 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white">
+              Get 10% Off Your First Order
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
+              Subscribe to the ShopNexus dispatch for exclusive drops, early flash sale invites, and private discount codes.
             </p>
+
+            {couponUnlocked ? (
+              <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs sm:text-sm font-bold animate-pulse">
+                🎉 Welcome to the Club! Use coupon code: <span className="font-mono underline text-slate-900 dark:text-white">NEXUS10</span> during checkout for 10% discount!
+              </div>
+            ) : (
+              <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto pt-2">
+                <div className="relative flex-1">
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    type="email"
+                    required
+                    value={newsletterEmail}
+                    onChange={(e) => setNewsletterEmail(e.target.value)}
+                    placeholder="Enter your email..."
+                    className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-950/80 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-orange-500 shadow-sm"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="px-6 py-3 bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs rounded-xl shadow-lg shadow-orange-500/30 transition-all cursor-pointer"
+                >
+                  Unlock 10% OFF
+                </button>
+              </form>
+            )}
           </div>
         </div>
       </section>

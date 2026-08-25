@@ -104,8 +104,8 @@ export default function WishlistPage() {
                   </Link>
                 </div>
 
-                <div className="mt-4 pt-4 border-t border-slate-100 dark:border-white/10 flex items-center justify-between">
-                  <span className="text-base font-black text-slate-900 dark:text-white font-mono">৳{item.price.toLocaleString()}</span>
+                <div className="mt-4 pt-4 border-t border-white/10 flex items-center justify-between">
+                  <span className="text-base font-black text-white font-mono">৳{item.price.toLocaleString()}</span>
 
                   <button
                     type="button"
