@@ -163,13 +163,13 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
 
               {/* Pricing */}
               <div className="flex items-baseline gap-3 pt-2 font-mono">
-                <span className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white">
+                <span className="text-3xl md:text-4xl font-black text-white">
                   ৳{product.price.toLocaleString()}
                 </span>
-                <span className="text-lg text-slate-400 dark:text-slate-500 line-through">
+                <span className="text-lg text-slate-500 line-through">
                   ৳{product.originalPrice.toLocaleString()}
                 </span>
-                <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-rose-500/10 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/25 font-sans">
+                <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-400 border border-rose-500/30 font-sans">
                   Save ৳{(product.originalPrice - product.price).toLocaleString()}
                 </span>
               </div>
@@ -232,7 +232,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                   <button
                     type="button"
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-10 h-10 rounded-lg flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                    className="w-10 h-10 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-700 transition-colors cursor-pointer"
                   >
                     -
                   </button>
@@ -240,7 +240,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                   <button
                     type="button"
                     onClick={() => setQuantity(quantity + 1)}
-                    className="w-10 h-10 rounded-lg flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                    className="w-10 h-10 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-700 transition-colors cursor-pointer"
                   >
                     +
                   </button>
@@ -249,15 +249,15 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                 <button
                   type="button"
                   onClick={handleAddToCart}
-                  className="flex-1 inline-flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-bold text-xs shadow-sm transition-all active:scale-[0.99] cursor-pointer border border-slate-200 dark:border-slate-700"
+                  className="flex-1 inline-flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 font-bold text-xs shadow-md transition-all active:scale-[0.99] cursor-pointer border border-slate-700"
                 >
                   {addedSuccess ? (
                     <>
-                      <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> Added! ✓
+                      <Check className="w-4 h-4 text-emerald-400" /> Added! ✓
                     </>
                   ) : (
                     <>
-                      <ShoppingCart className="w-4 h-4 text-slate-700 dark:text-slate-300" /> Add to Cart
+                      <ShoppingCart className="w-4 h-4 text-slate-300" /> Add to Cart
                     </>
                   )}
                 </button>
@@ -268,7 +268,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                     handleAddToCart();
                     router.push('/checkout');
                   }}
-                  className="flex-1 inline-flex items-center justify-center gap-2 py-3.5 px-5 rounded-xl bg-gradient-to-r from-[#ff4400] via-[#ff7700] to-[#ff4400] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-xl shadow-orange-500/25 transition-all active:scale-[0.99] cursor-pointer"
+                  className="flex-1 inline-flex items-center justify-center gap-2 py-3.5 px-5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-xl shadow-emerald-600/25 transition-all active:scale-[0.99] cursor-pointer"
                 >
                   <Zap className="w-4 h-4 fill-current" />
                   ⚡ সরাসরি অর্ডার করুন (৳{(product.price * quantity).toLocaleString()})
