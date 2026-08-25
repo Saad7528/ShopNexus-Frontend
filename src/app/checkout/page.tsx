@@ -367,16 +367,16 @@ export default function CheckoutPage() {
                     <button
                       type="button"
                       onClick={() => setCurrentStep(1)}
-                      className="text-xs text-indigo-400 hover:underline font-semibold cursor-pointer"
+                      className="text-xs text-orange-600 dark:text-orange-400 hover:underline font-semibold cursor-pointer"
                     >
                       Change
                     </button>
                   </div>
 
-                  <div className="border-t border-slate-800 pt-3 flex items-start justify-between">
+                  <div className="border-t border-slate-200 dark:border-slate-800 pt-3 flex items-start justify-between">
                     <div>
                       <span className="text-[10px] font-bold uppercase text-slate-500">Payment Gateway</span>
-                      <p className="font-bold text-white mt-0.5">
+                      <p className="font-bold text-slate-900 dark:text-white mt-0.5">
                         {paymentMethod === 'mfs_bkash_nagad'
                           ? `${mfsProvider === 'bkash' ? 'bKash' : 'Nagad'} Mobile Financial Wallet`
                           : paymentMethod === 'cash_on_delivery'
@@ -387,7 +387,7 @@ export default function CheckoutPage() {
                     <button
                       type="button"
                       onClick={() => setCurrentStep(2)}
-                      className="text-xs text-indigo-400 hover:underline font-semibold cursor-pointer"
+                      className="text-xs text-orange-600 dark:text-orange-400 hover:underline font-semibold cursor-pointer"
                     >
                       Change
                     </button>
@@ -398,7 +398,7 @@ export default function CheckoutPage() {
                   <button
                     type="button"
                     onClick={() => setCurrentStep(2)}
-                    className="px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:text-white cursor-pointer"
+                    className="px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"
                   >
                     Back to Payment
                   </button>
@@ -406,11 +406,11 @@ export default function CheckoutPage() {
                     type="button"
                     disabled={isProcessing}
                     onClick={handleInitiateOrder}
-                    className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 font-bold text-sm shadow-xl shadow-emerald-600/30 transition-all disabled:opacity-50 cursor-pointer"
+                    className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 font-bold text-sm shadow-xl shadow-emerald-600/30 transition-all disabled:opacity-50 cursor-pointer text-white"
                   >
                     {isProcessing
                       ? 'Verifying & Confirming...'
-                      : `Confirm & Place Order (à§³${total.toLocaleString()} BDT)`}
+                      : `Confirm & Place Order (৳${total.toLocaleString()} BDT)`}
                   </button>
                 </div>
               </div>
@@ -419,8 +419,8 @@ export default function CheckoutPage() {
 
           {/* Right Summary Column (5 cols) */}
           <div className="lg:col-span-5 space-y-6">
-            <div className="p-6 rounded-3xl bg-slate-900/60 border border-slate-800 backdrop-blur-xl space-y-6">
-              <h3 className="text-lg font-bold text-white">Order Summary ({items.length} Items)</h3>
+            <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow-xl backdrop-blur-xl space-y-6">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Order Summary ({items.length} Items)</h3>
 
               <div className="space-y-3 max-h-72 overflow-y-auto pr-1 scrollbar-thin">
                 {items.length === 0 ? (
@@ -429,40 +429,40 @@ export default function CheckoutPage() {
                   items.map((item) => (
                     <div
                       key={item.productId}
-                      className="flex items-center justify-between text-sm py-2 border-b border-slate-800 last:border-0"
+                      className="flex items-center justify-between text-sm py-2 border-b border-slate-100 dark:border-slate-800 last:border-0"
                     >
                       <div>
-                        <p className="font-semibold text-white truncate max-w-xs">{item.title}</p>
-                        <p className="text-xs text-slate-400">
-                          Qty: {item.quantity} Ã— à§³{item.price.toLocaleString()}
+                        <p className="font-semibold text-slate-900 dark:text-white truncate max-w-xs">{item.title}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          Qty: {item.quantity} × ৳{item.price.toLocaleString()}
                         </p>
                       </div>
-                      <span className="font-mono font-bold text-white">
-                        à§³{(item.price * item.quantity).toLocaleString()}
+                      <span className="font-mono font-bold text-slate-900 dark:text-white">
+                        ৳{(item.price * item.quantity).toLocaleString()}
                       </span>
                     </div>
                   ))
                 )}
               </div>
 
-              <div className="space-y-2 pt-4 border-t border-slate-800 text-sm">
-                <div className="flex justify-between text-slate-400">
+              <div className="space-y-2 pt-4 border-t border-slate-200 dark:border-slate-800 text-sm">
+                <div className="flex justify-between text-slate-600 dark:text-slate-400">
                   <span>Subtotal</span>
-                  <span className="font-mono text-white">à§³{subtotal.toLocaleString()}</span>
+                  <span className="font-mono text-slate-900 dark:text-white font-bold">৳{subtotal.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between text-slate-400">
+                <div className="flex justify-between text-slate-600 dark:text-slate-400">
                   <span>
                     Delivery Charge ({deliveryZone === 'inside_dhaka' ? 'Inside Dhaka' : 'Outside Dhaka'})
                   </span>
-                  <span className="font-mono text-emerald-400 font-bold">à§³{deliveryFee}</span>
+                  <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">৳{deliveryFee}</span>
                 </div>
-                <div className="flex justify-between text-slate-400">
+                <div className="flex justify-between text-slate-600 dark:text-slate-400">
                   <span>Estimated VAT (5%)</span>
-                  <span className="font-mono text-white">à§³{vatTax.toLocaleString()}</span>
+                  <span className="font-mono text-slate-900 dark:text-white font-bold">৳{vatTax.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between pt-3 border-t border-slate-800 text-base font-black text-white">
+                <div className="flex justify-between pt-3 border-t border-slate-200 dark:border-slate-800 text-base font-black text-slate-900 dark:text-white">
                   <span>Total Due</span>
-                  <span className="font-mono text-xl text-indigo-400">à§³{total.toLocaleString()} BDT</span>
+                  <span className="font-mono text-xl text-orange-600 dark:text-orange-400">৳{total.toLocaleString()} BDT</span>
                 </div>
               </div>
             </div>
@@ -470,7 +470,7 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      {/* ðŸ’³ MFS BKASH / NAGAD PAYMENT SIMULATION MODAL */}
+      {/* 💳 MFS BKASH / NAGAD PAYMENT SIMULATION MODAL */}
       <MfsPaymentModal
         isOpen={isMfsModalOpen}
         onClose={() => setIsMfsModalOpen(false)}
