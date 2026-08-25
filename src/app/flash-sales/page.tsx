@@ -181,42 +181,43 @@ export default function FlashSalesPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
       {/* Flash Sale Banner */}
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-amber-600/25 via-rose-900/30 to-slate-900/80 border border-amber-500/30 p-6 sm:p-10 mb-8 sm:mb-10 shadow-2xl">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-orange-50/90 via-white to-amber-50/60 dark:from-orange-950/40 dark:via-slate-900 dark:to-[#090d16] border border-orange-200 dark:border-orange-500/30 p-6 sm:p-10 mb-8 sm:mb-10 shadow-xl">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
           <div className="max-w-xl text-center md:text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold uppercase tracking-wider mb-3">
-              <Flame className="w-3.5 h-3.5 fill-amber-400" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 dark:bg-orange-500/15 border border-orange-500/30 text-orange-600 dark:text-orange-400 text-xs font-bold uppercase tracking-wider mb-3">
+              <Flame className="w-3.5 h-3.5 fill-orange-500 text-orange-600 dark:text-orange-400" />
               Limited-Time Flash Drops
             </div>
-            <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight leading-tight mb-2">
+            <h1 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight leading-tight mb-2">
               Mega Flash Deals
             </h1>
-            <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
-              Up to <span className="font-bold text-amber-400">40% OFF</span> official curated hardware. First come, first served.
+            <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm leading-relaxed">
+              Up to <span className="font-bold text-orange-600 dark:text-orange-400">40% OFF</span> official curated hardware. First come, first served.
             </p>
           </div>
 
           {/* Countdown Clock */}
-          <div className="flex items-center gap-2.5 bg-slate-950/80 border border-slate-800 backdrop-blur-xl rounded-2xl p-3.5 sm:p-4 shadow-xl">
+          <div className="flex items-center gap-2.5 bg-white/90 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 backdrop-blur-xl rounded-2xl p-3.5 sm:p-4 shadow-xl">
             <div className="flex flex-col items-center">
-              <span className="text-xl sm:text-2xl font-black text-white font-mono bg-slate-900 px-2.5 py-1.5 rounded-lg border border-slate-800">
+              <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-mono bg-slate-100 dark:bg-slate-900 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800">
                 {formatNumber(timeLeft.hours)}
               </span>
-              <span className="text-[9px] uppercase tracking-wider text-slate-400 mt-1 font-semibold">Hours</span>
+              <span className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1 font-semibold">Hours</span>
             </div>
-            <span className="text-xl font-bold text-amber-400 -mt-3">:</span>
+            <span className="text-xl font-bold text-orange-500 -mt-3">:</span>
             <div className="flex flex-col items-center">
-              <span className="text-xl sm:text-2xl font-black text-white font-mono bg-slate-900 px-2.5 py-1.5 rounded-lg border border-slate-800">
+              <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-mono bg-slate-100 dark:bg-slate-900 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800">
                 {formatNumber(timeLeft.minutes)}
               </span>
-              <span className="text-[9px] uppercase tracking-wider text-slate-400 mt-1 font-semibold">Mins</span>
+              <span className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1 font-semibold">Mins</span>
             </div>
-            <span className="text-xl font-bold text-amber-400 -mt-3">:</span>
+            <span className="text-xl font-bold text-orange-500 -mt-3">:</span>
             <div className="flex flex-col items-center">
-              <span className="text-xl sm:text-2xl font-black text-amber-400 font-mono bg-slate-900 px-2.5 py-1.5 rounded-lg border border-slate-800">
+              <span className="text-xl sm:text-2xl font-black text-orange-600 dark:text-orange-400 font-mono bg-slate-100 dark:bg-slate-900 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800">
                 {formatNumber(timeLeft.seconds)}
               </span>
-              <span className="text-[9px] uppercase tracking-wider text-slate-400 mt-1 font-semibold">Secs</span>
+              <span className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1 font-semibold">Secs</span>
             </div>
           </div>
         </div>

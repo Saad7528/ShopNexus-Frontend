@@ -51,15 +51,15 @@ export const ProductFilter: React.FC = () => {
   } = useProductStore();
 
   return (
-    <div className="bg-slate-900/70 border border-slate-800 backdrop-blur-xl rounded-2xl p-5 space-y-6">
-      <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-        <div className="flex items-center gap-2 text-white font-semibold">
-          <Filter className="w-4 h-4 text-indigo-400" />
+    <div className="bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 shadow-sm backdrop-blur-xl rounded-2xl p-5 space-y-6">
+      <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
+        <div className="flex items-center gap-2 text-slate-900 dark:text-white font-semibold">
+          <Filter className="w-4 h-4 text-orange-600 dark:text-orange-400" />
           <span>Filters</span>
         </div>
         <button
           onClick={resetFilters}
-          className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-indigo-400 transition-colors"
+          className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors cursor-pointer"
         >
           <RotateCcw className="w-3.5 h-3.5" />
           Reset
@@ -68,24 +68,24 @@ export const ProductFilter: React.FC = () => {
 
       {/* Search Input */}
       <div>
-        <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+        <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
           Search
         </label>
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search products..."
-            className="w-full pl-9 pr-3 py-2 bg-slate-950/60 border border-slate-800 rounded-xl text-white placeholder-slate-500 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="w-full pl-9 pr-3 py-2 bg-slate-100 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-xs focus:outline-none focus:ring-1 focus:ring-orange-500"
           />
         </div>
       </div>
 
       {/* Categories */}
       <div>
-        <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2.5">
+        <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2.5">
           Category
         </label>
         <div className="flex flex-col gap-1">
@@ -93,10 +93,10 @@ export const ProductFilter: React.FC = () => {
             <button
               key={cat}
               onClick={() => setCategory(cat === 'All' ? '' : cat)}
-              className={`text-left px-3 py-1.5 rounded-lg text-xs transition-colors ${
+              className={`text-left px-3 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
                 (cat === 'All' && !category) || category === cat
-                  ? 'bg-indigo-600/20 text-indigo-400 font-medium border border-indigo-500/30'
-                  : 'text-slate-400 hover:bg-slate-800/40 hover:text-slate-200'
+                  ? 'bg-orange-500/10 dark:bg-orange-500/15 text-orange-600 dark:text-orange-400 font-bold border border-orange-500/30'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/40 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               {cat}
@@ -107,7 +107,7 @@ export const ProductFilter: React.FC = () => {
 
       {/* Brands */}
       <div>
-        <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2.5">
+        <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2.5">
           Brand
         </label>
         <div className="flex flex-col gap-1">
@@ -115,10 +115,10 @@ export const ProductFilter: React.FC = () => {
             <button
               key={b}
               onClick={() => setBrand(b === 'All' ? '' : b)}
-              className={`text-left px-3 py-1.5 rounded-lg text-xs transition-colors ${
+              className={`text-left px-3 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
                 (b === 'All' && !brand) || brand === b
-                  ? 'bg-indigo-600/20 text-indigo-400 font-medium border border-indigo-500/30'
-                  : 'text-slate-400 hover:bg-slate-800/40 hover:text-slate-200'
+                  ? 'bg-orange-500/10 dark:bg-orange-500/15 text-orange-600 dark:text-orange-400 font-bold border border-orange-500/30'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/40 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               {b}
@@ -129,9 +129,9 @@ export const ProductFilter: React.FC = () => {
 
       {/* Price Range Slider & Presets */}
       <div>
-        <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
+        <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 mb-2">
           <span className="font-semibold uppercase tracking-wider">Max Price</span>
-          <span className="font-bold text-indigo-400">${maxPrice}</span>
+          <span className="font-bold text-orange-600 dark:text-orange-400">${maxPrice}</span>
         </div>
 
         {/* Quick Budget Chips */}
@@ -141,10 +141,10 @@ export const ProductFilter: React.FC = () => {
               key={preset}
               type="button"
               onClick={() => setPriceRange(minPrice, preset)}
-              className={`py-1 rounded-md text-[10px] font-semibold border transition-all ${
+              className={`py-1 rounded-md text-[10px] font-semibold border transition-all cursor-pointer ${
                 maxPrice === preset
-                  ? 'bg-indigo-600/30 border-indigo-500 text-indigo-300'
-                  : 'bg-slate-950/40 border-slate-800/80 text-slate-400 hover:text-slate-200'
+                  ? 'bg-orange-500/10 dark:bg-orange-500/20 border-orange-500 text-orange-600 dark:text-orange-300 font-bold'
+                  : 'bg-slate-100 dark:bg-slate-950/40 border-slate-200 dark:border-slate-800/80 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               {preset >= 1000 ? 'All' : `<$${preset}`}
@@ -159,13 +159,13 @@ export const ProductFilter: React.FC = () => {
           step="10"
           value={maxPrice}
           onChange={(e) => setPriceRange(minPrice, Number(e.target.value))}
-          className="w-full accent-indigo-500 bg-slate-800 rounded-lg cursor-pointer"
+          className="w-full accent-[#ff4400] bg-slate-200 dark:bg-slate-800 rounded-lg cursor-pointer"
         />
       </div>
 
       {/* Minimum Rating */}
       <div>
-        <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+        <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
           Minimum Rating
         </label>
         <div className="grid grid-cols-4 gap-1.5">
@@ -173,10 +173,10 @@ export const ProductFilter: React.FC = () => {
             <button
               key={star}
               onClick={() => setMinRating(star)}
-              className={`py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+              className={`py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
                 minRating === star
-                  ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
-                  : 'bg-slate-950/40 border-slate-800 text-slate-400 hover:text-slate-200'
+                  ? 'bg-amber-500/15 dark:bg-amber-500/20 border-amber-500/40 text-amber-600 dark:text-amber-300 font-bold'
+                  : 'bg-slate-100 dark:bg-slate-950/40 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               {star > 0 ? `${star}★+` : 'All'}
@@ -186,27 +186,27 @@ export const ProductFilter: React.FC = () => {
       </div>
 
       {/* Flash Sale Toggle */}
-      <div className="pt-2 border-t border-slate-800">
-        <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+      <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
+        <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-700 dark:text-slate-300">
           <input
             type="checkbox"
             checked={isFlashSale}
             onChange={(e) => setIsFlashSale(e.target.checked)}
-            className="rounded border-slate-800 text-indigo-600 focus:ring-indigo-500 bg-slate-950"
+            className="rounded border-slate-300 dark:border-slate-800 text-orange-600 focus:ring-orange-500 bg-white dark:bg-slate-950"
           />
-          <span className="font-medium text-amber-400">⚡ Flash Sale Deals Only</span>
+          <span className="font-semibold text-amber-600 dark:text-amber-400">⚡ Flash Sale Deals Only</span>
         </label>
       </div>
 
       {/* Sort By */}
       <div>
-        <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+        <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
           Sort By
         </label>
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
-          className="w-full px-3 py-2 bg-slate-950/60 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-orange-500"
         >
           <option value="newest">Newest Arrivals</option>
           <option value="price_asc">Price: Low to High</option>
