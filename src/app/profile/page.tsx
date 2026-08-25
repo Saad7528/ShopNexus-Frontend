@@ -146,14 +146,14 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0b0f19] text-white py-10 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f19] text-slate-900 dark:text-white py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Profile Header Card */}
-        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-slate-800 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl">
+        <div className="relative rounded-3xl overflow-hidden bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-6 sm:p-8 backdrop-blur-2xl shadow-xl">
           <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-6">
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
               <div className="relative group">
-                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl overflow-hidden bg-indigo-600/20 border-2 border-indigo-500/30 flex items-center justify-center text-3xl font-black text-indigo-400 shadow-xl relative">
+                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl overflow-hidden bg-orange-500/10 border-2 border-orange-500/25 flex items-center justify-center text-3xl font-black text-orange-600 dark:text-orange-400 shadow-xl relative">
                   {avatar ? (
                     <Image
                       src={avatar}
@@ -166,31 +166,31 @@ export default function ProfilePage() {
                     name.charAt(0).toUpperCase() || 'U'
                   )}
                 </div>
-                <div className="absolute -bottom-2 -right-2 p-1.5 rounded-xl bg-indigo-600 border border-slate-900 text-white shadow-lg">
+                <div className="absolute -bottom-2 -right-2 p-1.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] border border-white dark:border-slate-900 text-white shadow-lg">
                   <Camera className="w-3.5 h-3.5" />
                 </div>
               </div>
 
               <div className="space-y-1.5">
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                  <h1 className="text-2xl sm:text-3xl font-black text-white">{name || user?.name || 'ShopNexus User'}</h1>
+                  <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">{name || user?.name || 'ShopNexus User'}</h1>
                   <span
                     className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${
                       user?.role === 'admin'
-                        ? 'bg-amber-500/10 border-amber-500/30 text-amber-300'
+                        ? 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-300'
                         : user?.role === 'vendor'
-                        ? 'bg-purple-500/10 border-purple-500/30 text-purple-300'
-                        : 'bg-indigo-500/10 border-indigo-500/30 text-indigo-300'
+                        ? 'bg-purple-500/10 border-purple-500/30 text-purple-600 dark:text-purple-300'
+                        : 'bg-orange-500/10 border-orange-500/30 text-orange-600 dark:text-orange-300'
                     }`}
                   >
                     {user?.role ? user.role.toUpperCase() : 'CUSTOMER'}
                   </span>
                 </div>
-                <p className="text-xs sm:text-sm text-slate-400 flex items-center justify-center sm:justify-start gap-1.5">
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 flex items-center justify-center sm:justify-start gap-1.5">
                   <Mail className="w-3.5 h-3.5" /> {user?.email || 'user@shopnexus.com'}
                 </p>
                 {phoneNumber && (
-                  <p className="text-xs text-slate-400 flex items-center justify-center sm:justify-start gap-1.5">
+                  <p className="text-xs text-slate-600 dark:text-slate-400 flex items-center justify-center sm:justify-start gap-1.5">
                     <Phone className="w-3.5 h-3.5" /> {phoneNumber}
                   </p>
                 )}
@@ -218,7 +218,7 @@ export default function ProfilePage() {
               {(!user?.role || user?.role === 'customer') && (
                 <Link
                   href="/register?role=vendor"
-                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 text-indigo-300 font-bold text-xs transition-all"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 text-orange-600 dark:text-orange-300 font-bold text-xs transition-all"
                 >
                   <Sparkles className="w-4 h-4" /> Become a Verified Merchant
                 </Link>
@@ -228,7 +228,7 @@ export default function ProfilePage() {
                   logout();
                   router.push('/login');
                 }}
-                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-slate-800/60 hover:bg-rose-500/10 hover:text-rose-400 border border-slate-700 text-slate-300 text-xs font-semibold transition-all cursor-pointer"
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/60 hover:bg-rose-500/10 hover:text-rose-600 dark:hover:text-rose-400 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold transition-all cursor-pointer"
               >
                 <LogOut className="w-3.5 h-3.5" /> Sign Out
               </button>
@@ -236,13 +236,13 @@ export default function ProfilePage() {
           </div>
 
           {/* Navigation Tabs */}
-          <div className="flex border-b border-slate-800 mt-8 gap-2">
+          <div className="flex border-b border-slate-200 dark:border-slate-800 mt-8 gap-2 overflow-x-auto">
             <button
               onClick={() => setActiveTab('profile')}
               className={`flex items-center gap-2 px-5 py-3 text-xs font-bold transition-all border-b-2 cursor-pointer ${
                 activeTab === 'profile'
-                  ? 'border-indigo-500 text-indigo-400 bg-indigo-500/5 rounded-t-xl'
-                  : 'border-transparent text-slate-400 hover:text-slate-200'
+                  ? 'border-orange-500 text-orange-600 dark:text-orange-400 bg-orange-500/5 rounded-t-xl'
+                  : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               <UserIcon className="w-4 h-4" /> Personal Information & Media
@@ -251,12 +251,12 @@ export default function ProfilePage() {
               onClick={() => setActiveTab('orders')}
               className={`flex items-center gap-2 px-5 py-3 text-xs font-bold transition-all border-b-2 cursor-pointer ${
                 activeTab === 'orders'
-                  ? 'border-indigo-500 text-indigo-400 bg-indigo-500/5 rounded-t-xl'
-                  : 'border-transparent text-slate-400 hover:text-slate-200'
+                  ? 'border-orange-500 text-orange-600 dark:text-orange-400 bg-orange-500/5 rounded-t-xl'
+                  : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               <Package className="w-4 h-4" /> Order History & Live Tracking
-              <span className="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-[10px] font-mono font-bold">
+              <span className="px-2 py-0.5 rounded-full bg-orange-500/10 dark:bg-indigo-500/20 text-orange-600 dark:text-indigo-300 text-[10px] font-mono font-bold">
                 {userOrders.length}
               </span>
             </button>
@@ -264,8 +264,8 @@ export default function ProfilePage() {
               onClick={() => setActiveTab('security')}
               className={`flex items-center gap-2 px-5 py-3 text-xs font-bold transition-all border-b-2 cursor-pointer ${
                 activeTab === 'security'
-                  ? 'border-indigo-500 text-indigo-400 bg-indigo-500/5 rounded-t-xl'
-                  : 'border-transparent text-slate-400 hover:text-slate-200'
+                  ? 'border-orange-500 text-orange-600 dark:text-orange-400 bg-orange-500/5 rounded-t-xl'
+                  : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               <Shield className="w-4 h-4" /> Security & Credentials
@@ -278,11 +278,11 @@ export default function ProfilePage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Avatar & Quick Presets */}
             <div className="lg:col-span-1 space-y-6">
-              <div className="p-6 rounded-3xl bg-slate-900/60 border border-slate-800 backdrop-blur-xl space-y-4">
-                <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                  <Camera className="w-4 h-4 text-indigo-400" /> Choose Preset Avatar
+              <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow-sm backdrop-blur-xl space-y-4">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <Camera className="w-4 h-4 text-orange-600 dark:text-indigo-400" /> Choose Preset Avatar
                 </h3>
-                <p className="text-xs text-slate-400 leading-relaxed">
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                   Select a high-resolution 3D persona or paste your custom image URL below.
                 </p>
 
@@ -293,7 +293,7 @@ export default function ProfilePage() {
                       type="button"
                       onClick={() => setAvatar(url)}
                       className={`relative w-12 h-12 rounded-2xl overflow-hidden border-2 transition-all hover:scale-105 cursor-pointer ${
-                        avatar === url ? 'border-indigo-500 ring-2 ring-indigo-500/40' : 'border-slate-800'
+                        avatar === url ? 'border-orange-500 ring-2 ring-orange-500/40' : 'border-slate-200 dark:border-slate-800'
                       }`}
                     >
                       <Image
@@ -308,13 +308,13 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="pt-2">
-                  <label className="block text-xs font-semibold text-slate-400 mb-1.5">Custom Image URL</label>
+                  <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Custom Image URL</label>
                   <input
                     type="url"
                     value={avatar}
                     onChange={(e) => setAvatar(e.target.value)}
                     placeholder="https://images.unsplash.com/..."
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-orange-500 transition-colors"
                   />
                 </div>
               </div>
@@ -324,17 +324,17 @@ export default function ProfilePage() {
             <div className="lg:col-span-2">
               <form
                 onSubmit={handleSaveProfile}
-                className="p-6 sm:p-8 rounded-3xl bg-slate-900/60 border border-slate-800 backdrop-blur-xl space-y-6"
+                className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow-sm backdrop-blur-xl space-y-6"
               >
                 <div>
-                  <h2 className="text-base font-bold text-white">General Information</h2>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <h2 className="text-base font-bold text-slate-900 dark:text-white">General Information</h2>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
                     Update your full legal name, phone number, and primary delivery destination.
                   </p>
                 </div>
 
                 {saveSuccess && (
-                  <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold flex items-center gap-2 animate-in fade-in-50">
+                  <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-semibold flex items-center gap-2 animate-in fade-in-50">
                     <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
                     Profile settings successfully saved and synced across ShopNexus!
                   </div>
@@ -342,7 +342,7 @@ export default function ProfilePage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-400 mb-1.5">Full Name</label>
+                    <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Full Name</label>
                     <input
                       type="text"
                       required
@@ -495,8 +495,8 @@ export default function ProfilePage() {
                             ))}
                           </div>
                           <div className="text-xs text-slate-400">
-                            {order.items.length} {order.items.length === 1 ? 'item' : 'items'} •{' '}
-                            <span className="font-bold text-white font-mono">৳{order.total.toLocaleString()} BDT</span>
+                            {order.items.length} {order.items.length === 1 ? 'item' : 'items'} â€¢{' '}
+                            <span className="font-bold text-white font-mono">à§³{order.total.toLocaleString()} BDT</span>
                           </div>
                         </div>
 
@@ -631,7 +631,7 @@ export default function ProfilePage() {
                             </div>
                           </div>
                           <span className="text-xs font-mono font-bold text-white">
-                            ৳{(item.price * item.quantity).toLocaleString()}
+                            à§³{(item.price * item.quantity).toLocaleString()}
                           </span>
                         </div>
                       ))}
@@ -642,7 +642,7 @@ export default function ProfilePage() {
                   <div className="pt-4 border-t border-slate-800 flex items-center justify-between text-sm">
                     <span className="text-slate-400">Total Charged ({selectedOrder.paymentMethod}):</span>
                     <span className="text-base font-mono font-black text-indigo-400">
-                      ৳{selectedOrder.total.toLocaleString()} BDT
+                      à§³{selectedOrder.total.toLocaleString()} BDT
                     </span>
                   </div>
                 </div>
