@@ -199,49 +199,49 @@ export default function CartPage() {
 
         {/* Order Summary Sidebar */}
         <div className="lg:col-span-4 space-y-6 sticky top-6">
-          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 backdrop-blur-xl shadow-xl space-y-5">
-            <h3 className="text-lg font-bold text-white">Order Summary</h3>
+          <div className="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xl backdrop-blur-xl space-y-5">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Order Summary</h3>
 
-            <div className="space-y-3 text-xs sm:text-sm text-slate-300 pb-4 border-b border-slate-800">
+            <div className="space-y-3 text-xs sm:text-sm text-slate-600 dark:text-slate-300 pb-4 border-b border-slate-200 dark:border-slate-800">
               <div className="flex justify-between">
                 <span>Items Subtotal ({itemCount})</span>
-                <span className="font-semibold text-white font-mono">à§³{subtotal.toLocaleString()}</span>
+                <span className="font-semibold text-slate-900 dark:text-white font-mono">৳{subtotal.toLocaleString()}</span>
               </div>
               {discount > 0 && (
-                <div className="flex justify-between text-emerald-400 font-medium">
+                <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-medium">
                   <span>Coupon Savings</span>
-                  <span className="font-mono">-à§³{discount.toLocaleString()}</span>
+                  <span className="font-mono">-৳{discount.toLocaleString()}</span>
                 </div>
               )}
               <div className="flex justify-between">
                 <span>Delivery Charge</span>
                 <span className="font-mono">
-                  {shippingFee === 0 ? <span className="text-emerald-400 font-semibold">FREE</span> : `à§³${shippingFee.toLocaleString()}`}
+                  {shippingFee === 0 ? <span className="text-emerald-600 dark:text-emerald-400 font-semibold">FREE</span> : `৳${shippingFee.toLocaleString()}`}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span>Estimated VAT (5%)</span>
-                <span className="font-semibold text-white font-mono">à§³{tax.toLocaleString()}</span>
+                <span className="font-semibold text-slate-900 dark:text-white font-mono">৳{tax.toLocaleString()}</span>
               </div>
             </div>
 
-            <div className="flex justify-between items-baseline py-2 text-white">
+            <div className="flex justify-between items-baseline py-2 text-slate-900 dark:text-white">
               <span className="text-sm font-semibold">Total Amount</span>
-              <span className="text-2xl font-black text-indigo-400 font-mono">à§³{total.toLocaleString()} BDT</span>
+              <span className="text-2xl font-black text-orange-600 dark:text-orange-400 font-mono">৳{total.toLocaleString()} BDT</span>
             </div>
 
             {/* Coupon Application Box */}
             <div className="pt-2">
-              <label className="block text-xs font-semibold text-slate-400 mb-2">Have a Discount Code?</label>
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">Have a Discount Code?</label>
               <CouponApply />
             </div>
 
             {/* Proceed to Checkout CTA */}
             <Link
               href="/checkout"
-              className="w-full flex items-center justify-center gap-2 py-4 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition-all text-sm active:scale-[0.99]"
+              className="w-full flex items-center justify-center gap-2 py-4 px-4 bg-gradient-to-r from-[#ff4400] via-[#ff7700] to-[#ff4400] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold rounded-xl shadow-lg shadow-orange-500/25 transition-all text-sm active:scale-[0.99]"
             >
-              Proceed to Checkout (à§³ BDT)
+              Proceed to Checkout (৳ BDT)
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
