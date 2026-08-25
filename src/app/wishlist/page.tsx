@@ -112,7 +112,7 @@ export default function WishlistPage() {
                     onClick={() => handleMoveToCart(item)}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white text-xs font-semibold shadow-md shadow-orange-500/20 transition-all cursor-pointer"
                   >
-                    <ShoppingCart className="w-3.5 h-3.5" /> Move to Cart
+                  
                   </button>
                 </div>
               </div>
