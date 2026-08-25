@@ -51,9 +51,9 @@ export default async function VendorShopPage({ params }: ShopPageProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0b0f19] text-white pb-16">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f19] text-slate-900 dark:text-white pb-16">
       {/* Storefront Header Hero Banner */}
-      <div className="relative h-64 md:h-80 w-full bg-slate-800">
+      <div className="relative h-64 md:h-80 w-full bg-slate-200 dark:bg-slate-800">
         <Image
           src={vendorInfo.banner}
           alt={vendorInfo.name}
@@ -61,11 +61,11 @@ export default async function VendorShopPage({ params }: ShopPageProps) {
           priority
           className="object-cover opacity-60"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0b0f19] via-[#0b0f19]/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-50 via-slate-50/40 to-transparent dark:from-[#0b0f19] dark:via-[#0b0f19]/40 dark:to-transparent" />
         <div className="absolute top-6 left-6 z-10">
           <Link
             href="/products"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900/80 backdrop-blur-md border border-white/10 text-sm font-medium hover:bg-slate-900 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-sm font-medium hover:bg-white dark:hover:bg-slate-900 transition-colors shadow-sm"
           >
             <ArrowLeft className="w-4 h-4" /> Back to Explore
           </Link>
@@ -74,9 +74,9 @@ export default async function VendorShopPage({ params }: ShopPageProps) {
 
       {/* Vendor Profile & Rating Summary Bar */}
       <div className="max-w-7xl mx-auto px-6 md:px-10 -mt-20 relative z-10">
-        <div className="p-6 md:p-8 rounded-3xl bg-slate-900/80 border border-white/10 backdrop-blur-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-2xl">
+        <div className="p-6 md:p-8 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-white/10 backdrop-blur-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-xl">
           <div className="flex items-center gap-5">
-            <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden border-2 border-indigo-500 bg-slate-800 shadow-xl flex-shrink-0">
+            <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden border-2 border-orange-500 bg-slate-100 dark:bg-slate-800 shadow-xl flex-shrink-0">
               <Image
                 src={vendorInfo.logo}
                 alt={vendorInfo.name}
@@ -86,39 +86,39 @@ export default async function VendorShopPage({ params }: ShopPageProps) {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl md:text-3xl font-black text-white">{vendorInfo.name}</h1>
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                <h1 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white">{vendorInfo.name}</h1>
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
                   <ShieldCheck className="w-3.5 h-3.5" /> Verified Merchant
                 </span>
               </div>
-              <p className="text-slate-400 text-sm mt-1 max-w-2xl">{vendorInfo.description}</p>
-              <div className="flex items-center gap-4 mt-3 text-xs text-slate-300">
-                <span className="flex items-center gap-1 text-amber-400 font-semibold">
-                  <Star className="w-3.5 h-3.5 fill-amber-400" /> {vendorInfo.rating} ({vendorInfo.reviewsCount} reviews)
+              <p className="text-slate-600 dark:text-slate-400 text-sm mt-1 max-w-2xl">{vendorInfo.description}</p>
+              <div className="flex items-center gap-4 mt-3 text-xs text-slate-600 dark:text-slate-300">
+                <span className="flex items-center gap-1 text-amber-500 dark:text-amber-400 font-semibold">
+                  <Star className="w-3.5 h-3.5 fill-amber-500 dark:fill-amber-400" /> {vendorInfo.rating} ({vendorInfo.reviewsCount} reviews)
                 </span>
                 <span>•</span>
-                <span className="flex items-center gap-1 text-slate-400">
-                  <Mail className="w-3.5 h-3.5 text-indigo-400" /> {vendorInfo.email}
+                <span className="flex items-center gap-1 text-slate-500 dark:text-slate-400">
+                  <Mail className="w-3.5 h-3.5 text-orange-600 dark:text-indigo-400" /> {vendorInfo.email}
                 </span>
               </div>
             </div>
           </div>
         </div>
 
-         {/* Storefront Catalog & Product Showcase Grid */}
+        {/* Storefront Catalog & Product Showcase Grid */}
         <div className="mt-12 space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold tracking-tight text-white">Store Catalog ({storeProducts.length} Items)</h2>
+            <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Store Catalog ({storeProducts.length} Items)</h2>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {storeProducts.map((product) => (
               <div
                 key={product.id}
-                className="group rounded-2xl bg-slate-900/60 border border-white/10 hover:border-indigo-500/50 p-4 transition-all duration-300 flex flex-col justify-between backdrop-blur-xl"
+                className="group rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-white/10 hover:border-orange-500/50 p-4 transition-all duration-300 flex flex-col justify-between shadow-sm backdrop-blur-xl"
               >
                 <div>
-                  <div className="relative h-52 w-full rounded-xl overflow-hidden bg-slate-800 mb-4">
+                  <div className="relative h-52 w-full rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 mb-4">
                     <Image
                       src={product.image}
                       alt={product.name}
@@ -126,21 +126,21 @@ export default async function VendorShopPage({ params }: ShopPageProps) {
                       className="object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   </div>
-                  <span className="text-xs font-semibold uppercase tracking-wider text-indigo-400">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-orange-600 dark:text-orange-400">
                     {product.category}
                   </span>
                   <Link href={`/products/${product.id}`}>
-                    <h3 className="text-base font-bold text-white group-hover:text-indigo-400 transition-colors line-clamp-1 mt-1">
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors line-clamp-1 mt-1">
                       {product.name}
                     </h3>
                   </Link>
                 </div>
 
-                <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/10">
-                  <span className="text-lg font-black text-white">${product.price.toFixed(2)}</span>
+                <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100 dark:border-white/10">
+                  <span className="text-lg font-black text-slate-900 dark:text-white font-mono">৳{product.price.toLocaleString()}</span>
                   <Link
                     href={`/products/${product.id}`}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white text-xs font-semibold border border-indigo-500/30 transition-all"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-500/10 hover:bg-orange-500 text-orange-600 hover:text-white dark:bg-orange-500/20 dark:text-orange-300 text-xs font-semibold border border-orange-500/30 transition-all"
                   >
                     <ShoppingCart className="w-3.5 h-3.5" /> View Details
                   </Link>
