@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useChatbotStore } from '@/store/useChatbotStore';
 import { useCartStore } from '@/store/useCartStore';
 import {
@@ -21,6 +22,13 @@ import {
 } from 'lucide-react';
 
 export const ChatbotWidget: React.FC = () => {
+  const pathname = usePathname();
+  const isAuthPage =
+    pathname === '/login' ||
+    pathname === '/register' ||
+    pathname === '/forgot-password' ||
+    pathname === '/reset-password';
+
   const {
     isOpen,
     messages,
@@ -46,10 +54,12 @@ export const ChatbotWidget: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
 
+  if (isAuthPage) return null;
+
   const quickPrompts = [
-    { label: '🎧 Under $150 Audio', budget: 150, category: 'Audio' },
-    { label: '💻 Best Tech Setup', budget: 500, category: 'Electronics' },
-    { label: '⚡ Top Deals', budget: 100, category: 'All' },
+    { label: '🎧 Under ৳15,000 Audio', budget: 15000, category: 'Audio' },
+    { label: '💻 Best Tech Setup', budget: 50000, category: 'Electronics' },
+    { label: '⚡ Top Deals', budget: 10000, category: 'All' },
   ];
 
   const handleSendMessage = async (customText?: string, customBudget?: number, customCategory?: string) => {
@@ -142,7 +152,7 @@ export const ChatbotWidget: React.FC = () => {
       {!isOpen && (
         <button
           onClick={openChat}
-          className="fixed bottom-6 right-6 z-40 flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white font-bold text-xs shadow-2xl shadow-indigo-500/40 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer group"
+          className="fixed bottom-6 right-6 z-40 flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-[#ff4400] via-[#ff7700] to-[#ff4400] text-white font-bold text-xs shadow-2xl shadow-orange-500/40 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer group"
           title="Ask AI Shopping Assistant"
         >
           <div className="relative">
@@ -155,34 +165,34 @@ export const ChatbotWidget: React.FC = () => {
 
       {/* Expandable Chatbot Window */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 z-50 w-[92vw] sm:w-[400px] h-[580px] max-h-[85vh] rounded-3xl bg-slate-950/95 border border-slate-800 shadow-2xl backdrop-blur-2xl flex flex-col overflow-hidden animate-in fade-in-50 zoom-in-95">
+        <div className="fixed bottom-6 right-6 z-50 w-[92vw] sm:w-[400px] h-[580px] max-h-[85vh] rounded-3xl bg-white/95 dark:bg-slate-950/95 border border-slate-200 dark:border-slate-800 shadow-2xl backdrop-blur-2xl flex flex-col overflow-hidden animate-in fade-in-50 zoom-in-95">
           {/* Header */}
-          <div className="p-4 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between">
+          <div className="p-4 bg-slate-50 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-md">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#ff4400] to-[#ff7700] flex items-center justify-center text-white shadow-md shadow-orange-500/20">
                 <Bot className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-xs font-bold text-white flex items-center gap-1.5">
+                <h3 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                   Nexus AI Assistant
-                  <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                     Online
                   </span>
                 </h3>
-                <p className="text-[10px] text-slate-400">Budget & Context Shopping Engine</p>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400">Budget & Context Shopping Engine</p>
               </div>
             </div>
             <div className="flex items-center gap-1">
               <button
                 onClick={clearHistory}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                 title="Clear Chat History"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={closeChat}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -190,7 +200,7 @@ export const ChatbotWidget: React.FC = () => {
           </div>
 
           {/* Quick Prompts Bar */}
-          <div className="px-3 py-2 bg-slate-900/50 border-b border-slate-800/80 flex gap-1.5 overflow-x-auto no-scrollbar">
+          <div className="px-3 py-2 bg-slate-100/70 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800/80 flex gap-1.5 overflow-x-auto no-scrollbar">
             {quickPrompts.map((qp, idx) => (
               <button
                 key={idx}
@@ -199,7 +209,7 @@ export const ChatbotWidget: React.FC = () => {
                   setSelectedCategory(qp.category);
                   handleSendMessage(`Find me ${qp.label}`, qp.budget, qp.category);
                 }}
-                className="flex-shrink-0 px-2.5 py-1 rounded-full bg-slate-800/80 hover:bg-indigo-600/30 border border-slate-700/60 hover:border-indigo-500/40 text-[10px] font-semibold text-slate-300 hover:text-white transition-all cursor-pointer"
+                className="flex-shrink-0 px-2.5 py-1 rounded-full bg-white dark:bg-slate-800/80 hover:bg-orange-500/10 dark:hover:bg-orange-500/20 border border-slate-200 dark:border-slate-700/60 hover:border-orange-500/40 text-[10px] font-semibold text-slate-700 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 transition-all cursor-pointer shadow-xs"
               >
                 {qp.label}
               </button>
@@ -216,7 +226,7 @@ export const ChatbotWidget: React.FC = () => {
                   className={`flex gap-2.5 ${isUser ? 'justify-end' : 'justify-start'}`}
                 >
                   {!isUser && (
-                    <div className="w-6 h-6 rounded-lg bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-indigo-300 flex-shrink-0 mt-0.5">
+                    <div className="w-6 h-6 rounded-lg bg-orange-500/10 dark:bg-orange-500/20 border border-orange-500/20 dark:border-orange-500/30 flex items-center justify-center text-orange-600 dark:text-orange-400 flex-shrink-0 mt-0.5">
                       <Bot className="w-3.5 h-3.5" />
                     </div>
                   )}
@@ -224,26 +234,26 @@ export const ChatbotWidget: React.FC = () => {
                   <div
                     className={`max-w-[82%] rounded-2xl p-3 ${
                       isUser
-                        ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md'
-                        : 'bg-slate-900 border border-slate-800 text-slate-200 shadow-sm'
+                        ? 'bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white shadow-md'
+                        : 'bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-200 shadow-sm'
                     }`}
                   >
                     <p className="leading-relaxed whitespace-pre-line text-xs">{msg.text}</p>
 
                     {/* Suggested Products Carousel */}
                     {msg.suggestedProducts && msg.suggestedProducts.length > 0 && (
-                      <div className="mt-3 pt-2.5 border-t border-slate-800 space-y-2">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-400">
+                      <div className="mt-3 pt-2.5 border-t border-slate-200 dark:border-slate-800 space-y-2">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-orange-600 dark:text-orange-400">
                           Recommended Gear:
                         </p>
                         <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                           {msg.suggestedProducts.map((prod) => (
                             <div
                               key={prod._id}
-                              className="p-2 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center justify-between gap-2"
+                              className="p-2 rounded-xl bg-white dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2 shadow-xs"
                             >
                               <div className="flex items-center gap-2 min-w-0">
-                                <div className="relative w-9 h-9 rounded-lg overflow-hidden flex-shrink-0 bg-slate-900 border border-slate-800">
+                                <div className="relative w-9 h-9 rounded-lg overflow-hidden flex-shrink-0 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
                                   <Image
                                     src={prod.image}
                                     alt={prod.title}
@@ -253,18 +263,18 @@ export const ChatbotWidget: React.FC = () => {
                                   />
                                 </div>
                                 <div className="min-w-0">
-                                  <p className="font-bold text-[11px] text-white truncate max-w-[140px]">
+                                  <p className="font-bold text-[11px] text-slate-900 dark:text-white truncate max-w-[140px]">
                                     {prod.title}
                                   </p>
-                                  <p className="text-[10px] font-mono text-emerald-400 font-bold">
-                                    ${prod.discountPrice || prod.price}
+                                  <p className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-bold">
+                                    ৳{prod.discountPrice || prod.price}
                                   </p>
                                 </div>
                               </div>
 
                               <button
                                 onClick={() => handleAddSuggestedToCart(prod)}
-                                className="p-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-colors cursor-pointer flex-shrink-0"
+                                className="p-1.5 rounded-lg bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white transition-colors cursor-pointer flex-shrink-0"
                                 title="Add to Cart"
                               >
                                 <ShoppingBag className="w-3.5 h-3.5" />
@@ -275,10 +285,10 @@ export const ChatbotWidget: React.FC = () => {
                       </div>
                     )}
 
-                    <div className="flex items-center justify-between mt-1 text-[9px] text-slate-500">
+                    <div className="flex items-center justify-between mt-1 text-[9px] text-slate-400 dark:text-slate-500">
                       <span>{msg.timestamp}</span>
                       {msg.provider && (
-                        <span className="uppercase text-[8px] tracking-wider text-indigo-400 font-mono">
+                        <span className="uppercase text-[8px] tracking-wider text-orange-600 dark:text-orange-400 font-mono">
                           {msg.provider}
                         </span>
                       )}
@@ -286,7 +296,7 @@ export const ChatbotWidget: React.FC = () => {
                   </div>
 
                   {isUser && (
-                    <div className="w-6 h-6 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 flex-shrink-0 mt-0.5">
+                    <div className="w-6 h-6 rounded-lg bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-300 flex-shrink-0 mt-0.5">
                       <User className="w-3.5 h-3.5" />
                     </div>
                   )}
@@ -295,8 +305,8 @@ export const ChatbotWidget: React.FC = () => {
             })}
 
             {isLoading && (
-              <div className="flex gap-2.5 items-center text-slate-400 text-xs">
-                <div className="w-6 h-6 rounded-lg bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-indigo-300">
+              <div className="flex gap-2.5 items-center text-slate-500 dark:text-slate-400 text-xs">
+                <div className="w-6 h-6 rounded-lg bg-orange-500/10 dark:bg-orange-500/20 border border-orange-500/20 dark:border-orange-500/30 flex items-center justify-center text-orange-600 dark:text-orange-400">
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 </div>
                 <span className="text-[11px] animate-pulse">Thinking & scanning catalog...</span>
@@ -311,19 +321,19 @@ export const ChatbotWidget: React.FC = () => {
               e.preventDefault();
               handleSendMessage();
             }}
-            className="p-3 bg-slate-900 border-t border-slate-800 flex items-center gap-2"
+            className="p-3 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex items-center gap-2"
           >
             <input
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder="Ask anything (e.g., 'Laptop stand under $40')..."
-              className="flex-1 px-3.5 py-2 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/40 font-sans"
+              placeholder="Ask anything (e.g., 'Laptop stand under ৳4,000')..."
+              className="flex-1 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/40 font-sans"
             />
             <button
               type="submit"
               disabled={!inputText.trim() || isLoading}
-              className="p-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white disabled:opacity-40 transition-all cursor-pointer shadow-md shadow-indigo-600/20"
+              className="p-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white disabled:opacity-40 transition-all cursor-pointer shadow-md shadow-orange-500/20"
             >
               <Send className="w-3.5 h-3.5" />
             </button>

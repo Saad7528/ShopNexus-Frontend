@@ -52,14 +52,14 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({ productId: _productId, o
   };
 
   return (
-    <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 backdrop-blur-xl">
+    <div className="p-6 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 backdrop-blur-xl shadow-sm">
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-lg font-bold text-white">Write a Verified Review</h3>
-        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+        <h3 className="text-lg font-bold text-slate-900 dark:text-white">Write a Verified Review</h3>
+        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-500/20">
           <ShieldCheck className="w-3 h-3" /> Verified Buyer
         </span>
       </div>
-      <p className="text-xs text-slate-400 mb-5">
+      <p className="text-xs text-slate-500 dark:text-slate-400 mb-5">
         Share your experience, audio/build impressions, and photos with the community.
       </p>
 
@@ -98,7 +98,7 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({ productId: _productId, o
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
               Your Name (Optional)
             </label>
             <input
@@ -106,12 +106,12 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({ productId: _productId, o
               value={author}
               onChange={(e) => setAuthor(e.target.value)}
               placeholder="e.g. Farhan Rahman"
-              className="w-full px-3.5 py-2 rounded-xl bg-slate-950/80 border border-slate-800 focus:border-indigo-500 focus:outline-none text-white text-xs"
+              className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 focus:border-orange-500 focus:outline-none text-slate-900 dark:text-white text-xs placeholder-slate-400 dark:placeholder-slate-500"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
               Your Review & Feedback
             </label>
             <textarea
@@ -120,23 +120,23 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({ productId: _productId, o
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               placeholder="What did you love about this item? How is the build quality and packaging?"
-              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-slate-800 focus:border-indigo-500 focus:outline-none text-white text-xs"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 focus:border-orange-500 focus:outline-none text-slate-900 dark:text-white text-xs placeholder-slate-400 dark:placeholder-slate-500"
             />
           </div>
 
           {/* Photo attachment preview */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
               Attach Photos (Max 3)
             </label>
             <div className="flex flex-wrap items-center gap-2">
               {imageUrls.map((url, idx) => (
-                <div key={idx} className="relative w-14 h-14 rounded-lg overflow-hidden border border-slate-700 bg-slate-950">
+                <div key={idx} className="relative w-14 h-14 rounded-lg overflow-hidden border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-950">
                   <Image src={url} alt="Review attachment" fill className="object-cover" />
                   <button
                     type="button"
                     onClick={() => handleRemoveImage(idx)}
-                    className="absolute top-0.5 right-0.5 p-0.5 bg-slate-950/80 rounded-full text-rose-400 hover:text-white"
+                    className="absolute top-0.5 right-0.5 p-0.5 bg-black/60 dark:bg-slate-950/80 rounded-full text-rose-400 hover:text-white cursor-pointer"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -147,7 +147,7 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({ productId: _productId, o
                 <button
                   type="button"
                   onClick={() => setShowImagePrompt(!showImagePrompt)}
-                  className="w-14 h-14 rounded-lg border border-dashed border-slate-700 hover:border-indigo-500 bg-slate-950/40 flex flex-col items-center justify-center text-slate-400 hover:text-indigo-400 transition-colors"
+                  className="w-14 h-14 rounded-lg border border-dashed border-slate-300 dark:border-slate-700 hover:border-orange-500 bg-slate-50 dark:bg-slate-950/40 flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors cursor-pointer"
                 >
                   <ImagePlus className="w-4 h-4" />
                   <span className="text-[9px] mt-0.5">Add</span>
@@ -162,12 +162,12 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({ productId: _productId, o
                   value={newImageInput}
                   onChange={(e) => setNewImageInput(e.target.value)}
                   placeholder="Paste Image URL..."
-                  className="flex-1 px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white placeholder-slate-500"
+                  className="flex-1 px-3 py-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
                 />
                 <button
                   type="button"
                   onClick={handleAddImage}
-                  className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-white rounded-lg"
+                  className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-semibold text-slate-800 dark:text-white rounded-lg cursor-pointer border border-slate-200 dark:border-slate-700"
                 >
                   Attach
                 </button>
@@ -177,7 +177,7 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({ productId: _productId, o
 
           <button
             type="submit"
-            className="w-full inline-flex items-center justify-center gap-2 py-3 px-5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 transition-all cursor-pointer"
+            className="w-full inline-flex items-center justify-center gap-2 py-3 px-5 rounded-xl bg-gradient-to-r from-[#ff4400] via-[#ff7700] to-[#ff4400] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/25 transition-all cursor-pointer"
           >
             <Send className="w-3.5 h-3.5" /> Submit Verified Review
           </button>

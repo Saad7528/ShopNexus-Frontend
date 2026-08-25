@@ -38,7 +38,7 @@ export const FrequentlyBoughtTogether: React.FC<FrequentlyBoughtTogetherProps> =
   );
   // 15% extra bundle discount
   const isAllSelected = selectedIds.length === allItems.length;
-  const bundleDiscount = isAllSelected ? rawTotal * 0.15 : 0;
+  const bundleDiscount = isAllSelected ? Math.round(rawTotal * 0.15) : 0;
   const finalPrice = rawTotal - bundleDiscount;
 
   const toggleItem = (id: string) => {
@@ -59,7 +59,7 @@ export const FrequentlyBoughtTogether: React.FC<FrequentlyBoughtTogetherProps> =
         image: item.images?.[0] || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200',
         quantity: 1,
         stock: 20,
-        vendorName: 'Nexus Verified Merchant',
+        vendorName: 'ShopNexus Official Store',
       });
     });
     openDrawer();
@@ -68,14 +68,14 @@ export const FrequentlyBoughtTogether: React.FC<FrequentlyBoughtTogetherProps> =
   if (complementaryProducts.length === 0) return null;
 
   return (
-    <div className="p-6 rounded-3xl bg-slate-900/60 border border-slate-800 backdrop-blur-xl shadow-xl space-y-6">
+    <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 backdrop-blur-xl shadow-lg space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-indigo-400" />
-          <h3 className="text-base font-bold text-white">Frequently Bought Together</h3>
+          <Sparkles className="w-5 h-5 text-orange-500" />
+          <h3 className="text-base font-bold text-slate-900 dark:text-white">Frequently Bought Together (Smart Bundle)</h3>
         </div>
         {isAllSelected && (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
             <Tag className="w-3.5 h-3.5" /> 15% Bundle Discount Applied
           </span>
         )}
@@ -88,16 +88,16 @@ export const FrequentlyBoughtTogether: React.FC<FrequentlyBoughtTogetherProps> =
             const isSelected = selectedIds.includes(item._id);
             return (
               <React.Fragment key={item._id}>
-                {idx > 0 && <Plus className="w-4 h-4 text-slate-500 flex-shrink-0" />}
+                {idx > 0 && <Plus className="w-4 h-4 text-slate-400 flex-shrink-0" />}
                 <div
                   onClick={() => toggleItem(item._id)}
-                  className={`relative p-2.5 rounded-2xl border transition-all cursor-pointer flex-shrink-0 ${
+                  className={`relative p-2.5 rounded-2xl border transition-all cursor-pointer flex-shrink-0 shadow-xs ${
                     isSelected
-                      ? 'bg-slate-950/80 border-indigo-500/50 shadow-md'
-                      : 'bg-slate-950/40 border-slate-800/80 opacity-50'
+                      ? 'bg-orange-500/10 dark:bg-orange-500/15 border-orange-500 ring-2 ring-orange-500/30'
+                      : 'bg-slate-50 dark:bg-slate-950/40 border-slate-200 dark:border-slate-800/80 opacity-60'
                   }`}
                 >
-                  <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-slate-900">
+                  <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
                     <Image
                       src={item.images?.[0] || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200'}
                       alt={item.title}
@@ -107,15 +107,15 @@ export const FrequentlyBoughtTogether: React.FC<FrequentlyBoughtTogetherProps> =
                     />
                   </div>
                   <div className="mt-2 text-center">
-                    <p className="text-[11px] font-bold text-white truncate max-w-[80px]">
+                    <p className="text-[11px] font-bold text-slate-900 dark:text-white truncate max-w-[80px]">
                       {item.title}
                     </p>
-                    <p className="text-[11px] font-mono text-emerald-400 font-bold">
-                      ${item.discountPrice || item.price}
+                    <p className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-bold">
+                      ৳{(item.discountPrice || item.price).toLocaleString()}
                     </p>
                   </div>
                   {isSelected && (
-                    <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-indigo-600 text-white flex items-center justify-center">
+                    <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-orange-600 text-white flex items-center justify-center shadow-xs">
                       <Check className="w-2.5 h-2.5" />
                     </div>
                   )}
@@ -126,27 +126,28 @@ export const FrequentlyBoughtTogether: React.FC<FrequentlyBoughtTogetherProps> =
         </div>
 
         {/* Pricing Summary & Action */}
-        <div className="w-full lg:w-72 p-5 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-3 flex-shrink-0">
+        <div className="w-full lg:w-72 p-5 rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 space-y-3 flex-shrink-0 shadow-xs">
           <div>
-            <p className="text-xs text-slate-400 font-medium">Total Bundle Price:</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Total Bundle Price (৳ BDT):</p>
             <div className="flex items-baseline gap-2 mt-0.5 font-mono">
-              <span className="text-2xl font-black text-white">${finalPrice.toFixed(2)}</span>
+              <span className="text-2xl font-black text-slate-900 dark:text-white">৳{finalPrice.toLocaleString()}</span>
               {bundleDiscount > 0 && (
-                <span className="text-xs line-through text-slate-500 font-normal">
-                  ${rawTotal.toFixed(2)}
+                <span className="text-xs line-through text-slate-400 dark:text-slate-500 font-normal">
+                  ৳{rawTotal.toLocaleString()}
                 </span>
               )}
             </div>
             {bundleDiscount > 0 && (
-              <p className="text-[10px] text-emerald-400 font-bold mt-0.5">
-                You save ${bundleDiscount.toFixed(2)} with bundle!
+              <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold mt-0.5">
+                You save ৳{bundleDiscount.toLocaleString()} with bundle!
               </p>
             )}
           </div>
 
           <button
+            type="button"
             onClick={handleAddBundleToCart}
-            className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/25 transition-all cursor-pointer active:scale-95"
+            className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-[#ff4400] via-[#ff7700] to-[#ff4400] hover:from-[#e63d00] hover:to-[#ff6600] text-white text-xs font-bold shadow-lg shadow-orange-500/25 transition-all cursor-pointer active:scale-95"
           >
             <ShoppingBag className="w-4 h-4" />
             Add Bundle ({selectedIds.length} Items)
