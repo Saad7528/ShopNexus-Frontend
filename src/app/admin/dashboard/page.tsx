@@ -129,21 +129,21 @@ export default function AdminDashboardPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-bold uppercase tracking-wider mb-2">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-600 dark:text-orange-400 text-xs font-bold uppercase tracking-wider mb-2">
               <ShieldCheck className="w-3.5 h-3.5" /> Super Admin Executive Ops
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
               Executive Dashboard & Telemetry
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400 mt-1">
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
               Real-time Bangladeshi Taka (৳) revenue analytics, inventory health, and live staff audit logs.
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
             {/* Live Visitors Badge */}
-            <div className="px-3.5 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+            <div className="px-3.5 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
               <span>38 Live Visitors</span>
             </div>
           </div>
@@ -152,126 +152,126 @@ export default function AdminDashboardPage() {
         {/* 5 Enterprise KPI Cards Grid (Dynamic according to Time Range) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           {/* Total Revenue */}
-          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 backdrop-blur-xl">
+          <div className="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm backdrop-blur-xl">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Revenue</span>
-              <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 font-bold text-xs">৳ BDT</div>
+              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Revenue</span>
+              <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs">৳ BDT</div>
             </div>
             <div className="mt-2.5 flex items-baseline gap-1.5">
-              <span className="text-xl sm:text-2xl font-black text-white">৳{currentData.totalRevenue.toLocaleString()}</span>
+              <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">৳{currentData.totalRevenue.toLocaleString()}</span>
             </div>
-            <span className="text-[10px] font-bold text-emerald-400 flex items-center gap-1 mt-1">
+            <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 mt-1">
               {currentData.growth} <ArrowUpRight className="w-3 h-3" />
             </span>
           </div>
 
           {/* Total Orders */}
-          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 backdrop-blur-xl">
+          <div className="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm backdrop-blur-xl">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Orders</span>
-              <div className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-400">
+              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Orders</span>
+              <div className="p-1.5 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-400">
                 <Package className="w-4 h-4" />
               </div>
             </div>
             <div className="mt-2.5 flex items-baseline gap-1.5">
-              <span className="text-xl sm:text-2xl font-black text-white">{currentData.totalOrders.toLocaleString()}</span>
+              <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">{currentData.totalOrders.toLocaleString()}</span>
             </div>
-            <span className="text-[10px] font-bold text-indigo-400 flex items-center gap-1 mt-1">
+            <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400 flex items-center gap-1 mt-1">
               99.2% Fulfillment
             </span>
           </div>
 
           {/* Average Order Value (AOV) */}
-          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 backdrop-blur-xl">
+          <div className="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm backdrop-blur-xl">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Average AOV</span>
-              <div className="p-1.5 rounded-lg bg-violet-500/10 text-violet-400">
+              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Average AOV</span>
+              <div className="p-1.5 rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-400">
                 <TrendingUp className="w-4 h-4" />
               </div>
             </div>
             <div className="mt-2.5 flex items-baseline gap-1.5">
-              <span className="text-xl sm:text-2xl font-black text-white">৳{currentData.aov.toLocaleString()}</span>
+              <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">৳{currentData.aov.toLocaleString()}</span>
             </div>
-            <span className="text-[10px] font-semibold text-slate-400 block mt-1">Per cart transaction</span>
+            <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 block mt-1">Per cart transaction</span>
           </div>
 
           {/* Return Rate */}
-          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 backdrop-blur-xl">
+          <div className="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm backdrop-blur-xl">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Return Rate</span>
-              <div className="p-1.5 rounded-lg bg-teal-500/10 text-teal-400">
+              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Return Rate</span>
+              <div className="p-1.5 rounded-lg bg-teal-500/10 text-teal-600 dark:text-teal-400">
                 <RotateCcw className="w-4 h-4" />
               </div>
             </div>
             <div className="mt-2.5 flex items-baseline gap-1.5">
-              <span className="text-xl sm:text-2xl font-black text-emerald-400">0.8%</span>
+              <span className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400">0.8%</span>
             </div>
-            <span className="text-[10px] font-semibold text-slate-400 block mt-1">Healthy delivery rate</span>
+            <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 block mt-1">Healthy delivery rate</span>
           </div>
 
           {/* Stock Alerts */}
-          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 backdrop-blur-xl">
+          <div className="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm backdrop-blur-xl">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Low Stock</span>
-              <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-400">
+              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Low Stock</span>
+              <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400">
                 <AlertTriangle className="w-4 h-4" />
               </div>
             </div>
             <div className="mt-2.5 flex items-baseline gap-1.5">
-              <span className="text-xl sm:text-2xl font-black text-amber-400">3 items</span>
+              <span className="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400">3 items</span>
             </div>
-            <span className="text-[10px] font-semibold text-amber-300 block mt-1">Threshold &le; 5 units</span>
+            <span className="text-[10px] font-semibold text-amber-600 dark:text-amber-400 block mt-1">Threshold &le; 5 units</span>
           </div>
         </div>
 
         {/* Super Admin Profile Card & System Telemetry */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <div className="md:col-span-2 p-6 rounded-3xl bg-gradient-to-r from-indigo-950/60 via-slate-900 to-slate-900 border border-indigo-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 shadow-xl">
+          <div className="md:col-span-2 p-6 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 shadow-sm">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-600 flex items-center justify-center text-white text-2xl font-black shadow-lg shadow-indigo-600/30">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#ff4400] to-[#ff7700] flex items-center justify-center text-white text-2xl font-black shadow-lg shadow-orange-500/25">
                 S
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-lg font-black text-white">S.M. Amirul Islam Saad</h2>
-                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-[10px] font-black uppercase tracking-wider">
+                  <h2 className="text-lg font-black text-slate-900 dark:text-white">S.M. Amirul Islam Saad</h2>
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-wider">
                     Super Admin
                   </span>
                 </div>
-                <p className="text-xs text-indigo-300 font-mono mt-0.5">admin@shopnexus.io • ID: ADM-001</p>
-                <div className="flex items-center gap-3 mt-2 text-[11px] text-slate-400">
+                <p className="text-xs text-orange-600 dark:text-orange-400 font-mono mt-0.5">admin@shopnexus.io • ID: ADM-001</p>
+                <div className="flex items-center gap-3 mt-2 text-[11px] text-slate-500 dark:text-slate-400">
                   <span>Role: Lead Full-Stack Architect</span>
                   <span>•</span>
-                  <span className="text-emerald-400 font-semibold">2FA Enforced</span>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold">2FA Enforced</span>
                 </div>
               </div>
             </div>
 
             <div className="flex flex-col sm:items-end gap-2 text-xs">
-              <span className="text-slate-400">Status: <span className="text-emerald-400 font-bold">Active Master Session</span></span>
+              <span className="text-slate-500 dark:text-slate-400">Status: <span className="text-emerald-600 dark:text-emerald-400 font-bold">Active Master Session</span></span>
               <Link
                 href="/admin/inventory"
-                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md shadow-indigo-600/30 transition-all cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-md shadow-orange-500/25 transition-all cursor-pointer"
               >
                 Upload & Manage Catalog
               </Link>
             </div>
           </div>
 
-          <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 flex flex-col justify-between space-y-3">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Platform Health & Telemetry</span>
+          <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 flex flex-col justify-between space-y-3 shadow-sm">
+            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Platform Health & Telemetry</span>
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-400">Atlas Cloud Database</span>
-                <span className="text-emerald-400 font-bold">Connected (99.9%)</span>
+                <span className="text-slate-600 dark:text-slate-400">Atlas Cloud Database</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-bold">Connected (99.9%)</span>
               </div>
               <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-400">AI Chatbot Fallback Engine</span>
-                <span className="text-indigo-400 font-bold">Gemini + Groq Active</span>
+                <span className="text-slate-600 dark:text-slate-400">AI Chatbot Fallback Engine</span>
+                <span className="text-orange-600 dark:text-orange-400 font-bold">Gemini + Groq Active</span>
               </div>
               <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-400">Logistics API Gateway</span>
-                <span className="text-amber-400 font-bold">4 Courier Partners Live</span>
+                <span className="text-slate-600 dark:text-slate-400">Logistics API Gateway</span>
+                <span className="text-amber-600 dark:text-amber-400 font-bold">4 Courier Partners Live</span>
               </div>
             </div>
           </div>
@@ -280,25 +280,25 @@ export default function AdminDashboardPage() {
         {/* Sales Chart with Time-Range Switcher & Live Staff Audit Trail */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Chart with 7 Days / 30 Days / 6 Months / Year Switcher (7 cols) */}
-          <div className="lg:col-span-7 bg-slate-900/80 border border-slate-800 rounded-3xl p-6 backdrop-blur-xl space-y-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-4">
+          <div className="lg:col-span-7 bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 backdrop-blur-xl space-y-5 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800/80 pb-4">
               <div className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-indigo-400" />
+                <TrendingUp className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                 <div>
-                  <h3 className="text-base font-bold text-white">Revenue Growth (৳ BDT)</h3>
-                  <span className="text-xs text-slate-400">Dynamic sales & order volume analysis</span>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">Revenue Growth (৳ BDT)</h3>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">Dynamic sales & order volume analysis</span>
                 </div>
               </div>
 
               {/* ⏱️ Dynamic Time-Range Filter Buttons */}
-              <div className="flex items-center gap-1 p-1 bg-slate-950 rounded-xl border border-slate-800 self-start sm:self-auto">
+              <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 self-start sm:self-auto">
                 <button
                   type="button"
                   onClick={() => setTimeRange('7days')}
                   className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     timeRange === '7days'
-                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                      : 'text-slate-400 hover:text-white'
+                      ? 'bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white shadow-md shadow-orange-500/25'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   7 Days
@@ -308,8 +308,8 @@ export default function AdminDashboardPage() {
                   onClick={() => setTimeRange('30days')}
                   className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     timeRange === '30days'
-                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                      : 'text-slate-400 hover:text-white'
+                      ? 'bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white shadow-md shadow-orange-500/25'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   30 Days
@@ -319,8 +319,8 @@ export default function AdminDashboardPage() {
                   onClick={() => setTimeRange('6months')}
                   className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     timeRange === '6months'
-                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                      : 'text-slate-400 hover:text-white'
+                      ? 'bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white shadow-md shadow-orange-500/25'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   6 Months
@@ -330,8 +330,8 @@ export default function AdminDashboardPage() {
                   onClick={() => setTimeRange('year')}
                   className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     timeRange === 'year'
-                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                      : 'text-slate-400 hover:text-white'
+                      ? 'bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white shadow-md shadow-orange-500/25'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   Year 2026
@@ -343,26 +343,26 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* Audit Logs / Activity Trail (5 cols) */}
-          <div className="lg:col-span-5 bg-slate-900/80 border border-slate-800 rounded-3xl p-6 backdrop-blur-xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="lg:col-span-5 bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 backdrop-blur-xl space-y-4 shadow-sm">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-2">
-                <Activity className="w-4 h-4 text-indigo-400" />
-                <h3 className="text-sm font-bold text-white">Live Staff Audit Trail</h3>
+                <Activity className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Live Staff Audit Trail</h3>
               </div>
-              <span className="text-[10px] font-mono text-slate-500">Live Timestamp</span>
+              <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500">Live Timestamp</span>
             </div>
 
             <div className="space-y-3">
               {AUDIT_LOGS.map((log) => (
-                <div key={log.id} className="p-3 rounded-2xl bg-slate-950/60 border border-slate-800/80 space-y-1">
+                <div key={log.id} className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/80 space-y-1">
                   <div className="flex items-center justify-between text-[11px]">
-                    <span className="font-bold text-indigo-300">{log.user}</span>
-                    <span className="text-[10px] font-semibold text-slate-500 flex items-center gap-1">
+                    <span className="font-bold text-slate-900 dark:text-white">{log.user}</span>
+                    <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 flex items-center gap-1">
                       <Clock className="w-3 h-3" />
                       {log.time}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-300">{log.action}</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-300">{log.action}</p>
                 </div>
               ))}
             </div>
