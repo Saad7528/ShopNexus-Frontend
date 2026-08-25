@@ -1,13 +1,19 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --bg-main: #0b0f19;
-  --bg-card: rgba(15, 23, 42, 0.7);
+  --bg-main: #090d16;
+  --bg-card: rgba(15, 23, 42, 0.75);
   --bg-card-hover: rgba(15, 23, 42, 0.95);
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
   --border-color: rgba(30, 41, 59, 0.8);
-  --header-bg: rgba(11, 15, 25, 0.85);
+  --header-bg: rgba(9, 13, 22, 0.85);
+  --primary: #ff4400;
+  --primary-hover: #ff5500;
+  --primary-gradient: linear-gradient(135deg, #ff4400 0%, #ff7700 100%);
+  --accent-glow: rgba(255, 68, 0, 0.2);
 }
 
 html.light {
@@ -17,70 +23,106 @@ html.light {
   --text-main: #0f172a;
   --text-muted: #64748b;
   --border-color: #e2e8f0;
-  --header-bg: rgba(255, 255, 255, 0.9);
+  --header-bg: rgba(255, 255, 255, 0.92);
+  --primary: #ff4400;
+  --primary-hover: #e03d00;
+  --accent-glow: rgba(255, 68, 0, 0.12);
 }
 
-/* Light Theme Global Color Overrides */
+/* Base Body Transition */
+body {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Light Theme Clean Canvas Defaults */
 html.light body {
-  background-color: #f8fafc !important;
-  color: #0f172a !important;
+  background-color: #f8fafc;
+  color: #0f172a;
 }
 
-html.light .bg-slate-950,
-html.light .bg-\[\#0b0f19\] {
-  background-color: #f8fafc !important;
+html.dark body {
+  background-color: #090d16;
+  color: #f8fafc;
 }
 
-html.light .bg-slate-900\/50,
-html.light .bg-slate-900\/60,
-html.light .bg-slate-900\/70,
-html.light .bg-slate-900\/80,
-html.light .bg-slate-900 {
-  background-color: #ffffff !important;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04);
-}
-
-html.light .border-slate-800,
-html.light .border-slate-800\/60,
-html.light .border-slate-800\/80,
-html.light .border-slate-800\/90 {
-  border-color: #e2e8f0 !important;
-}
-
-html.light .text-white,
-html.light .text-slate-100,
-html.light .text-slate-200 {
-  color: #0f172a !important;
-}
-
-html.light .text-slate-300,
-html.light .text-slate-400,
-html.light .text-slate-500 {
-  color: #64748b !important;
-}
-
-html.light .bg-slate-950\/40,
-html.light .bg-slate-950\/60,
-html.light .bg-slate-950\/70,
-html.light .bg-slate-950\/80 {
-  background-color: #f1f5f9 !important;
-}
-
-html.light .bg-slate-800,
-html.light .bg-slate-800\/60 {
-  background-color: #e2e8f0 !important;
-}
-
+/* Clean Header & Footer */
 html.light header {
-  background-color: rgba(255, 255, 255, 0.88) !important;
-  border-color: #e2e8f0 !important;
+  background-color: rgba(255, 255, 255, 0.92) !important;
+  border-bottom-color: #e2e8f0 !important;
+}
+
+html.dark header {
+  background-color: rgba(9, 13, 22, 0.88) !important;
+  border-bottom-color: rgba(30, 41, 59, 0.8) !important;
 }
 
 html.light footer {
-  background-color: #f1f5f9 !important;
-  border-color: #e2e8f0 !important;
+  background-color: #f8fafc !important;
+  border-top-color: #e2e8f0 !important;
 }
 
-body {
-  transition: background-color 0.25s ease, color 0.25s ease;
+html.dark footer {
+  background-color: #090d16 !important;
+  border-top-color: rgba(30, 41, 59, 0.8) !important;
+}
+
+/* Uparzo-inspired Custom Button & Gradient Utilities */
+.btn-uparzo-orange {
+  background: linear-gradient(135deg, #ff4400 0%, #ff7700 100%) !important;
+  box-shadow: 0 10px 25px -5px rgba(255, 68, 0, 0.35);
+  color: #ffffff !important;
+}
+
+.btn-uparzo-orange:hover {
+  background: linear-gradient(135deg, #f03e00 0%, #ff6600 100%) !important;
+  box-shadow: 0 14px 28px -5px rgba(255, 68, 0, 0.45);
+  color: #ffffff !important;
+}
+
+.text-gradient-orange {
+  background: linear-gradient(135deg, #ff4400 0%, #ff8800 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.glow-orange {
+  box-shadow: 0 0 20px rgba(255, 68, 0, 0.35);
+}
+
+@keyframes orangePulse {
+  0%, 100% { opacity: 0.25; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(1.05); }
+}
+
+.animate-orange-pulse {
+  animation: orangePulse 4s ease-in-out infinite;
+}
+
+/* Reusable Theme Utilities for Cards, Tables & Inputs */
+.nexus-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  border-radius: 1.25rem;
+  transition: all 0.2s ease;
+}
+
+html.light .nexus-card {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+}
+
+html.dark .nexus-card {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+}
+
+.nexus-input {
+  background-color: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
+}
+
+html.dark .nexus-input {
+  background-color: #0b0f19;
+  border-color: #1e293b;
+  color: #ffffff;
 }
