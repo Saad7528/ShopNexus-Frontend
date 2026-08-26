@@ -7,6 +7,8 @@ import { useCartStore } from '@/store/useCartStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
 import { ProductGallery } from '@/components/products/ProductGallery';
 import { ReviewForm } from '@/components/products/ReviewForm';
+import { getProductByIdOrSlug, ALL_PRODUCTS } from '@/data/products';
+import { ProductCard } from '@/components/products/ProductCard';
 import {
   Star,
   ShoppingCart,
@@ -18,6 +20,9 @@ import {
   Check,
   Store,
   Zap,
+  Clock,
+  Sparkles,
+  ArrowRight,
 } from 'lucide-react';
 
 interface ProductDetailPageProps {
@@ -32,35 +37,38 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
   const addItem = useCartStore((state) => state.addItem);
   const { isInWishlist, toggleWishlist } = useWishlistStore();
 
-  const [selectedColor, setSelectedColor] = useState('Midnight Black');
-  const [selectedSize, setSelectedSize] = useState('Standard');
+  // Dynamically resolve the real product
+  const rawProduct = getProductByIdOrSlug(productId);
+
+  const product = {
+    id: rawProduct?._id || productId,
+    name: rawProduct?.title || 'Nexus Pro Precision Device',
+    brand: rawProduct?.brand || 'ShopNexus Official',
+    vendorId: 'vendor_001',
+    vendorName: rawProduct?.vendorName || 'ShopNexus Official Store',
+    price: rawProduct?.discountPrice || rawProduct?.price || 24500,
+    originalPrice: rawProduct?.price || 28000,
+    rating: rawProduct?.averageRating || 4.9,
+    reviewCount: rawProduct?.totalReviews || 128,
+    inStock: (rawProduct?.stock || 10) > 0,
+    stockCount: rawProduct?.stock || 12,
+    category: rawProduct?.category || 'Hardware & Acoustics',
+    description:
+      rawProduct?.description ||
+      'Engineered with industry-leading materials, rigorous laboratory testing, and seamless ecosystem connectivity for true enthusiasts.',
+    images: rawProduct?.images && rawProduct.images.length > 0 ? rawProduct.images : [
+      'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80',
+    ],
+    isFlashSale: rawProduct?.isFlashSale || false,
+    flashSaleDiscountPercent: rawProduct?.flashSaleDiscountPercent || 0,
+    colors: ['Midnight Black', 'Platinum Silver', 'Deep Navy'],
+    sizes: ['Standard Unit', 'Creator Edition'],
+  };
+
+  const [selectedColor, setSelectedColor] = useState(product.colors[0]);
+  const [selectedSize, setSelectedSize] = useState(product.sizes[0]);
   const [quantity, setQuantity] = useState(1);
   const [addedSuccess, setAddedSuccess] = useState(false);
-
-  // Mock product data (strictly typed)
-  const product = {
-    id: productId,
-    name: 'Nexus Pro Wireless ANC Headphones (Gen 2)',
-    brand: 'Nexus Audio',
-    vendorId: 'vendor_001',
-    vendorName: 'Nexus Tech Official Store',
-    price: 299.99,
-    originalPrice: 349.99,
-    rating: 4.9,
-    reviewCount: 128,
-    inStock: true,
-    stockCount: 18,
-    category: 'Audio & Acoustics',
-    description:
-      'Engineered with hybrid active noise cancellation, custom 40mm beryllium drivers, 45-hour ultra battery life, and plush memory foam earcups for exceptional acoustic clarity and luxury comfort.',
-    images: [
-      'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1484704849700-f032a568e944?w=800&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800&auto=format&fit=crop&q=80',
-    ],
-    colors: ['Midnight Black', 'Space Gray', 'Lunar Silver'],
-    sizes: ['Standard', 'XL Foam Cup'],
-  };
 
   const [reviews, setReviews] = useState([
     {
@@ -68,14 +76,14 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
       author: 'Farhan Rahman',
       rating: 5,
       date: '2 days ago',
-      comment: 'The noise cancellation is on par with the best flagship headphones on the market. Soundstage is deep and battery easily lasted me 4 days of heavy work!',
+      comment: 'অসাধারণ কোয়ালিটি! সাউন্ড এবং বিল্ড কোয়ালিটি টপ-লেভেলের। ১ দিনের মধ্যেই ডেলিভারি পেয়েছি।',
     },
     {
       id: 'rev-2',
       author: 'Tariqul Islam',
       rating: 5,
       date: '1 week ago',
-      comment: 'Super fast delivery and premium packaging. Build quality is solid titanium and aluminum.',
+      comment: 'Super fast delivery in Dhaka and 100% genuine sealed box. Build quality is solid.',
     },
   ]);
 
@@ -108,91 +116,97 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
 
   const isFavorite = isInWishlist(product.id);
 
+  // Related products from same category
+  const relatedProducts = ALL_PRODUCTS.filter(
+    (p) => p.category === rawProduct?.category && p._id !== product.id
+  ).slice(0, 4);
+
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f19] text-slate-900 dark:text-white p-6 md:p-10">
-      <div className="max-w-7xl mx-auto space-y-12">
-        {/* Breadcrumb / Back Link */}
-        <div className="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
-          <Link href="/products" className="hover:text-slate-900 dark:hover:text-white inline-flex items-center gap-1.5 transition-colors">
-            <ArrowLeft className="w-4 h-4" /> Back to Products
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f19] text-slate-900 dark:text-white p-3 sm:p-6 md:p-10 pt-2 sm:pt-6">
+      <div className="max-w-7xl mx-auto space-y-8 sm:space-y-12">
+        {/* Desktop Breadcrumb / Back Link (Hidden on Mobile since image has floating controls) */}
+        <div className="hidden md:flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
+          <Link href="/products" className="hover:text-slate-900 dark:hover:text-white inline-flex items-center gap-1.5 transition-colors font-semibold">
+            <ArrowLeft className="w-4 h-4" /> All Catalog
           </Link>
           <span>/</span>
-          <span className="text-slate-400 dark:text-slate-500">{product.category}</span>
+          <span className="text-slate-400 dark:text-slate-500 font-medium">{product.category}</span>
           <span>/</span>
-          <span className="text-slate-700 dark:text-slate-300 truncate max-w-xs">{product.name}</span>
+          <span className="text-slate-700 dark:text-slate-300 truncate max-w-xs font-bold">{product.name}</span>
         </div>
 
         {/* Main PDP Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-          {/* Left Column: Gallery (6 cols) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-10">
+          {/* Left Column: Gallery with Floating Glass Buttons (6 cols) */}
           <div className="lg:col-span-6">
-            <ProductGallery images={product.images} productName={product.name} />
+            <ProductGallery images={product.images} productName={product.name} productId={product.id} />
           </div>
 
           {/* Right Column: Product Info & Purchase Actions (6 cols) */}
-          <div className="lg:col-span-6 space-y-6 flex flex-col justify-between">
-            <div className="space-y-4">
+          <div className="lg:col-span-6 space-y-5 sm:space-y-6 flex flex-col justify-between">
+            <div className="space-y-3.5 sm:space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-orange-500/10 dark:bg-orange-500/15 text-orange-600 dark:text-orange-400 border border-orange-500/20">
+                <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-orange-500/10 dark:bg-orange-500/15 text-orange-600 dark:text-orange-400 border border-orange-500/20">
                   {product.brand}
                 </span>
-                <Link
-                  href={`/shop/${product.vendorId}`}
-                  className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
-                >
-                  <Store className="w-3.5 h-3.5" /> Sold by <span className="font-semibold text-slate-900 dark:text-white underline">{product.vendorName}</span>
-                </Link>
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                  Verified Genuine Guarantee
+                </span>
               </div>
 
-              <h1 className="text-2xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
+              <h1 className="text-xl sm:text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
                 {product.name}
               </h1>
 
               {/* Rating & Stock */}
-              <div className="flex items-center gap-4 text-sm">
+              <div className="flex items-center gap-3 text-xs sm:text-sm">
                 <div className="flex items-center gap-1 text-amber-500 dark:text-amber-400">
                   <Star className="w-4 h-4 fill-amber-500 dark:fill-amber-400" />
-                  <span className="font-bold text-slate-900 dark:text-white">{product.rating}</span>
-                  <span className="text-slate-500 dark:text-slate-400">({product.reviewCount} customer reviews)</span>
+                  <span className="font-bold text-slate-900 dark:text-white">{product.rating.toFixed(1)}</span>
+                  <span className="text-slate-500 dark:text-slate-400">({product.reviewCount} reviews)</span>
                 </div>
                 <span>•</span>
-                <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1 text-xs sm:text-sm">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" /> In Stock ({product.stockCount} left)
                 </span>
               </div>
 
-              {/* Pricing */}
-              <div className="flex items-baseline gap-3 pt-2 font-mono">
-                <span className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white">
+              {/* Pricing in ৳ BDT */}
+              <div className="flex items-baseline gap-3 pt-1">
+                <span className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 dark:text-white font-mono">
                   ৳{product.price.toLocaleString()}
                 </span>
-                <span className="text-lg text-slate-400 dark:text-slate-500 line-through">
-                  ৳{product.originalPrice.toLocaleString()}
-                </span>
-                <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-rose-500/10 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/25 font-sans">
-                  Save ৳{(product.originalPrice - product.price).toLocaleString()}
-                </span>
+                {product.originalPrice > product.price && (
+                  <span className="text-sm sm:text-base text-slate-400 dark:text-slate-500 line-through font-mono">
+                    ৳{product.originalPrice.toLocaleString()}
+                  </span>
+                )}
+                {product.isFlashSale && (
+                  <span className="px-2.5 py-0.5 rounded-full bg-rose-500/10 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-extrabold border border-rose-500/30">
+                    SAVE {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
+                  </span>
+                )}
               </div>
 
-              <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed pt-2">
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed pt-1">
                 {product.description}
               </p>
 
               {/* Color Selector */}
-              <div className="space-y-2 pt-4">
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  Color: <span className="text-slate-900 dark:text-white font-bold">{selectedColor}</span>
-                </label>
-                <div className="flex items-center gap-3">
+              <div className="space-y-2 pt-2">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                  Select Color: <span className="text-orange-600 dark:text-orange-400">{selectedColor}</span>
+                </span>
+                <div className="flex gap-2">
                   {product.colors.map((color) => (
                     <button
                       key={color}
                       type="button"
                       onClick={() => setSelectedColor(color)}
-                      className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
                         selectedColor === color
-                          ? 'bg-orange-500/10 dark:bg-orange-500/20 border-orange-500 text-orange-600 dark:text-orange-400 ring-2 ring-orange-500/30'
-                          : 'bg-white dark:bg-slate-800/80 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white shadow-sm'
+                          ? 'border-orange-500 bg-orange-500/10 text-orange-600 dark:text-orange-400 font-bold shadow-xs'
+                          : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300'
                       }`}
                     >
                       {color}
@@ -201,21 +215,21 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                 </div>
               </div>
 
-              {/* Size Selector */}
-              <div className="space-y-2 pt-2">
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  Edition / Size: <span className="text-slate-900 dark:text-white font-bold">{selectedSize}</span>
-                </label>
-                <div className="flex items-center gap-3">
+              {/* Size / Edition Selector */}
+              <div className="space-y-2 pt-1">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                  Edition: <span className="text-orange-600 dark:text-orange-400">{selectedSize}</span>
+                </span>
+                <div className="flex gap-2">
                   {product.sizes.map((size) => (
                     <button
                       key={size}
                       type="button"
                       onClick={() => setSelectedSize(size)}
-                      className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
                         selectedSize === size
-                          ? 'bg-orange-500/10 dark:bg-orange-500/20 border-orange-500 text-orange-600 dark:text-orange-400 ring-2 ring-orange-500/30'
-                          : 'bg-white dark:bg-slate-800/80 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white shadow-sm'
+                          ? 'border-orange-500 bg-orange-500/10 text-orange-600 dark:text-orange-400 font-bold shadow-xs'
+                          : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300'
                       }`}
                     >
                       {size}
@@ -223,24 +237,22 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                   ))}
                 </div>
               </div>
-            </div>
 
-            {/* Quantity and Actions */}
-            <div className="space-y-4 pt-6 border-t border-slate-200 dark:border-white/10">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 p-1 shadow-sm">
+              {/* Quantity & CTA Buttons */}
+              <div className="flex items-center gap-3 pt-3">
+                <div className="flex items-center rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-1">
                   <button
                     type="button"
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-10 h-10 rounded-lg flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-black cursor-pointer"
                   >
                     -
                   </button>
-                  <span className="w-12 text-center font-bold text-sm text-slate-900 dark:text-white">{quantity}</span>
+                  <span className="w-10 text-center text-xs font-black font-mono">{quantity}</span>
                   <button
                     type="button"
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="w-10 h-10 rounded-lg flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                    onClick={() => setQuantity(Math.min(product.stockCount, quantity + 1))}
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-black cursor-pointer"
                   >
                     +
                   </button>
@@ -249,105 +261,97 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                 <button
                   type="button"
                   onClick={handleAddToCart}
-                  className="flex-1 inline-flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-bold text-xs shadow-sm transition-all active:scale-[0.99] cursor-pointer border border-slate-200 dark:border-slate-700"
+                  className={`flex-1 py-3 px-6 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xl transition-all active:scale-95 cursor-pointer ${
+                    addedSuccess
+                      ? 'bg-emerald-600 text-white shadow-emerald-600/30'
+                      : 'bg-gradient-to-r from-[#ff4400] via-[#ff7700] to-[#ff4400] hover:from-[#e63d00] hover:to-[#ff6600] text-white shadow-orange-500/25'
+                  }`}
                 >
                   {addedSuccess ? (
                     <>
-                      <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> Added! ✓
+                      <Check className="w-4 h-4" /> Added to Cart!
                     </>
                   ) : (
                     <>
-                      <ShoppingCart className="w-4 h-4 text-slate-700 dark:text-slate-300" /> Add to Cart
+                      <ShoppingCart className="w-4 h-4" /> Add to Cart (৳{(product.price * quantity).toLocaleString()})
                     </>
                   )}
                 </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    handleAddToCart();
-                    router.push('/checkout');
-                  }}
-                  className="flex-1 inline-flex items-center justify-center gap-2 py-3.5 px-5 rounded-xl bg-gradient-to-r from-[#ff4400] via-[#ff7700] to-[#ff4400] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-xl shadow-orange-500/25 transition-all active:scale-[0.99] cursor-pointer"
-                >
-                  <Zap className="w-4 h-4 fill-current" />
-                  ⚡ সরাসরি অর্ডার করুন (৳{(product.price * quantity).toLocaleString()})
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    toggleWishlist({
-                      id: product.id,
-                      name: product.name,
-                      price: product.price,
-                      image: product.images[0],
-                      category: product.category,
-                      inStock: product.inStock,
-                    })
-                  }
-                  className={`p-3.5 rounded-xl border transition-all cursor-pointer ${
-                    isFavorite
-                      ? 'bg-rose-500/10 dark:bg-rose-500/20 border-rose-500 text-rose-500 dark:text-rose-400'
-                      : 'bg-white dark:bg-slate-800/80 border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white shadow-sm'
-                  }`}
-                  title={isFavorite ? 'Remove from Wishlist' : 'Add to Wishlist'}
-                >
-                  <Heart className={`w-5 h-5 ${isFavorite ? 'fill-rose-500' : ''}`} />
-                </button>
               </div>
 
-              {/* Assurance badges */}
-              <div className="grid grid-cols-3 gap-3 pt-4 text-center">
-                <div className="p-3 rounded-xl bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-white/5 shadow-sm flex flex-col items-center gap-1 text-[11px] text-slate-600 dark:text-slate-400">
-                  <Truck className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-                  <span>Free Express Delivery</span>
+              {/* 4 Compact Trust Badges */}
+              <div className="grid grid-cols-2 gap-2 pt-3 border-t border-slate-200 dark:border-slate-800/80">
+                <div className="flex items-center gap-2 text-[11px] text-slate-600 dark:text-slate-300">
+                  <Truck className="w-4 h-4 text-orange-500 shrink-0" />
+                  <span>২৪ ঘণ্টায় ডেলিভারি (ঢাকা ৳৬০)</span>
                 </div>
-                <div className="p-3 rounded-xl bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-white/5 shadow-sm flex flex-col items-center gap-1 text-[11px] text-slate-600 dark:text-slate-400">
-                  <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                  <span>2 Years Warranty</span>
+                <div className="flex items-center gap-2 text-[11px] text-slate-600 dark:text-slate-300">
+                  <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
+                  <span>১ বছরের অফিসিয়াল ওয়ারেন্টি</span>
                 </div>
-                <div className="p-3 rounded-xl bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-white/5 shadow-sm flex flex-col items-center gap-1 text-[11px] text-slate-600 dark:text-slate-400">
-                  <RotateCcw className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-                  <span>30 Days Free Return</span>
+                <div className="flex items-center gap-2 text-[11px] text-slate-600 dark:text-slate-300">
+                  <RotateCcw className="w-4 h-4 text-indigo-500 shrink-0" />
+                  <span>৭ দিনের সহজ রিটার্ন পলিসি</span>
+                </div>
+                <div className="flex items-center gap-2 text-[11px] text-slate-600 dark:text-slate-300">
+                  <Check className="w-4 h-4 text-amber-500 shrink-0" />
+                  <span>১০০% জেনুইন অরিজিনাল প্রোডাক্ট</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Customer Reviews Section */}
-        <div className="mt-16 space-y-8">
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Customer Reviews & Ratings</h2>
-            <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">Real feedback from verified purchasers.</p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div className="lg:col-span-5">
-              <ReviewForm productId={product.id} onReviewSubmitted={handleReviewSubmitted} />
+        {/* Related Category Hardware */}
+        {relatedProducts.length > 0 && (
+          <section className="pt-8 border-t border-slate-200 dark:border-slate-800/80">
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
+              <div>
+                <h3 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white">
+                  Related {product.category}
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Discover matching audio and workstation gear</p>
+              </div>
+              <Link href={`/products?category=${encodeURIComponent(rawProduct?.category || '')}`} className="text-xs font-bold text-orange-600 dark:text-orange-400 hover:underline flex items-center gap-1">
+                View All <ArrowRight className="w-3 h-3" />
+              </Link>
             </div>
 
-            <div className="lg:col-span-7 space-y-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4">
+              {relatedProducts.map((prod) => (
+                <ProductCard key={prod._id} product={prod} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Customer Reviews Section */}
+        <section className="pt-8 border-t border-slate-200 dark:border-slate-800/80">
+          <div className="max-w-4xl space-y-6">
+            <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+              Customer Reviews ({reviews.length})
+            </h3>
+
+            <ReviewForm productId={product.id} onReviewSubmitted={handleReviewSubmitted} />
+
+            <div className="space-y-3 pt-4">
               {reviews.map((rev) => (
-                <div key={rev.id} className="p-6 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-white/10 shadow-sm backdrop-blur-xl space-y-3">
+                <div key={rev.id} className="p-4 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <div>
-                      <span className="font-bold text-slate-900 dark:text-white text-sm">{rev.author}</span>
-                      <span className="text-xs text-slate-400 dark:text-slate-500 ml-2">● {rev.date}</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-amber-500 dark:text-amber-400">
-                      {[...Array(rev.rating)].map((_, i) => (
-                        <Star key={i} className="w-3.5 h-3.5 fill-amber-500 dark:fill-amber-400" />
-                      ))}
-                    </div>
+                    <span className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white">{rev.author}</span>
+                    <span className="text-[10px] text-slate-400">{rev.date}</span>
                   </div>
-                  <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">{rev.comment}</p>
+                  <div className="flex items-center gap-1 text-amber-500">
+                    {Array.from({ length: rev.rating }).map((_, i) => (
+                      <Star key={i} className="w-3.5 h-3.5 fill-current" />
+                    ))}
+                  </div>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed pt-1">{rev.comment}</p>
                 </div>
               ))}
             </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );
