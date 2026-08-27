@@ -41,10 +41,10 @@ function SuccessContent() {
 
       <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
         <Link
-          href="/profile"
+          href="/profile?tab=orders"
           className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/25 transition-all cursor-pointer"
         >
-          <Package className="w-4 h-4" /> View Order in Profile
+          <Package className="w-4 h-4" /> View Order History & Tracking
         </Link>
         <Link
           href="/products"

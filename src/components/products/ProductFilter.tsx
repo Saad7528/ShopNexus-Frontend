@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useProductStore } from '@/store/useProductStore';
-import { Filter, RotateCcw, Search } from 'lucide-react';
+import { Filter, RotateCcw, Search, X } from 'lucide-react';
 
 const CATEGORIES = [
   'All',
@@ -30,7 +30,11 @@ const BRANDS = [
   'Anker',
 ];
 
-export const ProductFilter: React.FC = () => {
+interface ProductFilterProps {
+  onClose?: () => void;
+}
+
+export const ProductFilter: React.FC<ProductFilterProps> = ({ onClose }) => {
   const {
     search,
     category,
@@ -51,25 +55,35 @@ export const ProductFilter: React.FC = () => {
   } = useProductStore();
 
   return (
-    <div className="bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 shadow-sm backdrop-blur-xl rounded-2xl p-5 space-y-6">
+    <div className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 shadow-sm backdrop-blur-xl rounded-2xl p-5 space-y-6">
       <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
         <div className="flex items-center gap-2 text-slate-900 dark:text-white font-semibold">
           <Filter className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-          <span>Filters</span>
+          <span>Filters & Refinements</span>
         </div>
-        <button
-          onClick={resetFilters}
-          className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors cursor-pointer"
-        >
-          <RotateCcw className="w-3.5 h-3.5" />
-          Reset
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={resetFilters}
+            className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors cursor-pointer"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            Reset
+          </button>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Search Input */}
       <div>
         <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
-          Search
+          Search Products
         </label>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
@@ -77,7 +91,7 @@ export const ProductFilter: React.FC = () => {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search products..."
+            placeholder="Search audio, keyboard, watches..."
             className="w-full pl-9 pr-3 py-2 bg-slate-100 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-xs focus:outline-none focus:ring-1 focus:ring-orange-500"
           />
         </div>
@@ -88,7 +102,7 @@ export const ProductFilter: React.FC = () => {
         <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2.5">
           Category
         </label>
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-wrap lg:flex-col gap-1">
           {CATEGORIES.map((cat) => (
             <button
               key={cat}
@@ -110,7 +124,7 @@ export const ProductFilter: React.FC = () => {
         <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2.5">
           Brand
         </label>
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-wrap lg:flex-col gap-1">
           {BRANDS.map((b) => (
             <button
               key={b}
@@ -127,16 +141,16 @@ export const ProductFilter: React.FC = () => {
         </div>
       </div>
 
-      {/* Price Range Slider & Presets */}
+      {/* Price Range Slider & Presets in Bangladeshi Taka (৳ BDT) */}
       <div>
         <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 mb-2">
-          <span className="font-semibold uppercase tracking-wider">Max Price</span>
-          <span className="font-bold text-orange-600 dark:text-orange-400">${maxPrice}</span>
+          <span className="font-semibold uppercase tracking-wider">Max Budget (BDT)</span>
+          <span className="font-bold text-orange-600 dark:text-orange-400 font-mono">৳{maxPrice.toLocaleString()}</span>
         </div>
 
         {/* Quick Budget Chips */}
         <div className="grid grid-cols-4 gap-1 mb-2.5">
-          {[50, 150, 300, 1000].map((preset) => (
+          {[10000, 25000, 50000, 150000].map((preset) => (
             <button
               key={preset}
               type="button"
@@ -147,16 +161,16 @@ export const ProductFilter: React.FC = () => {
                   : 'bg-slate-100 dark:bg-slate-950/40 border-slate-200 dark:border-slate-800/80 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
-              {preset >= 1000 ? 'All' : `<$${preset}`}
+              {preset >= 150000 ? 'All' : `<৳${(preset / 1000).toFixed(0)}k`}
             </button>
           ))}
         </div>
 
         <input
           type="range"
-          min="10"
-          max="1000"
-          step="10"
+          min="1000"
+          max="150000"
+          step="2500"
           value={maxPrice}
           onChange={(e) => setPriceRange(minPrice, Number(e.target.value))}
           className="w-full accent-[#ff4400] bg-slate-200 dark:bg-slate-800 rounded-lg cursor-pointer"
@@ -214,6 +228,15 @@ export const ProductFilter: React.FC = () => {
           <option value="rating">Highest Rated</option>
         </select>
       </div>
+
+      {onClose && (
+        <button
+          onClick={onClose}
+          className="lg:hidden w-full py-3 rounded-xl bg-orange-500 text-white font-bold text-xs shadow-md shadow-orange-500/25"
+        >
+          Apply Filters & View Results
+        </button>
+      )}
     </div>
   );
 };
