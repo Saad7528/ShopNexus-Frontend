@@ -335,43 +335,9 @@ export default function CheckoutPage() {
                     <CreditCard className="w-5 h-5 text-orange-600 dark:text-orange-400" /> 2. Payment Gateway
                   </h2>
                   <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
-                    Choose your preferred secure payment method (bKash / Nagad Instant or Cash on Delivery).
+                    Select your preferred gateway: Instant bKash / Nagad or Cash on Delivery.
                   </p>
                 </div>
-
-                {/* bKash / Nagad Choice Selector */}
-                {paymentMethod === 'mfs_bkash_nagad' && (
-                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2.5">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
-                      Select Mobile Financial Provider:
-                    </span>
-                    <div className="grid grid-cols-2 gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setMfsProvider('bkash')}
-                        className={`p-3 rounded-xl border flex items-center justify-center gap-2 font-bold text-xs transition-all cursor-pointer ${
-                          mfsProvider === 'bkash'
-                            ? 'bg-[#e2136e]/10 border-[#e2136e] text-[#e2136e] ring-2 ring-[#e2136e]/30'
-                            : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400'
-                        }`}
-                      >
-                        <Smartphone className="w-4 h-4" /> bKash Instant
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setMfsProvider('nagad')}
-                        className={`p-3 rounded-xl border flex items-center justify-center gap-2 font-bold text-xs transition-all cursor-pointer ${
-                          mfsProvider === 'nagad'
-                            ? 'bg-[#f7941d]/10 border-[#f7941d] text-[#f7941d] ring-2 ring-[#f7941d]/30'
-                            : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400'
-                        }`}
-                      >
-                        <Smartphone className="w-4 h-4" /> Nagad Instant
-                      </button>
-                    </div>
-                  </div>
-                )}
 
                 <PaymentMethodSelector
                   selectedMethod={paymentMethod}
@@ -384,7 +350,7 @@ export default function CheckoutPage() {
                     onClick={() => setCurrentStep(1)}
                     className="px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"
                   >
-                    Back to Shipping
+                    Back to Address
                   </button>
                   <button
                     type="button"
@@ -486,10 +452,10 @@ export default function CheckoutPage() {
 
           {/* Right Summary Column (5 cols) */}
           <div className="lg:col-span-5 space-y-6">
-            <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow-xl backdrop-blur-xl space-y-6">
+            <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow-xl backdrop-blur-xl space-y-5">
               <h3 className="text-lg font-bold text-slate-900 dark:text-white">Order Summary ({items.length} Items)</h3>
 
-              <div className="space-y-3 max-h-72 overflow-y-auto pr-1 scrollbar-thin">
+              <div className="space-y-3 max-h-64 overflow-y-auto pr-1 scrollbar-thin">
                 {items.length === 0 ? (
                   <p className="text-sm text-slate-500">No items currently in cart.</p>
                 ) : (
@@ -498,13 +464,13 @@ export default function CheckoutPage() {
                       key={item.productId}
                       className="flex items-center justify-between text-sm py-2 border-b border-slate-100 dark:border-slate-800 last:border-0"
                     >
-                      <div>
-                        <p className="font-semibold text-slate-900 dark:text-white truncate max-w-xs">{item.title}</p>
+                      <div className="min-w-0 flex-1 pr-2">
+                        <p className="font-semibold text-slate-900 dark:text-white truncate">{item.title}</p>
                         <p className="text-xs text-slate-500 dark:text-slate-400">
                           Qty: {item.quantity} × ৳{item.price.toLocaleString()}
                         </p>
                       </div>
-                      <span className="font-mono font-bold text-slate-900 dark:text-white">
+                      <span className="font-mono font-bold text-slate-900 dark:text-white shrink-0">
                         ৳{(item.price * item.quantity).toLocaleString()}
                       </span>
                     </div>
@@ -512,21 +478,137 @@ export default function CheckoutPage() {
                 )}
               </div>
 
-              <div className="space-y-2 pt-4 border-t border-slate-200 dark:border-slate-800 text-sm">
+              {/* Coupon / First Order Benefit Section */}
+              {isFirstOrder ? (
+                <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-emerald-500" /> প্রথম অর্ডার ১০% ছাড়
+                    </span>
+                    <span className="font-mono font-black text-emerald-600 dark:text-emerald-400">
+                      -৳{firstOrderDiscount.toLocaleString()}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                    🔒 প্রথম অর্ডারে স্বয়ংক্রিয়ভাবে ১০% ছাড় সক্রিয় থাকায় অতিরিক্ত কুপন লক করা আছে।
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                    <Tag className="w-3.5 h-3.5 text-orange-500" /> Have a Coupon Code?
+                  </span>
+                  <form onSubmit={handleApplyCoupon} className="flex gap-2">
+                    <input
+                      type="text"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value)}
+                      placeholder="e.g. NEXUS10"
+                      className="flex-1 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white uppercase font-mono"
+                    />
+                    <button
+                      type="submit"
+                      className="px-4 py-2 rounded-xl bg-orange-500 text-white font-bold text-xs hover:bg-orange-600 transition-colors"
+                    >
+                      Apply
+                    </button>
+                  </form>
+                  {couponError && <p className="text-[11px] text-rose-500">{couponError}</p>}
+                  {appliedCouponDiscount > 0 && (
+                    <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+                      <Check className="w-3 h-3" /> Coupon applied! Saved ৳{appliedCouponDiscount.toLocaleString()}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Nexus Coins & VIP Member Discount Section */}
+              <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                {/* 1. VIP Member ৳200 Welcome Perk */}
+                {isVipEligible && (
+                  <div className="p-3 rounded-2xl bg-gradient-to-r from-amber-500/15 via-orange-500/15 to-rose-500/15 border border-amber-500/30 flex items-center justify-between text-xs">
+                    <span className="font-bold text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-500" /> VIP মেম্বারশিপ স্পেশাল ছাড়
+                    </span>
+                    <span className="font-mono font-black text-amber-600 dark:text-amber-400">
+                      -৳200
+                    </span>
+                  </div>
+                )}
+
+                {/* 2. Nexus Coins Redeem Toggle (50 Coins = ৳5 Off) */}
+                {availableCoins >= 50 && (
+                  <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/25 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-800 dark:text-slate-200">
+                        <input
+                          type="checkbox"
+                          checked={useCoinsChecked}
+                          onChange={(e) => setUseCoinsChecked(e.target.checked)}
+                          className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
+                        />
+                        <span>Nexus Coins রিডিম করুন ({availableCoins.toLocaleString()} Coins আছে)</span>
+                      </label>
+                      {useCoinsChecked && coinsDiscount > 0 && (
+                        <span className="font-mono font-black text-emerald-600 dark:text-emerald-400 text-xs">
+                          -৳{coinsDiscount.toLocaleString()}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400 pl-6">
+                      🪙 প্রতি ৫০ কয়েনে ৫ টাকা ক্যাশ ডিসকাউন্ট (অর্ডার শেষে ব্যালান্স ০ হয়ে যাবে)
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Pricing Breakdown */}
+              <div className="space-y-2 pt-3 border-t border-slate-200 dark:border-slate-800 text-sm">
                 <div className="flex justify-between text-slate-600 dark:text-slate-400">
                   <span>Subtotal</span>
                   <span className="font-mono text-slate-900 dark:text-white font-bold">৳{subtotal.toLocaleString()}</span>
                 </div>
+
+                {isFirstOrder && firstOrderDiscount > 0 && (
+                  <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-semibold">
+                    <span>First Order Discount (10%)</span>
+                    <span className="font-mono font-bold">-৳{firstOrderDiscount.toLocaleString()}</span>
+                  </div>
+                )}
+
+                {!isFirstOrder && appliedCouponDiscount > 0 && (
+                  <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-semibold">
+                    <span>Coupon Discount</span>
+                    <span className="font-mono font-bold">-৳{appliedCouponDiscount.toLocaleString()}</span>
+                  </div>
+                )}
+
+                {vipDiscount > 0 && (
+                  <div className="flex justify-between text-amber-600 dark:text-amber-400 font-semibold">
+                    <span>VIP Member Welcome Perk</span>
+                    <span className="font-mono font-bold">-৳{vipDiscount}</span>
+                  </div>
+                )}
+
+                {coinsDiscount > 0 && (
+                  <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-semibold">
+                    <span>Nexus Coins Discount ({coinsSpent} Coins)</span>
+                    <span className="font-mono font-bold">-৳{coinsDiscount.toLocaleString()}</span>
+                  </div>
+                )}
+
                 <div className="flex justify-between text-slate-600 dark:text-slate-400">
                   <span>
-                    Delivery Charge ({deliveryZone === 'inside_dhaka' ? 'Inside Dhaka' : 'Outside Dhaka'})
+                    Delivery Charge ({deliveryZone === 'inside_dhaka' ? 'Dhaka ৳60' : 'Outside ৳120'})
                   </span>
                   <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">৳{deliveryFee}</span>
                 </div>
+
                 <div className="flex justify-between text-slate-600 dark:text-slate-400">
                   <span>Estimated VAT (5%)</span>
                   <span className="font-mono text-slate-900 dark:text-white font-bold">৳{vatTax.toLocaleString()}</span>
                 </div>
+
                 <div className="flex justify-between pt-3 border-t border-slate-200 dark:border-slate-800 text-base font-black text-slate-900 dark:text-white">
                   <span>Total Due</span>
                   <span className="font-mono text-xl text-orange-600 dark:text-orange-400">৳{total.toLocaleString()} BDT</span>
