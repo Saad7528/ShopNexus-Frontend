@@ -4,7 +4,21 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
-import { UserPlus, Mail, Lock, User, ArrowRight, Loader2, Layers } from 'lucide-react';
+import {
+  UserPlus,
+  Mail,
+  Lock,
+  User,
+  ArrowRight,
+  Loader2,
+  Layers,
+  Sparkles,
+  PartyPopper,
+  Gift,
+  CheckCircle2,
+  ShoppingBag,
+  Percent,
+} from 'lucide-react';
 import { BrandLogo } from '@/components/common/BrandLogo';
 
 export default function RegisterPage() {
@@ -17,6 +31,7 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isOAuthLoading, setIsOAuthLoading] = useState<'google' | 'github' | null>(null);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
   const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '366763068082-o3g1ov9e90gfibqkp4pbcetpmispn8i3.apps.googleusercontent.com';
@@ -53,7 +68,7 @@ export default function RegisterPage() {
       }
 
       login(data.data.user, data.data.token);
-      router.push('/products');
+      setShowWelcomeModal(true);
     } catch (err: any) {
       setError(err.message || 'An error occurred during registration.');
     } finally {
