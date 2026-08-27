@@ -192,16 +192,20 @@ export default function CheckoutPage() {
 
         {/* 📱 Simulated Live SMS Toast Notification */}
         {smsNotificationToast && (
-          <div className="fixed top-6 right-6 z-50 max-w-sm bg-white dark:bg-slate-900 border border-emerald-500/40 rounded-2xl p-4 shadow-2xl space-y-2 animate-slideDown">
-            <div className="flex items-center justify-between text-xs">
-              <span className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-                <MessageSquare className="w-4 h-4" /> 📩 SMS Gateway Alert
-              </span>
-              <span className="font-mono text-[10px] text-slate-500">To: {smsNotificationToast.phone}</span>
+          <div className="fixed top-6 right-6 z-50 max-w-sm w-full animate-in slide-in-from-top-4 duration-300">
+            <div className="p-4 rounded-2xl bg-slate-900 text-white border border-emerald-500/40 shadow-2xl space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs">
+                  <Smartphone className="w-4 h-4" />
+                  <span>SMS Dispatch Alert</span>
+                </div>
+                <span className="text-[10px] text-slate-400">Just Now</span>
+              </div>
+              <p className="text-xs text-slate-200 leading-relaxed font-sans">{smsNotificationToast.msg}</p>
+              <div className="text-[10px] text-slate-400 pt-1 border-t border-slate-800 flex items-center gap-1">
+                <MessageSquare className="w-3 h-3 text-emerald-400" /> Sent to {smsNotificationToast.phone}
+              </div>
             </div>
-            <p className="text-xs text-slate-800 dark:text-slate-200 font-mono leading-relaxed bg-slate-100 dark:bg-slate-950 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
-              {smsNotificationToast.msg}
-            </p>
           </div>
         )}
 
