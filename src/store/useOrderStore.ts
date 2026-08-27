@@ -92,12 +92,13 @@ interface OrderStoreState {
   addOrder: (order: UserOrder) => void;
   getOrderById: (id: string) => UserOrder | undefined;
   clearOrders: () => void;
+  hasCompletedOrders: () => boolean;
 }
 
 export const useOrderStore = create<OrderStoreState>()(
   persist(
     (set, get) => ({
-      orders: INITIAL_DEMO_ORDERS,
+      orders: [],
 
       addOrder: (newOrder) =>
         set((state) => ({
@@ -109,9 +110,13 @@ export const useOrderStore = create<OrderStoreState>()(
       },
 
       clearOrders: () => set({ orders: [] }),
+
+      hasCompletedOrders: () => {
+        return get().orders.length > 0;
+      },
     }),
     {
-      name: 'shopnexus-user-orders-v2',
+      name: 'shopnexus-user-orders-v3',
       storage: createJSONStorage(() => localStorage),
     }
   )

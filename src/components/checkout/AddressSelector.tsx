@@ -25,9 +25,9 @@ export const AddressSelector: React.FC<AddressSelectorProps> = ({
   const isInitialEmpty = !currentAddress.fullName || !currentAddress.streetAddress;
   const [isEditing, setIsEditing] = useState(isInitialEmpty);
   const [formData, setFormData] = useState<IShippingAddressForm>({
-    fullName: currentAddress.fullName || 'S.M. Saad (Guest)',
-    phoneNumber: currentAddress.phoneNumber || '+880 1712-345678',
-    streetAddress: currentAddress.streetAddress || 'House 42, Road 11, Banani Block-D',
+    fullName: currentAddress.fullName || '',
+    phoneNumber: currentAddress.phoneNumber || '',
+    streetAddress: currentAddress.streetAddress || '',
     city: currentAddress.city || 'Dhaka',
     state: currentAddress.state || 'Dhaka Division',
     zipCode: currentAddress.zipCode || '1213',

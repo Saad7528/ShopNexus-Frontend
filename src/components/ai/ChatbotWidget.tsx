@@ -54,6 +54,7 @@ export const ChatbotWidget: React.FC = () => {
   } = useChatbotStore();
 
   const { addItem, openDrawer } = useCartStore();
+  const isCartOpen = useCartStore((state) => state.isOpen);
   const [inputText, setInputText] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [speakingMsgId, setSpeakingMsgId] = useState<string | null>(null);
@@ -143,8 +144,6 @@ export const ChatbotWidget: React.FC = () => {
     setSpeakingMsgId(msgId);
     window.speechSynthesis.speak(utterance);
   };
-
-  if (isAuthPage) return null;
 
   const quickPrompts = [
     { label: '🎧 Under ৳১৫,০০০ Audio', budget: 15000, category: 'Audio' },
@@ -243,6 +242,8 @@ export const ChatbotWidget: React.FC = () => {
     openDrawer();
   };
 
+  if (isAuthPage) return null;
+
   return (
     <>
       {/* Floating Trigger Button */}
@@ -250,7 +251,9 @@ export const ChatbotWidget: React.FC = () => {
         <button
           type="button"
           onClick={openChat}
-          className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-[#ff4400] via-[#ff6600] to-[#ff8800] text-white font-bold text-xs shadow-2xl shadow-orange-500/40 hover:scale-105 active:scale-95 transition-all cursor-pointer group"
+          className={`fixed bottom-6 right-6 z-40 flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-[#ff4400] via-[#ff6600] to-[#ff8800] text-white font-bold text-xs shadow-2xl shadow-orange-500/40 hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer group ${
+            isCartOpen ? 'opacity-0 pointer-events-none translate-y-10 scale-75' : 'opacity-100'
+          }`}
           title="Open Nexus AI Shopping Assistant"
         >
           <div className="relative">

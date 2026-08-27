@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { Navbar } from '@/components/layout/Navbar';
@@ -17,10 +17,25 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#090d16' },
+  ],
+};
+
 export const metadata: Metadata = {
-  title: 'ShopNexus | Next-Gen E-Commerce & AI Commerce Ecosystem',
+  title: 'ShopNexus | Next-Gen E-Commerce & Gadget Store',
   description:
-    'ShopNexus is a high-performance, official single-brand e-commerce ecosystem built with Next.js 16, TypeScript, Zustand, and 5 AI Superpowers.',
+    'ShopNexus is a high-performance, premium e-commerce ecosystem delivering authentic gadgets, mechanical keyboards, audio gear, and instant deliveries.',
+  icons: {
+    icon: '/icon.png',
+    shortcut: '/favicon.ico',
+    apple: '/icon.png',
+  },
 };
 
 export default function RootLayout({
