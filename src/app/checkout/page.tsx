@@ -209,31 +209,30 @@ export default function CheckoutPage() {
           </div>
         )}
 
-        {/* Step Indicator */}
+        {/* Multi-Step Indicator Header */}
         <div className="grid grid-cols-3 gap-2 sm:gap-4 max-w-2xl mx-auto">
           {[
-            { step: 1, label: 'Delivery Zone', icon: MapPin },
-            { step: 2, label: 'Payment Gateway', icon: CreditCard },
-            { step: 3, label: 'Review & Place', icon: CheckCircle2 },
+            { step: 1, label: 'Delivery Zone & Address' },
+            { step: 2, label: 'Payment Gateway' },
+            { step: 3, label: 'Confirm & Place Order' },
           ].map((s) => {
-            const Icon = s.icon;
             const isActive = currentStep === s.step;
             const isDone = currentStep > s.step;
             return (
               <button
                 key={s.step}
                 type="button"
-                onClick={() => isDone && setCurrentStep(s.step as 1 | 2 | 3)}
-                className={`p-3 rounded-2xl border text-center transition-all flex flex-col sm:flex-row items-center justify-center gap-2 cursor-pointer shadow-sm ${
+                onClick={() => isDone && setCurrentStep(s.step as any)}
+                className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center gap-1 cursor-pointer ${
                   isActive
-                    ? 'bg-orange-500/10 dark:bg-orange-500/20 border-orange-500 text-orange-600 dark:text-white ring-2 ring-orange-500/30'
+                    ? 'border-orange-500 bg-orange-500/10 text-orange-600 dark:text-orange-400 font-bold shadow-md shadow-orange-500/10'
                     : isDone
-                    ? 'bg-emerald-50 dark:bg-slate-900/80 border-emerald-500/40 text-emerald-600 dark:text-emerald-400'
-                    : 'bg-white dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500'
+                    ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 font-semibold'
+                    : 'border-slate-200 dark:border-slate-800 text-slate-400 opacity-60'
                 }`}
               >
                 <div
-                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
+                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black ${
                     isDone
                       ? 'bg-emerald-500 text-white'
                       : isActive
