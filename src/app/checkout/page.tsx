@@ -158,6 +158,16 @@ export default function CheckoutPage() {
     // Save to persistent customer order history
     useOrderStore.getState().addOrder(newOrderObj);
 
+    // Deduct redeemed Nexus coins if applied
+    if (useCoinsChecked && coinsSpent > 0) {
+      spendCoins(coinsSpent);
+    }
+
+    // Mark VIP welcome discount as used
+    if (isVipEligible) {
+      useVipDiscount();
+    }
+
     setTimeout(() => {
       clearCart();
       router.push(`/checkout/success?orderId=${mockOrderId}&total=${total}&trx=${trxId}`);
