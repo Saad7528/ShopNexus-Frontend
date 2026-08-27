@@ -65,11 +65,40 @@ export default function CheckoutPage() {
     msg: string;
   } | null>(null);
 
+  // First Order Logic: Has the user placed any orders before?
+  const isFirstOrder = orders.length === 0;
+
+  // Coupon state for returning users
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCouponDiscount, setAppliedCouponDiscount] = useState(0);
+  const [couponError, setCouponError] = useState<string | null>(null);
+
   // Dynamic delivery fee calculation: Inside Dhaka ৳60, Outside Dhaka ৳120
   const deliveryFee = deliveryZone === 'inside_dhaka' ? 60 : 120;
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const vatTax = Math.round(subtotal * 0.05);
-  const total = subtotal + deliveryFee + vatTax;
+
+  // 10% First order automatic discount
+  const firstOrderDiscount = isFirstOrder ? Math.round(subtotal * 0.10) : 0;
+  const discountAmount = isFirstOrder ? firstOrderDiscount : appliedCouponDiscount;
+  const totalDiscounts = discountAmount + coinsDiscount + vipDiscount;
+  const discountedSubtotal = Math.max(0, subtotal - totalDiscounts);
+
+  const vatTax = Math.round(discountedSubtotal * 0.05);
+  const total = discountedSubtotal + deliveryFee + vatTax;
+
+  const handleApplyCoupon = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isFirstOrder) return;
+    setCouponError(null);
+    const code = couponCode.trim().toUpperCase();
+    if (code === 'NEXUS10') {
+      setAppliedCouponDiscount(Math.round(subtotal * 0.10));
+    } else if (code === 'SAVE15') {
+      setAppliedCouponDiscount(Math.round(subtotal * 0.15));
+    } else {
+      setCouponError('Invalid coupon code. Try NEXUS10 or SAVE15.');
+    }
+  };
 
   const handleMfsPaymentSuccess = (trxId: string) => {
     setIsMfsModalOpen(false);
