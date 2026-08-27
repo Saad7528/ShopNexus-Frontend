@@ -83,32 +83,32 @@ function GoogleCallbackContent() {
   }, [router, searchParams, login]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0b0f19] text-white p-6">
-      <div className="max-w-md w-full p-8 rounded-3xl bg-slate-900/80 border border-slate-800 backdrop-blur-xl text-center space-y-4 shadow-2xl">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0b0f19] text-slate-900 dark:text-white p-6">
+      <div className="max-w-md w-full p-8 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-xl backdrop-blur-xl text-center space-y-4">
         {status === 'loading' && (
           <div className="space-y-4">
-            <Loader2 className="w-10 h-10 text-indigo-400 animate-spin mx-auto" />
-            <h2 className="text-lg font-bold text-white">Authenticating with Google...</h2>
-            <p className="text-xs text-slate-400">Verifying security token and syncing ShopNexus profile...</p>
+            <Loader2 className="w-10 h-10 text-orange-500 animate-spin mx-auto" />
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Authenticating with Google...</h2>
+            <p className="text-xs text-slate-600 dark:text-slate-400">Verifying security token and syncing ShopNexus profile...</p>
           </div>
         )}
 
         {status === 'success' && (
           <div className="space-y-4 animate-in fade-in-50">
-            <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto" />
-            <h2 className="text-lg font-bold text-white">Google Sign-In Successful!</h2>
-            <p className="text-xs text-slate-300">Welcome to ShopNexus. Redirecting to your dashboard...</p>
+            <CheckCircle2 className="w-12 h-12 text-emerald-600 dark:text-emerald-400 mx-auto" />
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Google Sign-In Successful!</h2>
+            <p className="text-xs text-slate-600 dark:text-slate-300">Welcome to ShopNexus. Redirecting to your dashboard...</p>
           </div>
         )}
 
         {status === 'error' && (
           <div className="space-y-4 animate-in fade-in-50">
-            <AlertCircle className="w-12 h-12 text-rose-400 mx-auto" />
-            <h2 className="text-lg font-bold text-white">Authentication Failed</h2>
-            <p className="text-xs text-rose-300">{errorMsg}</p>
+            <AlertCircle className="w-12 h-12 text-rose-500 dark:text-rose-400 mx-auto" />
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Authentication Failed</h2>
+            <p className="text-xs text-rose-600 dark:text-rose-300">{errorMsg}</p>
             <button
               onClick={() => router.push('/login')}
-              className="mt-4 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg transition-all cursor-pointer"
+              className="mt-4 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/25 transition-all cursor-pointer"
             >
               Return to Login
             </button>
@@ -123,7 +123,7 @@ export default function GoogleCallbackPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-[#0b0f19] text-slate-400 text-sm">
+        <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0b0f19] text-slate-600 dark:text-slate-400 text-sm">
           Processing Google callback...
         </div>
       }
