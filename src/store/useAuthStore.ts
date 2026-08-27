@@ -13,10 +13,11 @@ export interface User {
   address?: string;
   city?: string;
   zipCode?: string;
-  nexusCoins?: number;
   country?: string;
   storeName?: string;
-  storeDescription?: string;  loginStreak?: number;
+  storeDescription?: string;
+  nexusCoins?: number;
+  loginStreak?: number;
   lastVisitDate?: string;
   isVipMember?: boolean;
   vipFirstOrderUsed?: boolean;
