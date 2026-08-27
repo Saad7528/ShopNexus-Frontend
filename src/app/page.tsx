@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { ProductCard } from '@/components/products/ProductCard';
 import { TestimonialSlider } from '@/components/home/TestimonialSlider';
 import { HeroSection } from '@/components/home/HeroSection';
+import { ALL_PRODUCTS } from '@/data/products';
 import {
   Sparkles,
   ArrowRight,
@@ -30,109 +31,15 @@ import {
   Lock,
   Mail,
   Send,
+  SlidersHorizontal,
+  Wallet,
 } from 'lucide-react';
 
-const FEATURED_CATEGORIES = [
-  {
-    name: 'Audio & Acoustics',
-    slug: 'Audio',
-    icon: Headphones,
-    itemCount: '1,240 items',
-  },
-  {
-    name: 'Smart Wearables',
-    slug: 'Wearables',
-    icon: Watch,
-    itemCount: '890 items',
-  },
-  {
-    name: 'Keyboards & Peripherals',
-    slug: 'Peripherals',
-    icon: Gamepad2,
-    itemCount: '640 items',
-  },
-  {
-    name: 'Smart Home & Living',
-    slug: 'Smart Home',
-    icon: Tv,
-    itemCount: '520 items',
-  },
-];
-
-const SHOWCASE_PRODUCTS = [
-  {
-    _id: 'prod-001',
-    title: 'Sony WH-1000XM5 Wireless Noise-Cancelling Headphones',
-    slug: 'sony-wh-1000xm5-anc-headphones',
-    description: 'Studio-grade spatial audio with 40-hour ultra battery life and pure titanium drivers.',
-    category: 'Audio',
-    brand: 'Sony',
-    price: 38500,
-    discountPrice: 32500,
-    stock: 18,
-    images: ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80'],
-    vendorName: 'ShopNexus Official',
-    isFlashSale: true,
-    flashSaleDiscountPercent: 16,
-    averageRating: 4.9,
-    totalReviews: 248,
-    tags: ['wireless', 'noise-cancelling', 'bluetooth 5.3'],
-  },
-  {
-    _id: 'prod-002',
-    title: 'Apple Watch Ultra 2 Aerospace Titanium Smartwatch',
-    slug: 'apple-watch-ultra-2',
-    description: 'Precision aerospace titanium casing with continuous biometric health tracking and dual-frequency GPS.',
-    category: 'Wearables',
-    brand: 'Apple',
-    price: 88900,
-    discountPrice: 79900,
-    stock: 4,
-    images: ['https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80'],
-    vendorName: 'ShopNexus Official',
-    isFlashSale: true,
-    flashSaleDiscountPercent: 10,
-    averageRating: 5.0,
-    totalReviews: 184,
-    tags: ['wearable', 'gps', 'cellular'],
-  },
-  {
-    _id: 'prod-003',
-    title: 'Keychron Q1 Pro Custom QMK Wireless Mechanical Keyboard',
-    slug: 'keychron-q1-pro-mechanical-keyboard',
-    description: 'Full aluminum body with hot-swappable switches, double-gasket acoustic mounting, and south-facing RGB.',
-    category: 'Peripherals',
-    brand: 'Keychron',
-    price: 24500,
-    discountPrice: 21900,
-    stock: 12,
-    images: ['https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=800&q=80'],
-    vendorName: 'ShopNexus Official',
-    isFlashSale: false,
-    flashSaleDiscountPercent: 0,
-    averageRating: 4.8,
-    totalReviews: 92,
-    tags: ['mechanical', 'hot-swap', 'wireless'],
-  },
-  {
-    _id: 'prod-004',
-    title: 'Philips Hue Smart Gradient Ambiance Lightstrip (2M)',
-    slug: 'philips-hue-gradient-lightstrip-2m',
-    description: 'Seamless blending of multiple vibrant light colors simultaneously with Matter and HomeKit support.',
-    category: 'Smart Home',
-    brand: 'Philips Hue',
-    price: 13900,
-    discountPrice: 11900,
-    stock: 25,
-    images: ['https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=800&q=80'],
-    vendorName: 'ShopNexus Official',
-    isFlashSale: false,
-    flashSaleDiscountPercent: 0,
-    averageRating: 4.7,
-    totalReviews: 64,
-    tags: ['smart-lighting', 'homekit', 'matter'],
-  },
-];
+const AUDIO_PRODUCTS = ALL_PRODUCTS.filter((p) => p.category === 'Audio').slice(0, 5);
+const WEARABLE_PRODUCTS = ALL_PRODUCTS.filter((p) => p.category === 'Wearables').slice(0, 5);
+const PERIPHERAL_PRODUCTS = ALL_PRODUCTS.filter((p) => p.category === 'Peripherals').slice(0, 5);
+const CREATOR_PRODUCTS = ALL_PRODUCTS.filter((p) => p.category === 'Creator Gear' || p.category === 'Smart Home').slice(0, 5);
+const FLASH_PRODUCTS = ALL_PRODUCTS.filter((p) => p.isFlashSale).slice(0, 5);
 
 const AI_SUPERPOWERS = [
   {
@@ -167,7 +74,6 @@ const AI_SUPERPOWERS = [
   },
 ];
 
-
 export default function HomePage() {
   const [timeLeft, setTimeLeft] = useState({ hours: 14, minutes: 32, seconds: 48 });
   const [newsletterEmail, setNewsletterEmail] = useState('');
@@ -193,129 +99,222 @@ export default function HomePage() {
   };
 
   return (
-    <div className="space-y-12 sm:space-y-20 pb-16">
-      {/* 🌟 1. WORLD-CLASS HYPER-INTERACTIVE HERO SECTION */}
+    <div className="space-y-6 sm:space-y-12 pb-16">
+      {/* 🌟 1. HERO SECTION (Compact on Mobile, Expansive on Desktop) */}
       <HeroSection />
 
-      {/* 🏷️ 3. CURATED CATEGORIES GRID */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Curated Categories</h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Browse premium acoustics, wearables, and custom peripherals</p>
-          </div>
-          <Link href="/products" className="text-xs font-bold text-orange-600 dark:text-orange-400 hover:text-orange-500 flex items-center gap-1">
-            View All <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {FEATURED_CATEGORIES.map((cat) => {
-            const Icon = cat.icon;
-            return (
-              <Link
-                key={cat.name}
-                href={`/products?category=${encodeURIComponent(cat.slug)}`}
-                className="group p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 hover:border-orange-500 dark:hover:border-orange-500 shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-4 hover:scale-[1.02]"
-              >
-                <div className="w-12 h-12 rounded-xl bg-orange-500/10 dark:bg-orange-500/15 border border-orange-500/20 text-orange-600 dark:text-orange-400 flex items-center justify-center group-hover:bg-orange-500 group-hover:text-white transition-colors">
-                  <Icon className="w-6 h-6" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-slate-900 dark:text-white text-sm group-hover:text-orange-500 dark:group-hover:text-orange-400 transition-colors">{cat.name}</h3>
-                  <span className="text-[11px] text-slate-500 dark:text-slate-400">{cat.itemCount}</span>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* ⚡ 4. FLASH DEALS WITH COUNTDOWN */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-orange-50/80 via-white to-amber-50/60 dark:from-amber-500/10 dark:via-orange-500/10 dark:to-rose-500/10 border border-orange-200 dark:border-orange-500/20 shadow-sm dark:shadow-xl backdrop-blur-xl">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-orange-500/15 border border-orange-500/30 flex items-center justify-center text-orange-600 dark:text-orange-400">
-                <Zap className="w-6 h-6 fill-current animate-bounce" />
+      {/* ⚡ 2. MEGA FLASH DEALS (2-Column Mobile Grid) */}
+      <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="p-3.5 sm:p-6 rounded-3xl bg-gradient-to-r from-orange-50/80 via-white to-amber-50/60 dark:from-amber-500/10 dark:via-orange-500/10 dark:to-rose-500/10 border border-orange-200 dark:border-orange-500/20 shadow-sm backdrop-blur-xl">
+          <div className="flex items-center justify-between gap-2 mb-3.5 sm:mb-5">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl bg-orange-500/15 border border-orange-500/30 flex items-center justify-center text-orange-600 dark:text-orange-400 shrink-0">
+                <Zap className="w-4 h-4 sm:w-5 sm:h-5 fill-current animate-bounce" />
               </div>
-              <div>
-                <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">Flash Deals & Limited Drops</h2>
-                <p className="text-xs text-slate-600 dark:text-orange-300/80">Save up to 40% on verified hardware before timer resets</p>
+              <div className="min-w-0">
+                <h2 className="text-sm sm:text-xl font-black text-slate-900 dark:text-white truncate">Flash Deals & Drops</h2>
+                <p className="text-[10px] sm:text-xs text-slate-600 dark:text-orange-300/80 truncate">Save up to 40% on verified hardware</p>
               </div>
             </div>
 
             {/* Countdown Clock */}
-            <div className="flex items-center gap-2 font-mono text-xs font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-950/80 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm self-start sm:self-auto">
-              <Clock className="w-4 h-4 text-orange-500" />
-              <span className="text-orange-600 dark:text-orange-400">{String(timeLeft.hours).padStart(2, '0')}h</span> :
-              <span>{String(timeLeft.minutes).padStart(2, '0')}m</span> :
+            <div className="flex items-center gap-1 sm:gap-1.5 font-mono text-[10px] sm:text-xs font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-950/80 px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+              <Clock className="w-3 h-3 text-orange-500 hidden xs:inline" />
+              <span className="text-orange-600 dark:text-orange-400">{String(timeLeft.hours).padStart(2, '0')}h</span>:
+              <span>{String(timeLeft.minutes).padStart(2, '0')}m</span>:
               <span className="text-rose-500 dark:text-rose-400">{String(timeLeft.seconds).padStart(2, '0')}s</span>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {SHOWCASE_PRODUCTS.map((prod) => (
-              <ProductCard key={prod._id} product={prod as any} />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3.5">
+            {FLASH_PRODUCTS.map((prod) => (
+              <ProductCard key={prod._id} product={prod} />
             ))}
           </div>
         </div>
       </section>
 
-      {/* 🔥 5. BEST-SELLING COMPACT SHOWCASE */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <div className="inline-flex items-center gap-1.5 text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider mb-1">
-              <TrendingUp className="w-3.5 h-3.5" />
-              Top Rated Hardware
+      {/* 🌟 3. ULTRA-COMPACT 4 TRUST PILLARS (Placed Directly Beneath Flash Deals) */}
+      <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
+          <div className="p-2 sm:p-2.5 rounded-xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 shadow-xs flex items-center gap-2 group hover:border-orange-500/40 transition-colors">
+            <div className="p-1.5 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20 shrink-0">
+              <Truck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
-            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Best Sellers of the Week</h2>
+            <div className="min-w-0">
+              <h4 className="font-bold text-slate-900 dark:text-white text-[10px] sm:text-xs truncate">২৪ ঘণ্টা ডেলিভারি</h4>
+              <p className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 truncate">
+                ঢাকা <strong className="text-orange-600 dark:text-orange-400 font-mono">৳৬০</strong> / বাইরে <strong className="text-orange-600 dark:text-orange-400 font-mono">৳১২০</strong>
+              </p>
+            </div>
           </div>
-          <Link href="/products" className="text-xs font-bold text-orange-600 dark:text-orange-400 hover:text-orange-500 flex items-center gap-1">
-            Shop Catalog <ArrowRight className="w-3.5 h-3.5" />
+
+          <div className="p-2 sm:p-2.5 rounded-xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 shadow-xs flex items-center gap-2 group hover:border-orange-500/40 transition-colors">
+            <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
+              <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            </div>
+            <div className="min-w-0">
+              <h4 className="font-bold text-slate-900 dark:text-white text-[10px] sm:text-xs truncate">বিকাশ ও নগদ</h4>
+              <p className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 truncate">
+                ১০% ক্যাশব্যাক ও COD
+              </p>
+            </div>
+          </div>
+
+          <div className="p-2 sm:p-2.5 rounded-xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 shadow-xs flex items-center gap-2 group hover:border-orange-500/40 transition-colors">
+            <div className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 shrink-0">
+              <RotateCcw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            </div>
+            <div className="min-w-0">
+              <h4 className="font-bold text-slate-900 dark:text-white text-[10px] sm:text-xs truncate">৭ দিনের রিটার্ন</h4>
+              <p className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 truncate">
+                ১০০% মানি-ব্যাক গ্যারান্টি
+              </p>
+            </div>
+          </div>
+
+          <div className="p-2 sm:p-2.5 rounded-xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 shadow-xs flex items-center gap-2 group hover:border-orange-500/40 transition-colors">
+            <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 shrink-0">
+              <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            </div>
+            <div className="min-w-0">
+              <h4 className="font-bold text-slate-900 dark:text-white text-[10px] sm:text-xs truncate">অফিসিয়াল ওয়ারেন্টি</h4>
+              <p className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 truncate">
+                ১০০% জেনুইন অথেনটিক
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 🎧 4. AUDIO & ACOUSTICS SECTION (2-Column Mobile Grid) */}
+      <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between mb-3 sm:mb-5">
+          <div>
+            <div className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider mb-0.5">
+              <Headphones className="w-3.5 h-3.5" />
+              Audiophile Sound
+            </div>
+            <h2 className="text-base sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+              Premium Acoustics & Headsets
+            </h2>
+          </div>
+          <Link href="/products?category=Audio" className="text-xs font-bold text-orange-600 dark:text-orange-400 hover:underline flex items-center gap-1">
+            View All <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {SHOWCASE_PRODUCTS.map((prod) => (
-            <ProductCard key={prod._id} product={prod as any} />
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3.5">
+          {AUDIO_PRODUCTS.map((prod) => (
+            <ProductCard key={prod._id} product={prod} />
           ))}
         </div>
       </section>
 
-      {/* 🤖 6. 5 AI SUPERPOWERS SHOWCASE */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="p-8 rounded-3xl bg-slate-100/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-xl backdrop-blur-xl">
-          <div className="text-center max-w-2xl mx-auto mb-10">
+      {/* ⌚ 5. TITANIUM WEARABLES & WATCHES (2-Column Mobile Grid) */}
+      <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between mb-3 sm:mb-5">
+          <div>
+            <div className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider mb-0.5">
+              <Watch className="w-3.5 h-3.5" />
+              Aerospace Titanium
+            </div>
+            <h2 className="text-base sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+              Smartwatches & Fitness Trackers
+            </h2>
+          </div>
+          <Link href="/products?category=Wearables" className="text-xs font-bold text-orange-600 dark:text-orange-400 hover:underline flex items-center gap-1">
+            View All <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3.5">
+          {WEARABLE_PRODUCTS.map((prod) => (
+            <ProductCard key={prod._id} product={prod} />
+          ))}
+        </div>
+      </section>
+
+      {/* ⌨️ 6. MECHANICAL KEYBOARDS & WORKSPACE (2-Column Mobile Grid) */}
+      <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between mb-3 sm:mb-5">
+          <div>
+            <div className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider mb-0.5">
+              <Gamepad2 className="w-3.5 h-3.5" />
+              Custom Ergonomics
+            </div>
+            <h2 className="text-base sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+              Keyboards & Performance Mice
+            </h2>
+          </div>
+          <Link href="/products?category=Peripherals" className="text-xs font-bold text-orange-600 dark:text-orange-400 hover:underline flex items-center gap-1">
+            View All <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3.5">
+          {PERIPHERAL_PRODUCTS.map((prod) => (
+            <ProductCard key={prod._id} product={prod} />
+          ))}
+        </div>
+      </section>
+
+      {/* 🏠 7. SMART HOME & CREATOR GEAR (2-Column Mobile Grid) */}
+      <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between mb-3 sm:mb-5">
+          <div>
+            <div className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider mb-0.5">
+              <Tv className="w-3.5 h-3.5" />
+              Content Creation & Smart Living
+            </div>
+            <h2 className="text-base sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+              Cameras & Creator Peripherals
+            </h2>
+          </div>
+          <Link href="/products?category=Smart+Home" className="text-xs font-bold text-orange-600 dark:text-orange-400 hover:underline flex items-center gap-1">
+            View All <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3.5">
+          {CREATOR_PRODUCTS.map((prod) => (
+            <ProductCard key={prod._id} product={prod} />
+          ))}
+        </div>
+      </section>
+
+      {/* 🤖 8. 5 AI SUPERPOWERS SHOWCASE */}
+      <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="p-4 sm:p-8 rounded-3xl bg-slate-100/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow-sm backdrop-blur-xl">
+          <div className="text-center max-w-2xl mx-auto mb-4 sm:mb-8">
             <span className="px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-600 dark:text-orange-400 text-xs font-bold uppercase tracking-wider">
               Autonomous Intelligence
             </span>
-            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-3">The 5 AI Superpowers of ShopNexus</h2>
-            <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">
-              Next-generation machine learning and generative vision embedded directly into your shopping flow.
+            <h2 className="text-lg sm:text-3xl font-black text-slate-900 dark:text-white mt-2">5 AI Superpowers of ShopNexus</h2>
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+              Next-generation machine learning and generative vision embedded into your shopping experience.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-4">
             {AI_SUPERPOWERS.map((ai, i) => {
               const Icon = ai.icon;
               return (
                 <div
                   key={ai.title}
-                  className="p-5 rounded-2xl bg-white dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800/80 hover:border-orange-500 dark:hover:border-orange-500 shadow-sm transition-all flex flex-col justify-between"
+                  className="p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800/80 hover:border-orange-500 dark:hover:border-orange-500 shadow-xs transition-all flex flex-col justify-between"
                 >
                   <div>
-                    <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-600 dark:text-orange-400 mb-3">
-                      <Icon className="w-5 h-5" />
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-600 dark:text-orange-400 mb-2">
+                      <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </div>
-                    <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider block mb-1">
+                    <span className="text-[9px] font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider block mb-0.5">
                       {ai.tag}
                     </span>
-                    <h3 className="font-bold text-slate-900 dark:text-white text-xs sm:text-sm mb-2">{ai.title}</h3>
-                    <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">{ai.desc}</p>
+                    <h3 className="font-bold text-slate-900 dark:text-white text-xs mb-1">{ai.title}</h3>
+                    <p className="text-[10px] text-slate-600 dark:text-slate-400 leading-relaxed">{ai.desc}</p>
                   </div>
-                  <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800/60 text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+                  <div className="mt-2.5 pt-2 border-t border-slate-200 dark:border-slate-800/60 text-[9px] font-semibold text-slate-400 dark:text-slate-500">
                     Feature 0{i + 1}
                   </div>
                 </div>
@@ -325,103 +324,54 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 💎 7. BRAND STORY / WHY SHOPNEXUS */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center p-8 sm:p-12 rounded-3xl bg-gradient-to-br from-orange-50/80 via-white to-slate-50 dark:from-[#0b1120] dark:via-slate-900 dark:to-[#090d16] border border-orange-200/80 dark:border-slate-800 shadow-sm dark:shadow-2xl">
-          <div className="space-y-4">
-            <span className="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-widest">Why Choose ShopNexus</span>
-            <h2 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white leading-tight">
-              Direct-from-Brand Quality & Precision Engineering
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-normal">
-              Unlike fragmented marketplaces, ShopNexus operates as an authoritative single-brand ecosystem. Every acoustic headphone, custom keyboard switch, and smart wearable passes strict quality testing before reaching your hands.
-            </p>
-            <div className="grid grid-cols-2 gap-3 pt-2">
-              <div className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-200 font-medium">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
-                <span>100% Genuine Certified</span>
-              </div>
-              <div className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-200 font-medium">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
-                <span>Official Brand Warranty</span>
-              </div>
-              <div className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-200 font-medium">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
-                <span>Instant 24/7 AI Support</span>
-              </div>
-              <div className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-200 font-medium">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
-                <span>Real-Time Parcel Tracker</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="relative aspect-video rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-xl">
-            <Image
-              src="https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=1000&q=80"
-              alt="ShopNexus Precision Engineering"
-              fill
-              className="object-cover"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* 💬 8. CUSTOMER REVIEWS & 3D TESTIMONIAL SLIDER */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-10">
-          <span className="inline-block px-3.5 py-1 rounded-full bg-orange-500/10 dark:bg-orange-500/15 border border-orange-500/25 text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-widest mb-3">
-            Voices of Success
+      {/* 💬 9. CUSTOMER REVIEWS & 3D TESTIMONIAL SLIDER */}
+      <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="text-center mb-4 sm:mb-8">
+          <span className="inline-block px-3 py-1 rounded-full bg-orange-500/10 dark:bg-orange-500/15 border border-orange-500/25 text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-widest mb-1.5">
+            Customers Reviews
           </span>
-          <h2 className="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
+          <h2 className="text-xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
             What Our Customers Say
           </h2>
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-2 max-w-xl mx-auto">
-            Join thousands of global enthusiasts scaling their hardware setup with{' '}
-            <span className="font-bold text-orange-600 dark:text-orange-400">ShopNexus</span>.
-          </p>
         </div>
 
         <TestimonialSlider />
       </section>
 
-      {/* 🎁 9. VIP NEWSLETTER & COUPON GENERATOR BANNER */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="relative overflow-hidden p-8 sm:p-12 rounded-3xl bg-gradient-to-r from-orange-50/90 via-white to-amber-50/60 dark:from-[#0b1120] dark:via-slate-900 dark:to-[#090d16] border border-orange-300/80 dark:border-orange-500/30 text-center shadow-xl">
-          <div className="absolute top-0 right-0 w-80 h-80 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="max-w-2xl mx-auto space-y-4 relative z-10">
-            <span className="px-3.5 py-1.5 rounded-full bg-orange-500/10 dark:bg-orange-500/15 text-orange-600 dark:text-orange-400 text-xs font-bold uppercase tracking-wider border border-orange-500/30">
+      {/* 🎁 10. VIP NEWSLETTER & COUPON GENERATOR BANNER */}
+      <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="relative overflow-hidden p-5 sm:p-12 rounded-3xl bg-gradient-to-r from-orange-50/90 via-white to-amber-50/60 dark:from-[#0b1120] dark:via-slate-900 dark:to-[#090d16] border border-orange-300/80 dark:border-orange-500/30 text-center shadow-xl">
+          <div className="max-w-xl mx-auto space-y-3 relative z-10">
+            <span className="px-3 py-1 rounded-full bg-orange-500/10 dark:bg-orange-500/15 text-orange-600 dark:text-orange-400 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider border border-orange-500/30">
               VIP Club Drops
             </span>
-            <h2 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white">
-              Get 10% Off Your First Order
+            <h2 className="text-lg sm:text-3xl font-black text-slate-900 dark:text-white">
+              Get 10% Off Your Next Order
             </h2>
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
+            <p className="text-xs text-slate-600 dark:text-slate-300">
               Subscribe to the ShopNexus dispatch for exclusive drops, early flash sale invites, and private discount codes.
             </p>
 
             {couponUnlocked ? (
-              <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs sm:text-sm font-bold animate-pulse">
-                🎉 Welcome to the Club! Use coupon code: <span className="font-mono underline text-slate-900 dark:text-white">NEXUS10</span> during checkout for 10% discount!
+              <div className="p-3 sm:p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center justify-center gap-2">
+                <CheckCircle2 className="w-4 h-4" />
+                Voucher Code <strong className="font-mono text-sm uppercase">NEXUS10</strong> unlocked! Apply at checkout for 10% off.
               </div>
             ) : (
               <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto pt-2">
-                <div className="relative flex-1">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input
-                    type="email"
-                    required
-                    value={newsletterEmail}
-                    onChange={(e) => setNewsletterEmail(e.target.value)}
-                    placeholder="Enter your email..."
-                    className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-950/80 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-orange-500 shadow-sm"
-                  />
-                </div>
+                <input
+                  type="email"
+                  value={newsletterEmail}
+                  onChange={(e) => setNewsletterEmail(e.target.value)}
+                  placeholder="Enter your email address..."
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-orange-500"
+                  required
+                />
                 <button
                   type="submit"
-                  className="px-6 py-3 bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs rounded-xl shadow-lg shadow-orange-500/30 transition-all cursor-pointer"
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-md shadow-orange-500/25 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
-                  Unlock 10% OFF
+                  <Send className="w-3.5 h-3.5" /> Unlock 10% Off
                 </button>
               </form>
             )}

@@ -1,23 +1,39 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Tag, Check, Loader2, X, Sparkles } from 'lucide-react';
+import { Tag, Check, Loader2, X, Sparkles, Lock } from 'lucide-react';
 import { useCartStore } from '@/store/useCartStore';
+import { useOrderStore } from '@/store/useOrderStore';
 
 const POPULAR_COUPONS = [
-  { code: 'NEXUS20', label: '20% OFF', desc: 'All Orders' },
-  { code: 'WELCOME10', label: '10% OFF', desc: 'First Order' },
-  { code: 'SAVE50', label: '$50 OFF', desc: 'Orders > $200' },
+  { code: 'NEXUS10', label: '10% OFF', desc: 'All Hardware' },
+  { code: 'SAVE15', label: '15% OFF', desc: 'Orders > ৳50k' },
 ];
 
 export const CouponApply: React.FC = () => {
   const { appliedCoupon, discount, applyCoupon, removeCoupon, getTotals } = useCartStore();
   const { subtotal } = getTotals();
+  const orders = useOrderStore((state) => state.orders);
+  const isFirstOrder = orders.length === 0;
 
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  if (isFirstOrder) {
+    return (
+      <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs space-y-1">
+        <div className="flex items-center gap-1.5 font-bold">
+          <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+          <span>🎉 প্রথম অর্ডারে ১০% ছাড় সক্রিয় রয়েছে</span>
+        </div>
+        <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-snug">
+          আপনার প্রথম চেকআউটে মোট মূল্য থেকে স্বয়ংক্রিয়ভাবে ১০% কেটে নেওয়া হবে। প্রথম অর্ডারে অতিরিক্ত কুপন লক করা আছে।
+        </p>
+      </div>
+    );
+  }
 
   const applyPromoCode = async (promoCode: string) => {
     const trimmed = promoCode.toUpperCase().trim();

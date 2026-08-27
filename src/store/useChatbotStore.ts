@@ -19,6 +19,7 @@ export interface ChatMessage {
 
 interface ChatbotState {
   isOpen: boolean;
+  isFullScreen: boolean;
   messages: ChatMessage[];
   isLoading: boolean;
   maxBudget?: number;
@@ -26,6 +27,8 @@ interface ChatbotState {
   openChat: () => void;
   closeChat: () => void;
   toggleChat: () => void;
+  toggleFullScreen: () => void;
+  setFullScreen: (isFullScreen: boolean) => void;
   setMaxBudget: (budget?: number) => void;
   setSelectedCategory: (category?: string) => void;
   addMessage: (message: Omit<ChatMessage, 'id' | 'timestamp'>) => void;
@@ -35,6 +38,7 @@ interface ChatbotState {
 
 export const useChatbotStore = create<ChatbotState>((set, get) => ({
   isOpen: false,
+  isFullScreen: false,
   isLoading: false,
   maxBudget: undefined,
   selectedCategory: undefined,
@@ -42,13 +46,15 @@ export const useChatbotStore = create<ChatbotState>((set, get) => ({
     {
       id: 'welcome-msg',
       sender: 'assistant',
-      text: '👋 Hi there! I am your AI Shopping Assistant. How can I help you discover the perfect gear today? Feel free to ask by budget or category!',
+      text: '👋 স্বাগতম! আমি শপনেক্সাস এআই শপিং অ্যাসিস্ট্যান্ট (Nexus AI)। আপনি যেকোনো ভাষায় (বাংলা, বাংলিশ বা ইংরেজি) সাউন্ড সিস্টেম, কিবোর্ড বা আপনার বাজেটের সেরা গ্যাজেট সম্পর্কে জানতে পারেন। মাইকে কথা বলতে পারেন বা টাইপ করতে পারেন!',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     },
   ],
   openChat: () => set({ isOpen: true }),
-  closeChat: () => set({ isOpen: false }),
+  closeChat: () => set({ isOpen: false, isFullScreen: false }),
   toggleChat: () => set((state) => ({ isOpen: !state.isOpen })),
+  toggleFullScreen: () => set((state) => ({ isFullScreen: !state.isFullScreen })),
+  setFullScreen: (isFullScreen) => set({ isFullScreen }),
   setMaxBudget: (maxBudget) => set({ maxBudget }),
   setSelectedCategory: (selectedCategory) => set({ selectedCategory }),
   addMessage: (msg) => {
