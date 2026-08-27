@@ -3,17 +3,27 @@
 import React from 'react';
 import Link from 'next/link';
 import { useCartStore } from '@/store/useCartStore';
+import { useOrderStore } from '@/store/useOrderStore';
 import { CartItem } from './CartItem';
 import { X, ShoppingBag, ArrowRight, Sparkles, Truck } from 'lucide-react';
 
 export const CartDrawer: React.FC = () => {
   const { isOpen, closeDrawer, items, getTotals } = useCartStore();
-  const { subtotal, discount, shippingFee, tax, total, itemCount, freeShippingProgress, amountUntilFreeShipping } = getTotals();
+  const orders = useOrderStore((state) => state.orders);
+  const isFirstOrder = orders.length === 0;
+
+  const { subtotal, discount, shippingFee, itemCount, freeShippingProgress, amountUntilFreeShipping } = getTotals();
+
+  const firstOrderDiscount = isFirstOrder ? Math.round(subtotal * 0.10) : 0;
+  const effectiveDiscount = isFirstOrder ? firstOrderDiscount : discount;
+  const discountedSubtotal = Math.max(0, subtotal - effectiveDiscount);
+  const tax = Math.round(discountedSubtotal * 0.05);
+  const total = discountedSubtotal + shippingFee + tax;
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden">
+    <div className="fixed inset-0 z-[70] overflow-hidden">
       {/* Backdrop */}
       <div
         onClick={closeDrawer}
@@ -105,7 +115,15 @@ export const CartDrawer: React.FC = () => {
                   <span>Subtotal</span>
                   <span className="font-semibold text-slate-900 dark:text-slate-200 font-mono">৳{subtotal.toLocaleString()}</span>
                 </div>
-                {discount > 0 && (
+                {isFirstOrder && firstOrderDiscount > 0 && (
+                  <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-semibold">
+                    <span className="flex items-center gap-1">
+                      <Sparkles className="w-3.5 h-3.5" /> প্রথম অর্ডার ১০% ছাড়
+                    </span>
+                    <span className="font-mono font-bold">-৳{firstOrderDiscount.toLocaleString()}</span>
+                  </div>
+                )}
+                {!isFirstOrder && discount > 0 && (
                   <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
                     <span>Coupon Discount</span>
                     <span className="font-mono">-৳{discount.toLocaleString()}</span>

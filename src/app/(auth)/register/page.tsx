@@ -4,7 +4,22 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
-import { UserPlus, Mail, Lock, User, ArrowRight, Loader2, Layers } from 'lucide-react';
+import {
+  UserPlus,
+  Mail,
+  Lock,
+  User,
+  ArrowRight,
+  Loader2,
+  Layers,
+  Sparkles,
+  PartyPopper,
+  Gift,
+  CheckCircle2,
+  ShoppingBag,
+  Percent,
+} from 'lucide-react';
+import { BrandLogo } from '@/components/common/BrandLogo';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -16,6 +31,7 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isOAuthLoading, setIsOAuthLoading] = useState<'google' | 'github' | null>(null);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
   const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '366763068082-o3g1ov9e90gfibqkp4pbcetpmispn8i3.apps.googleusercontent.com';
@@ -52,7 +68,7 @@ export default function RegisterPage() {
       }
 
       login(data.data.user, data.data.token);
-      router.push('/products');
+      setShowWelcomeModal(true);
     } catch (err: any) {
       setError(err.message || 'An error occurred during registration.');
     } finally {
@@ -77,22 +93,15 @@ export default function RegisterPage() {
     )}&scope=user:email`;
   };
 
+  const handleContinueShopping = () => {
+    setShowWelcomeModal(false);
+    router.push('/products');
+  };
+
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 bg-slate-50 dark:bg-[#090d16] text-slate-900 dark:text-white">
+    <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 bg-slate-50 dark:bg-[#090d16] text-slate-900 dark:text-white relative">
       {/* Centered Clickable ShopNexus Logo to return home */}
-      <Link href="/" className="flex items-center gap-2.5 mb-4 group cursor-pointer" title="Return to ShopNexus Home">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#ff4400] via-[#ff6600] to-[#ff8800] flex items-center justify-center text-white shadow-lg shadow-orange-500/25 group-hover:scale-105 transition-transform">
-          <Layers className="w-5 h-5" />
-        </div>
-        <div className="flex items-center">
-          <span className="text-xl font-black tracking-tight text-slate-900 dark:text-white">
-            ShopNexus
-          </span>
-          <span className="ml-2 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20">
-            Official Store
-          </span>
-        </div>
-      </Link>
+      <BrandLogo size="lg" className="mb-4" />
 
       <div className="w-full max-w-md bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 backdrop-blur-xl rounded-3xl p-6 sm:p-8 shadow-2xl space-y-4">
         <div className="text-center">
@@ -244,6 +253,69 @@ export default function RegisterPage() {
           </Link>
         </p>
       </div>
+
+      {/* 🎉 ANIMATED WELCOME 10% OFF POPUP MODAL */}
+      {showWelcomeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in-50 duration-300">
+          <div className="relative w-full max-w-md bg-gradient-to-b from-white via-slate-50 to-orange-50/50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 border border-orange-500/30 rounded-3xl p-6 sm:p-8 shadow-2xl text-center space-y-5 animate-in zoom-in-95 duration-300">
+            {/* Glow orb */}
+            <div className="absolute -top-16 -right-16 w-48 h-48 bg-orange-500/20 rounded-full blur-3xl pointer-events-none" />
+
+            {/* Icon Banner */}
+            <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#ff4400] to-[#ff8800] flex items-center justify-center text-white shadow-xl shadow-orange-500/30 animate-bounce">
+              <Gift className="w-8 h-8" />
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 text-xs font-bold border border-orange-500/20">
+                <Sparkles className="w-3.5 h-3.5" /> প্রথম অর্ডারে বিশেষ উপহার
+              </div>
+              <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                🎉 স্বাগতম ShopNexus-এ!
+              </h2>
+              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                আপনার নতুন অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে। আপনার প্রথম কেনাকাটায় পাচ্ছেন <strong className="text-orange-600 dark:text-orange-400 font-bold">১০% ইনস্ট্যান্ট ছাড়</strong>!
+              </p>
+            </div>
+
+            {/* Promo Voucher Card */}
+            <div className="p-4 rounded-2xl bg-white dark:bg-slate-950/80 border border-orange-500/30 shadow-xs space-y-2 text-left">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  স্বয়ংক্রিয় অফার
+                </span>
+                <span className="text-xs font-black text-orange-600 dark:text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-md font-mono">
+                  10% OFF AUTO-APPLIED
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-orange-500/10 text-orange-600 dark:text-orange-400">
+                  <Percent className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-sm text-slate-900 dark:text-white">প্রথম অর্ডারে ১০% ছাড়</h4>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    চেকআউট পেজে স্বয়ংক্রিয়ভাবে মোট মূল্য থেকে ১০% কমে যাবে।
+                  </p>
+                </div>
+              </div>
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-500 dark:text-slate-400">
+                ⚠️ নোট: প্রথম অর্ডারে আলাদা কোনো কুপন কোড বসানোর প্রয়োজন নেই।
+              </div>
+            </div>
+
+            {/* Action Button */}
+            <button
+              type="button"
+              onClick={handleContinueShopping}
+              className="w-full py-3 px-6 rounded-xl bg-gradient-to-r from-[#ff4400] via-[#ff7700] to-[#ff4400] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs sm:text-sm shadow-xl shadow-orange-500/25 transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <ShoppingBag className="w-4 h-4" />
+              কেনাকাটা শুরু করুন (Start Shopping)
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
