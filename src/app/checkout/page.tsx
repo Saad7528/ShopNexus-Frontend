@@ -23,12 +23,27 @@ import {
   MessageSquare,
   AlertCircle,
   UserCheck,
+  Sparkles,
+  Percent,
+  Tag,
+  Check,
 } from 'lucide-react';
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, clearCart } = useCartStore();
-  const { user } = useAuthStore();
+  const { user, isAuthenticated, spendCoins, useVipDiscount } = useAuthStore();
+  const orders = useOrderStore((state) => state.orders);
+
+  // Coins & VIP State
+  const [useCoinsChecked, setUseCoinsChecked] = useState(false);
+  const availableCoins = user?.nexusCoins || 0;
+  const coinsDiscount = useCoinsChecked && availableCoins >= 50 ? Math.floor(availableCoins / 50) * 5 : 0;
+  const coinsSpent = useCoinsChecked ? availableCoins : 0;
+
+  // VIP First Order discount: ৳200 flat off if user.isVipMember && !user.vipFirstOrderUsed
+  const isVipEligible = !!user?.isVipMember && !user?.vipFirstOrderUsed;
+  const vipDiscount = isVipEligible ? 200 : 0;
 
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
   const [deliveryZone, setDeliveryZone] = useState<'inside_dhaka' | 'outside_dhaka'>('inside_dhaka');
