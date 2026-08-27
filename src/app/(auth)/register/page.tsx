@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 import { UserPlus, Mail, Lock, User, ArrowRight, Loader2, Layers } from 'lucide-react';
+import { BrandLogo } from '@/components/common/BrandLogo';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -78,21 +79,9 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 bg-slate-50 dark:bg-[#090d16] text-slate-900 dark:text-white">
+    <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 bg-slate-50 dark:bg-[#090d16] text-slate-900 dark:text-white relative">
       {/* Centered Clickable ShopNexus Logo to return home */}
-      <Link href="/" className="flex items-center gap-2.5 mb-4 group cursor-pointer" title="Return to ShopNexus Home">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#ff4400] via-[#ff6600] to-[#ff8800] flex items-center justify-center text-white shadow-lg shadow-orange-500/25 group-hover:scale-105 transition-transform">
-          <Layers className="w-5 h-5" />
-        </div>
-        <div className="flex items-center">
-          <span className="text-xl font-black tracking-tight text-slate-900 dark:text-white">
-            ShopNexus
-          </span>
-          <span className="ml-2 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20">
-            Official Store
-          </span>
-        </div>
-      </Link>
+      <BrandLogo size="lg" className="mb-4" />
 
       <div className="w-full max-w-md bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 backdrop-blur-xl rounded-3xl p-6 sm:p-8 shadow-2xl space-y-4">
         <div className="text-center">
