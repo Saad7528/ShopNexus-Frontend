@@ -142,7 +142,7 @@ export const Navbar: React.FC = () => {
                   >
                     <span>{link.label}</span>
                     {link.badge && (
-                      <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-full bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white">
+                      <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-full bg-linear-to-r from-[#ff4400] to-[#ff7700] text-white">
                         {link.badge}
                       </span>
                     )}
