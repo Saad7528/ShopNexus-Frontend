@@ -16,9 +16,7 @@ export interface User {
   nexusCoins?: number;
   country?: string;
   storeName?: string;
-  storeDescription?: string;
-  nexusCoins?: number;
-  loginStreak?: number;
+  storeDescription?: string;  loginStreak?: number;
   lastVisitDate?: string;
   isVipMember?: boolean;
   vipFirstOrderUsed?: boolean;
