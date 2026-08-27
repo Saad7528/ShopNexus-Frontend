@@ -17,7 +17,6 @@ import {
   Search,
   Store,
   ShieldCheck,
-  Zap,
   Layers,
   Menu,
   X,
@@ -230,7 +229,7 @@ export const Navbar: React.FC = () => {
                     <div className="w-7 h-7 rounded-lg bg-orange-500/20 border border-orange-500/30 flex items-center justify-center text-orange-600 dark:text-orange-400 font-bold text-xs">
                       {user.name ? user.name[0].toUpperCase() : 'U'}
                     </div>
-                    <span className="hidden sm:inline max-w-[80px] truncate">{user.name.split(' ')[0]}</span>
+                    <span className="hidden sm:inline max-w-20 truncate">{user.name.split(' ')[0]}</span>
                     <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
                   </button>
 

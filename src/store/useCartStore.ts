@@ -22,7 +22,7 @@ interface CartTotals {
   tax: number;
   total: number;
   itemCount: number;
-  freeShippingProgress: number; // 0 to 100%
+  freeShippingProgress: number; // 0
   amountUntilFreeShipping: number;
 }
 
