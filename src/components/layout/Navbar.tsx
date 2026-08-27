@@ -14,10 +14,8 @@ import {
   Search,
   Menu,
   X,
-  Layers,
   User,
   ShieldCheck,
-  Store,
   LogOut,
   Bell,
   Camera,
@@ -139,7 +137,7 @@ export const Navbar: React.FC = () => {
                   >
                     <span>{link.label}</span>
                     {link.badge && (
-                      <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-full bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white">
+                      <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-full bg-linear-to-r from-[#ff4400] to-[#ff7700] text-white">
                         {link.badge}
                       </span>
                     )}
@@ -219,21 +217,10 @@ export const Navbar: React.FC = () => {
                     onClick={() => setUserDropdownOpen(!userDropdownOpen)}
                     className="flex items-center gap-2 p-1.5 pr-2.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-800 dark:text-slate-200 text-xs font-medium transition-all cursor-pointer shadow-sm"
                   >
-                    {user.avatar ? (
-                      <div className="relative w-7 h-7 rounded-lg overflow-hidden border border-orange-500/40 shadow-xs shrink-0">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={user.avatar}
-                          alt={user.name || 'User'}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    ) : (
-                      <div className="w-7 h-7 rounded-lg bg-orange-500/20 border border-orange-500/30 flex items-center justify-center text-orange-600 dark:text-orange-400 font-bold text-xs shrink-0">
-                        {user.name ? user.name[0].toUpperCase() : 'U'}
-                      </div>
-                    )}
-                    <span className="hidden md:inline max-w-[80px] truncate">{user.name.split(' ')[0]}</span>
+                    <div className="w-7 h-7 rounded-lg bg-orange-500/20 border border-orange-500/30 flex items-center justify-center text-orange-600 dark:text-orange-400 font-bold text-xs">
+                      {user.name ? user.name[0].toUpperCase() : 'U'}
+                    </div>
+                    <span className="hidden sm:inline max-w-20 truncate">{user.name.split(' ')[0]}</span>
                     <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
                   </button>
 
