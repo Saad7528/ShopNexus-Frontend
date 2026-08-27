@@ -13,9 +13,12 @@ export interface User {
   address?: string;
   city?: string;
   zipCode?: string;
+  nexusCoins?: number;
   country?: string;
   storeName?: string;
   storeDescription?: string;
+  isVipMember?: boolean;
+  vipFirstOrderUsed?: boolean;
 }
 
 interface AuthState {
@@ -27,6 +30,8 @@ interface AuthState {
   setToken: (token: string | null) => void;
   login: (user: User, token: string) => void;
   logout: () => void;
+  spendCoins: (amount: number) => void;
+  useVipDiscount: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -59,11 +64,33 @@ export const useAuthStore = create<AuthState>()(
         }
         set({ user: null, token: null, isAuthenticated: false });
       },
+
+      spendCoins: (amount: number) =>
+        set((state) => {
+          if (!state.user) return state;
+          const currentCoins = state.user.nexusCoins || 0;
+          return {
+            user: {
+              ...state.user,
+              nexusCoins: Math.max(0, currentCoins - amount),
+            },
+          };
+        }),
+
+      useVipDiscount: () =>
+        set((state) => {
+          if (!state.user) return state;
+          return {
+            user: {
+              ...state.user,
+              vipFirstOrderUsed: true,
+            },
+          };
+        }),
     }),
     {
       name: 'shopnexus-auth-storage',
       onRehydrateStorage: () => (state) => {
-        // Sync cookie on rehydration
         if (state?.token && typeof document !== 'undefined') {
           document.cookie = `token=${state.token}; path=/; max-age=604800; SameSite=Lax`;
         }
