@@ -32,7 +32,7 @@ import {
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, clearCart } = useCartStore();
-  const { user, isAuthenticated, spendCoins, useVipDiscount } = useAuthStore();
+  const { user, isAuthenticated, spendCoins, useVipDiscount } = (useAuthStore as any)();
   const orders = useOrderStore((state) => state.orders);
 
   // Coins & VIP State
