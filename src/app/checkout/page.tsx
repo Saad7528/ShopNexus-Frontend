@@ -397,29 +397,39 @@ export default function CheckoutPage() {
               </div>
             )}
 
-            {/* STEP 3: Review & Place Order */}
+            {/* STEP 3: Final Verification & Order Placement */}
             {currentStep === 3 && (
               <div className="p-6 md:p-8 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow-sm backdrop-blur-xl space-y-6">
                 <div>
                   <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                    <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" /> 3. Review & Place Order
+                    <CheckCircle2 className="w-5 h-5 text-emerald-500" /> 3. Final Verification & Dispatch
                   </h2>
                   <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
-                    Please review your shipping details, delivery fee, and payment method before confirming.
+                    Please review your shipping and billing details before completing order.
                   </p>
                 </div>
 
-                {/* Review Details Summary */}
-                <div className="space-y-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 text-sm">
+                {/* 10% First Order Highlight Notice */}
+                {isFirstOrder && (
+                  <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs space-y-1.5">
+                    <div className="flex items-center gap-2 font-bold text-sm">
+                      <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400 animate-pulse" />
+                      <span>🎉 প্রথম অর্ডার বিশেষ উপহার: ১০% ছাড় যুক্ত হয়েছে!</span>
+                    </div>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                      স্বাগতম! আপনার প্রথম অর্ডারের মোট মূল্য থেকে স্বয়ংক্রিয়ভাবে <strong className="text-emerald-600 dark:text-emerald-400">১০% (৳{firstOrderDiscount.toLocaleString()} BDT)</strong> কেটে নেওয়া হয়েছে।
+                    </p>
+                  </div>
+                )}
+
+                {/* Summary Review Cards */}
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 space-y-3 text-xs">
                   <div className="flex items-start justify-between">
                     <div>
-                      <span className="text-[10px] font-bold uppercase text-slate-500">Deliver To</span>
+                      <span className="text-[10px] font-bold uppercase text-slate-500">Recipient & Address</span>
                       <p className="font-bold text-slate-900 dark:text-white mt-0.5">{shippingAddress.fullName}</p>
-                      <p className="text-xs text-slate-600 dark:text-slate-400 font-mono">{shippingAddress.phoneNumber}</p>
-                      <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                        {shippingAddress.streetAddress}, {shippingAddress.city} (
-                        {deliveryZone === 'inside_dhaka' ? 'Inside Dhaka - ৳60' : 'Outside Dhaka - ৳120'})
-                      </p>
+                      <p className="text-slate-500">{shippingAddress.streetAddress}, {shippingAddress.city}</p>
+                      <p className="text-slate-500 font-mono">{shippingAddress.phoneNumber}</p>
                     </div>
                     <button
                       type="button"
