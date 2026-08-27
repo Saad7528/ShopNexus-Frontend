@@ -290,7 +290,7 @@ export const HeroSection: React.FC = () => {
   const loginStreak = user?.loginStreak || 1;
 
   return (
-    <div className="space-y-2.5 sm:space-y-3.5 relative">
+    <div className="space-y-2.5 mt-2.5 sm:mt-3.5 sm:space-y-3.5 relative">
       {/* 🔔 1. LIVE SOCIAL PROOF TICKER */}
       <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-3 px-3.5 py-1.5 rounded-xl bg-orange-500/10 dark:bg-orange-500/15 border border-orange-500/25 text-[11px] sm:text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-xs backdrop-blur-md">

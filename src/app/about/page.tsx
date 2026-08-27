@@ -113,7 +113,7 @@ export default function AboutAndFAQPage() {
         <div className="absolute inset-0 bg-gradient-to-b from-orange-50/50 via-white to-slate-50 dark:from-slate-900/40 dark:via-[#0b0f19] dark:to-[#0b0f19] pointer-events-none" />
         <div className="max-w-5xl mx-auto text-center relative z-10 space-y-6">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/25 text-orange-600 dark:text-orange-400 text-xs font-bold uppercase tracking-wider">
-            <Sparkles className="w-4 h-4 text-orange-500" />
+            
             About ShopNexus & FAQ Hub
           </div>
 
