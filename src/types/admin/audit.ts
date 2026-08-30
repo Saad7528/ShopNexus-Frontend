@@ -1,9 +1,2 @@
-export interface IAuditLogEntry {
-  id: string;
-  timestamp: string;
-  staffName: string;
-  action: string;
-  module: 'ORDERS' | 'INVENTORY' | 'STAFF' | 'SETTINGS' | 'FINANCE';
-  ipAddress: string;
-  severity: 'INFO' | 'WARNING' | 'CRITICAL';
-}
+// Audit Trail Schema
+export interface IAuditLogEntry { id: string; timestamp: string; staffName: string; action: string; module: 'ORDERS' | 'INVENTORY' | 'STAFF' | 'SETTINGS' | 'FINANCE'; ipAddress: string; severity: 'INFO' | 'WARNING' | 'CRITICAL'; }
