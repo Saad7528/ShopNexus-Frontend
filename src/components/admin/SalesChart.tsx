@@ -28,15 +28,15 @@ export const SalesChart: React.FC<SalesChartProps> = ({ data }) => {
         <AreaChart data={data} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
           <defs>
             <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4} />
-              <stop offset="95%" stopColor="#6366f1" stopOpacity={0.0} />
+              <stop offset="5%" stopColor="#ff4400" stopOpacity={0.4} />
+              <stop offset="95%" stopColor="#ff4400" stopOpacity={0.0} />
             </linearGradient>
             <linearGradient id="colorOrders" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
               <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke="#334155" strokeOpacity={0.3} vertical={false} />
           <XAxis dataKey="label" stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
           <YAxis
             stroke="#64748b"
@@ -51,7 +51,7 @@ export const SalesChart: React.FC<SalesChartProps> = ({ data }) => {
               name,
             ]}
             contentStyle={{
-              backgroundColor: '#0f172a',
+              backgroundColor: '#0b0f19',
               borderColor: '#334155',
               borderRadius: '0.75rem',
               color: '#f8fafc',
@@ -62,8 +62,8 @@ export const SalesChart: React.FC<SalesChartProps> = ({ data }) => {
           <Area
             type="monotone"
             dataKey="revenue"
-            stroke="#6366f1"
-            strokeWidth={2.5}
+            stroke="#ff5500"
+            strokeWidth={3}
             fillOpacity={1}
             fill="url(#colorRevenue)"
             name="Revenue (৳)"
