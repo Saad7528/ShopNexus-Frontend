@@ -23,6 +23,9 @@ import {
   User,
   ExternalLink,
   MessageSquare,
+  ShoppingBag,
+  Gift,
+  Shield,
 } from 'lucide-react';
 import { useThemeStore } from '@/store/useThemeStore';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -74,6 +77,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       icon: ShoppingCart,
     },
     {
+      title: 'Abandoned Carts',
+      href: '/admin/abandoned-carts',
+      icon: ShoppingBag,
+    },
+    {
+      title: 'Bundles & Loyalty',
+      href: '/admin/bundles-loyalty',
+      icon: Gift,
+    },
+    {
       title: 'Live Parcel Tracking',
       href: '/admin/tracking',
       icon: Truck,
@@ -90,6 +103,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     },
     {
       title: 'Staff Roles & Security',
+      href: '/admin/staff',
+      icon: ShieldCheck,
+    },
+    {
+      title: 'Customer Directory',
       href: '/admin/customers',
       icon: Users,
     },
