@@ -209,6 +209,10 @@ export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<IOrder[]>(INITIAL_ORDERS);
   const [activeFilter, setActiveFilter] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [reportingOrder, setReportingOrder] = useState<IOrder | null>(null);
+  const [issueCategory, setIssueCategory] = useState<'address' | 'variant' | 'delay' | 'payment' | 'custom'>('address');
+  const [issueNote, setIssueNote] = useState('');
+  const [copiedFeedback, setCopiedFeedback] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<IOrder | null>(null);
 
   const handleStatusChange = (orderId: string, newStatus: IOrder['status']) => {
