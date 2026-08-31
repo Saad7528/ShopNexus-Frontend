@@ -15,7 +15,7 @@ import {
   Sparkles,
   PartyPopper,
   Gift,
-
+  CheckCircle2,
   ShoppingBag,
   Percent,
 } from 'lucide-react';
@@ -304,7 +304,7 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            {/* Action Button */}
+  
             <button
               type="button"
               onClick={handleContinueShopping}
