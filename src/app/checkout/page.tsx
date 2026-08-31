@@ -70,6 +70,25 @@ export default function CheckoutPage() {
   } | null>(null);
 
   // First Order Logic: Has the user placed any orders before?
+  const [addressError, setAddressError] = useState<string | null>(null);
+
+  const validateAddress = (addr: IShippingAddressForm): boolean => {
+    const res = validateSmartShippingAddress(addr);
+    if (!res.isValid) {
+      setAddressError(res.nameError || res.phoneError || res.addressError || 'Invalid address');
+      return false;
+    }
+    setAddressError(null);
+    return true;
+  };
+
+  const handleContinueToPayment = () => {
+    if (validateAddress(shippingAddress)) {
+      setAddressError(null);
+      setCurrentStep(2);
+    }
+  };
+
   const isFirstOrder = orders.length === 0;
 
   // Coupon state for returning users
