@@ -101,6 +101,19 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
     setTimeout(() => setAddedSuccess(false), 2500);
   };
 
+  const handleBuyNow = () => {
+    addItem({
+      productId: product.id,
+      title: `${product.name} (${selectedColor}, ${selectedSize})`,
+      price: product.price,
+      image: product.images[0],
+      quantity: quantity,
+      stock: product.stockCount,
+      vendorName: product.vendorName,
+    });
+    router.push('/checkout');
+  };
+
   const handleReviewSubmitted = (newRev: { rating: number; comment: string; author: string }) => {
     setReviews([
       {
@@ -115,6 +128,41 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
   };
 
   const isFavorite = isInWishlist(product.id);
+
+  // Dynamic Trust Badges resolution
+  const trustConfig = rawProduct?.trustBadges || {
+    hasFastDelivery: true,
+    hasWarranty: true,
+    warrantyText: '১ বছরের অফিসিয়াল ওয়ারেন্টি',
+    hasReturnPolicy: true,
+    isOfficialGenuine: true,
+  };
+
+  const activeTrustBadges = [];
+  if (trustConfig.hasFastDelivery !== false) {
+    activeTrustBadges.push({
+      icon: <Truck className="w-4 h-4 text-orange-500 shrink-0" />,
+      text: '২৪ ঘণ্টায় দ্রুত ডেলিভারি (ঢাকা ৳৬০)',
+    });
+  }
+  if (trustConfig.hasWarranty !== false) {
+    activeTrustBadges.push({
+      icon: <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />,
+      text: trustConfig.warrantyText || '১ বছরের অফিসিয়াল ওয়ারেন্টি',
+    });
+  }
+  if (trustConfig.hasReturnPolicy !== false) {
+    activeTrustBadges.push({
+      icon: <RotateCcw className="w-4 h-4 text-indigo-500 shrink-0" />,
+      text: '৭ দিনের সহজ রিটার্ন পলিসি',
+    });
+  }
+  if (trustConfig.isOfficialGenuine !== false) {
+    activeTrustBadges.push({
+      icon: <Check className="w-4 h-4 text-amber-500 shrink-0" />,
+      text: '১০০% জেনুইন অরিজিনাল প্রোডাক্ট',
+    });
+  }
 
   // Related products from same category
   const relatedProducts = ALL_PRODUCTS.filter(
@@ -238,66 +286,74 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                 </div>
               </div>
 
-              {/* Quantity & CTA Buttons */}
-              <div className="flex items-center gap-3 pt-3">
-                <div className="flex items-center rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-1">
+              {/* Quantity & Action Buttons (Add to Cart + Direct Buy Now) */}
+              <div className="space-y-3 pt-3">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3">
+                  {/* Quantity Stepper */}
+                  <div className="flex items-center justify-between sm:justify-center rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-1 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-black cursor-pointer text-sm"
+                    >
+                      -
+                    </button>
+                    <span className="w-9 text-center text-xs font-black font-mono">{quantity}</span>
+                    <button
+                      type="button"
+                      onClick={() => setQuantity(Math.min(product.stockCount, quantity + 1))}
+                      className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-black cursor-pointer text-sm"
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  {/* Add to Cart Button */}
                   <button
                     type="button"
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-black cursor-pointer"
+                    onClick={handleAddToCart}
+                    className={`flex-1 py-3 px-4 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition-all active:scale-95 cursor-pointer border ${
+                      addedSuccess
+                        ? 'bg-emerald-600 text-white shadow-emerald-600/30 border-emerald-600'
+                        : 'bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 border-orange-500/30'
+                    }`}
                   >
-                    -
+                    {addedSuccess ? (
+                      <>
+                        <Check className="w-4 h-4" /> Added to Cart!
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingCart className="w-4 h-4" /> Add to Cart (৳{(product.price * quantity).toLocaleString()})
+                      </>
+                    )}
                   </button>
-                  <span className="w-10 text-center text-xs font-black font-mono">{quantity}</span>
+
+                  {/* Direct Buy Now Button */}
                   <button
                     type="button"
-                    onClick={() => setQuantity(Math.min(product.stockCount, quantity + 1))}
-                    className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-black cursor-pointer"
+                    onClick={handleBuyNow}
+                    className="flex-1 py-3 px-5 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xl shadow-orange-500/25 bg-gradient-to-r from-[#ff4400] via-[#ff6600] to-[#ff4400] hover:from-[#e63d00] hover:to-[#ff5500] text-white transition-all active:scale-95 cursor-pointer hover:scale-[1.02]"
                   >
-                    +
+                    <Zap className="w-4 h-4 fill-white" /> Buy Now
                   </button>
                 </div>
-
-                <button
-                  type="button"
-                  onClick={handleAddToCart}
-                  className={`flex-1 py-3 px-6 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xl transition-all active:scale-95 cursor-pointer ${
-                    addedSuccess
-                      ? 'bg-emerald-600 text-white shadow-emerald-600/30'
-                      : 'bg-gradient-to-r from-[#ff4400] via-[#ff7700] to-[#ff4400] hover:from-[#e63d00] hover:to-[#ff6600] text-white shadow-orange-500/25'
-                  }`}
-                >
-                  {addedSuccess ? (
-                    <>
-                      <Check className="w-4 h-4" /> Added to Cart!
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingCart className="w-4 h-4" /> Add to Cart (৳{(product.price * quantity).toLocaleString()})
-                    </>
-                  )}
-                </button>
               </div>
 
-              {/* 4 Compact Trust Badges */}
-              <div className="grid grid-cols-2 gap-2 pt-3 border-t border-slate-200 dark:border-slate-800/80">
-                <div className="flex items-center gap-2 text-[11px] text-slate-600 dark:text-slate-300">
-                  <Truck className="w-4 h-4 text-orange-500 shrink-0" />
-                  <span>২৪ ঘণ্টায় ডেলিভারি (ঢাকা ৳৬০)</span>
+              {/* Dynamic Trust Badges (Only render configured / checked perks) */}
+              {activeTrustBadges.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-3 border-t border-slate-200 dark:border-slate-800/80">
+                  {activeTrustBadges.map((badge, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center gap-2 text-[11px] text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/40 p-2 rounded-xl border border-slate-100 dark:border-slate-800/60"
+                    >
+                      {badge.icon}
+                      <span>{badge.text}</span>
+                    </div>
+                  ))}
                 </div>
-                <div className="flex items-center gap-2 text-[11px] text-slate-600 dark:text-slate-300">
-                  <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
-                  <span>১ বছরের অফিসিয়াল ওয়ারেন্টি</span>
-                </div>
-                <div className="flex items-center gap-2 text-[11px] text-slate-600 dark:text-slate-300">
-                  <RotateCcw className="w-4 h-4 text-indigo-500 shrink-0" />
-                  <span>৭ দিনের সহজ রিটার্ন পলিসি</span>
-                </div>
-                <div className="flex items-center gap-2 text-[11px] text-slate-600 dark:text-slate-300">
-                  <Check className="w-4 h-4 text-amber-500 shrink-0" />
-                  <span>১০০% জেনুইন অরিজিনাল প্রোডাক্ট</span>
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
