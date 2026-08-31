@@ -288,6 +288,43 @@ export default function AbandonedCartsPage() {
           </div>
         </div>
 
+        {/* Filter Toolbar & Search */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex flex-wrap gap-1.5 p-1 bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
+            {[
+              { id: 'All', label: 'All Abandoned' },
+              { id: 'Uncontacted', label: '⏳ Uncontacted (Ready)' },
+              { id: 'WhatsApp', label: '💬 WhatsApp Sent' },
+              { id: 'Recovered', label: '✅ Recovered' },
+              { id: 'HighValue', label: '💎 High Value (>৳50k)' },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveFilter(tab.id)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  activeFilter === tab.id
+                    ? 'bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white shadow-md shadow-orange-500/25'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="max-w-xs w-full relative">
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+            <input
+              type="text"
+              placeholder="Search customer, phone, or item..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none shadow-sm"
+            />
+          </div>
+        </div>
+
         
       </div>
     </RoleGuard>
