@@ -311,41 +311,38 @@ export const HeroSection: React.FC = () => {
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#ffaa00] via-[#ff7700] to-[#ff3300] p-2.5 sm:p-3 text-white shadow-md shadow-orange-500/20 border border-amber-300/40">
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-full animate-[shimmer_3s_infinite]" />
 
-          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-2.5">
-            <div className="flex items-center gap-2">
-              <div className="px-3 py-1 rounded-xl bg-gradient-to-r from-red-600 to-rose-700 text-white font-black text-xs sm:text-sm uppercase tracking-wider shadow-md transform -skew-x-6 shrink-0 flex items-center gap-1.5">
+          <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-2.5">
+            {/* Left: Campaign Title & Badges */}
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+              <div className="px-3 py-1 rounded-xl bg-gradient-to-r from-red-600 to-rose-700 text-white font-black text-xs sm:text-sm uppercase tracking-wider shadow-md flex items-center gap-1.5 shrink-0">
                 <Flame className="w-3.5 h-3.5 fill-amber-300 text-amber-300 animate-bounce" />
                 <span>PAYDAY MEGA SALE</span>
               </div>
-              <div className="hidden lg:block text-slate-900 font-black text-[10px] bg-amber-300/90 px-2 py-0.5 rounded-md transform -skew-x-6">
-                LIMITED LIVE TIME
-              </div>
-            </div>
 
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-xl bg-white text-orange-600 font-extrabold text-xs shadow-xs transform hover:scale-105 transition-transform animate-pulse">
+              <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white text-orange-600 font-extrabold text-[11px] sm:text-xs shadow-xs transform hover:scale-105 transition-transform shrink-0">
                 <Percent className="w-3.5 h-3.5 text-rose-500" />
                 <span>UP TO 80% OFF</span>
               </div>
 
-              <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-xl bg-emerald-600 text-white font-extrabold text-xs shadow-xs transform hover:scale-105 transition-transform">
+              <div className="hidden md:inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-600 text-white font-extrabold text-[11px] sm:text-xs shadow-xs transform hover:scale-105 transition-transform shrink-0">
                 <Truck className="w-3.5 h-3.5 animate-bounce" />
                 <span>FREE DELIVERY</span>
               </div>
 
-              <div className="hidden sm:inline-flex items-center px-2.5 py-0.5 rounded-xl bg-rose-600 text-white font-extrabold text-xs shadow-xs animate-pulse">
+              <div className="hidden xl:inline-flex items-center px-2.5 py-1 rounded-xl bg-rose-700 text-white font-extrabold text-[11px] sm:text-xs shadow-xs shrink-0">
                 <span>১০% ক্যাশব্যাক (বিকাশ ও নগদ)</span>
               </div>
             </div>
 
-            <div className="flex items-center gap-2.5 shrink-0">
-              <div className="px-2.5 py-1 rounded-full bg-black/25 backdrop-blur-md text-[11px] font-bold text-amber-200 border border-white/20">
+            {/* Right: Live status & Action */}
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="px-2.5 py-1 rounded-full bg-black/25 backdrop-blur-md text-[10px] sm:text-[11px] font-bold text-amber-200 border border-white/20">
                 <span className="animate-pulse text-amber-300 font-extrabold tracking-wider">SALE IS LIVE</span>
               </div>
 
               <Link
                 href="/flash-sales"
-                className="inline-flex items-center gap-1 px-3.5 py-1 rounded-xl bg-slate-950 hover:bg-black text-amber-300 hover:text-white font-black text-xs shadow-xs hover:scale-105 active:scale-95 transition-all cursor-pointer border border-amber-400/40"
+                className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-xl bg-slate-950 hover:bg-black text-amber-300 hover:text-white font-black text-xs shadow-xs hover:scale-105 active:scale-95 transition-all cursor-pointer border border-amber-400/40"
               >
                 <span>SHOP NOW</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -650,65 +647,7 @@ export const HeroSection: React.FC = () => {
         </div>
       </section>
 
-      {/* 📱 MOBILE COMPACT OFFER BANNER */}
-      <div className="lg:hidden max-w-7xl mx-auto px-3">
-        <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-orange-50/90 via-white to-amber-50/70 dark:from-slate-900 dark:via-[#151c2e] dark:to-slate-900 border border-orange-200 dark:border-orange-500/30 p-3 shadow-sm dark:shadow-xl backdrop-blur-xl">
-          <div className="flex items-center justify-between gap-3">
-            <div className="space-y-1 min-w-0 flex-1">
-              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white text-[9px] font-extrabold shadow-xs">
-                <Flame className="w-2.5 h-2.5 fill-current" /> FLASH SALE
-              </div>
-              <h2 className="text-xs font-black text-slate-900 dark:text-white leading-tight truncate">
-                Sony WH-1000XM5 ANC
-              </h2>
-              <div className="flex items-baseline gap-1.5 font-mono">
-                <span className="text-xs font-black text-orange-600 dark:text-orange-400">৳32,500</span>
-                <span className="text-[9px] text-slate-400 dark:text-slate-500 line-through">৳38,000</span>
-              </div>
-              <div className="flex items-center gap-1.5 pt-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    handleAddToCart({
-                      id: 'prod_sony_xm5',
-                      title: 'Sony WH-1000XM5 Wireless Headphones',
-                      price: 32500,
-                      image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800',
-                    });
-                    router.push('/checkout');
-                  }}
-                  className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white font-bold text-[9px] shadow-xs active:scale-95 flex items-center gap-0.5"
-                >
-                  <Zap className="w-2.5 h-2.5 fill-current" /> Buy Now
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    handleAddToCart({
-                      id: 'prod_sony_xm5',
-                      title: 'Sony WH-1000XM5 Wireless Headphones',
-                      price: 32500,
-                      image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800',
-                    })
-                  }
-                  className="px-2.5 py-1 rounded-lg bg-orange-500/10 text-orange-600 border border-orange-500/25 font-bold text-[9px] active:scale-95"
-                >
-                  + Add
-                </button>
-              </div>
-            </div>
 
-            <div className="relative w-20 h-20 rounded-xl overflow-hidden shrink-0 border border-orange-200 dark:border-orange-500/20 bg-white dark:bg-slate-950 shadow-xs">
-              <Image
-                src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400"
-                alt="Sony XM5"
-                fill
-                className="object-cover"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* 🌟 4. ONE-TAP CATEGORY FILTER CHIPS */}
       <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">

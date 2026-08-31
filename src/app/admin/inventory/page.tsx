@@ -24,6 +24,10 @@ import {
   Layers2,
   Globe,
   Sliders,
+  Truck,
+  ShieldCheck,
+  RotateCcw,
+  Check,
 } from 'lucide-react';
 
 interface IInventoryItem {
@@ -43,6 +47,12 @@ interface IInventoryItem {
   isFlashSale?: boolean;
   variantColor?: string;
   slug: string;
+  // Trust Badges & Policy Options
+  hasFastDelivery?: boolean;
+  hasWarranty?: boolean;
+  warrantyText?: string;
+  hasReturnPolicy?: boolean;
+  isOfficialGenuine?: boolean;
 }
 
 const INITIAL_INVENTORY: IInventoryItem[] = [
@@ -167,14 +177,28 @@ const CATEGORIES = [
   'Apparel',
 ];
 
-export default function AdminInventoryPage() {
+import { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+
+function InventoryContent() {
+  const searchParams = useSearchParams();
   const [inventory, setInventory] = useState<IInventoryItem[]>(INITIAL_INVENTORY);
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'low-stock' | 'flash'>(
+    searchParams.get('filter') === 'low-stock' ? 'low-stock' : 'all'
+  );
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editStockValue, setEditStockValue] = useState<number>(0);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingProductModal, setEditingProductModal] = useState<IInventoryItem | null>(null);
   const [feedbackMsg, setFeedbackMsg] = useState<{ text: string; type: 'success' | 'delete' } | null>(null);
+
+  // Sync with URL query param if user arrives via link
+  React.useEffect(() => {
+    if (searchParams.get('filter') === 'low-stock') {
+      setActiveFilter('low-stock');
+    }
+  }, [searchParams]);
 
   // New Product Form State
   const [newProduct, setNewProduct] = useState({
@@ -195,6 +219,12 @@ export default function AdminInventoryPage() {
     metaDescription: '',
     isFlashSale: false,
     description: '',
+    // Trust Badges & Guarantee Policies
+    hasFastDelivery: true,
+    hasWarranty: true,
+    warrantyText: '১ বছরের অফিসিয়াল ওয়ারেন্টি',
+    hasReturnPolicy: true,
+    isOfficialGenuine: true,
   });
 
   const showFeedback = (text: string, type: 'success' | 'delete' = 'success') => {
@@ -223,7 +253,14 @@ export default function AdminInventoryPage() {
   };
 
   const handleOpenEditModal = (item: IInventoryItem) => {
-    setEditingProductModal({ ...item });
+    setEditingProductModal({
+      ...item,
+      hasFastDelivery: item.hasFastDelivery ?? true,
+      hasWarranty: item.hasWarranty ?? true,
+      warrantyText: item.warrantyText || '১ বছরের অফিসিয়াল ওয়ারেন্টি',
+      hasReturnPolicy: item.hasReturnPolicy ?? true,
+      isOfficialGenuine: item.isOfficialGenuine ?? true,
+    });
   };
 
   const handleSaveFullEdit = (e: React.FormEvent) => {
@@ -261,6 +298,11 @@ export default function AdminInventoryPage() {
       variantColor: newProduct.variantColor,
       isFlashSale: newProduct.isFlashSale,
       slug: newProduct.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      hasFastDelivery: newProduct.hasFastDelivery,
+      hasWarranty: newProduct.hasWarranty,
+      warrantyText: newProduct.warrantyText,
+      hasReturnPolicy: newProduct.hasReturnPolicy,
+      isOfficialGenuine: newProduct.isOfficialGenuine,
     };
 
     setInventory([itemToAdd, ...inventory]);
@@ -286,12 +328,21 @@ export default function AdminInventoryPage() {
       metaDescription: '',
       isFlashSale: false,
       description: '',
+      hasFastDelivery: true,
+      hasWarranty: true,
+      warrantyText: '১ বছরের অফিসিয়াল ওয়ারেন্টি',
+      hasReturnPolicy: true,
+      isOfficialGenuine: true,
     });
   };
 
   const lowStockCount = inventory.filter((item) => item.stock <= item.threshold).length;
+  const flashSaleCount = inventory.filter((item) => item.isFlashSale).length;
 
   const filteredInventory = inventory.filter((item) => {
+    if (activeFilter === 'low-stock' && item.stock > item.threshold) return false;
+    if (activeFilter === 'flash' && !item.isFlashSale) return false;
+
     return (
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -303,7 +354,7 @@ export default function AdminInventoryPage() {
 
   return (
     <RoleGuard allowedRoles={['admin']}>
-      <div className="space-y-8 max-w-7xl mx-auto">
+      <div className="space-y-6 sm:space-y-8 max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -323,10 +374,18 @@ export default function AdminInventoryPage() {
 
           <div className="flex items-center gap-3">
             {lowStockCount > 0 && (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs font-bold">
+              <button
+                type="button"
+                onClick={() => setActiveFilter('low-stock')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                  activeFilter === 'low-stock'
+                    ? 'bg-rose-500 text-white border-rose-500 shadow-md shadow-rose-500/20'
+                    : 'bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20'
+                }`}
+              >
                 <AlertTriangle className="w-3.5 h-3.5" />
                 {lowStockCount} Low Stock Alerts
-              </div>
+              </button>
             )}
 
             <button
@@ -354,16 +413,83 @@ export default function AdminInventoryPage() {
           </div>
         )}
 
-        {/* Search Bar */}
-        <div className="max-w-md relative">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
-          <input
-            type="text"
-            placeholder="Search by SKU, Barcode, Product name, Brand, or Category..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none shadow-sm"
-          />
+        {/* Active Low Stock Alert Banner */}
+        {activeFilter === 'low-stock' && (
+          <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3 animate-in fade-in">
+            <div className="flex items-center gap-2.5">
+              <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
+              <div>
+                <span className="text-xs font-bold text-slate-900 dark:text-white">
+                  Filtering {filteredInventory.length} Low Stock Item(s)
+                </span>
+                <p className="text-[11px] text-amber-600 dark:text-amber-400">
+                  Stock is at or below threshold level. You can quickly replenish quantities below.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setActiveFilter('all')}
+              className="px-3 py-1 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer shrink-0"
+            >
+              Show All Products
+            </button>
+          </div>
+        )}
+
+        {/* Filters and Search Bar Row */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          {/* Filter Pills */}
+          <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-900/80 p-1 rounded-2xl border border-slate-200 dark:border-slate-800 shrink-0">
+            <button
+              type="button"
+              onClick={() => setActiveFilter('all')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeFilter === 'all'
+                  ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              All Products ({inventory.length})
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveFilter('low-stock')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                activeFilter === 'low-stock'
+                  ? 'bg-amber-500 text-slate-950 shadow-xs font-black'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-amber-500'
+              }`}
+            >
+              <AlertTriangle className="w-3.5 h-3.5" />
+              Low Stock ({lowStockCount})
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveFilter('flash')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeFilter === 'flash'
+                  ? 'bg-orange-500 text-white shadow-xs font-black'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-orange-500'
+              }`}
+            >
+              Flash Sales ({flashSaleCount})
+            </button>
+          </div>
+
+          {/* Search Bar */}
+          <div className="max-w-md w-full relative">
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+            <input
+              type="text"
+              placeholder="Search by SKU, Barcode, Product name, Brand, or Category..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none shadow-sm"
+            />
+          </div>
         </div>
 
         {/* Inventory Table */}
@@ -420,19 +546,19 @@ export default function AdminInventoryPage() {
                             type="number"
                             value={editStockValue}
                             onChange={(e) => setEditStockValue(Number(e.target.value))}
-                            className="w-20 px-2 py-1 rounded-lg bg-slate-950 border border-indigo-500 text-white font-mono text-xs focus:outline-none"
+                            className="w-20 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-950 border-2 border-orange-500 text-slate-900 dark:text-white font-mono text-xs focus:outline-none shadow-xs"
                           />
                         ) : (
-                          <span className="font-mono font-bold text-white">{item.stock} pcs</span>
+                          <span className="font-mono font-bold text-slate-800 dark:text-slate-100">{item.stock} pcs</span>
                         )}
                       </td>
                       <td className="px-5 py-3.5">
                         {isLow ? (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-full border border-rose-500/20">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-600 dark:text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-full border border-rose-500/20">
                             <AlertTriangle className="w-3 h-3" /> Low Stock
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
                             <CheckCircle2 className="w-3 h-3" /> In Stock
                           </span>
                         )}
@@ -444,7 +570,7 @@ export default function AdminInventoryPage() {
                             <button
                               type="button"
                               onClick={() => saveQuickStock(item.id)}
-                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
+                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-sm transition-all cursor-pointer"
                             >
                               <Save className="w-3.5 h-3.5" /> Save
                             </button>
@@ -452,7 +578,7 @@ export default function AdminInventoryPage() {
                             <button
                               type="button"
                               onClick={() => startQuickStock(item)}
-                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-all cursor-pointer border border-slate-700/60"
+                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all cursor-pointer border border-slate-200 dark:border-slate-700 shadow-2xs"
                               title="Quick Stock Update"
                             >
                               <Edit2 className="w-3.5 h-3.5" /> Stock
@@ -463,7 +589,7 @@ export default function AdminInventoryPage() {
                           <button
                             type="button"
                             onClick={() => handleOpenEditModal(item)}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 text-xs font-semibold shadow-sm transition-all cursor-pointer"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-orange-500/10 dark:bg-orange-500/15 hover:bg-orange-500/20 dark:hover:bg-orange-500/25 text-orange-600 dark:text-orange-400 border border-orange-500/30 text-xs font-bold shadow-2xs transition-all cursor-pointer"
                             title="Edit All Product Details"
                           >
                             <Sliders className="w-3.5 h-3.5" /> Edit
@@ -473,7 +599,7 @@ export default function AdminInventoryPage() {
                           <button
                             type="button"
                             onClick={() => handleDeleteProduct(item.id, item.name)}
-                            className="p-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-semibold border border-rose-500/30 transition-all cursor-pointer"
+                            className="p-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-semibold border border-rose-500/30 transition-all cursor-pointer"
                             title="Delete Product"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -490,7 +616,7 @@ export default function AdminInventoryPage() {
 
         {/* 🌟 1. FULL-FEATURED EDIT PRODUCT MODAL */}
         {editingProductModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md overflow-y-auto">
             <div className="relative w-full max-w-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5 my-8 max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
                 <div className="flex items-center gap-2.5">
@@ -525,7 +651,7 @@ export default function AdminInventoryPage() {
                       onChange={(e) =>
                         setEditingProductModal({ ...editingProductModal, name: e.target.value })
                       }
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
                     />
                   </div>
 
@@ -539,7 +665,7 @@ export default function AdminInventoryPage() {
                       onChange={(e) =>
                         setEditingProductModal({ ...editingProductModal, category: e.target.value })
                       }
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:border-indigo-500 focus:outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
                     >
                       {CATEGORIES.map((cat) => (
                         <option key={cat} value={cat}>
@@ -551,7 +677,7 @@ export default function AdminInventoryPage() {
 
                   {/* Brand */}
                   <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
                       Brand Name
                     </label>
                     <input
@@ -560,13 +686,13 @@ export default function AdminInventoryPage() {
                       onChange={(e) =>
                         setEditingProductModal({ ...editingProductModal, brand: e.target.value })
                       }
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:border-indigo-500 focus:outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
                     />
                   </div>
 
                   {/* SKU */}
                   <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
                       SKU Code
                     </label>
                     <input
@@ -575,13 +701,13 @@ export default function AdminInventoryPage() {
                       onChange={(e) =>
                         setEditingProductModal({ ...editingProductModal, sku: e.target.value })
                       }
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono text-xs focus:border-indigo-500 focus:outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
                     />
                   </div>
 
                   {/* Barcode */}
                   <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
                       Barcode Label
                     </label>
                     <input
@@ -590,13 +716,13 @@ export default function AdminInventoryPage() {
                       onChange={(e) =>
                         setEditingProductModal({ ...editingProductModal, barcode: e.target.value })
                       }
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono text-xs focus:border-indigo-500 focus:outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
                     />
                   </div>
 
                   {/* Cost Price (৳) */}
                   <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
                       Cost per Item (৳ BDT)
                     </label>
                     <input
@@ -608,13 +734,13 @@ export default function AdminInventoryPage() {
                           costPrice: parseFloat(e.target.value) || 0,
                         })
                       }
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono text-xs focus:border-indigo-500 focus:outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
                     />
                   </div>
 
                   {/* Selling Price (৳) */}
                   <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
                       Sales Price (৳ BDT) *
                     </label>
                     <input
@@ -627,13 +753,13 @@ export default function AdminInventoryPage() {
                           price: parseFloat(e.target.value) || 0,
                         })
                       }
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono text-xs focus:border-indigo-500 focus:outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
                     />
                   </div>
 
                   {/* Discount / Flash Price (৳) */}
                   <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
                       Discount Price (৳ BDT)
                     </label>
                     <input
@@ -645,13 +771,13 @@ export default function AdminInventoryPage() {
                           discountPrice: e.target.value ? parseFloat(e.target.value) : undefined,
                         })
                       }
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono text-xs focus:border-indigo-500 focus:outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
                     />
                   </div>
 
                   {/* VAT / Tax Class */}
                   <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
                       VAT / Tax Class
                     </label>
                     <select
@@ -662,7 +788,7 @@ export default function AdminInventoryPage() {
                           vatTaxPercent: parseFloat(e.target.value) || 0,
                         })
                       }
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:border-indigo-500 focus:outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
                     >
                       <option value="0">0% (Tax Exempt)</option>
                       <option value="5">5% Standard VAT</option>
@@ -673,7 +799,7 @@ export default function AdminInventoryPage() {
 
                   {/* Current Stock */}
                   <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
                       Current Stock (Units) *
                     </label>
                     <input
@@ -686,13 +812,13 @@ export default function AdminInventoryPage() {
                           stock: parseInt(e.target.value) || 0,
                         })
                       }
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono text-xs focus:border-indigo-500 focus:outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
                     />
                   </div>
 
                   {/* Variant Option */}
                   <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
                       Variant (Color/Size)
                     </label>
                     <input
@@ -704,13 +830,13 @@ export default function AdminInventoryPage() {
                           variantColor: e.target.value,
                         })
                       }
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:border-indigo-500 focus:outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
                     />
                   </div>
 
                   {/* Image CDN URL */}
                   <div className="sm:col-span-3">
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
                       Product Image CDN URL
                     </label>
                     <input
@@ -722,8 +848,112 @@ export default function AdminInventoryPage() {
                           image: e.target.value,
                         })
                       }
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:border-indigo-500 focus:outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
                     />
+                  </div>
+                </div>
+
+                {/* Trust Badges & Guarantees Configuration */}
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                    <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                      <ShieldCheck className="w-4 h-4 text-orange-500" /> Trust Badges & Guarantee Policies (স্টোরে প্রদর্শিত সুবিধা)
+                    </span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400">যেসব অপশন সিলেক্ট করবেন কেবল সেগুলোই কাস্টমার পেইজে দেখাবে</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                    {/* 1. Fast Delivery */}
+                    <label className="flex items-center gap-2.5 p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer hover:border-orange-500/50 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={editingProductModal.hasFastDelivery !== false}
+                        onChange={(e) =>
+                          setEditingProductModal({
+                            ...editingProductModal,
+                            hasFastDelivery: e.target.checked,
+                          })
+                        }
+                        className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
+                      />
+                      <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200">
+                        <Truck className="w-3.5 h-3.5 text-orange-500" />
+                        <span>২৪ ঘণ্টায় দ্রুত হোম ডেলিভারি</span>
+                      </div>
+                    </label>
+
+                    {/* 2. Return Policy */}
+                    <label className="flex items-center gap-2.5 p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer hover:border-orange-500/50 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={editingProductModal.hasReturnPolicy !== false}
+                        onChange={(e) =>
+                          setEditingProductModal({
+                            ...editingProductModal,
+                            hasReturnPolicy: e.target.checked,
+                          })
+                        }
+                        className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
+                      />
+                      <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200">
+                        <RotateCcw className="w-3.5 h-3.5 text-indigo-500" />
+                        <span>৭ দিনের সহজ রিটার্ন পলিসি</span>
+                      </div>
+                    </label>
+
+                    {/* 3. Genuine Product */}
+                    <label className="flex items-center gap-2.5 p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer hover:border-orange-500/50 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={editingProductModal.isOfficialGenuine !== false}
+                        onChange={(e) =>
+                          setEditingProductModal({
+                            ...editingProductModal,
+                            isOfficialGenuine: e.target.checked,
+                          })
+                        }
+                        className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
+                      />
+                      <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200">
+                        <Check className="w-3.5 h-3.5 text-amber-500" />
+                        <span>১০০% জেনুইন অরিজিনাল প্রোডাক্ট</span>
+                      </div>
+                    </label>
+
+                    {/* 4. Warranty Option & Text */}
+                    <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2">
+                      <label className="flex items-center gap-2.5 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={editingProductModal.hasWarranty !== false}
+                          onChange={(e) =>
+                            setEditingProductModal({
+                              ...editingProductModal,
+                              hasWarranty: e.target.checked,
+                            })
+                          }
+                          className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
+                        />
+                        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200">
+                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                          <span>অফিসিয়াল ওয়ারেন্টি প্রযোজ্য</span>
+                        </div>
+                      </label>
+                      {editingProductModal.hasWarranty !== false && (
+                        <input
+                          type="text"
+                          placeholder="e.g. ১ বছরের অফিসিয়াল ওয়ারেন্টি"
+                          value={editingProductModal.warrantyText || '১ বছরের অফিসিয়াল ওয়ারেন্টি'}
+                          onChange={(e) =>
+                            setEditingProductModal({
+                              ...editingProductModal,
+                              warrantyText: e.target.value,
+                            })
+                          }
+                          className="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-[11px] focus:outline-none focus:border-orange-500"
+                        />
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -738,24 +968,24 @@ export default function AdminInventoryPage() {
                         isFlashSale: e.target.checked,
                       })
                     }
-                    className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                    className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
                   />
-                  <label htmlFor="editFlashSaleToggle" className="text-xs text-slate-300 font-semibold cursor-pointer">
+                  <label htmlFor="editFlashSaleToggle" className="text-xs text-slate-700 dark:text-slate-300 font-semibold cursor-pointer">
                     Enable Flash Sale Promotion Campaign (Shows with Live Countdown)
                   </label>
                 </div>
 
-                <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+                <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
                   <button
                     type="button"
                     onClick={() => setEditingProductModal(null)}
-                    className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-all cursor-pointer"
+                    className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition-all cursor-pointer border border-slate-200 dark:border-slate-700"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 transition-all cursor-pointer"
+                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/25 transition-all cursor-pointer hover:scale-105"
                   >
                     Save All Changes (৳ BDT)
                   </button>
@@ -767,7 +997,7 @@ export default function AdminInventoryPage() {
 
         {/* 🌟 2. FULL-FEATURED ADD PRODUCT MODAL */}
         {isAddModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md overflow-y-auto">
             <div className="relative w-full max-w-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5 my-8 max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
                 <div className="flex items-center gap-2.5">
@@ -801,7 +1031,7 @@ export default function AdminInventoryPage() {
                       placeholder="e.g. Sony WH-1000XM5 Wireless ANC Headphones"
                       value={newProduct.name}
                       onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
                     />
                   </div>
 
@@ -813,7 +1043,7 @@ export default function AdminInventoryPage() {
                     <select
                       value={newProduct.category}
                       onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:border-indigo-500 focus:outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
                     >
                       {CATEGORIES.map((cat) => (
                         <option key={cat} value={cat}>
@@ -825,7 +1055,7 @@ export default function AdminInventoryPage() {
 
                   {/* Brand */}
                   <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
                       Brand Name
                     </label>
                     <input
@@ -833,39 +1063,39 @@ export default function AdminInventoryPage() {
                       placeholder="Sony, Apple, Keychron"
                       value={newProduct.brand}
                       onChange={(e) => setNewProduct({ ...newProduct, brand: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:border-indigo-500 focus:outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
                     />
                   </div>
 
                   {/* SKU */}
                   <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
                       SKU Code
                     </label>
                     <input
                       type="text"
                       value={newProduct.sku}
                       onChange={(e) => setNewProduct({ ...newProduct, sku: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono text-xs focus:border-indigo-500 focus:outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
                     />
                   </div>
 
                   {/* Barcode */}
                   <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
                       Barcode Label
                     </label>
                     <input
                       type="text"
                       value={newProduct.barcode}
                       onChange={(e) => setNewProduct({ ...newProduct, barcode: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono text-xs focus:border-indigo-500 focus:outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
                     />
                   </div>
 
                   {/* Cost Price (৳) */}
                   <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
                       Cost per Item (৳ BDT)
                     </label>
                     <input
@@ -873,13 +1103,13 @@ export default function AdminInventoryPage() {
                       placeholder="28000"
                       value={newProduct.costPrice}
                       onChange={(e) => setNewProduct({ ...newProduct, costPrice: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono text-xs focus:border-indigo-500 focus:outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
                     />
                   </div>
 
                   {/* Selling Price (৳) */}
                   <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
                       Sales Price (৳ BDT) *
                     </label>
                     <input
@@ -888,13 +1118,13 @@ export default function AdminInventoryPage() {
                       placeholder="38500"
                       value={newProduct.price}
                       onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono text-xs focus:border-indigo-500 focus:outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
                     />
                   </div>
 
                   {/* Discount / Flash Price (৳) */}
                   <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
                       Discount Price (৳ BDT)
                     </label>
                     <input
@@ -902,19 +1132,19 @@ export default function AdminInventoryPage() {
                       placeholder="32500"
                       value={newProduct.discountPrice}
                       onChange={(e) => setNewProduct({ ...newProduct, discountPrice: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono text-xs focus:border-indigo-500 focus:outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
                     />
                   </div>
 
                   {/* VAT / Tax */}
                   <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
                       VAT / Tax Class
                     </label>
                     <select
                       value={newProduct.vatTaxPercent}
                       onChange={(e) => setNewProduct({ ...newProduct, vatTaxPercent: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:border-indigo-500 focus:outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
                     >
                       <option value="0">0% (Tax Exempt)</option>
                       <option value="5">5% Standard VAT</option>
@@ -925,7 +1155,7 @@ export default function AdminInventoryPage() {
 
                   {/* Initial Stock */}
                   <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
                       Initial Stock (Units) *
                     </label>
                     <input
@@ -933,13 +1163,13 @@ export default function AdminInventoryPage() {
                       required
                       value={newProduct.stock}
                       onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono text-xs focus:border-indigo-500 focus:outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
                     />
                   </div>
 
                   {/* Variant Option */}
                   <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
                       Variant (Color/Size)
                     </label>
                     <input
@@ -947,50 +1177,130 @@ export default function AdminInventoryPage() {
                       placeholder="e.g. Space Gray, Titanium"
                       value={newProduct.variantColor}
                       onChange={(e) => setNewProduct({ ...newProduct, variantColor: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:border-indigo-500 focus:outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
                     />
                   </div>
 
                   {/* Image URL */}
                   <div className="sm:col-span-3">
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
                       Product Image CDN URL
                     </label>
                     <input
                       type="url"
+                      placeholder="https://images.unsplash.com/photo-..."
                       value={newProduct.image}
                       onChange={(e) => setNewProduct({ ...newProduct, image: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:border-indigo-500 focus:outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
                     />
+                  </div>
+                </div>
+
+                {/* Trust Badges & Guarantees Configuration */}
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                    <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                      <ShieldCheck className="w-4 h-4 text-orange-500" /> Trust Badges & Guarantee Policies (স্টোরে প্রদর্শিত সুবিধা)
+                    </span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400">যেসব অপশন সিলেক্ট করবেন কেবল সেগুলোই কাস্টমার পেইজে দেখাবে</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                    {/* 1. Fast Delivery */}
+                    <label className="flex items-center gap-2.5 p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer hover:border-orange-500/50 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={newProduct.hasFastDelivery}
+                        onChange={(e) => setNewProduct({ ...newProduct, hasFastDelivery: e.target.checked })}
+                        className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
+                      />
+                      <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200">
+                        <Truck className="w-3.5 h-3.5 text-orange-500" />
+                        <span>২৪ ঘণ্টায় দ্রুত হোম ডেলিভারি</span>
+                      </div>
+                    </label>
+
+                    {/* 2. Return Policy */}
+                    <label className="flex items-center gap-2.5 p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer hover:border-orange-500/50 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={newProduct.hasReturnPolicy}
+                        onChange={(e) => setNewProduct({ ...newProduct, hasReturnPolicy: e.target.checked })}
+                        className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
+                      />
+                      <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200">
+                        <RotateCcw className="w-3.5 h-3.5 text-indigo-500" />
+                        <span>৭ দিনের সহজ রিটার্ন পলিসি</span>
+                      </div>
+                    </label>
+
+                    {/* 3. Genuine Product */}
+                    <label className="flex items-center gap-2.5 p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer hover:border-orange-500/50 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={newProduct.isOfficialGenuine}
+                        onChange={(e) => setNewProduct({ ...newProduct, isOfficialGenuine: e.target.checked })}
+                        className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
+                      />
+                      <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200">
+                        <Check className="w-3.5 h-3.5 text-amber-500" />
+                        <span>১০০% জেনুইন অরিজিনাল প্রোডাক্ট</span>
+                      </div>
+                    </label>
+
+                    {/* 4. Warranty Option & Text */}
+                    <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2">
+                      <label className="flex items-center gap-2.5 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={newProduct.hasWarranty}
+                          onChange={(e) => setNewProduct({ ...newProduct, hasWarranty: e.target.checked })}
+                          className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
+                        />
+                        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200">
+                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                          <span>অফিসিয়াল ওয়ারেন্টি প্রযোজ্য</span>
+                        </div>
+                      </label>
+                      {newProduct.hasWarranty && (
+                        <input
+                          type="text"
+                          placeholder="e.g. ১ বছরের অফিসিয়াল ওয়ারেন্টি"
+                          value={newProduct.warrantyText}
+                          onChange={(e) => setNewProduct({ ...newProduct, warrantyText: e.target.value })}
+                          className="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-[11px] focus:outline-none focus:border-orange-500"
+                        />
+                      )}
+                    </div>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3 pt-2">
                   <input
                     type="checkbox"
-                    id="flashSaleToggle"
+                    id="addFlashSaleToggle"
                     checked={newProduct.isFlashSale}
                     onChange={(e) => setNewProduct({ ...newProduct, isFlashSale: e.target.checked })}
-                    className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                    className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
                   />
-                  <label htmlFor="flashSaleToggle" className="text-xs text-slate-300 font-semibold cursor-pointer">
-                    Enable Flash Sale Promotion Campaign (Shows with Countdown)
+                  <label htmlFor="addFlashSaleToggle" className="text-xs text-slate-700 dark:text-slate-300 font-semibold cursor-pointer">
+                    Enable Flash Sale Promotion Campaign (Shows with Live Countdown)
                   </label>
                 </div>
 
-                <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+                <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
                   <button
                     type="button"
                     onClick={() => setIsAddModalOpen(false)}
-                    className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-all cursor-pointer"
+                    className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition-all cursor-pointer border border-slate-200 dark:border-slate-700"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 transition-all cursor-pointer"
+                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/25 transition-all cursor-pointer hover:scale-105"
                   >
-                    Publish to Storefront (৳ BDT)
+                    Publish to Catalog (৳ BDT)
                   </button>
                 </div>
               </form>
@@ -999,5 +1309,20 @@ export default function AdminInventoryPage() {
         )}
       </div>
     </RoleGuard>
+  );
+}
+
+export default function AdminInventoryPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-400 gap-3">
+          <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs font-semibold">Loading Inventory Data...</p>
+        </div>
+      }
+    >
+      <InventoryContent />
+    </Suspense>
   );
 }
