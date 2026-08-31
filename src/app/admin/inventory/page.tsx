@@ -177,9 +177,10 @@ const CATEGORIES = [
   'Apparel',
 ];
 
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-export default function AdminInventoryPage() {
+function InventoryContent() {
   const searchParams = useSearchParams();
   const [inventory, setInventory] = useState<IInventoryItem[]>(INITIAL_INVENTORY);
   const [searchQuery, setSearchQuery] = useState('');
@@ -1308,5 +1309,20 @@ export default function AdminInventoryPage() {
         )}
       </div>
     </RoleGuard>
+  );
+}
+
+export default function AdminInventoryPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-400 gap-3">
+          <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs font-semibold">Loading Inventory Data...</p>
+        </div>
+      }
+    >
+      <InventoryContent />
+    </Suspense>
   );
 }
