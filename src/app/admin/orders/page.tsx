@@ -21,7 +21,26 @@ import {
   FileText,
 } from 'lucide-react';
 
+interface IOrderItem {
+  title: string;
+  quantity: number;
+  price: number;
+  sku: string;
+}
+
+interface IOrderIssue {
+  category: 'address' | 'variant' | 'delay' | 'payment' | 'custom';
+  title: string;
+  note: string;
+  reportedAt: string;
+  channel: 'WhatsApp' | 'SMS' | 'Email';
+}
+
 interface IOrder {
+  numericId?: number;
+  isToday?: boolean;
+  hasPastReturnAlert?: string;
+  activeIssue?: IOrderIssue;
   id: string;
   orderNumber: string;
   customerName: string;
