@@ -13,6 +13,49 @@ export interface IShippingAddressForm {
   country: string;
 }
 
+export interface IAddressValidationResult {
+  isValid: boolean;
+  nameError?: string;
+  phoneError?: string;
+  addressError?: string;
+}
+
+export function validateSmartShippingAddress(addr: IShippingAddressForm): IAddressValidationResult {
+  const result: IAddressValidationResult = { isValid: true };
+  const trimmedName = (addr.fullName || '').trim();
+  const nameRegex = /^[a-zA-Z\u0980-\u09FF\s.'-]{3,50}$/;
+  const isRepeatedName = /^([a-zA-Z\u0980-\u09FF])\1{2,}$/i.test(trimmedName.replace(/[\s.'-]/g, ''));
+  if (!trimmedName || trimmedName.length < 3 || !nameRegex.test(trimmedName) || isRepeatedName) {
+    result.nameError = 'অনুগ্রহ করে আপনার সঠিক পূর্ণাঙ্গ নাম লিখুন (কমপক্ষে ৩ অক্ষর)।';
+    result.isValid = false;
+  }
+  const cleanPhone = (addr.phoneNumber || '').replace(/[^0-9]/g, '');
+  const bdPhoneRegex = /^(?:8801|01)[3-9]\d{8}$/;
+  const isRepeatedPhone =
+    /^(\d)\1+$/.test(cleanPhone) ||
+    /^(?:8801|01)[3-9](\d)\1{7}$/.test(cleanPhone);
+  if (!cleanPhone || !bdPhoneRegex.test(cleanPhone) || isRepeatedPhone) {
+    result.phoneError = 'সঠিক ১১ ডিজিটের সচল বাংলাদেশি মোবাইল নম্বর লিখুন (যেমন: 01712345678 বা 018...)।';
+    result.isValid = false;
+  }
+  const trimmedAddress = (addr.streetAddress || '').trim();
+  const addressWords = trimmedAddress.split(/[\s,.-]+/).filter((w) => w.length > 0);
+  const isRepeatedAddress = /^([a-zA-Z\u0980-\u09FF0-9])\1{3,}$/i.test(trimmedAddress.replace(/[\s,.-]/g, ''));
+  if (!trimmedAddress || trimmedAddress.length < 8 || addressWords.length < 2 || isRepeatedAddress) {
+    result.addressError = 'সম্পূর্ণ ডেলিভারি ঠিকানা লিখুন (যেমন: বাসা/রোড নম্বর, ফ্ল্যাট, এলাকা/থানা)।';
+    result.isValid = false;
+  }
+  return result;
+}
+  fullName: string;
+  phoneNumber: string;
+  streetAddress: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+}
+
 interface AddressSelectorProps {
   currentAddress: IShippingAddressForm;
   onAddressChange: (address: IShippingAddressForm) => void;
