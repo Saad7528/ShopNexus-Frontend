@@ -23,6 +23,9 @@ import {
   User,
   ExternalLink,
   MessageSquare,
+  ShoppingBag,
+  Gift,
+  Shield,
 } from 'lucide-react';
 import { useThemeStore } from '@/store/useThemeStore';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -74,6 +77,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       icon: ShoppingCart,
     },
     {
+      title: 'Abandoned Carts',
+      href: '/admin/abandoned-carts',
+      icon: ShoppingBag,
+    },
+    {
+      title: 'Bundles & Loyalty',
+      href: '/admin/bundles-loyalty',
+      icon: Gift,
+    },
+    {
       title: 'Live Parcel Tracking',
       href: '/admin/tracking',
       icon: Truck,
@@ -90,6 +103,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     },
     {
       title: 'Staff Roles & Security',
+      href: '/admin/staff',
+      icon: ShieldCheck,
+    },
+    {
+      title: 'Customer Directory',
       href: '/admin/customers',
       icon: Users,
     },
@@ -176,7 +194,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   }`}
                   title={!sidebarOpen && !isMobile ? item.title : undefined}
                 >
-                  <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-orange-600 dark:text-orange-400' : 'text-slate-400 dark:text-slate-500'}`} />
+                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-orange-600 dark:text-orange-400' : 'text-slate-400 dark:text-slate-500'}`} />
                   {(sidebarOpen || isMobile) && <span className="truncate">{item.title}</span>}
                 </Link>
               );
@@ -190,7 +208,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {sidebarOpen || isMobile ? (
             <div className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 shadow-sm">
               <div className="flex items-center gap-2.5 overflow-hidden">
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#ff4400] to-[#ff7700] flex items-center justify-center text-white text-xs font-black flex-shrink-0 shadow-md">
+                <div className="w-8 h-8 rounded-xl bg-linear-to-tr from-[#ff4400] to-[#ff7700] flex items-center justify-center text-white text-xs font-black shrink-0 shadow-md">
                   S
                 </div>
                 <div className="overflow-hidden">

@@ -304,7 +304,7 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            {/* Action Button */}
+  
             <button
               type="button"
               onClick={handleContinueShopping}
