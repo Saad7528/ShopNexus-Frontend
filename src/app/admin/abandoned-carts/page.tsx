@@ -131,3 +131,36 @@ export const INITIAL_ABANDONED_CARTS: IAbandonedCart[] = [
     recoveryDiscountCode: 'COMEBACK10',
   },
 ];
+
+import { RoleGuard } from '@/components/auth/RoleGuard';
+import { ShoppingBag, Sparkles } from 'lucide-react';
+
+export default function AbandonedCartsPage() {
+  const [carts, setCarts] = useState<IAbandonedCart[]>(INITIAL_ABANDONED_CARTS);
+
+  return (
+    <RoleGuard allowedRoles={['admin']}>
+      <div className="space-y-8 max-w-7xl mx-auto pb-16">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-600 dark:text-orange-400 text-xs font-bold uppercase tracking-wider mb-2">
+              <ShoppingBag className="w-3.5 h-3.5" /> Cart Drop-off Telemetry & Recovery
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+              Abandoned Cart Recovery Engine
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
+              কার্ট ফেলে যাওয়া কাস্টমারদের তালিকা দেখুন এবং ১-ক্লিকে বিশেষ ডিসকাউন্টসহ WhatsApp/SMS রিমাইন্ডার পাঠিয়ে অর্ডার রিকভার করুন।
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="px-3.5 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center gap-1.5 shadow-xs">
+              <Sparkles className="w-3.5 h-3.5" /> 1-Click WhatsApp Trigger Active
+            </span>
+          </div>
+        </div>
+      </div>
+    </RoleGuard>
+  );
+}
