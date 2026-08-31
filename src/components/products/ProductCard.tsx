@@ -70,7 +70,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
         {/* Flash Sale Badge */}
         {product.isFlashSale && (
-          <div className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white font-black text-[9px] shadow-sm">
+          <div className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-linear-to-r from-[#ff4400] to-[#ff7700] text-white font-black text-[9px] shadow-sm">
             <Zap className="w-2.5 h-2.5 fill-current" />
             <span>{product.flashSaleDiscountPercent ? `-${product.flashSaleDiscountPercent}%` : 'SALE'}</span>
           </div>
@@ -125,7 +125,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             <button
               type="button"
               onClick={handleBuyNow}
-              className="flex items-center justify-center gap-0.5 sm:gap-1 py-1.5 px-1.5 sm:px-2 rounded-lg sm:rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white text-[10px] sm:text-xs font-bold shadow-xs shadow-orange-500/25 transition-all cursor-pointer active:scale-95 whitespace-nowrap"
+              className="flex items-center justify-center gap-0.5 sm:gap-1 py-1.5 px-1.5 sm:px-2 rounded-lg sm:rounded-xl bg-linear-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white text-[10px] sm:text-xs font-bold shadow-xs shadow-orange-500/25 transition-all cursor-pointer active:scale-95 whitespace-nowrap"
               title="Buy Now (Direct Checkout)"
             >
               <Zap className="w-3 h-3 fill-current" />
