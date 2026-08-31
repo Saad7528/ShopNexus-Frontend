@@ -1,5 +1,13 @@
 import { create } from 'zustand';
 
+export interface ProductTrustBadges {
+  hasFastDelivery?: boolean; // ২৪ ঘণ্টায় ডেলিভারি
+  hasWarranty?: boolean; // অফিসিয়াল ওয়ারেন্টি
+  warrantyText?: string; // e.g. '১ বছরের অফিসিয়াল ওয়ারেন্টি'
+  hasReturnPolicy?: boolean; // ৭ দিনের রিটার্ন পলিসি
+  isOfficialGenuine?: boolean; // ১০০% জেনুইন প্রোডাক্ট
+}
+
 export interface Product {
   _id: string;
   title: string;
@@ -17,6 +25,7 @@ export interface Product {
   averageRating: number;
   totalReviews: number;
   tags: string[];
+  trustBadges?: ProductTrustBadges;
 }
 
 interface ProductFilterState {
