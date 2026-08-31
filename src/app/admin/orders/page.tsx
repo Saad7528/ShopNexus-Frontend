@@ -59,6 +59,22 @@ interface IOrder {
   createdAt: string;
 }
 
+const getPredefinedIssueMessage = (order: IOrder, category: string): string => {
+  const customer = order.customerName || 'সম্মানিত গ্রাহক';
+  switch (category) {
+    case 'address':
+      return `আসসালামু আলাইকুম ${customer}। ShopNexus থেকে আপনার অর্ডার #${order.orderNumber}-এর ডেলিভারি ঠিকানা/ফোন নম্বরে কিছুটা অসম্পূর্ণতা পাওয়া গেছে। কুরিয়ারে সঠিক সময়ে পার্সেল পৌঁছানোর জন্য অনুগ্রহ করে আপনার পূর্ণাঙ্গ ঠিকানা ও বিকল্প ফোন নম্বরটি রিপ্লাই দিন। ধন্যবাদ!`;
+    case 'variant':
+      return `আসসালামু আলাইকুম ${customer}। আপনার অর্ডার #${order.orderNumber}-এর কাঙ্ক্ষিত কালার/ভ্যারিয়েন্ট সংক্রান্ত কনফার্মেশনের জন্য যোগাযোগ করা হলো। অনুগ্রহ করে আপনার পছন্দের ভ্যারিয়েন্টটি নিশ্চিত করুন।`;
+    case 'delay':
+      return `আসসালামু আলাইকুম ${customer}। আপনার অর্ডার #${order.orderNumber}-এর পার্সেলটি ট্রানজিটে রয়েছে। আবহাওয়া/কুরিয়ার লোডের কারণে ডেলিভারিতে সামান্য বিলম্ব হতে পারে। দ্রুততম সময়ে ডেলিভারি নিশ্চিত করতে আমরা কাজ করছি।`;
+    case 'payment':
+      return `আসসালামু আলাইকুম ${customer}। আপনার অর্ডার #${order.orderNumber}-এর অনলাইন পেমেন্টটি ভেরিফিকেশন পেন্ডিং রয়েছে। অনুগ্রহ করে ট্রানজেকশন আইডি (TrxID) দিয়ে সাহায্য করুন।`;
+    default:
+      return `আসসালামু আলাইকুম ${customer}। আপনার ShopNexus অর্ডার #${order.orderNumber} সংক্রান্ত একটি জরুরি আপডেটের জন্য মেসেজ দেওয়া হলো।`;
+  }
+};
+
 const INITIAL_ORDERS: IOrder[] = [
   {
     id: 'ord-1',
