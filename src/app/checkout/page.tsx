@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useCartStore } from '@/store/useCartStore';
 import { useOrderStore } from '@/store/useOrderStore';
 import { useAuthStore } from '@/store/useAuthStore';
-import { AddressSelector, IShippingAddressForm } from '@/components/checkout/AddressSelector';
+import { AddressSelector, IShippingAddressForm, validateSmartShippingAddress } from '@/components/checkout/AddressSelector';
 import { PaymentMethodSelector, PaymentMethod } from '@/components/checkout/PaymentMethodSelector';
 import { MfsPaymentModal } from '@/components/checkout/MfsPaymentModal';
 import {
@@ -27,6 +27,10 @@ import {
   Percent,
   Tag,
   Check,
+  Clock,
+  Award,
+  Coins,
+  Crown,
 } from 'lucide-react';
 
 export default function CheckoutPage() {
