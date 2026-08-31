@@ -53,13 +53,14 @@ export default function CheckoutPage() {
   const [deliveryZone, setDeliveryZone] = useState<'inside_dhaka' | 'outside_dhaka'>('inside_dhaka');
   const [shippingAddress, setShippingAddress] = useState<IShippingAddressForm>({
     fullName: user?.name || '',
-    phoneNumber: user?.phoneNumber || '+880 1',
+    phoneNumber: user?.phoneNumber || '',
     streetAddress: user?.address || '',
     city: user?.city || 'Dhaka',
     state: 'Dhaka Division',
     zipCode: user?.zipCode || '1213',
     country: 'Bangladesh',
   });
+  const [addressError, setAddressError] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('mfs_bkash_nagad');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isMfsModalOpen, setIsMfsModalOpen] = useState(false);
@@ -69,9 +70,7 @@ export default function CheckoutPage() {
     msg: string;
   } | null>(null);
 
-  // First Order Logic: Has the user placed any orders before?
-  const [addressError, setAddressError] = useState<string | null>(null);
-
+  // Smart Validation function: Name, Mobile, and Address cannot be fake or incomplete
   const validateAddress = (addr: IShippingAddressForm): boolean => {
     const res = validateSmartShippingAddress(addr);
     if (!res.isValid) {
@@ -89,6 +88,7 @@ export default function CheckoutPage() {
     }
   };
 
+  // First Order Logic: Has the user placed any orders before?
   const isFirstOrder = orders.length === 0;
 
   // Coupon state for returning users
@@ -129,6 +129,12 @@ export default function CheckoutPage() {
   };
 
   const handleInitiateOrder = () => {
+    // Strict safeguard: Check Address before placing any order
+    if (!validateAddress(shippingAddress)) {
+      setCurrentStep(1);
+      return;
+    }
+
     if (paymentMethod === 'mfs_bkash_nagad') {
       setIsMfsModalOpen(true);
     } else {
@@ -335,14 +341,18 @@ export default function CheckoutPage() {
 
                 <AddressSelector
                   currentAddress={shippingAddress}
-                  onAddressChange={(newAddr) => setShippingAddress(newAddr)}
+                  onAddressChange={(newAddr) => {
+                    setShippingAddress(newAddr);
+                    if (addressError) setAddressError(null);
+                  }}
+                  errorMessage={addressError}
                 />
 
                 <div className="flex justify-end pt-4">
                   <button
                     type="button"
-                    onClick={() => setCurrentStep(2)}
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#ff4400] via-[#ff7700] to-[#ff4400] hover:from-[#e63d00] hover:to-[#ff6600] font-semibold text-sm shadow-lg shadow-orange-500/25 transition-all cursor-pointer text-white"
+                    onClick={handleContinueToPayment}
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#ff4400] via-[#ff7700] to-[#ff4400] hover:from-[#e63d00] hover:to-[#ff6600] font-semibold text-sm shadow-lg shadow-orange-500/25 transition-all cursor-pointer text-white hover:scale-105"
                   >
                     Continue to Payment <ArrowRight className="w-4 h-4" />
                   </button>
