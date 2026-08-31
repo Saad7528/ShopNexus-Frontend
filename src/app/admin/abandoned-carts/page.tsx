@@ -425,7 +425,127 @@ export default function AbandonedCartsPage() {
           </div>
         </div>
 
-        
+        {/* 💬 WHATSAPP COMEBACK DISPATCH MODAL */}
+        {activeRecoveryCart && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
+            <div className="relative w-full max-w-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5 my-8 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                    <MessageCircle className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-black text-slate-900 dark:text-white">
+                      1-Click WhatsApp Cart Recovery
+                    </h2>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      কাস্টমারকে সরাসরি ডিসকাউন্ট অফারসহ পার্সোনালাইজড মেসেজ পাঠান
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveRecoveryCart(null)}
+                  className="p-2 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Recipient & Cart Breakdown */}
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <div>
+                    <span className="font-bold text-slate-900 dark:text-white block">{activeRecoveryCart.customerName}</span>
+                    <span className="font-mono text-orange-600 dark:text-orange-400">{activeRecoveryCart.customerPhone}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-mono font-black text-sm text-slate-900 dark:text-white">
+                      ৳{activeRecoveryCart.cartTotal.toLocaleString()} BDT
+                    </span>
+                    <span className="text-[10px] text-slate-400 block">{activeRecoveryCart.items.length} item(s) in cart</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Promo Coupon Configuration */}
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div>
+                  <label className="block text-[10px] uppercase font-bold text-slate-500 mb-1">
+                    Recovery Coupon Code:
+                  </label>
+                  <input
+                    type="text"
+                    value={promoCode}
+                    onChange={(e) => setPromoCode(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 font-mono font-bold text-orange-600 dark:text-orange-400 text-xs focus:border-orange-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] uppercase font-bold text-slate-500 mb-1">
+                    Discount Offer (%):
+                  </label>
+                  <select
+                    value={discountPercent}
+                    onChange={(e) => setDiscountPercent(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold text-xs focus:border-orange-500 focus:outline-none"
+                  >
+                    <option value="5">5% Exclusive Recovery Discount</option>
+                    <option value="10">10% Mega Comeback Deal</option>
+                    <option value="Free Delivery">Free Delivery Waiver (৳120 off)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Message Preview */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <label className="font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                    WhatsApp Message Preview:
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const text = customRecoveryText || getRecoveryMessage(activeRecoveryCart, promoCode, discountPercent);
+                      navigator.clipboard.writeText(text);
+                      setCopiedFeedback(true);
+                      setTimeout(() => setCopiedFeedback(false), 2500);
+                    }}
+                    className="text-orange-600 dark:text-orange-400 hover:underline flex items-center gap-1 font-semibold text-[11px] cursor-pointer"
+                  >
+                    <Copy className="w-3 h-3" />
+                    <span>{copiedFeedback ? 'Copied!' : 'Copy Text'}</span>
+                  </button>
+                </div>
+                <textarea
+                  rows={4}
+                  value={customRecoveryText || getRecoveryMessage(activeRecoveryCart, promoCode, discountPercent)}
+                  onChange={(e) => setCustomRecoveryText(e.target.value)}
+                  className="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none transition-colors"
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setActiveRecoveryCart(null)}
+                  className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSendWhatsAppRecovery}
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/30 transition-all cursor-pointer hover:scale-105"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>Launch WhatsApp & Send Offer</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </RoleGuard>
   );
