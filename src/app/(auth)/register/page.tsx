@@ -15,7 +15,7 @@ import {
   Sparkles,
   PartyPopper,
   Gift,
-  CheckCircle2,
+
   ShoppingBag,
   Percent,
 } from 'lucide-react';
