@@ -1,8 +1,30 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { RoleGuard } from '@/components/auth/RoleGuard';
+import {
+  ShoppingBag,
+  Search,
+  MessageCircle,
+  Clock,
+  ArrowUpRight,
+  Sparkles,
+  Phone,
+  Mail,
+  Copy,
+  CheckCircle2,
+  X,
+  Send,
+  RefreshCw,
+  Tag,
+  Flame,
+  User,
+  Filter,
+} from 'lucide-react';
 
-export interface IAbandonedItem {
+interface IAbandonedItem {
   id: string;
   title: string;
   image: string;
@@ -11,7 +33,7 @@ export interface IAbandonedItem {
   quantity: number;
 }
 
-export interface IAbandonedCart {
+interface IAbandonedCart {
   id: string;
   customerName: string;
   customerPhone: string;
@@ -23,7 +45,7 @@ export interface IAbandonedCart {
   recoveryDiscountCode?: string;
 }
 
-export const INITIAL_ABANDONED_CARTS: IAbandonedCart[] = [
+const INITIAL_ABANDONED_CARTS: IAbandonedCart[] = [
   {
     id: 'ac-1',
     customerName: 'Shakib Al Hasan',
@@ -132,15 +154,66 @@ export const INITIAL_ABANDONED_CARTS: IAbandonedCart[] = [
   },
 ];
 
-import { RoleGuard } from '@/components/auth/RoleGuard';
-import { ShoppingBag, Sparkles } from 'lucide-react';
-
 export default function AbandonedCartsPage() {
   const [carts, setCarts] = useState<IAbandonedCart[]>(INITIAL_ABANDONED_CARTS);
+  const [activeFilter, setActiveFilter] = useState<string>('All');
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  // WhatsApp / SMS Modal Trigger
+  const [activeRecoveryCart, setActiveRecoveryCart] = useState<IAbandonedCart | null>(null);
+  const [promoCode, setPromoCode] = useState('COMEBACK5');
+  const [discountPercent, setDiscountPercent] = useState('5');
+  const [customRecoveryText, setCustomRecoveryText] = useState('');
+  const [copiedFeedback, setCopiedFeedback] = useState(false);
+
+  // Statistics
+  const totalAbandonedValue = carts.reduce((acc, c) => acc + c.cartTotal, 0);
+  const recoveredValue = carts
+    .filter((c) => c.status === 'Recovered')
+    .reduce((acc, c) => acc + c.cartTotal, 0);
+  const recoveryRate = ((carts.filter((c) => c.status === 'Recovered').length / carts.length) * 100).toFixed(1);
+
+  const filteredCarts = carts.filter((c) => {
+    if (activeFilter === 'Uncontacted' && c.status !== 'Uncontacted') return false;
+    if (activeFilter === 'WhatsApp' && c.status !== 'WhatsApp Sent') return false;
+    if (activeFilter === 'Recovered' && c.status !== 'Recovered') return false;
+    if (activeFilter === 'HighValue' && c.cartTotal < 50000) return false;
+
+    return (
+      c.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.customerPhone.includes(searchQuery) ||
+      c.customerEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.items.some((i) => i.title.toLowerCase().includes(searchQuery.toLowerCase()))
+    );
+  });
+
+  const getRecoveryMessage = (cart: IAbandonedCart, code: string, pct: string) => {
+    const itemNames = cart.items.map((i) => i.title).join(', ');
+    return `আসসালামু আলাইকুম ${cart.customerName}! ShopNexus-এ আপনার কার্টে "${itemNames}" রেখে গিয়েছিলেন। আপনার জন্য বিশেষ ${pct}% রিকভারি ডিসকাউন্ট কুপন কোড: "${code}" তৈরি করা হয়েছে। এখনই চেকআউট সম্পন্ন করে অফিশিয়াল প্রোডাক্টটি নিশ্চিত করুন: https://shopnexus.io/checkout?code=${code}`;
+  };
+
+  const handleSendWhatsAppRecovery = () => {
+    if (!activeRecoveryCart) return;
+    const msg = customRecoveryText || getRecoveryMessage(activeRecoveryCart, promoCode, discountPercent);
+    const cleanPhone = activeRecoveryCart.customerPhone.replace(/[^0-9]/g, '');
+    const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
+    window.open(waUrl, '_blank');
+
+    // Update status
+    setCarts((prev) =>
+      prev.map((c) =>
+        c.id === activeRecoveryCart.id
+          ? { ...c, status: 'WhatsApp Sent', recoveryDiscountCode: promoCode }
+          : c
+      )
+    );
+    setActiveRecoveryCart(null);
+  };
 
   return (
     <RoleGuard allowedRoles={['admin']}>
       <div className="space-y-8 max-w-7xl mx-auto pb-16">
+        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-600 dark:text-orange-400 text-xs font-bold uppercase tracking-wider mb-2">
@@ -160,6 +233,62 @@ export default function AbandonedCartsPage() {
             </span>
           </div>
         </div>
+
+        {/* 3 Telemetry KPI Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="p-5 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm backdrop-blur-xl">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                Total Abandoned Value
+              </span>
+              <div className="p-1.5 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-400 font-bold text-xs">
+                ৳ BDT
+              </div>
+            </div>
+            <div className="mt-2 text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+              ৳{totalAbandonedValue.toLocaleString()}
+            </div>
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 block">
+              Across {carts.length} active drop-off sessions
+            </span>
+          </div>
+
+          <div className="p-5 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm backdrop-blur-xl">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                Recovered Revenue
+              </span>
+              <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
+                ৳ BDT
+              </div>
+            </div>
+            <div className="mt-2 text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400">
+              ৳{recoveredValue.toLocaleString()}
+            </div>
+            <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 mt-1 flex items-center gap-1">
+              +{recoveryRate}% Recovery Rate <ArrowUpRight className="w-3.5 h-3.5" />
+            </span>
+          </div>
+
+          <div className="p-5 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm backdrop-blur-xl">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                Uncontacted Leads
+              </span>
+              <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-xs">
+                Pending
+              </div>
+            </div>
+            <div className="mt-2 text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400">
+              {carts.filter((c) => c.status === 'Uncontacted').length} Carts
+            </div>
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 block">
+              Ready for immediate WhatsApp discount ping
+            </span>
+          </div>
+        </div>
+
+        
       </div>
     </RoleGuard>
   );
