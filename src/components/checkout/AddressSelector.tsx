@@ -57,6 +57,8 @@ export function validateSmartShippingAddress(addr: IShippingAddressForm): IAddre
 }
 
 interface AddressSelectorProps {
+  errorMessage?: string | null;
+  forceShowErrors?: boolean;
   currentAddress: IShippingAddressForm;
   onAddressChange: (address: IShippingAddressForm) => void;
 }
@@ -66,7 +68,9 @@ export const AddressSelector: React.FC<AddressSelectorProps> = ({
   onAddressChange,
 }) => {
   const isInitialEmpty = !currentAddress.fullName || !currentAddress.streetAddress;
-  const [isEditing, setIsEditing] = useState(isInitialEmpty);
+  const initialValidation = validateSmartShippingAddress(currentAddress);
+  const [isEditing, setIsEditing] = useState(!initialValidation.isValid);
+  const [touched, setTouched] = useState<{ name?: boolean; phone?: boolean; address?: boolean }>({});
   const [formData, setFormData] = useState<IShippingAddressForm>({
     fullName: currentAddress.fullName || '',
     phoneNumber: currentAddress.phoneNumber || '',
