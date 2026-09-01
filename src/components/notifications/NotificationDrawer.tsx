@@ -32,7 +32,7 @@ export const NotificationDrawer: React.FC = () => {
       {/* Backdrop */}
       <div
         onClick={closeDrawer}
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
+        className="absolute inset-0 bg-slate-950/20 dark:bg-slate-950/40 backdrop-blur-md transition-all duration-300"
       />
 
       <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">

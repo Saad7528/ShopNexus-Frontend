@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Mail, ArrowLeft, Send, CheckCircle2, ShieldCheck, KeyRound } from 'lucide-react';
+import { BrandLogo } from '@/components/common/BrandLogo';
+import { AuthBackground } from '@/components/auth/AuthBackground';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -45,8 +47,11 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-slate-50 dark:bg-[#0b0f19] text-slate-900 dark:text-white">
-      <div className="max-w-md w-full p-8 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-xl backdrop-blur-2xl space-y-6">
+    <AuthBackground>
+      {/* Centered Clickable ShopNexus Logo */}
+      <BrandLogo size="lg" className="mb-4 drop-shadow-lg" />
+
+      <div className="max-w-md w-full p-8 rounded-3xl bg-white/95 dark:bg-slate-900/85 border border-white/20 dark:border-slate-800/80 shadow-2xl shadow-black/40 backdrop-blur-2xl space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
           <div className="w-14 h-14 rounded-2xl bg-orange-500/10 border border-orange-500/20 text-orange-600 dark:text-orange-400 flex items-center justify-center mx-auto shadow-inner">
@@ -131,6 +136,6 @@ export default function ForgotPasswordPage() {
           </Link>
         </div>
       </div>
-    </div>
+    </AuthBackground>
   );
 }
