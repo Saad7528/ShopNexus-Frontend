@@ -2,11 +2,12 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useCartStore } from '@/store/useCartStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
 import { ProductGallery } from '@/components/products/ProductGallery';
-import { ReviewForm } from '@/components/products/ReviewForm';
+import { ProductReviewsSection } from '@/components/products/ProductReviewsSection';
 import { getProductByIdOrSlug, ALL_PRODUCTS } from '@/data/products';
 import { ProductCard } from '@/components/products/ProductCard';
 import {
@@ -24,6 +25,15 @@ import {
   Sparkles,
   ArrowRight,
 } from 'lucide-react';
+
+export interface IProductReview {
+  id: string;
+  author: string;
+  rating: number;
+  date: string;
+  comment: string;
+  images?: string[];
+}
 
 interface ProductDetailPageProps {
   params: Promise<{ id: string }>;
@@ -70,13 +80,17 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
   const [quantity, setQuantity] = useState(1);
   const [addedSuccess, setAddedSuccess] = useState(false);
 
-  const [reviews, setReviews] = useState([
+  const [reviews, setReviews] = useState<IProductReview[]>([
     {
       id: 'rev-1',
       author: 'Farhan Rahman',
       rating: 5,
       date: '2 days ago',
       comment: 'অসাধারণ কোয়ালিটি! সাউন্ড এবং বিল্ড কোয়ালিটি টপ-লেভেলের। ১ দিনের মধ্যেই ডেলিভারি পেয়েছি।',
+      images: [
+        'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80',
+        'https://images.unsplash.com/photo-1484704849700-f032a568e944?w=400&q=80',
+      ],
     },
     {
       id: 'rev-2',
@@ -382,32 +396,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
         )}
 
         {/* Customer Reviews Section */}
-        <section className="pt-8 border-t border-slate-200 dark:border-slate-800/80">
-          <div className="max-w-4xl space-y-6">
-            <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
-              Customer Reviews ({reviews.length})
-            </h3>
-
-            <ReviewForm productId={product.id} onReviewSubmitted={handleReviewSubmitted} />
-
-            <div className="space-y-3 pt-4">
-              {reviews.map((rev) => (
-                <div key={rev.id} className="p-4 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white">{rev.author}</span>
-                    <span className="text-[10px] text-slate-400">{rev.date}</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-amber-500">
-                    {Array.from({ length: rev.rating }).map((_, i) => (
-                      <Star key={i} className="w-3.5 h-3.5 fill-current" />
-                    ))}
-                  </div>
-                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed pt-1">{rev.comment}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+        <ProductReviewsSection productId={product.id} productName={product.name} />
       </div>
     </div>
   );
