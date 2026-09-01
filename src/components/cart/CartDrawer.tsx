@@ -7,8 +7,12 @@ import { useOrderStore } from '@/store/useOrderStore';
 import { CartItem } from './CartItem';
 import { X, ShoppingBag, ArrowRight, Sparkles, Truck } from 'lucide-react';
 
+import { useLanguageStore } from '@/store/useLanguageStore';
+import { formatCurrency, toBengaliNumber } from '@/lib/translations';
+
 export const CartDrawer: React.FC = () => {
   const { isOpen, closeDrawer, items, getTotals } = useCartStore();
+  const { t, language } = useLanguageStore();
   const orders = useOrderStore((state) => state.orders);
   const isFirstOrder = orders.length === 0;
 
@@ -27,7 +31,7 @@ export const CartDrawer: React.FC = () => {
       {/* Backdrop */}
       <div
         onClick={closeDrawer}
-        className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity"
+        className="absolute inset-0 bg-slate-950/20 dark:bg-slate-950/40 backdrop-blur-md transition-all duration-300"
       />
 
       {/* Drawer Panel */}
@@ -40,8 +44,10 @@ export const CartDrawer: React.FC = () => {
                 <ShoppingBag className="w-4 h-4" />
               </div>
               <div>
-                <h2 className="text-base font-bold text-slate-900 dark:text-white">Your Shopping Cart</h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400">{itemCount} {itemCount === 1 ? 'item' : 'items'} selected</p>
+                <h2 className="text-base font-bold text-slate-900 dark:text-white">{t('cart_title')}</h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {language === 'bn' ? toBengaliNumber(itemCount) : itemCount} {itemCount === 1 ? t('cart_item_selected') : t('cart_items_selected')}
+                </p>
               </div>
             </div>
             <button
@@ -60,15 +66,21 @@ export const CartDrawer: React.FC = () => {
                   <Truck className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
                   {amountUntilFreeShipping === 0 ? (
                     <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
-                      <Sparkles className="w-3 h-3" /> You unlocked FREE Standard Delivery!
+                      <Sparkles className="w-3 h-3" /> {t('cart_free_delivery_unlocked')}
                     </span>
                   ) : (
                     <span>
-                      Add <strong className="text-slate-900 dark:text-white font-mono">৳{amountUntilFreeShipping.toLocaleString()}</strong> more for <strong>FREE Delivery</strong>
+                      {language === 'bn' ? (
+                        <>ফ্রি ডেলিভারি পেতে আরও <strong className="text-slate-900 dark:text-white font-mono">{formatCurrency(amountUntilFreeShipping, 'bn')}</strong> যোগ করুন</>
+                      ) : (
+                        <>Add <strong className="text-slate-900 dark:text-white font-mono">{formatCurrency(amountUntilFreeShipping, 'en')}</strong> more for <strong>FREE Delivery</strong></>
+                      )}
                     </span>
                   )}
                 </span>
-                <span className="text-[11px] font-bold text-orange-600 dark:text-orange-400">{freeShippingProgress}%</span>
+                <span className="text-[11px] font-bold text-orange-600 dark:text-orange-400">
+                  {language === 'bn' ? toBengaliNumber(freeShippingProgress) : freeShippingProgress}%
+                </span>
               </div>
               <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
                 <div
@@ -90,16 +102,16 @@ export const CartDrawer: React.FC = () => {
                 <div className="w-16 h-16 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center mb-4 text-orange-600 dark:text-orange-400">
                   <ShoppingBag className="w-8 h-8" />
                 </div>
-                <p className="text-base font-bold text-slate-900 dark:text-white">Your cart is currently empty</p>
+                <p className="text-base font-bold text-slate-900 dark:text-white">{t('cart_empty_title')}</p>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 max-w-xs leading-relaxed">
-                  Browse our high-performance catalog and add products to start your order.
+                  {t('cart_empty_desc')}
                 </p>
                 <Link
                   href="/products"
                   onClick={closeDrawer}
                   className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white text-xs font-semibold shadow-lg shadow-orange-500/25 transition-all"
                 >
-                  Explore Products <ArrowRight className="w-3.5 h-3.5" />
+                  {t('btn_continue_shopping')} <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
             ) : (
@@ -112,36 +124,36 @@ export const CartDrawer: React.FC = () => {
             <div className="p-5 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 space-y-3">
               <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-400">
                 <div className="flex justify-between">
-                  <span>Subtotal</span>
-                  <span className="font-semibold text-slate-900 dark:text-slate-200 font-mono">৳{subtotal.toLocaleString()}</span>
+                  <span>{t('cart_subtotal')}</span>
+                  <span className="font-semibold text-slate-900 dark:text-slate-200 font-mono">{formatCurrency(subtotal, language)}</span>
                 </div>
                 {isFirstOrder && firstOrderDiscount > 0 && (
                   <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-semibold">
                     <span className="flex items-center gap-1">
-                      <Sparkles className="w-3.5 h-3.5" /> প্রথম অর্ডার ১০% ছাড়
+                      <Sparkles className="w-3.5 h-3.5" /> {language === 'bn' ? 'প্রথম অর্ডার ১০% ছাড়' : 'First Order 10% Off'}
                     </span>
-                    <span className="font-mono font-bold">-৳{firstOrderDiscount.toLocaleString()}</span>
+                    <span className="font-mono font-bold">-{formatCurrency(firstOrderDiscount, language)}</span>
                   </div>
                 )}
                 {!isFirstOrder && discount > 0 && (
                   <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
-                    <span>Coupon Discount</span>
-                    <span className="font-mono">-৳{discount.toLocaleString()}</span>
+                    <span>{language === 'bn' ? 'কুপন ডিসকাউন্ট' : 'Coupon Discount'}</span>
+                    <span className="font-mono">-{formatCurrency(discount, language)}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <span>Estimated Delivery</span>
+                  <span>{t('cart_delivery_fee')}</span>
                   <span className={shippingFee === 0 ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : 'text-slate-900 dark:text-slate-200 font-mono'}>
-                    {shippingFee === 0 ? 'FREE' : `৳${shippingFee.toLocaleString()}`}
+                    {shippingFee === 0 ? (language === 'bn' ? 'ফ্রি' : 'FREE') : formatCurrency(shippingFee, language)}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Estimated VAT (5%)</span>
-                  <span className="font-semibold text-slate-900 dark:text-slate-200 font-mono">৳{tax.toLocaleString()}</span>
+                  <span>{t('cart_vat')}</span>
+                  <span className="font-semibold text-slate-900 dark:text-slate-200 font-mono">{formatCurrency(tax, language)}</span>
                 </div>
                 <div className="flex justify-between text-base font-bold text-slate-900 dark:text-white pt-2.5 border-t border-slate-200 dark:border-slate-800">
-                  <span>Total Due</span>
-                  <span className="text-orange-600 dark:text-orange-400 font-black text-lg font-mono">৳{total.toLocaleString()} BDT</span>
+                  <span>{t('cart_total_due')}</span>
+                  <span className="text-orange-600 dark:text-orange-400 font-black text-lg font-mono">{formatCurrency(total, language)}</span>
                 </div>
               </div>
 
@@ -151,14 +163,14 @@ export const CartDrawer: React.FC = () => {
                   onClick={closeDrawer}
                   className="py-3 px-4 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-900 dark:text-white text-xs font-semibold text-center transition-colors"
                 >
-                  View Full Cart
+                  {t('btn_view_full_cart')}
                 </Link>
                 <Link
                   href="/checkout"
                   onClick={closeDrawer}
                   className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl bg-gradient-to-r from-[#ff4400] via-[#ff7700] to-[#ff4400] hover:from-[#e63d00] hover:to-[#ff6600] text-white text-xs font-bold shadow-lg shadow-orange-500/25 transition-all"
                 >
-                  Checkout
+                  {t('btn_checkout')}
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
