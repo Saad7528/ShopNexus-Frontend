@@ -26,9 +26,12 @@ import {
   ShoppingBag,
   Gift,
   Shield,
+  Activity,
+  Radio,
 } from 'lucide-react';
 import { useThemeStore } from '@/store/useThemeStore';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useVisitorAnalyticsStore } from '@/store/useVisitorAnalyticsStore';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -37,6 +40,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [isMobile, setIsMobile] = useState(false);
   const { theme, toggleTheme } = useThemeStore();
   const { user, logout } = useAuthStore();
+  const liveVisitorCount = useVisitorAnalyticsStore((s) => s.liveVisitorCount);
 
   // Detect screen size for initial mobile state
   useEffect(() => {
@@ -65,6 +69,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       title: 'Dashboard & Analytics',
       href: '/admin/dashboard',
       icon: LayoutDashboard,
+    },
+    {
+      title: 'Live Visitors & Traffic',
+      href: '/admin/visitors',
+      icon: Activity,
+      badge: 'Live',
     },
     {
       title: 'Products & Inventory',
@@ -114,7 +124,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f19] text-slate-900 dark:text-white flex flex-col md:flex-row overflow-x-hidden relative">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f19] text-slate-900 dark:text-white flex flex-col md:flex-row relative">
       {/* Mobile Backdrop Overlay */}
       {isMobile && sidebarOpen && (
         <div
@@ -123,9 +133,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         />
       )}
 
-      {/* Collapsible / Sliding Sidebar */}
+      {/* Collapsible / Sliding Sidebar (Permanently Fixed 100vh Viewport Height) */}
       <aside
-        className={`fixed md:sticky top-0 z-50 h-screen bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transition-all duration-300 flex flex-col justify-between ${
+        className={`fixed inset-y-0 left-0 z-40 h-screen bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transition-all duration-300 flex flex-col justify-between shrink-0 ${
           isMobile
             ? sidebarOpen
               ? 'translate-x-0 w-72 shadow-2xl'
@@ -135,44 +145,55 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             : 'w-20 translate-x-0'
         }`}
       >
-        <div className="p-4 space-y-6 overflow-y-auto">
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-6">
           {/* Logo & Collapse Switch */}
-          <div className={`flex items-center ${!sidebarOpen && !isMobile ? 'justify-center' : 'justify-between'}`}>
-            <div className="flex items-center gap-3 overflow-hidden">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#ff4400] to-[#ff7700] flex items-center justify-center text-white flex-shrink-0 shadow-lg shadow-orange-500/25">
-                <ShieldCheck className="w-5 h-5" />
-              </div>
-              {(sidebarOpen || isMobile) && (
+          {sidebarOpen || isMobile ? (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 overflow-hidden">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#ff4400] to-[#ff7700] flex items-center justify-center text-white flex-shrink-0 shadow-lg shadow-orange-500/25">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
                 <div className="transition-opacity duration-300">
                   <h2 className="text-sm font-black text-slate-900 dark:text-white leading-tight">Admin Portal</h2>
                   <p className="text-[10px] font-semibold text-orange-600 dark:text-orange-400 uppercase tracking-wider">
                     ShopNexus Official
                   </p>
                 </div>
-              )}
-            </div>
+              </div>
 
-            {/* Desktop Collapse Toggle */}
-            <button
-              type="button"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer hidden md:flex"
-              title={sidebarOpen ? 'Collapse Sidebar' : 'Expand Sidebar'}
-            >
-              {sidebarOpen ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-            </button>
-
-            {/* Mobile Close Button */}
-            {isMobile && (
+              {/* Desktop Collapse Toggle */}
               <button
                 type="button"
                 onClick={() => setSidebarOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white md:hidden"
+                className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-orange-500/10 dark:hover:bg-orange-500/20 text-slate-600 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 transition-colors cursor-pointer hidden md:flex shrink-0"
+                title="Collapse Sidebar"
               >
-                <X className="w-5 h-5" />
+                <ChevronLeft className="w-4 h-4" />
               </button>
-            )}
-          </div>
+
+              {/* Mobile Close Button */}
+              {isMobile && (
+                <button
+                  type="button"
+                  onClick={() => setSidebarOpen(false)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white md:hidden cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="flex items-center justify-center w-full">
+              <button
+                type="button"
+                onClick={() => setSidebarOpen(true)}
+                className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-orange-500/15 dark:hover:bg-orange-500/25 text-slate-600 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 flex items-center justify-center transition-all cursor-pointer shadow-sm hover:scale-105 active:scale-95"
+                title="Expand Sidebar"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
+          )}
 
           {/* Navigation Links */}
           <nav className="space-y-1.5">
@@ -186,29 +207,36 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   href={item.href}
                   onClick={() => isMobile && setSidebarOpen(false)}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                    !sidebarOpen && !isMobile ? 'justify-center' : ''
+                    !sidebarOpen && !isMobile ? 'justify-center' : 'justify-between'
                   } ${
                     isActive
-                      ? 'bg-orange-500/10 dark:bg-indigo-600/20 text-orange-600 dark:text-orange-400 border border-orange-500/30 dark:border-indigo-500/30 shadow-sm'
+                      ? 'bg-orange-500/10 dark:bg-orange-500/15 text-orange-600 dark:text-orange-400 border border-orange-500/30 shadow-sm'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60'
                   }`}
                   title={!sidebarOpen && !isMobile ? item.title : undefined}
                 >
-                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-orange-600 dark:text-orange-400' : 'text-slate-400 dark:text-slate-500'}`} />
-                  {(sidebarOpen || isMobile) && <span className="truncate">{item.title}</span>}
+                  <div className="flex items-center gap-3 overflow-hidden">
+                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-orange-600 dark:text-orange-400' : 'text-slate-400 dark:text-slate-500'}`} />
+                    {(sidebarOpen || isMobile) && <span className="truncate">{item.title}</span>}
+                  </div>
+                  {(sidebarOpen || isMobile) && (item as any).badge && (
+                    <span className="px-1.5 py-0.5 rounded-md bg-emerald-500 text-white text-[9px] font-black uppercase tracking-wider animate-pulse shrink-0">
+                      Live
+                    </span>
+                  )}
                 </Link>
               );
             })}
           </nav>
         </div>
 
-        {/* 👤 SIDEBAR FOOTER: ADMIN PROFILE & STOREFRONT LINK */}
-        <div className="p-4 border-t border-slate-200 dark:border-slate-800 space-y-3 bg-slate-50/50 dark:bg-slate-950/40">
+        {/* 👤 SIDEBAR FOOTER: ADMIN PROFILE & STOREFRONT LINK (Always Pinned at the Very Bottom) */}
+        <div className="shrink-0 p-4 border-t border-slate-200 dark:border-slate-800 space-y-3 bg-slate-50/50 dark:bg-slate-950/40">
           {/* Admin Profile Box */}
           {sidebarOpen || isMobile ? (
             <div className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 shadow-sm">
               <div className="flex items-center gap-2.5 overflow-hidden">
-                <div className="w-8 h-8 rounded-xl bg-linear-to-tr from-[#ff4400] to-[#ff7700] flex items-center justify-center text-white text-xs font-black shrink-0 shadow-md">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#ff4400] to-[#ff7700] flex items-center justify-center text-white text-xs font-black shrink-0 shadow-md">
                   S
                 </div>
                 <div className="overflow-hidden">
@@ -265,30 +293,49 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </aside>
 
-      {/* Main Workspace Area with Topbar */}
-      <div className="flex-1 flex flex-col min-w-0">
+      {/* Main Workspace Area with Topbar (Dynamically Padded to align with Fixed Sidebar) */}
+      <div
+        className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${
+          !isMobile ? (sidebarOpen ? 'md:pl-64' : 'md:pl-20') : ''
+        }`}
+      >
         {/* Admin Header Bar */}
-        <header className="h-16 px-4 sm:px-6 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl flex items-center justify-between sticky top-0 z-30 shadow-sm">
-          <div className="flex items-center gap-3 sm:gap-4">
+        <header className="h-16 px-3 sm:px-6 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl flex items-center justify-between sticky top-0 z-30 shadow-sm">
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
             <button
               type="button"
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white md:hidden cursor-pointer"
+              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white md:hidden cursor-pointer shrink-0"
               title="Toggle Menu"
             >
               <Menu className="w-5 h-5" />
             </button>
 
-            <div className="flex items-center gap-2 text-xs font-semibold">
+            <div className="flex items-center gap-1.5 sm:gap-2 text-xs font-semibold truncate">
               <span className="text-slate-500 hidden sm:inline">ShopNexus Admin</span>
               <span className="text-slate-300 dark:text-slate-700 hidden sm:inline">/</span>
-              <span className="text-orange-600 dark:text-orange-400 font-bold capitalize">
-                {pathname.split('/')[2] || 'Dashboard'}
+              <span className="text-orange-600 dark:text-orange-400 font-bold capitalize truncate">
+                {pathname.split('/')[2] === 'visitors' ? 'Visitors' : pathname.split('/')[2] || 'Dashboard'}
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+            {/* Live Visitors Clickable Topbar Pill */}
+            <Link
+              href="/admin/visitors"
+              className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/25 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center gap-1.5 sm:gap-2 transition-all shadow-2xs hover:scale-105 active:scale-95 cursor-pointer"
+              title="View Real-Time Live Visitors & Traffic Intelligence"
+            >
+              <span className="relative flex h-2 sm:h-2.5 w-2 sm:w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 sm:h-2.5 w-2 sm:w-2.5 bg-emerald-500" />
+              </span>
+              <span>
+                {liveVisitorCount} <span className="hidden sm:inline">Live Visitors</span><span className="sm:hidden">Live</span>
+              </span>
+            </Link>
+
             {/* Theme Toggle */}
             <button
               type="button"
@@ -303,10 +350,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <button
               type="button"
               onClick={handleLogout}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-300 border border-rose-500/25 text-xs font-bold transition-all cursor-pointer"
+              className="flex items-center gap-1.5 p-2 sm:px-3 sm:py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-300 border border-rose-500/25 text-xs font-bold transition-all cursor-pointer"
               title="Log Out"
             >
-              <LogOut className="w-3.5 h-3.5" />
+              <LogOut className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
               <span className="hidden sm:inline">Log Out</span>
             </button>
           </div>
