@@ -25,7 +25,7 @@ export const LanguageToggle: React.FC<LanguageToggleProps> = ({
     return (
       <div
         className={twMerge(
-          'p-2 sm:p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 text-slate-400 text-xs font-bold',
+          'p-2 sm:p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 text-slate-400 text-xs font-bold items-center justify-center',
           className
         )}
       >
