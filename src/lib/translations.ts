@@ -384,7 +384,7 @@ export const TRANSLATIONS = {
     about_hero_sub: 'শতভাগ আসল ব্র্যান্ডেড পণ্য, যাচাইকৃত সরবরাহ ব্যবস্থা ও বাংলাদেশের সবচেয়ে দ্রুততম ই-কমার্স অভিজ্ঞতা।',
     about_faq_title: 'সাধারণ জিজ্ঞাসাসমূহ (FAQ)',
 
-    
+    // Auth Pages
     auth_welcome_back: 'স্বাগতম',
     auth_sign_in_sub: 'আপনার ShopNexus অ্যাকাউন্টে সাইন ইন করুন',
     auth_create_acc: 'নতুন অ্যাকাউন্ট তৈরি করুন',
