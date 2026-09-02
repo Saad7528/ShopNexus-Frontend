@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -25,49 +25,71 @@ import {
   CreditCard,
 } from 'lucide-react';
 import { useOrderStore } from '@/store/useOrderStore';
+import { useLanguageStore } from '@/store/useLanguageStore';
+import { formatCurrency, toBengaliNumber } from '@/lib/translations';
 
 interface FAQItem {
-  question: string;
-  answer: string;
+  questionBn: string;
+  questionEn: string;
+  answerBn: string;
+  answerEn: string;
   category: 'Orders' | 'Delivery' | 'Payments' | 'Tracking';
 }
 
 const FAQS: FAQItem[] = [
   {
     category: 'Orders',
-    question: 'অর্ডার করতে কি অ্যাকাউন্ট খোলা বা রেজিস্ট্রেশন বাধ্যতামূলক?',
-    answer:
+    questionBn: 'অর্ডার করতে কি অ্যাকাউন্ট খোলা বা রেজিস্ট্রেশন বাধ্যতামূলক?',
+    questionEn: 'Is account registration mandatory to place an order?',
+    answerBn:
       'না! ShopNexus-এ কোনো রেজিস্ট্রেশন বা পাসওয়ার্ডের ঝামেলা ছাড়াই আপনি শুধু আপনার নাম, মোবাইল নম্বর এবং ডেলিভারি ঠিকানা দিয়ে সরাসরি ১-ক্লিকে "Guest Checkout" বা ডিরেক্ট অর্ডার করতে পারবেন।',
+    answerEn:
+      'No! You can order directly on ShopNexus with 1-Click Guest Checkout using only your name, phone number, and delivery address—no passwords required.',
   },
   {
     category: 'Delivery',
-    question: 'ডেলিভারি চার্জ কত এবং কত দ্রুত ডেলিভারি পাওয়া যাবে?',
-    answer:
-      'ঢাকা শহরের ভেতরে ডেলিভারি চার্জ মাত্র ৳৬০ এবং ২৪-৪৮ ঘণ্টার মধ্যে পাঠাও এক্সপ্রেসের মাধ্যমে ডেলিভারি করা হয়। ঢাকার বাইরে সমগ্র বাংলাদেশে ডেলিভারি চার্জ মাত্র ৳১২০ এবং ৪৮-৭২ ঘণ্টার মধ্যে স্টিডফাস্ট কুরিয়ারের মাধ্যমে কাস্টমারের ঠিকানায় পৌঁছে দেওয়া হয়।',
+    questionBn: 'ডেলিভারি চার্জ কত এবং কত দ্রুত ডেলিভারি পাওয়া যাবে?',
+    questionEn: 'What are the delivery charges and shipping times?',
+    answerBn:
+      'ঢাকা শহরের ভেতরে ডেলিভারি চার্জ মাত্র ৳৬০ এবং ২৪-৪৮ ঘণ্টার মধ্যে পাঠাও এক্সপ্রেসের মাধ্যমে ডেলিভারি করা হয়। ঢাকার বাইরে সমগ্র বাংলাদেশে ডেলিভারি চার্জ মাত্র ৳১২০ এবং ৪৮-৭২ ঘণ্টার মধ্যে স্টিডফাস্ট কুরিয়ারের মাধ্যমে পৌঁছে দেওয়া হয়।',
+    answerEn:
+      'Delivery charge is ৳60 inside Dhaka (24-48 hours via Pathao Express), and ৳120 across all Bangladesh (48-72 hours via Steadfast Logistics).',
   },
   {
     category: 'Tracking',
-    question: 'লগইন না করে আমি কীভাবে আমার অর্ডারের পার্সেল ট্র্যাক করব?',
-    answer:
+    questionBn: 'লগইন না করে আমি কীভাবে আমার অর্ডারের পার্সেল ট্র্যাক করব?',
+    questionEn: 'How can I track my parcel without logging in?',
+    answerBn:
       'অর্ডার কনফার্ম করার পর আপনার মোবাইলে তাৎক্ষণিক SMS-এর মাধ্যমে একটি ট্র্যাকিং নম্বর (যেমন: TRK-NX-88219) চলে যাবে। আপনি এই পেজের ট্র্যাকিং বক্সে অথবা আমাদের ট্র্যাকিং সেকশনে গিয়ে শুধু আপনার মোবাইল নম্বর বা ট্র্যাকিং কোড দিলেই লাইভ স্ট্যাটাস দেখতে পাবেন।',
+    answerEn:
+      'After confirming an order, you will receive an SMS with your tracking code (e.g., TRK-NX-88219). You can track live courier status directly using this code.',
   },
   {
     category: 'Payments',
-    question: 'পেমেন্ট করার জন্য কী কী মাধ্যম রয়েছে?',
-    answer:
+    questionBn: 'পেমেন্ট করার জন্য কী কী মাধ্যম রয়েছে?',
+    questionEn: 'What payment options are available?',
+    answerBn:
       'আপনি ক্যাশ অন ডেলিভারি (Cash on Delivery / পণ্য হাতে পেয়ে টাকা পরিশোধ), বিকাশ (bKash Instant Gateway), নগদ (Nagad Instant Gateway) অথবা যেকোনো আন্তর্জাতিক ডেবিট/ক্রেডিট কার্ডের মাধ্যমে নিরাপদে পেমেন্ট করতে পারবেন।',
+    answerEn:
+      'We support Cash on Delivery (COD), bKash Instant Payment, Nagad Instant Gateway, and Visa/Mastercard/Amex debit and credit cards.',
   },
   {
     category: 'Orders',
-    question: 'স্মার্ট প্রোডাক্ট বান্ডেল (Frequently Bought Together) কী এবং কীভাবে ছাড় পাব?',
-    answer:
+    questionBn: 'স্মার্ট প্রোডাক্ট বান্ডেল (Frequently Bought Together) কী এবং কীভাবে ছাড় পাব?',
+    questionEn: 'What are Smart Bundles and how do I get the discount?',
+    answerBn:
       'যেকোনো গ্যাজেট কেনার সময় তার প্রয়োজনীয় এক্সেসরিজ একসাথে বান্ডেল হিসেবে কিনলে স্বয়ংক্রিয়ভাবে ১৫% অতিরিক্ত ফ্ল্যাট ডিসকাউন্ট পাওয়া যায়। ১-ক্লিকেই ৩টি আইটেম কার্টে অ্যাড করা যায়।',
+    answerEn:
+      'Smart Bundles let you add complementary accessories with an automatic 15% flat bundle discount in a single click.',
   },
   {
     category: 'Payments',
-    question: 'প্রোডাক্ট ডিফেক্টিভ হলে রিটার্ন ও রিফান্ড পলিসি কী?',
-    answer:
+    questionBn: 'প্রোডাক্ট ডিফেক্টিভ হলে রিটার্ন ও রিফান্ড পলিসি কী?',
+    questionEn: 'What is the return and refund policy for defective goods?',
+    answerBn:
       'আমাদের প্ল্যাটফর্মের প্রতিটি প্রোডাক্ট ১০০% অফিশিয়াল ও ভেরিফাইড। পণ্য পাওয়ার পর কোনো সমস্যা দেখা দিলে ৭ দিনের মধ্যে ফ্রি রিপ্লেসমেন্ট এবং ১০০% রিফান্ড গ্যারান্টি রয়েছে।',
+    answerEn:
+      'Every product is 100% verified genuine. We offer a 7-day hassle-free replacement and full money-back guarantee.',
   },
 ];
 
@@ -77,6 +99,12 @@ export default function AboutAndFAQPage() {
   const [trackingQuery, setTrackingQuery] = useState('');
   const [searchedOrder, setSearchedOrder] = useState<any>(null);
   const [searchNotFound, setSearchNotFound] = useState(false);
+  const { t, language } = useLanguageStore();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const { orders } = useOrderStore();
 
@@ -113,19 +141,32 @@ export default function AboutAndFAQPage() {
         <div className="absolute inset-0 bg-gradient-to-b from-orange-50/50 via-white to-slate-50 dark:from-slate-900/40 dark:via-[#0b0f19] dark:to-[#0b0f19] pointer-events-none" />
         <div className="max-w-5xl mx-auto text-center relative z-10 space-y-6">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/25 text-orange-600 dark:text-orange-400 text-xs font-bold uppercase tracking-wider">
-            
-            About ShopNexus & FAQ Hub
+            <Sparkles className="w-3.5 h-3.5" />
+            {mounted && language === 'bn' ? 'শপনেক্সাস পরিচিতি ও সহায়তা কেন্দ্র' : 'About ShopNexus & FAQ Hub'}
           </div>
 
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight text-slate-900 dark:text-white leading-tight">
-            বাংলাদেশের জন্য আধুনিক ও বুদ্ধিমান <br />
-            <span className="bg-gradient-to-r from-[#ff4400] via-[#ff7700] to-amber-500 bg-clip-text text-transparent">
-              পরবর্তী প্রজন্মের ই-কমার্স ইকোসিস্টেম
-            </span>
+            {mounted && language === 'bn' ? (
+              <>
+                বাংলাদেশের জন্য আধুনিক ও বুদ্ধিমান <br />
+                <span className="bg-gradient-to-r from-[#ff4400] via-[#ff7700] to-amber-500 bg-clip-text text-transparent">
+                  পরবর্তী প্রজন্মের ই-কমার্স ইকোসিস্টেম
+                </span>
+              </>
+            ) : (
+              <>
+                Modern, Intelligent & Certified <br />
+                <span className="bg-gradient-to-r from-[#ff4400] via-[#ff7700] to-amber-500 bg-clip-text text-transparent">
+                  Next-Gen E-Commerce Ecosystem
+                </span>
+              </>
+            )}
           </h1>
 
           <p className="max-w-2xl mx-auto text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
-            ShopNexus তৈরি করা হয়েছে সাধারণ ক্রেতাদের ঝামেলামুক্ত কেনাকাটার অভিজ্ঞতা দিতে—যেখানে অ্যাকাউন্ট রেজিস্ট্রেশন ছাড়াও দ্রুত ১-ক্লিকে অর্ডার, বিকাশ/নগদে ইনস্ট্যান্ট পেমেন্ট এবং ২৪-৪৮ ঘণ্টায় এক্সপ্রেস হোম ডেলিভারি পাওয়া যায়।
+            {mounted && language === 'bn'
+              ? 'ShopNexus তৈরি করা হয়েছে সাধারণ ক্রেতাদের ঝামেলামুক্ত কেনাকাটার অভিজ্ঞতা দিতে—যেখানে অ্যাকাউন্ট রেজিস্ট্রেশন ছাড়াও দ্রুত ১-ক্লিকে অর্ডার, বিকাশ/নগদে ইনস্ট্যান্ট পেমেন্ট এবং ২৪-৪৮ ঘণ্টায় এক্সপ্রেস হোম ডেলিভারি পাওয়া যায়।'
+              : 'ShopNexus is engineered to deliver a seamless shopping experience—featuring 1-Click direct orders, instant bKash/Nagad checkout, and 24-48h express nationwide dispatch.'}
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
@@ -133,13 +174,14 @@ export default function AboutAndFAQPage() {
               href="/products"
               className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-sm shadow-xl shadow-orange-500/25 transition-all cursor-pointer"
             >
-              <ShoppingBag className="w-4 h-4" /> শপিং শুরু করুন (৳ BDT)
+              <ShoppingBag className="w-4 h-4" /> {mounted ? t('btn_explore_products') : 'Explore Products'}
             </Link>
             <a
               href="#faq-section"
               className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 font-semibold text-sm transition-all cursor-pointer shadow-sm"
             >
-              <HelpCircle className="w-4 h-4 text-orange-500" /> সাধারণ প্রশ্নোত্তর দেখুন
+              <HelpCircle className="w-4 h-4 text-orange-500" />
+              {mounted && language === 'bn' ? 'সাধারণ প্রশ্নোত্তর দেখুন' : 'View Frequently Asked Questions'}
             </a>
           </div>
         </div>
@@ -149,13 +191,15 @@ export default function AboutAndFAQPage() {
       <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-12">
         <div className="text-center space-y-3 max-w-2xl mx-auto">
           <span className="text-xs font-bold uppercase tracking-wider text-orange-600 dark:text-orange-400">
-            Why ShopNexus?
+            {mounted && language === 'bn' ? 'কেন আমরা আলাদা' : 'Why ShopNexus?'}
           </span>
           <h2 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white">
-            গ্রাহকদের জন্য আমাদের বিশেষ সুবিধাসমূহ
+            {mounted && language === 'bn' ? 'গ্রাহকদের জন্য আমাদের বিশেষ সুবিধাসমূহ' : 'The 6 Core Pillars of ShopNexus'}
           </h2>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-            প্রতিটি ফিচার ডিজাইন করা হয়েছে কাস্টমারদের সর্বোচ্চ গতি, স্বচ্ছতা এবং নিরাপত্তা নিশ্চিত করতে।
+            {mounted && language === 'bn'
+              ? 'প্রতিটি ফিচার ডিজাইন করা হয়েছে কাস্টমারদের সর্বোচ্চ গতি, স্বচ্ছতা এবং নিরাপত্তা নিশ্চিত করতে।'
+              : 'Our promise to deliver an unparalleled hardware shopping experience with speed, clarity, and security.'}
           </p>
         </div>
 
@@ -165,9 +209,13 @@ export default function AboutAndFAQPage() {
             <div className="w-12 h-12 rounded-2xl bg-orange-500/10 border border-orange-500/20 text-orange-600 dark:text-orange-400 flex items-center justify-center group-hover:scale-110 transition-transform">
               <Zap className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">১-ক্লিক গেস্ট চেকআউট</h3>
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">
+              {mounted && language === 'bn' ? '১-ক্লিক গেস্ট চেকআউট' : '1-Click Direct Guest Checkout'}
+            </h3>
             <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-              কোনো পাসওয়ার্ড বা সাইন-আপের ঝামেলা নেই। শুধুমাত্র নাম ও ফোন নম্বর দিয়ে নিমেষেই অর্ডার কনফার্ম করুন।
+              {mounted && language === 'bn'
+                ? 'কোনো পাসওয়ার্ড বা সাইন-আপের ঝামেলা নেই। শুধুমাত্র নাম ও ফোন নম্বর দিয়ে নিমেষেই অর্ডার কনফার্ম করুন।'
+                : 'No login walls or password hurdles. Place orders instantly with your name and phone number.'}
             </p>
           </div>
 
@@ -176,9 +224,13 @@ export default function AboutAndFAQPage() {
             <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
               <CreditCard className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">বিকাশ, নগদ ও ক্যাশ অন ডেলিভারি</h3>
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">
+              {mounted && language === 'bn' ? 'বিকাশ, নগদ ও ক্যাশ অন ডেলিভারি' : 'Instant bKash, Nagad & COD'}
+            </h3>
             <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-              বাংলাদেশের সকল জনপ্রিয় MFS মাধ্যম ও সরাসরি পণ্য হাতে পেয়ে মূল্য পরিশোধের নির্ভরযোগ্য সুবিধা।
+              {mounted && language === 'bn'
+                ? 'বাংলাদেশের সকল জনপ্রিয় MFS মাধ্যম ও সরাসরি পণ্য হাতে পেয়ে মূল্য পরিশোধের নির্ভরযোগ্য সুবিধা।'
+                : 'Instant digital wallet payments via bKash & Nagad alongside trusted Cash on Delivery (COD).'}
             </p>
           </div>
 
@@ -187,9 +239,13 @@ export default function AboutAndFAQPage() {
             <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center group-hover:scale-110 transition-transform">
               <Truck className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">লাইভ পার্সেল ট্র্যাকিং & SMS</h3>
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">
+              {mounted && language === 'bn' ? 'লাইভ পার্সেল ট্র্যাকিং & SMS' : 'Live Parcel Tracking & SMS'}
+            </h3>
             <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-              অর্ডার পিকআপ থেকে হোম ডেলিভারি পর্যন্ত স্টেপ-বাই-স্টেপ লাইভ স্ট্যাটাস ও ইনস্ট্যান্ট SMS নোটিফিকেশন।
+              {mounted && language === 'bn'
+                ? 'অর্ডার পিকআপ থেকে হোম ডেলিভারি পর্যন্ত স্টেপ-বাই-স্টেপ লাইভ স্ট্যাটাস ও ইনস্ট্যান্ট SMS নোটিফিকেশন।'
+                : 'Priority parcel dispatch with real-time SMS tracking updates from dispatch to doorstep.'}
             </p>
           </div>
 
@@ -198,9 +254,13 @@ export default function AboutAndFAQPage() {
             <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center group-hover:scale-110 transition-transform">
               <Gift className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">স্মার্ট বান্ডেল (১৫% অতিরিক্ত ছাড়)</h3>
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">
+              {mounted && language === 'bn' ? 'স্মার্ট বান্ডেল (১৫% অতিরিক্ত ছাড়)' : 'Smart Bundles (15% Flat Savings)'}
+            </h3>
             <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-              সম্পর্কিত অ্যাকসেসরিজ একসাথে কিনলে স্বয়ংক্রিয়ভাবে ১৫% ফ্ল্যাট বান্ডেল সেভিংস যুক্ত হয়।
+              {mounted && language === 'bn'
+                ? 'সম্পর্কিত অ্যাকসেসরিজ একসাথে কিনলে স্বয়ংক্রিয়ভাবে ১৫% ফ্ল্যাট বান্ডেল সেভিংস যুক্ত হয়।'
+                : 'Frequently bought together hardware kits bundled with automated 15% discount.'}
             </p>
           </div>
 
@@ -209,9 +269,13 @@ export default function AboutAndFAQPage() {
             <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center group-hover:scale-110 transition-transform">
               <MessageSquare className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">ভেরিফাইড কাস্টমার ফটো রিভিউ</h3>
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">
+              {mounted && language === 'bn' ? 'ভেরিফাইড কাস্টমার ফটো রিভিউ' : 'Verified Customer Photo Reviews'}
+            </h3>
             <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-              প্রকৃত ক্রেতাদের ব্যবহার করা ছবির রিভিউ এবং অ্যাডমিন টিম দ্বারা ভেরিফিকেশন মডারেশন।
+              {mounted && language === 'bn'
+                ? 'প্রকৃত ক্রেতাদের ব্যবহার করা ছবির রিভিউ এবং অ্যাডমিন টিম দ্বারা ভেরিফিকেশন মডারেশন।'
+                : 'Real photos and verified buyer feedback for complete transparent purchasing confidence.'}
             </p>
           </div>
 
@@ -220,9 +284,13 @@ export default function AboutAndFAQPage() {
             <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-600 dark:text-cyan-400 flex items-center justify-center group-hover:scale-110 transition-transform">
               <ShieldCheck className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">১০০% মানিব্যাক ও জেনুইন গ্যারান্টি</h3>
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">
+              {mounted && language === 'bn' ? '১০০% মানিব্যাক ও জেনুইন গ্যারান্টি' : '100% Genuine & Money-Back Guarantee'}
+            </h3>
             <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-              প্রতিটি পণ্য অফিশিয়াল ব্র্যান্ড অথেনটিক এবং ত্রুটিযুক্ত পণ্যে ৭ দিনের সহজ রিটার্ন পলিসি।
+              {mounted && language === 'bn'
+                ? 'প্রতিটি পণ্য অফিশিয়াল ব্র্যান্ড অথেনটিক এবং ত্রুটিযুক্ত পণ্যে ৭ দিনের সহজ রিটার্ন পলিসি।'
+                : 'Official manufacturer warranties and 7-day hassle-free replacement on any defect.'}
             </p>
           </div>
         </div>
@@ -236,10 +304,12 @@ export default function AboutAndFAQPage() {
               <Truck className="w-4 h-4" /> Guest Live Tracking
             </span>
             <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
-              লগইন ছাড়া সরাসরি পার্সেল ট্র্যাকিং
+              {mounted && language === 'bn' ? 'লগইন ছাড়া সরাসরি পার্সেল ট্র্যাকিং' : 'Direct Parcel Live Tracking (No Login Required)'}
             </h3>
             <p className="text-xs text-slate-600 dark:text-slate-400">
-              আপনার অর্ডার নম্বর (যেমন: NX-ORD-9021) বা ট্র্যাকিং কোড (যেমন: TRK-NX-88219) দিয়ে খুঁজুন:
+              {mounted && language === 'bn'
+                ? 'আপনার অর্ডার নম্বর (যেমন: NX-ORD-9021) বা ট্র্যাকিং কোড (যেমন: TRK-NX-88219) দিয়ে খুঁজুন:'
+                : 'Enter your Order ID (e.g. NX-ORD-9021) or Tracking Code (e.g. TRK-NX-88219):'}
             </p>
           </div>
 
@@ -248,7 +318,7 @@ export default function AboutAndFAQPage() {
               <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
               <input
                 type="text"
-                placeholder="Enter Order ID / Tracking Code..."
+                placeholder={mounted && language === 'bn' ? 'অর্ডার আইডি বা ট্র্যাকিং কোড লিখুন...' : 'Enter Order ID / Tracking Code...'}
                 value={trackingQuery}
                 onChange={(e) => setTrackingQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-orange-500 font-mono"
@@ -258,7 +328,7 @@ export default function AboutAndFAQPage() {
               type="submit"
               className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/25 transition-all cursor-pointer flex items-center justify-center gap-2"
             >
-              <Search className="w-4 h-4" /> ট্র্যাক করুন
+              <Search className="w-4 h-4" /> {mounted && language === 'bn' ? 'ট্র্যাক করুন' : 'Track Order'}
             </button>
           </form>
 
@@ -276,16 +346,18 @@ export default function AboutAndFAQPage() {
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs pt-2 border-t border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300">
                 <div>
-                  <span className="text-[10px] text-slate-500 block">কুরিয়ার পার্টনার:</span>
+                  <span className="text-[10px] text-slate-500 block">{mounted && language === 'bn' ? 'কুরিয়ার পার্টনার:' : 'Courier Carrier:'}</span>
                   <span className="font-bold text-slate-900 dark:text-white">{searchedOrder.carrier}</span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-500 block">ট্র্যাকিং কোড:</span>
+                  <span className="text-[10px] text-slate-500 block">{mounted && language === 'bn' ? 'ট্র্যাকিং কোড:' : 'Tracking Code:'}</span>
                   <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">{searchedOrder.trackingNumber}</span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-500 block">সর্বমোট টাকা:</span>
-                  <span className="font-mono font-bold text-slate-900 dark:text-white">৳{searchedOrder.total.toLocaleString()} BDT</span>
+                  <span className="text-[10px] text-slate-500 block">{mounted && language === 'bn' ? 'সর্বমোট টাকা:' : 'Total Amount:'}</span>
+                  <span className="font-mono font-bold text-slate-900 dark:text-white">
+                    {mounted ? formatCurrency(searchedOrder.total, language) : `৳${searchedOrder.total.toLocaleString()}`}
+                  </span>
                 </div>
               </div>
             </div>
@@ -293,7 +365,9 @@ export default function AboutAndFAQPage() {
 
           {searchNotFound && (
             <p className="text-xs text-rose-500 dark:text-rose-400 text-center font-semibold">
-              কোনো অর্ডার পাওয়া যায়নি। সঠিক অর্ডার আইডি বা ট্র্যাকিং কোড দিয়ে পুনরায় চেষ্টা করুন।
+              {mounted && language === 'bn'
+                ? 'কোনো অর্ডার পাওয়া যায়নি। সঠিক অর্ডার আইডি বা ট্র্যাকিং কোড দিয়ে পুনরায় চেষ্টা করুন।'
+                : 'No order found with that ID or Tracking Code. Please verify and retry.'}
             </p>
           )}
         </div>
@@ -306,10 +380,10 @@ export default function AboutAndFAQPage() {
             Frequently Asked Questions
           </span>
           <h2 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white">
-            সাধারণ প্রশ্নোত্তর (FAQ)
+            {mounted && language === 'bn' ? 'সাধারণ প্রশ্নোত্তর (FAQ)' : 'Frequently Asked Questions (FAQ)'}
           </h2>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-            ShopNexus ব্যবহারের নিয়মাবলী ও সচরাচর জিজ্ঞাসিত প্রশ্নের উত্তর:
+            {mounted && language === 'bn' ? 'ShopNexus ব্যবহারের নিয়মাবলী ও সচরাচর জিজ্ঞাসিত প্রশ্নের উত্তর:' : 'Quick answers to common questions about ordering, delivery, and payments:'}
           </p>
         </div>
 
@@ -325,7 +399,11 @@ export default function AboutAndFAQPage() {
                   : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white shadow-sm'
               }`}
             >
-              {cat}
+              {cat === 'All' && (mounted && language === 'bn' ? 'সকল' : 'All')}
+              {cat === 'Orders' && (mounted && language === 'bn' ? 'অর্ডার' : 'Orders')}
+              {cat === 'Delivery' && (mounted && language === 'bn' ? 'ডেলিভারি' : 'Delivery')}
+              {cat === 'Payments' && (mounted && language === 'bn' ? 'পেমেন্ট' : 'Payments')}
+              {cat === 'Tracking' && (mounted && language === 'bn' ? 'ট্র্যাকিং' : 'Tracking')}
             </button>
           ))}
         </div>
@@ -334,6 +412,8 @@ export default function AboutAndFAQPage() {
         <div className="space-y-3">
           {filteredFaqs.map((faq, index) => {
             const isOpen = openIndex === index;
+            const qText = language === 'bn' ? faq.questionBn : faq.questionEn;
+            const aText = language === 'bn' ? faq.answerBn : faq.answerEn;
             return (
               <div
                 key={index}
@@ -348,7 +428,7 @@ export default function AboutAndFAQPage() {
                     <span className="w-6 h-6 rounded-lg bg-orange-500/10 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 flex items-center justify-center text-xs font-mono font-bold">
                       Q
                     </span>
-                    {faq.question}
+                    {qText}
                   </span>
                   {isOpen ? (
                     <ChevronUp className="w-5 h-5 text-orange-600 dark:text-orange-400 flex-shrink-0" />
@@ -359,7 +439,7 @@ export default function AboutAndFAQPage() {
 
                 {isOpen && (
                   <div className="px-5 pb-5 pt-1 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed border-t border-slate-100 dark:border-slate-800/60 bg-slate-50/50 dark:bg-slate-950/40">
-                    {faq.answer}
+                    {aText}
                   </div>
                 )}
               </div>
@@ -372,17 +452,19 @@ export default function AboutAndFAQPage() {
       <section className="py-16 px-4 sm:px-6 lg:px-8 border-t border-slate-200 dark:border-slate-800 bg-slate-100/60 dark:bg-slate-950">
         <div className="max-w-4xl mx-auto text-center space-y-5">
           <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-            অফিশিয়াল ও প্রিমিয়াম গ্যাজেট কিনতে প্রস্তুত?
+            {mounted && language === 'bn' ? 'অফিশিয়াল ও প্রিমিয়াম গ্যাজেট কিনতে প্রস্তুত?' : 'Ready to Experience Official Premium Hardware?'}
           </h3>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-xl mx-auto">
-            কোনো রেজিস্ট্রেশনের ঝামেলা ছাড়াই এখনই আপনার পছন্দের প্রোডাক্ট অর্ডার করুন এবং উপভোগ করুন দ্রুততম হোম ডেলিভারি।
+            {mounted && language === 'bn'
+              ? 'কোনো রেজিস্ট্রেশনের ঝামেলা ছাড়াই এখনই আপনার পছন্দের প্রোডাক্ট অর্ডার করুন এবং উপভোগ করুন দ্রুততম হোম ডেলিভারি।'
+              : 'Browse our catalog, place 1-click orders with verified authentic warranties and express dispatch.'}
           </p>
           <div className="pt-2">
             <Link
               href="/products"
               className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-sm shadow-xl shadow-orange-500/25 transition-all cursor-pointer"
             >
-              Browse ShopNexus Catalog <ArrowRight className="w-4 h-4" />
+              {mounted ? t('btn_explore_products') : 'Browse ShopNexus Catalog'} <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </div>

@@ -7,7 +7,8 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { message, maxBudget, category } = body;
+    const { message, maxBudget, category, language } = body;
+    const isEnglish = language === 'en';
 
     if (!message || typeof message !== 'string') {
       return NextResponse.json({ success: false, message: 'Message is required' }, { status: 400 });
@@ -39,15 +40,27 @@ export async function POST(req: NextRequest) {
 
 STRICT CORE GUIDELINES:
 1. ALWAYS quote exact prices in Bangladeshi Taka (৳ BDT). NEVER quote in USD ($) or any other currency.
-2. LIVE CATALOG GROUNDING:
+2. CRITICAL LANGUAGE REQUIREMENT:
+   - Current Selected Website Language Mode: ${isEnglish ? 'ENGLISH' : 'BANGLA (বাংলা)'}.
+   ${
+     isEnglish
+       ? "- The customer's website is currently in ENGLISH. You MUST formulate your entire response in 100% natural, fluent, professional English. Do NOT use Bangla script or words."
+       : "- The customer's website is currently in BANGLA (বাংলা). You MUST formulate your entire response in 100% natural, polite Bangla (বাংলা). Do NOT respond in English."
+   }
+3. LIVE CATALOG GROUNDING:
    - Our store officially stocks the items listed in the OFFICIAL CATALOG below.
-   - If the customer asks "তোমার কাছে কি আছে দেখার মতো?" or general questions ("কী কী প্রোডাক্ট আছে?", "তুমি কে?"), warmly introduce yourself as Nexus AI, highlight our top categories (Apple Watch Ultra 2 smartwatch, Sony WH-1000XM5 ANC audio, Keychron Q1 Pro custom keyboards, Logitech MX Master mouse, DJI Pocket 3 4K gimbal, and Anker GaN chargers), and ask how you can assist their setup.
-   - If the customer asks for a product NOT in our catalog (e.g. Laptop / Full PC, Smartphones / iPhone, Shoes, Clothes, TV), POLITELY & HONESTLY EXPLAIN: "এই প্রোডাক্টটি বর্তমানে আমাদের শপনেক্সাস স্টোরে সরাসরি অ্যাভেইলেবল নেই, তবে শীঘ্রই এটি যুক্ত করার কাজ চলছে!" Then suggest relevant available peripherals from our catalog.
-   - If the customer asks for a budget (e.g. "১৫ হাজার টাকার নিচে কী আছে?", "20k budget", "কম দামের মধ্যে"), identify the exact budget in BDT and recommend the best matching products strictly within or near that budget from our catalog!
-3. MULTI-LINGUAL ADAPTABILITY:
-   - If the user writes in Bangla (বাংলা), reply in natural, engaging, professional Bangla.
-   - If the user writes in Banglish (e.g., "amar 15000 tk budget..."), reply in friendly, conversational Bangla/Banglish.
-   - If the user writes in English, reply in sharp, concise, professional English.
+   - If the customer asks "What do you have?" or "Who are you?" or greets you (e.g. hi, hello, সালাম, কেমন আছেন):
+     ${
+       isEnglish
+         ? 'Warmly introduce yourself as Nexus AI Assistant, highlight our flagship categories (Apple Watch Ultra 2 smartwatch, Sony WH-1000XM5 & Bose ANC audio, Keychron Q1 Pro custom keyboards, Logitech MX Master mouse, DJI Pocket 3 4K gimbal, and Anker GaN chargers), and ask how you can help.'
+         : 'শপনেক্সাস এআই শপিং সহকারী হিসেবে স্বাগতম জানান, আমাদের প্রধান অফিসিয়াল ক্যাটাগরিগুলো (স্মার্টওয়াচ, সনি ও বোস এএনসি হেডফোন, কাস্টম মেকানিক্যাল কিবোর্ড, মারশাল স্পিকার, ডিজেআই ৪কে ক্যামেরা ইত্যাদি) সংক্ষেপে উল্লেখ করুন এবং কীভাবে সাহায্য করতে পারেন জানতে চান।'
+     }
+   - If the customer asks for a product NOT in our catalog (e.g. Laptop, Smartphones / iPhone, Clothes, TV), politely explain: ${
+     isEnglish
+       ? '"This item is currently not available in our store, but we are working on adding it soon!"'
+       : '"এই প্রোডাক্টটি বর্তমানে আমাদের শপনেক্সাস স্টোরে সরাসরি অ্যাভেইলেবল নেই, তবে শীঘ্রই এটি যুক্ত করার কাজ চলছে!"'
+   } Then suggest relevant available peripherals from our catalog.
+   - If the customer asks for a budget (e.g. "under 15000", "20k budget", "১৫ হাজার টাকার মধ্যে"), identify the exact budget in BDT and recommend the best matching products strictly within or near that budget from our catalog!
 4. Keep the response concise, clear, and engaging (2 to 4 sentences).
 
 OFFICIAL SHOPNEXUS CATALOG (LIVE MONGODB):
@@ -71,7 +84,7 @@ ${catalogContext}`;
                   role: 'user',
                   parts: [
                     {
-                      text: `${systemPrompt}\n\nCustomer Question: "${query}"\nSelected Category: ${category || 'Any'}\nMax Budget Filter: ${maxBudget ? `৳${maxBudget}` : 'Flexible'}`,
+                      text: `${systemPrompt}\n\nLanguage Mode: ${isEnglish ? 'English' : 'Bangla'}\nCustomer Question: "${query}"\nSelected Category: ${category || 'Any'}\nMax Budget Filter: ${maxBudget ? `৳${maxBudget}` : 'Flexible'}`,
                     },
                   ],
                 },
@@ -81,7 +94,7 @@ ${catalogContext}`;
                 maxOutputTokens: 380,
               },
             }),
-            signal: AbortSignal.timeout(4000), // 4s timeout
+            signal: AbortSignal.timeout(4000),
           }
         );
 
@@ -115,6 +128,7 @@ ${catalogContext}`;
       queryLower.includes('headphone') ||
       queryLower.includes('speaker') ||
       queryLower.includes('sound') ||
+      queryLower.includes('earphone') ||
       queryLower.includes('হেডফোন') ||
       queryLower.includes('স্পিকার') ||
       queryLower.includes('সাউন্ড') ||
@@ -127,7 +141,7 @@ ${catalogContext}`;
       queryLower.includes('কিবোর্ড') ||
       queryLower.includes('মাউস');
 
-    // Parse Bengali/English numbers for budget (e.g. "১৫ হাজার", "15000", "15k", "20k", "৫০ হাজার")
+    // Parse Bengali/English numbers for budget
     let parsedBudget: number | undefined = maxBudget;
     if (!parsedBudget) {
       if (queryLower.includes('১৫ হাজার') || queryLower.includes('১৫০০০') || queryLower.includes('15000') || queryLower.includes('15k')) {
@@ -149,7 +163,11 @@ ${catalogContext}`;
       matchedProducts = allProducts.filter((p) => p.category?.toLowerCase().includes('audio'));
     } else if (isKeyboard) {
       matchedProducts = allProducts.filter(
-        (p) => p.category?.toLowerCase().includes('computing') || p.tags?.includes('keyboard') || p.tags?.includes('mouse')
+        (p) =>
+          p.category?.toLowerCase().includes('keyboard') ||
+          p.category?.toLowerCase().includes('workspace') ||
+          p.tags?.includes('keyboard') ||
+          p.tags?.includes('mouse')
       );
     } else {
       // General match across title, tags, description
@@ -161,13 +179,12 @@ ${catalogContext}`;
         return textMatch;
       });
 
-      // If broad conversational question ("তোমার কাছে কি আছে?", "best deals"), show flagship highlights
       if (matchedProducts.length === 0) {
         matchedProducts = [...allProducts].sort((a, b) => (b.averageRating || 5) - (a.averageRating || 5));
       }
     }
 
-    // Filter and sort by budget if budget was requested
+    // Filter and sort by budget
     if (parsedBudget && parsedBudget > 0) {
       const budgetMatches = matchedProducts.filter((p) => (p.discountPrice || p.price) <= parsedBudget!);
       if (budgetMatches.length > 0) {
@@ -175,18 +192,39 @@ ${catalogContext}`;
       }
     }
 
-    // ⚡ 5. Fallback Response (if Gemini API key is missing or errored)
+    // ⚡ 5. Fallback Response
     if (!aiReply) {
       provider = 'nexus-neural-engine';
-      if (isSmartwatch) {
-        const topWatch = matchedProducts[0] || { title: 'Apple Watch Ultra 2 Aerospace Titanium', price: 79900 };
-        aiReply = `হ্যাঁ, আমাদের শপনেক্সাস স্টোরে **অফিসিয়াল স্মার্টওয়াচ** রয়েছে! সেরা অভিজ্ঞতার জন্য **${topWatch.title}** (৳${(topWatch.discountPrice || topWatch.price).toLocaleString()} BDT) আমাদের টপ-রেটেড চয়েস। নিচে আমাদের স্মার্টওয়াচ কালেকশন দেওয়া হলো:`;
-      } else if (parsedBudget) {
-        aiReply = `৳${parsedBudget.toLocaleString()} বাজেটের মধ্যে শপনেক্সাসের সেরা অফিসিয়াল গ্যাজেটগুলো নিচে সাজিয়ে দেওয়া হলো। ১-ক্লিকেই পছন্দের পণ্য কার্টে যোগ করতে পারেন:`;
-      } else if (queryLower.includes('তোমার কাছে কি আছে') || queryLower.includes('দেখার মতো') || queryLower.includes('কি কি আছে')) {
-        aiReply = `স্বাগতম! শপনেক্সাসে রয়েছে প্রিমিয়াম অফিসিয়াল গ্যাজেটের এক্সক্লুসিভ কালেকশন—যেমন **Apple Watch Ultra 2 (স্মার্টওয়াচ)**, **Sony WH-1000XM5 ও Marshall (অডিও)**, **Keychron Q1 Pro (কাস্টম কিবোর্ড)**, **Logitech MX Master 3S (মাউস)**, এবং **DJI Pocket 3 (4K ক্যামেরা)**। আপনার পছন্দের গ্যাজেটটি বেছে নিতে পারেন!`;
+      if (isEnglish) {
+        if (isSmartwatch) {
+          const topWatch = matchedProducts[0] || { title: 'Apple Watch Ultra 2 Aerospace Titanium', price: 79900 };
+          aiReply = `Yes! We have official top-tier **Smartwatches** available. For the best experience, the **${topWatch.title}** (৳${(topWatch.discountPrice || topWatch.price).toLocaleString()} BDT) is our top recommendation. Explore our curated selection below:`;
+        } else if (isAudio) {
+          aiReply = `Here are the best official audiophile headphones, spatial audio gear, and studio speakers available at ShopNexus:`;
+        } else if (isKeyboard) {
+          aiReply = `Here are our top-rated custom mechanical keyboards and precision ergonomic mice:`;
+        } else if (parsedBudget) {
+          aiReply = `Here are the best official hardware gadgets matching your budget of ৳${parsedBudget.toLocaleString()} BDT. You can add any item to cart with 1-click:`;
+        } else if (queryLower.includes('what do you have') || queryLower.includes('best') || queryLower.includes('hello') || queryLower.includes('hi')) {
+          aiReply = `Welcome to ShopNexus! We feature an exclusive collection of official gear—including **Apple Watch Ultra 2 (Smartwatches)**, **Sony WH-1000XM5 & Bose (ANC Audio)**, **Keychron Q1 Pro (Mechanical Keyboards)**, **Logitech MX Master 3S (Mice)**, and **DJI Pocket 3 (4K Cameras)**. What would you like to explore?`;
+        } else {
+          aiReply = `Here are the verified official hardware products matching your search at ShopNexus:`;
+        }
       } else {
-        aiReply = `আপনার অনুসন্ধানের ভিত্তিতে শপনেক্সাসের ভেরিফায়েড অফিসিয়াল গ্যাজেটগুলো নিচে দেওয়া হলো:`;
+        if (isSmartwatch) {
+          const topWatch = matchedProducts[0] || { title: 'Apple Watch Ultra 2 Aerospace Titanium', price: 79900 };
+          aiReply = `হ্যাঁ, আমাদের শপনেক্সাস স্টোরে **অফিসিয়াল স্মার্টওয়াচ** রয়েছে! সেরা অভিজ্ঞতার জন্য **${topWatch.title}** (৳${(topWatch.discountPrice || topWatch.price).toLocaleString()} BDT) আমাদের টপ-রেটেড চয়েস। নিচে আমাদের স্মার্টওয়াচ কালেকশন দেওয়া হলো:`;
+        } else if (isAudio) {
+          aiReply = `শপনেক্সাসের সেরা অফিসিয়াল অডিও, স্টুডিও হেডফোন ও স্পিকারের কালেকশন নিচে দেওয়া হলো:`;
+        } else if (isKeyboard) {
+          aiReply = `শপনেক্সাসের টপ-রেটেড কাস্টম মেকানিক্যাল কিবোর্ড ও প্রিসিশন মাউস নিচে সাজিয়ে দেওয়া হলো:`;
+        } else if (parsedBudget) {
+          aiReply = `৳${parsedBudget.toLocaleString()} বাজেটের মধ্যে শপনেক্সাসের সেরা অফিসিয়াল গ্যাজেটগুলো নিচে সাজিয়ে দেওয়া হলো। ১-ক্লিকেই পছন্দের পণ্য কার্টে যোগ করতে পারেন:`;
+        } else if (queryLower.includes('তোমার কাছে কি আছে') || queryLower.includes('দেখার মতো') || queryLower.includes('কি কি আছে') || queryLower.includes('সালাম') || queryLower.includes('হ্যালো') || queryLower.includes('হাই')) {
+          aiReply = `স্বাগতম! শপনেক্সাসে রয়েছে প্রিমিয়াম অফিসিয়াল গ্যাজেটের এক্সক্লুসিভ কালেকশন—যেমন **Apple Watch Ultra 2 (স্মার্টওয়াচ)**, **Sony WH-1000XM5 ও Marshall (অডিও)**, **Keychron Q1 Pro (কাস্টম কিবোর্ড)**, **Logitech MX Master 3S (মাউস)**, এবং **DJI Pocket 3 (4K ক্যামেরা)**। আপনার পছন্দের গ্যাজেটটি বেছে নিতে পারেন!`;
+        } else {
+          aiReply = `আপনার অনুসন্ধানের ভিত্তিতে শপনেক্সাসের ভেরিফায়েড অফিসিয়াল গ্যাজেটগুলো নিচে দেওয়া হলো:`;
+        }
       }
     }
 

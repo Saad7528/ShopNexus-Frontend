@@ -1,15 +1,23 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useWishlistStore } from '@/store/useWishlistStore';
 import { useCartStore } from '@/store/useCartStore';
+import { useLanguageStore } from '@/store/useLanguageStore';
+import { formatCurrency, toBengaliNumber } from '@/lib/translations';
 import { Heart, ShoppingCart, Trash2, ArrowLeft, ArrowRight } from 'lucide-react';
 
 export default function WishlistPage() {
   const { items, removeFromWishlist, clearWishlist } = useWishlistStore();
   const addItem = useCartStore((state) => state.addItem);
+  const { t, language } = useLanguageStore();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleMoveToCart = (item: (typeof items)[0]) => {
     addItem({
@@ -31,13 +39,17 @@ export default function WishlistPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">My Wishlist</h1>
+              <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+                {mounted ? t('wishlist_title') : 'My Wishlist'}
+              </h1>
               <span className="px-3 py-0.5 rounded-full bg-orange-500/10 dark:bg-orange-500/15 text-orange-600 dark:text-orange-400 text-xs font-bold border border-orange-500/30">
-                {items.length} Saved Items
+                {mounted && language === 'bn' ? `${toBengaliNumber(items.length)} টি সংরক্ষিত পণ্য` : `${items.length} Saved Items`}
               </span>
             </div>
             <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">
-              Keep track of products you want to buy later or wait for price drops.
+              {mounted && language === 'bn'
+                ? 'পরবর্তীতে ক্রয়ের জন্য আপনার পছন্দের হার্ডওয়্যার ও গ্যাজেট সংরক্ষণ করে রাখুন।'
+                : 'Keep track of products you want to buy later or wait for price drops.'}
             </p>
           </div>
 
@@ -47,7 +59,7 @@ export default function WishlistPage() {
               onClick={clearWishlist}
               className="inline-flex items-center gap-2 text-xs font-semibold text-rose-500 dark:text-rose-400 hover:text-rose-600 dark:hover:text-rose-300 transition-colors cursor-pointer"
             >
-              <Trash2 className="w-4 h-4" /> Clear All Saved
+              <Trash2 className="w-4 h-4" /> {mounted && language === 'bn' ? 'সব মুছুন' : 'Clear All Saved'}
             </button>
           )}
         </div>
@@ -58,15 +70,17 @@ export default function WishlistPage() {
             <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto text-slate-400 dark:text-slate-500 mb-4">
               <Heart className="w-8 h-8" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Your wishlist is empty</h3>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+              {mounted ? (language === 'bn' ? 'আপনার উইশলিস্ট খালি' : 'Your wishlist is empty') : 'Your wishlist is empty'}
+            </h3>
             <p className="text-slate-600 dark:text-slate-400 text-sm mt-1 max-w-sm mx-auto">
-              Explore our trending tech catalog and save items you want to keep an eye on.
+              {mounted ? t('wishlist_empty') : 'Explore our trending tech catalog and save items you want to keep an eye on.'}
             </p>
             <Link
               href="/products"
-              className="inline-flex items-center gap-2 mt-6 px-6 py-3 rounded-xl bg-gradient-to-r from-[#ff4400] via-[#ff7700] to-[#ff4400] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-semibold text-sm shadow-lg shadow-orange-500/25 transition-all"
+              className="inline-flex items-center gap-2 mt-6 px-6 py-3 rounded-xl bg-gradient-to-r from-[#ff4400] via-[#ff7700] to-[#ff4400] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-semibold text-sm shadow-lg shadow-orange-500/25 transition-all cursor-pointer"
             >
-              <ArrowLeft className="w-4 h-4" /> Explore Catalog
+              <ArrowLeft className="w-4 h-4" /> {mounted ? t('btn_explore_products') : 'Explore Catalog'}
             </Link>
           </div>
         ) : (
@@ -87,8 +101,8 @@ export default function WishlistPage() {
                     <button
                       type="button"
                       onClick={() => removeFromWishlist(item.id)}
-                      className="absolute top-2.5 right-2.5 p-2 rounded-lg bg-black/60 hover:bg-rose-600 text-white transition-colors"
-                      title="Remove"
+                      className="absolute top-2.5 right-2.5 p-2 rounded-lg bg-black/60 hover:bg-rose-600 text-white transition-colors cursor-pointer"
+                      title={mounted && language === 'bn' ? 'মুছুন' : 'Remove'}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -105,14 +119,16 @@ export default function WishlistPage() {
                 </div>
 
                 <div className="mt-4 pt-4 border-t border-slate-100 dark:border-white/10 flex items-center justify-between">
-                  <span className="text-base font-black text-slate-900 dark:text-white font-mono">৳{item.price.toLocaleString()}</span>
+                  <span className="text-base font-black text-slate-900 dark:text-white font-mono">
+                    {mounted ? formatCurrency(item.price, language) : `৳${item.price.toLocaleString()}`}
+                  </span>
 
                   <button
                     type="button"
                     onClick={() => handleMoveToCart(item)}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white text-xs font-semibold shadow-md shadow-orange-500/20 transition-all cursor-pointer"
                   >
-                    <ShoppingCart className="w-3.5 h-3.5" /> Move to Cart
+                    <ShoppingCart className="w-3.5 h-3.5" /> {mounted ? t('btn_move_to_cart') : 'Move to Cart'}
                   </button>
                 </div>
               </div>

@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { ProductCard } from '@/components/products/ProductCard';
 import { Product } from '@/store/useProductStore';
+import { useLanguageStore } from '@/store/useLanguageStore';
+import { toBengaliNumber } from '@/lib/translations';
 import { Zap, Clock, Flame } from 'lucide-react';
 
 const FLASH_DEALS: Product[] = [
@@ -153,6 +155,13 @@ const FLASH_DEALS: Product[] = [
 ];
 
 export default function FlashSalesPage() {
+  const { t, language } = useLanguageStore();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [timeLeft, setTimeLeft] = useState({
     hours: 8,
     minutes: 42,
@@ -176,7 +185,10 @@ export default function FlashSalesPage() {
     return () => clearInterval(timer);
   }, []);
 
-  const formatNumber = (num: number) => String(num).padStart(2, '0');
+  const formatNumber = (num: number) => {
+    const str = String(num).padStart(2, '0');
+    return mounted && language === 'bn' ? toBengaliNumber(str) : str;
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
@@ -187,13 +199,21 @@ export default function FlashSalesPage() {
           <div className="max-w-xl text-center md:text-left">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 dark:bg-orange-500/15 border border-orange-500/30 text-orange-600 dark:text-orange-400 text-xs font-bold uppercase tracking-wider mb-3">
               <Flame className="w-3.5 h-3.5 fill-orange-500 text-orange-600 dark:text-orange-400" />
-              Limited-Time Flash Drops
+              {mounted ? (language === 'bn' ? 'সীমিত সময়ের ফ্ল্যাশ অফার' : 'Limited-Time Flash Drops') : 'Limited-Time Flash Drops'}
             </div>
             <h1 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight leading-tight mb-2">
-              Mega Flash Deals
+              {mounted ? t('flash_deals_title') : 'Mega Flash Deals'}
             </h1>
             <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm leading-relaxed">
-              Up to <span className="font-bold text-orange-600 dark:text-orange-400">40% OFF</span> official curated hardware. First come, first served.
+              {mounted ? (
+                language === 'bn' ? (
+                  <>নির্বাচিত অথেন্টিক টেক ডিভাইসে সর্বোচ্চ <span className="font-bold text-orange-600 dark:text-orange-400">৪০% পর্যন্ত ছাড়</span>। স্টক সীমিত!</>
+                ) : (
+                  <>Up to <span className="font-bold text-orange-600 dark:text-orange-400">40% OFF</span> official curated hardware. First come, first served.</>
+                )
+              ) : (
+                <>Up to <span className="font-bold text-orange-600 dark:text-orange-400">40% OFF</span> official curated hardware.</>
+              )}
             </p>
           </div>
 
@@ -203,21 +223,27 @@ export default function FlashSalesPage() {
               <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-mono bg-slate-100 dark:bg-slate-900 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800">
                 {formatNumber(timeLeft.hours)}
               </span>
-              <span className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1 font-semibold">Hours</span>
+              <span className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1 font-semibold">
+                {mounted ? t('flash_hours') : 'Hours'}
+              </span>
             </div>
             <span className="text-xl font-bold text-orange-500 -mt-3">:</span>
             <div className="flex flex-col items-center">
               <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-mono bg-slate-100 dark:bg-slate-900 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800">
                 {formatNumber(timeLeft.minutes)}
               </span>
-              <span className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1 font-semibold">Mins</span>
+              <span className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1 font-semibold">
+                {mounted ? t('flash_minutes') : 'Mins'}
+              </span>
             </div>
             <span className="text-xl font-bold text-orange-500 -mt-3">:</span>
             <div className="flex flex-col items-center">
               <span className="text-xl sm:text-2xl font-black text-orange-600 dark:text-orange-400 font-mono bg-slate-100 dark:bg-slate-900 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800">
                 {formatNumber(timeLeft.seconds)}
               </span>
-              <span className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1 font-semibold">Secs</span>
+              <span className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1 font-semibold">
+                {mounted ? t('flash_seconds') : 'Secs'}
+              </span>
             </div>
           </div>
         </div>

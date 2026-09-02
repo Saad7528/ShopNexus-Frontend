@@ -5,6 +5,9 @@ import { useSearchParams } from 'next/navigation';
 import { ProductFilter } from '@/components/products/ProductFilter';
 import { ProductCard } from '@/components/products/ProductCard';
 import { useProductStore, Product } from '@/store/useProductStore';
+import { useLanguageStore } from '@/store/useLanguageStore';
+import { getLocalizedCategory } from '@/lib/localizedProducts';
+import { toBengaliNumber } from '@/lib/translations';
 import { Sparkles, PackageSearch, RotateCcw, Filter, SlidersHorizontal, X } from 'lucide-react';
 
 const FALLBACK_PRODUCTS: Product[] = [
@@ -568,8 +571,14 @@ function ProductsContent() {
     resetFilters,
   } = useProductStore();
 
+  const { t, language } = useLanguageStore();
+  const [mounted, setMounted] = useState(false);
   const [products, setProducts] = useState<Product[]>(FALLBACK_PRODUCTS);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const q = searchParams.get('q');
@@ -611,13 +620,13 @@ function ProductsContent() {
         <div className="max-w-2xl relative z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 dark:bg-orange-500/15 border border-orange-500/30 text-orange-600 dark:text-orange-400 text-[11px] sm:text-xs font-semibold uppercase tracking-wider mb-2 sm:mb-3">
             <Sparkles className="w-3.5 h-3.5" />
-            Curated Catalog & Official Warranty
+            {mounted ? (language === 'bn' ? 'অফিসিয়াল ওয়্যারেন্টি ও ভেরিফাইড ক্যাটালগ' : 'Curated Catalog & Official Warranty') : 'Curated Catalog & Official Warranty'}
           </div>
           <h1 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight leading-tight mb-2">
-            Explore Premium Innovations
+            {mounted ? (language === 'bn' ? 'প্রিমিয়াম উদ্ভাবনী গ্যাজেটসমূহ' : 'Explore Premium Innovations') : 'Explore Premium Innovations'}
           </h1>
           <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm leading-relaxed">
-            Discover audiophile sound, mechanical keyboards, titanium wearables, and smart home hardware with persistent cart ordering.
+            {mounted ? (language === 'bn' ? 'অডিওফাইল সাউন্ড, মেকানিক্যাল কিবোর্ড, টাইটানিয়াম স্মার্টওয়াচ এবং স্মার্ট হোম গ্যাজেট অন্বেষণ করুন।' : 'Discover audiophile sound, mechanical keyboards, titanium wearables, and smart home hardware with persistent cart ordering.') : 'Discover audiophile sound, mechanical keyboards, titanium wearables, and smart home hardware with persistent cart ordering.'}
           </p>
         </div>
       </div>
@@ -638,7 +647,7 @@ function ProductsContent() {
                     : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                 }`}
               >
-                {cat}
+                {mounted ? getLocalizedCategory(cat, language) : cat}
               </button>
             );
           })}
@@ -651,10 +660,10 @@ function ProductsContent() {
             className="flex-1 py-2.5 px-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-orange-500/40 text-slate-900 dark:text-white text-xs font-bold flex items-center justify-center gap-2 shadow-sm cursor-pointer"
           >
             <SlidersHorizontal className="w-4 h-4 text-orange-500" />
-            <span>Filters & Refinements</span>
+            <span>{mounted ? t('filter_title') : 'Filters & Refinements'}</span>
             {activeFiltersCount > 0 && (
               <span className="w-5 h-5 rounded-full bg-orange-500 text-white text-[10px] flex items-center justify-center font-black">
-                {activeFiltersCount}
+                {mounted && language === 'bn' ? toBengaliNumber(activeFiltersCount) : activeFiltersCount}
               </span>
             )}
           </button>
@@ -664,7 +673,7 @@ function ProductsContent() {
               type="button"
               onClick={resetFilters}
               className="p-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-orange-500 text-xs font-bold cursor-pointer"
-              title="Reset Filters"
+              title={mounted ? t('filter_reset') : 'Reset Filters'}
             >
               <RotateCcw className="w-4 h-4" />
             </button>
@@ -683,14 +692,18 @@ function ProductsContent() {
         <main className="lg:col-span-9">
           <div className="flex items-center justify-between mb-4 sm:mb-6">
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-              Showing <span className="font-bold text-slate-900 dark:text-white">{products.length}</span> official {products.length === 1 ? 'item' : 'items'}
+              {mounted ? t('filter_showing') : 'Showing'}{' '}
+              <span className="font-bold text-slate-900 dark:text-white">
+                {mounted && language === 'bn' ? toBengaliNumber(products.length) : products.length}
+              </span>{' '}
+              {mounted ? t('filter_products_found') : 'official items'}
             </p>
             {activeFiltersCount > 0 && (
               <button
                 onClick={resetFilters}
                 className="hidden lg:inline-flex items-center gap-1.5 text-xs text-orange-600 dark:text-orange-400 hover:text-orange-500 transition-colors cursor-pointer"
               >
-                <RotateCcw className="w-3.5 h-3.5" /> Clear active filters
+                <RotateCcw className="w-3.5 h-3.5" /> {mounted ? t('filter_reset') : 'Clear active filters'}
               </button>
             )}
           </div>
@@ -698,15 +711,17 @@ function ProductsContent() {
           {products.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 px-4 bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-3xl text-center shadow-sm">
               <PackageSearch className="w-12 h-12 text-slate-400 dark:text-slate-600 mb-3" />
-              <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-1">No matching products found</h3>
+              <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-1">
+                {mounted ? (language === 'bn' ? 'কোনো পণ্য পাওয়া যায়নি' : 'No matching products found') : 'No matching products found'}
+              </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mb-5 leading-relaxed">
-                We couldn&apos;t find any items matching your budget or selected filters. Try broadening your criteria.
+                {mounted ? (language === 'bn' ? 'আপনার নির্বাচিত ফিল্টার বা বাজেটের সাথে কোনো পণ্য মেলেনি। অন্যান্য ফিল্টার দিয়ে চেষ্টা করুন।' : 'We couldn\'t find any items matching your budget or selected filters. Try broadening your criteria.') : 'We couldn\'t find any items matching your budget.'}
               </p>
               <button
                 onClick={resetFilters}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] via-[#ff7700] to-[#ff4400] text-white text-xs font-semibold shadow-lg shadow-orange-500/25 cursor-pointer"
               >
-                <RotateCcw className="w-3.5 h-3.5" /> Reset All Filters
+                <RotateCcw className="w-3.5 h-3.5" /> {mounted ? t('filter_reset') : 'Reset All Filters'}
               </button>
             </div>
           ) : (

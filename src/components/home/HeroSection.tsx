@@ -143,13 +143,38 @@ const LIVE_NOTICES = [
   '📦 গত ২৪ ঘণ্টায় ৩৫০+ জেনুইন গ্যাজেট ডেলিভারি সফলভাবে সম্পন্ন হয়েছে!',
 ];
 
+import { useLanguageStore } from '@/store/useLanguageStore';
+import { formatCurrency, toBengaliNumber } from '@/lib/translations';
+
 export const HeroSection: React.FC = () => {
   const router = useRouter();
+  const { t, language } = useLanguageStore();
+  const [mounted, setMounted] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [selectedColorIdx, setSelectedColorIdx] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
   const [noticeIndex, setNoticeIndex] = useState(0);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const liveNotices = [
+    t('ticker_1'),
+    t('ticker_2'),
+    t('ticker_3'),
+    t('ticker_4'),
+  ];
+
+  const categoryChips = [
+    { label: t('cat_flash_deals'), href: '/flash-sales' },
+    { label: t('cat_audio'), href: '/products?category=Audio' },
+    { label: t('cat_wearables'), href: '/products?category=Wearables' },
+    { label: t('cat_peripherals'), href: '/products?category=Peripherals' },
+    { label: t('cat_smart_home'), href: '/products?category=Smart+Home' },
+    { label: t('cat_all_catalog'), href: '/products' },
+  ];
 
   // Auth & Real Coin System
   const { user, isAuthenticated, processDailyVisit, claimVipPass } = useAuthStore();
@@ -198,7 +223,7 @@ export const HeroSection: React.FC = () => {
   // Notice Ticker
   useEffect(() => {
     const ticker = setInterval(() => {
-      setNoticeIndex((prev) => (prev + 1) % LIVE_NOTICES.length);
+      setNoticeIndex((prev) => (prev + 1) % 4);
     }, 4500);
     return () => clearInterval(ticker);
   }, []);
@@ -265,7 +290,7 @@ export const HeroSection: React.FC = () => {
 
     const currentCoins = user?.nexusCoins || 0;
     if (user?.isVipMember) {
-      setVipSuccessToast('👑 আপনার ব্ল্যাক ফ্রাইডে VIP মেম্বারশিপ ইতিমধ্যে সক্রিয় আছে!');
+      setVipSuccessToast(language === 'bn' ? '👑 আপনার VIP মেম্বারশিপ ইতিমধ্যে সক্রিয় আছে!' : '👑 Your VIP Membership is already active!');
       setTimeout(() => setVipSuccessToast(null), 3000);
       return;
     }
@@ -295,13 +320,13 @@ export const HeroSection: React.FC = () => {
       <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-3 px-3.5 py-1.5 rounded-xl bg-orange-500/10 dark:bg-orange-500/15 border border-orange-500/25 text-[11px] sm:text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-xs backdrop-blur-md">
           <div className="min-w-0 truncate">
-            <span>{LIVE_NOTICES[noticeIndex]}</span>
+            <span>{mounted ? liveNotices[noticeIndex] : '🔥 Live Shopping Drops'}</span>
           </div>
           <Link
             href="/flash-sales"
             className="hidden sm:inline-flex items-center gap-1 text-[11px] font-bold text-orange-600 dark:text-orange-400 hover:underline shrink-0"
           >
-            Live Flash Deals <ArrowRight className="w-3 h-3" />
+            {mounted ? t('banner_live_deals') : 'Live Flash Deals'} <ArrowRight className="w-3 h-3" />
           </Link>
         </div>
       </section>
@@ -311,43 +336,40 @@ export const HeroSection: React.FC = () => {
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#ffaa00] via-[#ff7700] to-[#ff3300] p-2.5 sm:p-3 text-white shadow-md shadow-orange-500/20 border border-amber-300/40">
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-full animate-[shimmer_3s_infinite]" />
 
-          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-2.5">
-            <div className="flex items-center gap-2">
-              <div className="px-3 py-1 rounded-xl bg-gradient-to-r from-red-600 to-rose-700 text-white font-black text-xs sm:text-sm uppercase tracking-wider shadow-md transform -skew-x-6 shrink-0 flex items-center gap-1.5">
+          <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-2.5">
+            {/* Left: Campaign Title & Badges */}
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+              <div className="px-3 py-1 rounded-xl bg-gradient-to-r from-red-600 to-rose-700 text-white font-black text-xs sm:text-sm uppercase tracking-wider shadow-md flex items-center gap-1.5 shrink-0">
                 <Flame className="w-3.5 h-3.5 fill-amber-300 text-amber-300 animate-bounce" />
-                <span>PAYDAY MEGA SALE</span>
+                <span>{mounted ? t('banner_payday_sale') : 'PAYDAY MEGA SALE'}</span>
               </div>
-              <div className="hidden lg:block text-slate-900 font-black text-[10px] bg-amber-300/90 px-2 py-0.5 rounded-md transform -skew-x-6">
-                LIMITED LIVE TIME
-              </div>
-            </div>
 
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-xl bg-white text-orange-600 font-extrabold text-xs shadow-xs transform hover:scale-105 transition-transform animate-pulse">
+              <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white text-orange-600 font-extrabold text-[11px] sm:text-xs shadow-xs transform hover:scale-105 transition-transform shrink-0">
                 <Percent className="w-3.5 h-3.5 text-rose-500" />
-                <span>UP TO 80% OFF</span>
+                <span>{mounted ? t('banner_up_to_80') : 'UP TO 80% OFF'}</span>
               </div>
 
-              <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-xl bg-emerald-600 text-white font-extrabold text-xs shadow-xs transform hover:scale-105 transition-transform">
+              <div className="hidden md:inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-600 text-white font-extrabold text-[11px] sm:text-xs shadow-xs transform hover:scale-105 transition-transform shrink-0">
                 <Truck className="w-3.5 h-3.5 animate-bounce" />
-                <span>FREE DELIVERY</span>
+                <span>{mounted ? t('banner_free_delivery') : 'FREE DELIVERY'}</span>
               </div>
 
-              <div className="hidden sm:inline-flex items-center px-2.5 py-0.5 rounded-xl bg-rose-600 text-white font-extrabold text-xs shadow-xs animate-pulse">
-                <span>১০% ক্যাশব্যাক (বিকাশ ও নগদ)</span>
+              <div className="hidden xl:inline-flex items-center px-2.5 py-1 rounded-xl bg-rose-700 text-white font-extrabold text-[11px] sm:text-xs shadow-xs shrink-0">
+                <span>{mounted ? t('banner_cashback') : '10% CASHBACK'}</span>
               </div>
             </div>
 
-            <div className="flex items-center gap-2.5 shrink-0">
-              <div className="px-2.5 py-1 rounded-full bg-black/25 backdrop-blur-md text-[11px] font-bold text-amber-200 border border-white/20">
-                <span className="animate-pulse text-amber-300 font-extrabold tracking-wider">SALE IS LIVE</span>
+            {/* Right: Live status & Action */}
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="px-2.5 py-1 rounded-full bg-black/25 backdrop-blur-md text-[10px] sm:text-[11px] font-bold text-amber-200 border border-white/20">
+                <span className="animate-pulse text-amber-300 font-extrabold tracking-wider">{mounted ? t('banner_sale_live') : 'SALE IS LIVE'}</span>
               </div>
 
               <Link
                 href="/flash-sales"
-                className="inline-flex items-center gap-1 px-3.5 py-1 rounded-xl bg-slate-950 hover:bg-black text-amber-300 hover:text-white font-black text-xs shadow-xs hover:scale-105 active:scale-95 transition-all cursor-pointer border border-amber-400/40"
+                className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-xl bg-slate-950 hover:bg-black text-amber-300 hover:text-white font-black text-xs shadow-xs hover:scale-105 active:scale-95 transition-all cursor-pointer border border-amber-400/40"
               >
-                <span>SHOP NOW</span>
+                <span>{mounted ? t('btn_shop_now') : 'SHOP NOW'}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
@@ -650,65 +672,7 @@ export const HeroSection: React.FC = () => {
         </div>
       </section>
 
-      {/* 📱 MOBILE COMPACT OFFER BANNER */}
-      <div className="lg:hidden max-w-7xl mx-auto px-3">
-        <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-orange-50/90 via-white to-amber-50/70 dark:from-slate-900 dark:via-[#151c2e] dark:to-slate-900 border border-orange-200 dark:border-orange-500/30 p-3 shadow-sm dark:shadow-xl backdrop-blur-xl">
-          <div className="flex items-center justify-between gap-3">
-            <div className="space-y-1 min-w-0 flex-1">
-              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white text-[9px] font-extrabold shadow-xs">
-                <Flame className="w-2.5 h-2.5 fill-current" /> FLASH SALE
-              </div>
-              <h2 className="text-xs font-black text-slate-900 dark:text-white leading-tight truncate">
-                Sony WH-1000XM5 ANC
-              </h2>
-              <div className="flex items-baseline gap-1.5 font-mono">
-                <span className="text-xs font-black text-orange-600 dark:text-orange-400">৳32,500</span>
-                <span className="text-[9px] text-slate-400 dark:text-slate-500 line-through">৳38,000</span>
-              </div>
-              <div className="flex items-center gap-1.5 pt-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    handleAddToCart({
-                      id: 'prod_sony_xm5',
-                      title: 'Sony WH-1000XM5 Wireless Headphones',
-                      price: 32500,
-                      image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800',
-                    });
-                    router.push('/checkout');
-                  }}
-                  className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white font-bold text-[9px] shadow-xs active:scale-95 flex items-center gap-0.5"
-                >
-                  <Zap className="w-2.5 h-2.5 fill-current" /> Buy Now
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    handleAddToCart({
-                      id: 'prod_sony_xm5',
-                      title: 'Sony WH-1000XM5 Wireless Headphones',
-                      price: 32500,
-                      image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800',
-                    })
-                  }
-                  className="px-2.5 py-1 rounded-lg bg-orange-500/10 text-orange-600 border border-orange-500/25 font-bold text-[9px] active:scale-95"
-                >
-                  + Add
-                </button>
-              </div>
-            </div>
 
-            <div className="relative w-20 h-20 rounded-xl overflow-hidden shrink-0 border border-orange-200 dark:border-orange-500/20 bg-white dark:bg-slate-950 shadow-xs">
-              <Image
-                src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400"
-                alt="Sony XM5"
-                fill
-                className="object-cover"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* 🌟 4. ONE-TAP CATEGORY FILTER CHIPS */}
       <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">

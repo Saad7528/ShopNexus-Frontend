@@ -9,6 +9,7 @@ import {
   Lock,
 } from 'lucide-react';
 import { BrandLogo } from '@/components/common/BrandLogo';
+import { useLanguageStore } from '@/store/useLanguageStore';
 
 const SOCIAL_LINKS = [
   {
@@ -65,8 +66,14 @@ const SOCIAL_LINKS = [
 
 export const Footer: React.FC = () => {
   const pathname = usePathname();
+  const { t, language } = useLanguageStore();
+  const [mounted, setMounted] = React.useState(false);
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Hide Footer on auth pages and Admin panel
   const isAuthPage =
@@ -97,41 +104,43 @@ export const Footer: React.FC = () => {
           <div className="space-y-3">
             <BrandLogo size="md" showSubtitle={false} />
             <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-              ShopNexus is a premium next-gen e-commerce platform delivering authentic gadgets, ultra-fast delivery, and seamless online shopping experiences across Bangladesh.
+              {mounted ? t('footer_brand_desc') : 'ShopNexus is a premium next-gen e-commerce platform delivering authentic gadgets, ultra-fast delivery, and seamless online shopping experiences across Bangladesh.'}
             </p>
             <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 pt-0.5">
               <Lock className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />
-              <span>100% Secure & PCI-DSS Compliant</span>
+              <span>{mounted ? t('footer_security') : '100% Secure & PCI-DSS Compliant'}</span>
             </div>
           </div>
 
           {/* 2. Customer Care & FAQ Column */}
           <div className="space-y-2.5">
-            <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Customer Care & Info</h4>
+            <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+              {mounted ? t('footer_customer_care') : 'Customer Care & Info'}
+            </h4>
             <ul className="space-y-1.5 text-xs">
               <li>
                 <Link href="/about" className="hover:text-orange-500 dark:hover:text-orange-400 transition-colors font-medium">
-                  About ShopNexus
+                  {mounted ? (language === 'bn' ? 'আমাদের সম্পর্কে' : 'About ShopNexus') : 'About ShopNexus'}
                 </Link>
               </li>
               <li>
                 <Link href="/about" className="hover:text-orange-500 dark:hover:text-orange-400 transition-colors font-medium">
-                  Frequently Asked Questions (FAQ)
+                  {mounted ? (language === 'bn' ? 'সাধারণ জিজ্ঞাসাসমূহ (FAQ)' : 'Frequently Asked Questions (FAQ)') : 'FAQ'}
                 </Link>
               </li>
               <li>
                 <Link href="/about" className="hover:text-orange-500 dark:hover:text-orange-400 transition-colors">
-                  Delivery Rates (Inside Dhaka ৳60 / Outside ৳120)
+                  {mounted ? (language === 'bn' ? 'ডেলিভারি চার্জ (ঢাকা ৳৬০ / বাইরে ৳১২০)' : 'Delivery Rates (Inside Dhaka ৳60 / Outside ৳120)') : 'Delivery Rates'}
                 </Link>
               </li>
               <li>
                 <Link href="/profile?tab=orders" className="hover:text-orange-500 dark:hover:text-orange-400 transition-colors">
-                  Live Order Tracking
+                  {mounted ? (language === 'bn' ? 'লাইভ অর্ডার ট্র্যাকিং' : 'Live Order Tracking') : 'Live Order Tracking'}
                 </Link>
               </li>
               <li>
                 <Link href="/about" className="hover:text-orange-500 dark:hover:text-orange-400 transition-colors">
-                  7-Day Replacement Policy
+                  {mounted ? (language === 'bn' ? '৭ দিনের রিপ্লেসমেন্ট পলিসি' : '7-Day Replacement Policy') : '7-Day Replacement Policy'}
                 </Link>
               </li>
             </ul>
@@ -139,26 +148,28 @@ export const Footer: React.FC = () => {
 
           {/* 3. Catalog Links */}
           <div className="space-y-2.5">
-            <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Shop Categories</h4>
+            <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+              {mounted ? (language === 'bn' ? 'শপ ক্যাটাগরি' : 'Shop Categories') : 'Shop Categories'}
+            </h4>
             <ul className="space-y-1.5 text-xs">
               <li>
                 <Link href="/products?category=Audio" className="hover:text-orange-500 dark:hover:text-orange-400 transition-colors">
-                  Audio & Acoustics
+                  {mounted ? (language === 'bn' ? 'অডিও ও অ্যাকোস্টিক' : 'Audio & Acoustics') : 'Audio & Acoustics'}
                 </Link>
               </li>
               <li>
                 <Link href="/products?category=Keyboards" className="hover:text-orange-500 dark:hover:text-orange-400 transition-colors">
-                  Custom Keyboards
+                  {mounted ? (language === 'bn' ? 'কাস্টম মেকানিক্যাল কিবোর্ড' : 'Custom Keyboards') : 'Custom Keyboards'}
                 </Link>
               </li>
               <li>
                 <Link href="/products?category=Accessories" className="hover:text-orange-500 dark:hover:text-orange-400 transition-colors">
-                  Desk Setups & Gear
+                  {mounted ? (language === 'bn' ? 'ডেস্ক সেটআপ ও গিয়ার' : 'Desk Setups & Gear') : 'Desk Setups & Gear'}
                 </Link>
               </li>
               <li>
                 <Link href="/flash-sales" className="hover:text-orange-500 dark:hover:text-orange-400 transition-colors flex items-center gap-1 font-semibold text-orange-600 dark:text-orange-400">
-                  ⚡ Flash Sale (Up to 40% OFF)
+                  ⚡ {mounted ? (language === 'bn' ? 'ফ্ল্যাশ সেল (৪০% পর্যন্ত ছাড়)' : 'Flash Sale (Up to 40% OFF)') : 'Flash Sale'}
                 </Link>
               </li>
             </ul>
@@ -167,14 +178,16 @@ export const Footer: React.FC = () => {
           {/* 4. Newsletter & Social Media Column */}
           <div className="space-y-3">
             <div className="space-y-1.5">
-              <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Exclusive Insider Deals</h4>
+              <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                {mounted ? (language === 'bn' ? 'এক্সক্লুসিভ অফার ও আপডেট' : 'Exclusive Insider Deals') : 'Exclusive Insider Deals'}
+              </h4>
               <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                Subscribe to get exclusive product drops, flash sale alerts, and VIP voucher codes.
+                {mounted ? (language === 'bn' ? 'সাবস্ক্রাইব করে নতুন প্রোডাক্ট ড্রপ ও ভিআইপি ভাউচার পান।' : 'Subscribe to get exclusive product drops, flash sale alerts, and VIP voucher codes.') : 'Subscribe for updates.'}
               </p>
               {subscribed ? (
                 <div className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 p-2.5 rounded-xl border border-emerald-200 dark:border-emerald-500/20">
                   <CheckCircle2 className="w-4 h-4 shrink-0" />
-                  <span>Thank you! Coupon code <strong>WELCOME10</strong> unlocked.</span>
+                  <span>{mounted ? (language === 'bn' ? 'ধন্যবাদ! কুপন কোড WELCOME10 আনলক হয়েছে।' : 'Thank you! Coupon code WELCOME10 unlocked.') : 'Thank you!'}</span>
                 </div>
               ) : (
                 <form onSubmit={handleSubscribe} className="space-y-2">
@@ -182,7 +195,7 @@ export const Footer: React.FC = () => {
                     <input
                       type="email"
                       required
-                      placeholder="Enter your email address..."
+                      placeholder={mounted ? (language === 'bn' ? 'আপনার ইমেইল অ্যাড্রেস লিখুন...' : 'Enter your email address...') : 'Enter email...'}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-orange-500 shadow-xs"
@@ -192,7 +205,7 @@ export const Footer: React.FC = () => {
                     type="submit"
                     className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white text-xs font-bold shadow-md shadow-orange-500/25 transition-all cursor-pointer"
                   >
-                    <Send className="w-3.5 h-3.5" /> Subscribe (10% Off)
+                    <Send className="w-3.5 h-3.5" /> {mounted ? (language === 'bn' ? 'সাবস্ক্রাইব (১০% ছাড়)' : 'Subscribe (10% Off)') : 'Subscribe'}
                   </button>
                 </form>
               )}
@@ -201,7 +214,7 @@ export const Footer: React.FC = () => {
             {/* Social Media Links */}
             <div className="pt-2 border-t border-slate-200 dark:border-slate-800/80">
               <span className="block text-[10px] font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-1.5">
-                Connect With Us
+                {mounted ? (language === 'bn' ? 'আমাদের সোশ্যাল মিডিয়া' : 'Connect With Us') : 'Connect With Us'}
               </span>
               <div className="flex items-center gap-2">
                 {SOCIAL_LINKS.map((soc) => (
@@ -223,11 +236,15 @@ export const Footer: React.FC = () => {
 
         {/* Bottom Ultra-Slim Copyright Bar */}
         <div className="mt-7 pt-3.5 border-t border-slate-200 dark:border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs text-slate-500">
-          <p>© {new Date().getFullYear()} ShopNexus Platform. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} ShopNexus Platform. {mounted ? t('footer_rights') : 'All rights reserved.'}</p>
           <div className="flex items-center gap-3">
-            <Link href="/about" className="hover:text-slate-700 dark:hover:text-slate-400 transition-colors">About Us</Link>
+            <Link href="/about" className="hover:text-slate-700 dark:hover:text-slate-400 transition-colors">
+              {mounted ? (language === 'bn' ? 'আমাদের সম্পর্কে' : 'About Us') : 'About Us'}
+            </Link>
             <span>•</span>
-            <Link href="/about" className="hover:text-slate-700 dark:hover:text-slate-400 transition-colors">FAQ & Help</Link>
+            <Link href="/about" className="hover:text-slate-700 dark:hover:text-slate-400 transition-colors">
+              {mounted ? (language === 'bn' ? 'সহায়তা ও এফএকিউ' : 'FAQ & Help') : 'FAQ & Help'}
+            </Link>
           </div>
         </div>
       </div>
