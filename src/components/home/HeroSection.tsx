@@ -414,7 +414,7 @@ export const HeroSection: React.FC = () => {
                   </span>
                   <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-white leading-tight">
                     {slide.title}{' '}
-                    <span className="bg-gradient-to-r from-[#ff4400] via-[#ff7700] to-[#ffaa00] bg-clip-text text-transparent">
+                    <span className="bg-linear-to-r from-[#ff4400] via-[#ff7700] to-[#ffaa00] bg-clip-text text-transparent">
                       {slide.titleHighlight}
                     </span>
                   </h1>
