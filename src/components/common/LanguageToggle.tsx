@@ -3,6 +3,7 @@
 import React from 'react';
 import { useLanguageStore } from '@/store/useLanguageStore';
 import { Globe } from 'lucide-react';
+import { twMerge } from 'tailwind-merge';
 
 interface LanguageToggleProps {
   className?: string;
