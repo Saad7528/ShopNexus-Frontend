@@ -143,13 +143,38 @@ const LIVE_NOTICES = [
   '📦 গত ২৪ ঘণ্টায় ৩৫০+ জেনুইন গ্যাজেট ডেলিভারি সফলভাবে সম্পন্ন হয়েছে!',
 ];
 
+import { useLanguageStore } from '@/store/useLanguageStore';
+import { formatCurrency, toBengaliNumber } from '@/lib/translations';
+
 export const HeroSection: React.FC = () => {
   const router = useRouter();
+  const { t, language } = useLanguageStore();
+  const [mounted, setMounted] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [selectedColorIdx, setSelectedColorIdx] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
   const [noticeIndex, setNoticeIndex] = useState(0);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const liveNotices = [
+    t('ticker_1'),
+    t('ticker_2'),
+    t('ticker_3'),
+    t('ticker_4'),
+  ];
+
+  const categoryChips = [
+    { label: t('cat_flash_deals'), href: '/flash-sales' },
+    { label: t('cat_audio'), href: '/products?category=Audio' },
+    { label: t('cat_wearables'), href: '/products?category=Wearables' },
+    { label: t('cat_peripherals'), href: '/products?category=Peripherals' },
+    { label: t('cat_smart_home'), href: '/products?category=Smart+Home' },
+    { label: t('cat_all_catalog'), href: '/products' },
+  ];
 
   // Auth & Real Coin System
   const { user, isAuthenticated, processDailyVisit, claimVipPass } = useAuthStore();
@@ -198,7 +223,7 @@ export const HeroSection: React.FC = () => {
   // Notice Ticker
   useEffect(() => {
     const ticker = setInterval(() => {
-      setNoticeIndex((prev) => (prev + 1) % LIVE_NOTICES.length);
+      setNoticeIndex((prev) => (prev + 1) % 4);
     }, 4500);
     return () => clearInterval(ticker);
   }, []);
@@ -265,7 +290,7 @@ export const HeroSection: React.FC = () => {
 
     const currentCoins = user?.nexusCoins || 0;
     if (user?.isVipMember) {
-      setVipSuccessToast('👑 আপনার ব্ল্যাক ফ্রাইডে VIP মেম্বারশিপ ইতিমধ্যে সক্রিয় আছে!');
+      setVipSuccessToast(language === 'bn' ? '👑 আপনার VIP মেম্বারশিপ ইতিমধ্যে সক্রিয় আছে!' : '👑 Your VIP Membership is already active!');
       setTimeout(() => setVipSuccessToast(null), 3000);
       return;
     }
@@ -295,56 +320,56 @@ export const HeroSection: React.FC = () => {
       <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-3 px-3.5 py-1.5 rounded-xl bg-orange-500/10 dark:bg-orange-500/15 border border-orange-500/25 text-[11px] sm:text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-xs backdrop-blur-md">
           <div className="min-w-0 truncate">
-            <span>{LIVE_NOTICES[noticeIndex]}</span>
+            <span>{mounted ? liveNotices[noticeIndex] : '🔥 Live Shopping Drops'}</span>
           </div>
           <Link
             href="/flash-sales"
             className="hidden sm:inline-flex items-center gap-1 text-[11px] font-bold text-orange-600 dark:text-orange-400 hover:underline shrink-0"
           >
-            Live Flash Deals <ArrowRight className="w-3 h-3" />
+            {mounted ? t('banner_live_deals') : 'Live Flash Deals'} <ArrowRight className="w-3 h-3" />
           </Link>
         </div>
       </section>
 
       {/* 🌟 2. ANIMATED MEGA CAMPAIGN BANNER */}
       <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#ffaa00] via-[#ff7700] to-[#ff3300] p-2.5 sm:p-3 text-white shadow-md shadow-orange-500/20 border border-amber-300/40">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-full animate-[shimmer_3s_infinite]" />
+        <div className="relative overflow-hidden rounded-2xl bg-linear-to-r from-[#ffaa00] via-[#ff7700] to-[#ff3300] p-2.5 sm:p-3 text-white shadow-md shadow-orange-500/20 border border-amber-300/40">
+          <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/15 to-transparent -translate-x-full animate-[shimmer_3s_infinite]" />
 
           <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-2.5">
             {/* Left: Campaign Title & Badges */}
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
               <div className="px-3 py-1 rounded-xl bg-gradient-to-r from-red-600 to-rose-700 text-white font-black text-xs sm:text-sm uppercase tracking-wider shadow-md flex items-center gap-1.5 shrink-0">
                 <Flame className="w-3.5 h-3.5 fill-amber-300 text-amber-300 animate-bounce" />
-                <span>PAYDAY MEGA SALE</span>
+                <span>{mounted ? t('banner_payday_sale') : 'PAYDAY MEGA SALE'}</span>
               </div>
 
               <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white text-orange-600 font-extrabold text-[11px] sm:text-xs shadow-xs transform hover:scale-105 transition-transform shrink-0">
                 <Percent className="w-3.5 h-3.5 text-rose-500" />
-                <span>UP TO 80% OFF</span>
+                <span>{mounted ? t('banner_up_to_80') : 'UP TO 80% OFF'}</span>
               </div>
 
               <div className="hidden md:inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-600 text-white font-extrabold text-[11px] sm:text-xs shadow-xs transform hover:scale-105 transition-transform shrink-0">
                 <Truck className="w-3.5 h-3.5 animate-bounce" />
-                <span>FREE DELIVERY</span>
+                <span>{mounted ? t('banner_free_delivery') : 'FREE DELIVERY'}</span>
               </div>
 
               <div className="hidden xl:inline-flex items-center px-2.5 py-1 rounded-xl bg-rose-700 text-white font-extrabold text-[11px] sm:text-xs shadow-xs shrink-0">
-                <span>১০% ক্যাশব্যাক (বিকাশ ও নগদ)</span>
+                <span>{mounted ? t('banner_cashback') : '10% CASHBACK'}</span>
               </div>
             </div>
 
             {/* Right: Live status & Action */}
             <div className="flex items-center gap-2 shrink-0">
               <div className="px-2.5 py-1 rounded-full bg-black/25 backdrop-blur-md text-[10px] sm:text-[11px] font-bold text-amber-200 border border-white/20">
-                <span className="animate-pulse text-amber-300 font-extrabold tracking-wider">SALE IS LIVE</span>
+                <span className="animate-pulse text-amber-300 font-extrabold tracking-wider">{mounted ? t('banner_sale_live') : 'SALE IS LIVE'}</span>
               </div>
 
               <Link
                 href="/flash-sales"
                 className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-xl bg-slate-950 hover:bg-black text-amber-300 hover:text-white font-black text-xs shadow-xs hover:scale-105 active:scale-95 transition-all cursor-pointer border border-amber-400/40"
               >
-                <span>SHOP NOW</span>
+                <span>{mounted ? t('btn_shop_now') : 'SHOP NOW'}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
@@ -360,7 +385,7 @@ export const HeroSection: React.FC = () => {
       >
         <div className="grid grid-cols-12 gap-3.5 items-stretch">
           {/* 🌟 8 COLS (2/3 WIDTH): Main Campaign Mega Slider (Big Product Image & 3s Transition) */}
-          <div className="col-span-8 relative rounded-2xl overflow-hidden bg-gradient-to-br from-white via-slate-50 to-orange-50/40 dark:from-slate-900 dark:via-slate-900/90 dark:to-slate-950 border border-slate-200 dark:border-slate-800/80 shadow-md backdrop-blur-2xl p-4 sm:p-5 flex flex-col justify-between min-h-[270px]">
+          <div className="col-span-8 relative rounded-2xl overflow-hidden bg-linear-to-br from-white via-slate-50 to-orange-50/40 dark:from-slate-900 dark:via-slate-900/90 dark:to-slate-950 border border-slate-200 dark:border-slate-800/80 shadow-md backdrop-blur-2xl p-4 sm:p-5 flex flex-col justify-between min-h-[270px]">
             {/* Top Bar: Slide Badge & Countdown Timer */}
             <div className="flex flex-wrap items-center justify-between gap-2 relative z-10">
               <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-orange-500/15 border border-orange-500/30 text-orange-600 dark:text-orange-400 text-[11px] font-bold">
@@ -389,7 +414,7 @@ export const HeroSection: React.FC = () => {
                   </span>
                   <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-white leading-tight">
                     {slide.title}{' '}
-                    <span className="bg-gradient-to-r from-[#ff4400] via-[#ff7700] to-[#ffaa00] bg-clip-text text-transparent">
+                    <span className="bg-linear-to-r from-[#ff4400] via-[#ff7700] to-[#ffaa00] bg-clip-text text-transparent">
                       {slide.titleHighlight}
                     </span>
                   </h1>

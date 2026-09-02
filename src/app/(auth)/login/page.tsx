@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 import { ShieldCheck, Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 import { BrandLogo } from '@/components/common/BrandLogo';
+import { AuthBackground } from '@/components/auth/AuthBackground';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -76,11 +77,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 bg-slate-50 dark:bg-[#090d16] text-slate-900 dark:text-white">
+    <AuthBackground>
       {/* Centered Clickable ShopNexus Logo to return home */}
-      <BrandLogo size="lg" className="mb-4" />
+      <BrandLogo size="lg" className="mb-4 drop-shadow-lg" />
 
-      <div className="w-full max-w-md bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 backdrop-blur-xl rounded-3xl p-6 sm:p-8 shadow-2xl space-y-4">
+      <div className="w-full max-w-md bg-white/95 dark:bg-slate-900/85 border border-white/20 dark:border-slate-800/80 backdrop-blur-2xl rounded-3xl p-6 sm:p-8 shadow-2xl shadow-black/40 space-y-4">
         <div className="text-center">
           <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white">Welcome Back</h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Sign in to your ShopNexus account</p>
@@ -220,6 +221,6 @@ export default function LoginPage() {
           </Link>
         </p>
       </div>
-    </div>
+    </AuthBackground>
   );
 }
