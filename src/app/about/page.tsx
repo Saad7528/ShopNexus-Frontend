@@ -373,7 +373,7 @@ export default function AboutAndFAQPage() {
         </div>
       </section>
 
-      {/* 🌟 4. FAQ ACCORDION SECTION */}
+      {/* 4. FAQ ACCORDION SECTION */}
       <section id="faq-section" className="py-16 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-8">
         <div className="text-center space-y-3">
           <span className="text-xs font-bold uppercase tracking-wider text-orange-600 dark:text-orange-400">
