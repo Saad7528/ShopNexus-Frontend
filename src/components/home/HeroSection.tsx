@@ -385,7 +385,7 @@ export const HeroSection: React.FC = () => {
       >
         <div className="grid grid-cols-12 gap-3.5 items-stretch">
           {/* 🌟 8 COLS (2/3 WIDTH): Main Campaign Mega Slider (Big Product Image & 3s Transition) */}
-          <div className="col-span-8 relative rounded-2xl overflow-hidden bg-gradient-to-br from-white via-slate-50 to-orange-50/40 dark:from-slate-900 dark:via-slate-900/90 dark:to-slate-950 border border-slate-200 dark:border-slate-800/80 shadow-md backdrop-blur-2xl p-4 sm:p-5 flex flex-col justify-between min-h-[270px]">
+          <div className="col-span-8 relative rounded-2xl overflow-hidden bg-linear-to-br from-white via-slate-50 to-orange-50/40 dark:from-slate-900 dark:via-slate-900/90 dark:to-slate-950 border border-slate-200 dark:border-slate-800/80 shadow-md backdrop-blur-2xl p-4 sm:p-5 flex flex-col justify-between min-h-[270px]">
             {/* Top Bar: Slide Badge & Countdown Timer */}
             <div className="flex flex-wrap items-center justify-between gap-2 relative z-10">
               <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-orange-500/15 border border-orange-500/30 text-orange-600 dark:text-orange-400 text-[11px] font-bold">
