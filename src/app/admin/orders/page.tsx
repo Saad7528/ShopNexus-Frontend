@@ -33,7 +33,6 @@ import {
   Send,
   HelpCircle,
   Sparkles,
-  RefreshCw,
   Copy,
 } from 'lucide-react';
 

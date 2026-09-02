@@ -193,7 +193,7 @@ export default function FlashSalesPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
       {/* Flash Sale Banner */}
-      <div className="relative rounded-3xl overflow-hidden bg-linear-to-r from-orange-50/90 via-white to-amber-50/60 dark:from-orange-950/40 dark:via-slate-900 dark:to-[#090d16] border border-orange-200 dark:border-orange-500/30 p-6 sm:p-10 mb-8 sm:mb-10 shadow-xl">
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-orange-50/90 via-white to-amber-50/60 dark:from-orange-950/40 dark:via-slate-900 dark:to-[#090d16] border border-orange-200 dark:border-orange-500/30 p-6 sm:p-10 mb-8 sm:mb-10 shadow-xl">
         <div className="absolute top-0 right-0 w-80 h-80 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
           <div className="max-w-xl text-center md:text-left">
