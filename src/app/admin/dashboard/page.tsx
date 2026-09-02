@@ -32,6 +32,7 @@ import {
   ChevronRight,
   Sparkles,
 } from 'lucide-react';
+import { useVisitorAnalyticsStore } from '@/store/useVisitorAnalyticsStore';
 
 type TimeRange = '7days' | '30days' | '6months' | 'year';
 type DashboardModalType = 'none' | 'revenue' | 'orders' | 'aov' | 'returns' | 'staff-logs';
@@ -329,21 +330,9 @@ const AUDIT_LOGS = [
 
 export default function AdminDashboardPage() {
   const [timeRange, setTimeRange] = useState<TimeRange>('6months');
-  const [liveVisitors, setLiveVisitors] = useState(38);
+  const liveVisitorCount = useVisitorAnalyticsStore((s) => s.liveVisitorCount);
   const [activeModal, setActiveModal] = useState<DashboardModalType>('none');
   const [staffTab, setStaffTab] = useState<'timesheet' | 'audit-trail'>('timesheet');
-
-  useEffect(() => {
-    // Dynamic real-time visitor fluctuation (±1-3 active sessions)
-    const interval = setInterval(() => {
-      setLiveVisitors((prev) => {
-        const delta = Math.floor(Math.random() * 5) - 2; // -2 to +2
-        const nextVal = prev + delta;
-        return Math.max(31, Math.min(52, nextVal));
-      });
-    }, 4500);
-    return () => clearInterval(interval);
-  }, []);
 
   const currentData = TIME_SERIES_DATA[timeRange];
 
@@ -365,17 +354,19 @@ export default function AdminDashboardPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            {/* Dynamic Live Visitors Badge with Pulsing Beacon */}
-            <div
-              className="px-3.5 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center gap-2 shadow-xs"
-              title="Real-time live active shopper sessions"
+            {/* Dynamic Clickable Live Visitors Badge with Pulsing Beacon */}
+            <Link
+              href="/admin/visitors"
+              className="px-3.5 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/25 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center gap-2 shadow-xs transition-all hover:scale-105 active:scale-95 cursor-pointer"
+              title="Click to view deep Real-time Live Visitors & Traffic Analytics"
             >
               <span className="relative flex h-2.5 w-2.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
               </span>
-              <span>{liveVisitors} Live Visitors</span>
-            </div>
+              <span>{liveVisitorCount} Live Visitors</span>
+              <ArrowUpRight className="w-3.5 h-3.5 ml-0.5 opacity-70" />
+            </Link>
           </div>
         </div>
 
