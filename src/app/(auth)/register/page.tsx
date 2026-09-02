@@ -101,8 +101,8 @@ export default function RegisterPage() {
 
   return (
     <AuthBackground>
-      {/* Centered Clickable ShopNexus Logo to return home */}
-      <BrandLogo size="lg" className="mb-4 drop-shadow-lg" />
+      {/* Centered Clickable ShopNexus Logo to return home (Universal crisp white on cinematic dark auth background) */}
+      <BrandLogo size="lg" variant="white" className="mb-4 drop-shadow-xl" />
 
       <div className="w-full max-w-md bg-white/95 dark:bg-slate-900/85 border border-white/20 dark:border-slate-800/80 backdrop-blur-2xl rounded-3xl p-6 sm:p-8 shadow-2xl shadow-black/40 space-y-4">
         <div className="text-center">
@@ -305,7 +305,7 @@ export default function RegisterPage() {
               </div>
             </div>
 
-  
+
             <button
               type="button"
               onClick={handleContinueShopping}
