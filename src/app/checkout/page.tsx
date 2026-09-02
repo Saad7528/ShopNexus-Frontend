@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { useCartStore } from '@/store/useCartStore';
 import { useOrderStore } from '@/store/useOrderStore';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useLanguageStore } from '@/store/useLanguageStore';
+import { formatCurrency, toBengaliNumber } from '@/lib/translations';
 import { AddressSelector, IShippingAddressForm, validateSmartShippingAddress } from '@/components/checkout/AddressSelector';
 import { PaymentMethodSelector, PaymentMethod } from '@/components/checkout/PaymentMethodSelector';
 import { MfsPaymentModal } from '@/components/checkout/MfsPaymentModal';
@@ -38,6 +40,12 @@ export default function CheckoutPage() {
   const { items, clearCart } = useCartStore();
   const { user, isAuthenticated, spendCoins, useVipDiscount } = useAuthStore();
   const orders = useOrderStore((state) => state.orders);
+  const { t, language } = useLanguageStore();
+  const [mounted, setMounted] = useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Coins & VIP State
   const [useCoinsChecked, setUseCoinsChecked] = useState(false);
@@ -241,9 +249,9 @@ export default function CheckoutPage() {
         {/* Multi-Step Indicator Header */}
         <div className="grid grid-cols-3 gap-2 sm:gap-4 max-w-2xl mx-auto">
           {[
-            { step: 1, label: 'Delivery Zone & Address' },
-            { step: 2, label: 'Payment Gateway' },
-            { step: 3, label: 'Confirm & Place Order' },
+            { step: 1, label: mounted && language === 'bn' ? 'ঠিকানা ও ডেলিভারি' : 'Delivery Zone & Address' },
+            { step: 2, label: mounted && language === 'bn' ? 'পেমেন্ট মেথড' : 'Payment Gateway' },
+            { step: 3, label: mounted && language === 'bn' ? 'অর্ডার নিশ্চিতকরণ' : 'Confirm & Place Order' },
           ].map((s) => {
             const isActive = currentStep === s.step;
             const isDone = currentStep > s.step;
@@ -269,7 +277,7 @@ export default function CheckoutPage() {
                       : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                   }`}
                 >
-                  {isDone ? '✓' : s.step}
+                  {isDone ? '✓' : (mounted && language === 'bn' ? toBengaliNumber(s.step) : s.step)}
                 </div>
                 <span className="text-xs font-semibold">{s.label}</span>
               </button>
@@ -286,17 +294,20 @@ export default function CheckoutPage() {
               <div className="p-6 md:p-8 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow-sm backdrop-blur-xl space-y-6">
                 <div>
                   <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                    <MapPin className="w-5 h-5 text-orange-600 dark:text-orange-400" /> 1. Shipping Address & Delivery Zone
+                    <MapPin className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                    {mounted ? t('checkout_shipping_details') : '1. Shipping Address & Delivery Zone'}
                   </h2>
                   <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
-                    Select your delivery destination zone for automatic courier fee calculation.
+                    {mounted && language === 'bn'
+                      ? 'ডেলিভারি চার্জ স্বয়ংক্রিয়ভাবে হিসাবের জন্য আপনার এলাকা ও সঠিক ঠিকানা দিন।'
+                      : 'Select your delivery destination zone for automatic courier fee calculation.'}
                   </p>
                 </div>
 
                 {/* 🚚 Automatic Delivery Fee Selector */}
                 <div className="space-y-3">
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                    Select Delivery Zone (Automatic Charge Calculation)
+                    {mounted && language === 'bn' ? 'ডেলিভারি জোন নির্বাচন করুন' : 'Select Delivery Zone'}
                   </label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div
@@ -309,12 +320,15 @@ export default function CheckoutPage() {
                     >
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
-                          <Building2 className="w-4 h-4 text-orange-600 dark:text-orange-400" /> Inside Dhaka City
+                          <Building2 className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                          {mounted && language === 'bn' ? 'ঢাকা সিটির ভেতরে' : 'Inside Dhaka City'}
                         </span>
-                        <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 font-mono">৳60 BDT</span>
+                        <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 font-mono">
+                          {mounted ? formatCurrency(60, language) : '৳60 BDT'}
+                        </span>
                       </div>
                       <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                        Fast delivery within 24-48 Hours via Pathao Express Courier.
+                        {mounted && language === 'bn' ? 'পাঠাও এক্সপ্রেস কুরিয়ারে ২৪-৪৮ ঘণ্টায় ডেলিভারি।' : 'Fast delivery within 24-48 Hours via Pathao Express Courier.'}
                       </p>
                     </div>
 
@@ -328,12 +342,15 @@ export default function CheckoutPage() {
                     >
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
-                          <Truck className="w-4 h-4 text-orange-600 dark:text-orange-400" /> Outside Dhaka (All BD)
+                          <Truck className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                          {mounted && language === 'bn' ? 'ঢাকার বাইরে (সারাদেশ)' : 'Outside Dhaka (All BD)'}
                         </span>
-                        <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 font-mono">৳120 BDT</span>
+                        <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 font-mono">
+                          {mounted ? formatCurrency(120, language) : '৳120 BDT'}
+                        </span>
                       </div>
                       <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                        Nationwide delivery within 48-72 Hours via Steadfast / RedX.
+                        {mounted && language === 'bn' ? 'দেশব্যাপী স্টেডফাস্ট/রেডএক্স কুরিয়ারে ৪৮-৭২ ঘণ্টায় ডেলিভারি।' : 'Nationwide delivery within 48-72 Hours via Steadfast / RedX.'}
                       </p>
                     </div>
                   </div>
@@ -354,7 +371,7 @@ export default function CheckoutPage() {
                     onClick={handleContinueToPayment}
                     className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#ff4400] via-[#ff7700] to-[#ff4400] hover:from-[#e63d00] hover:to-[#ff6600] font-semibold text-sm shadow-lg shadow-orange-500/25 transition-all cursor-pointer text-white hover:scale-105"
                   >
-                    Continue to Payment <ArrowRight className="w-4 h-4" />
+                    {mounted && language === 'bn' ? 'পেমেন্টে এগিয়ে যান' : 'Continue to Payment'} <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -365,10 +382,11 @@ export default function CheckoutPage() {
               <div className="p-6 md:p-8 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow-sm backdrop-blur-xl space-y-6">
                 <div>
                   <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                    <CreditCard className="w-5 h-5 text-orange-600 dark:text-orange-400" /> 2. Payment Gateway
+                    <CreditCard className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                    {mounted ? t('checkout_payment_method') : '2. Payment Gateway'}
                   </h2>
                   <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
-                    Select your preferred gateway: Instant bKash / Nagad or Cash on Delivery.
+                    {mounted && language === 'bn' ? 'পছন্দের পেমেন্ট মাধ্যম বেছে নিন: বিকাশ/নগদ বা ক্যাশ অন ডেলিভারি।' : 'Select your preferred gateway: Instant bKash / Nagad or Cash on Delivery.'}
                   </p>
                 </div>
 
@@ -383,14 +401,14 @@ export default function CheckoutPage() {
                     onClick={() => setCurrentStep(1)}
                     className="px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"
                   >
-                    Back to Address
+                    {mounted && language === 'bn' ? 'ঠিকানায় ফিরে যান' : 'Back to Address'}
                   </button>
                   <button
                     type="button"
                     onClick={() => setCurrentStep(3)}
                     className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#ff4400] via-[#ff7700] to-[#ff4400] hover:from-[#e63d00] hover:to-[#ff6600] font-semibold text-sm shadow-lg shadow-orange-500/25 transition-all cursor-pointer text-white"
                   >
-                    Review Order Summary <ArrowRight className="w-4 h-4" />
+                    {mounted && language === 'bn' ? 'অর্ডার রিভিউ করুন' : 'Review Order Summary'} <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -401,10 +419,11 @@ export default function CheckoutPage() {
               <div className="p-6 md:p-8 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow-sm backdrop-blur-xl space-y-6">
                 <div>
                   <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                    <CheckCircle2 className="w-5 h-5 text-emerald-500" /> 3. Final Verification & Dispatch
+                    <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                    {mounted && language === 'bn' ? '৩. চূড়ান্ত নিশ্চিতকরণ ও অর্ডার সম্পন্ন' : '3. Final Verification & Dispatch'}
                   </h2>
                   <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
-                    Please review your shipping and billing details before completing order.
+                    {mounted && language === 'bn' ? 'অর্ডার চূড়ান্ত করার পূর্বে আপনার তথ্যসমূহ যাচাই করে নিন।' : 'Please review your shipping and billing details before completing order.'}
                   </p>
                 </div>
 
@@ -413,10 +432,12 @@ export default function CheckoutPage() {
                   <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs space-y-1.5">
                     <div className="flex items-center gap-2 font-bold text-sm">
                       <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400 animate-pulse" />
-                      <span>🎉 প্রথম অর্ডার বিশেষ উপহার: ১০% ছাড় যুক্ত হয়েছে!</span>
+                      <span>{mounted && language === 'bn' ? '🎉 প্রথম অর্ডার বিশেষ উপহার: ১০% ছাড় যুক্ত হয়েছে!' : '🎉 First Order Special Gift: 10% Discount Applied!'}</span>
                     </div>
                     <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
-                      স্বাগতম! আপনার প্রথম অর্ডারের মোট মূল্য থেকে স্বয়ংক্রিয়ভাবে <strong className="text-emerald-600 dark:text-emerald-400">১০% (৳{firstOrderDiscount.toLocaleString()} BDT)</strong> কেটে নেওয়া হয়েছে।
+                      {mounted && language === 'bn'
+                        ? <>স্বাগতম! আপনার প্রথম অর্ডারের মোট মূল্য থেকে স্বয়ংক্রিয়ভাবে <strong className="text-emerald-600 dark:text-emerald-400">১০% ({formatCurrency(firstOrderDiscount, language)})</strong> ছাড় দেওয়া হয়েছে।</>
+                        : <>Welcome! Automatically saved <strong className="text-emerald-600 dark:text-emerald-400">10% ({formatCurrency(firstOrderDiscount, 'en')})</strong> on your first order.</>}
                     </p>
                   </div>
                 )}
@@ -425,7 +446,9 @@ export default function CheckoutPage() {
                 <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 space-y-3 text-xs">
                   <div className="flex items-start justify-between">
                     <div>
-                      <span className="text-[10px] font-bold uppercase text-slate-500">Recipient & Address</span>
+                      <span className="text-[10px] font-bold uppercase text-slate-500">
+                        {mounted && language === 'bn' ? 'গ্রাহক ও ঠিকানা' : 'Recipient & Address'}
+                      </span>
                       <p className="font-bold text-slate-900 dark:text-white mt-0.5">{shippingAddress.fullName}</p>
                       <p className="text-slate-500">{shippingAddress.streetAddress}, {shippingAddress.city}</p>
                       <p className="text-slate-500 font-mono">{shippingAddress.phoneNumber}</p>
@@ -435,18 +458,20 @@ export default function CheckoutPage() {
                       onClick={() => setCurrentStep(1)}
                       className="text-xs text-orange-600 dark:text-orange-400 hover:underline font-semibold cursor-pointer"
                     >
-                      Change
+                      {mounted && language === 'bn' ? 'পরিবর্তন' : 'Change'}
                     </button>
                   </div>
 
                   <div className="border-t border-slate-200 dark:border-slate-800 pt-3 flex items-start justify-between">
                     <div>
-                      <span className="text-[10px] font-bold uppercase text-slate-500">Payment Gateway</span>
+                      <span className="text-[10px] font-bold uppercase text-slate-500">
+                        {mounted && language === 'bn' ? 'পেমেন্ট মেথড' : 'Payment Gateway'}
+                      </span>
                       <p className="font-bold text-slate-900 dark:text-white mt-0.5">
                         {paymentMethod === 'mfs_bkash_nagad'
-                          ? `${mfsProvider === 'bkash' ? 'bKash' : 'Nagad'} Mobile Financial Wallet`
+                          ? (mounted && language === 'bn' ? 'বিকাশ ও নগদ ডিজিটাল ওয়ালেট' : `${mfsProvider === 'bkash' ? 'bKash' : 'Nagad'} Mobile Financial Wallet`)
                           : paymentMethod === 'cash_on_delivery'
-                          ? 'Cash on Delivery (COD)'
+                          ? (mounted && language === 'bn' ? 'ক্যাশ অন ডেলিভারি (COD)' : 'Cash on Delivery (COD)')
                           : 'Stripe Card'}
                       </p>
                     </div>
@@ -455,7 +480,7 @@ export default function CheckoutPage() {
                       onClick={() => setCurrentStep(2)}
                       className="text-xs text-orange-600 dark:text-orange-400 hover:underline font-semibold cursor-pointer"
                     >
-                      Change
+                      {mounted && language === 'bn' ? 'পরিবর্তন' : 'Change'}
                     </button>
                   </div>
                 </div>
@@ -466,7 +491,7 @@ export default function CheckoutPage() {
                     onClick={() => setCurrentStep(2)}
                     className="px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"
                   >
-                    Back to Payment
+                    {mounted && language === 'bn' ? 'পেমেন্টে ফিরে যান' : 'Back to Payment'}
                   </button>
                   <button
                     type="button"
@@ -475,8 +500,8 @@ export default function CheckoutPage() {
                     className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 font-bold text-sm shadow-xl shadow-emerald-600/30 transition-all disabled:opacity-50 cursor-pointer text-white"
                   >
                     {isProcessing
-                      ? 'Verifying & Confirming...'
-                      : `Confirm & Place Order (৳${total.toLocaleString()} BDT)`}
+                      ? (mounted && language === 'bn' ? 'যাচাই করা হচ্ছে...' : 'Verifying & Confirming...')
+                      : (mounted && language === 'bn' ? `অর্ডার নিশ্চিত করুন (${formatCurrency(total, language)})` : `Confirm & Place Order (${formatCurrency(total, 'en')})`)}
                   </button>
                 </div>
               </div>
@@ -486,11 +511,13 @@ export default function CheckoutPage() {
           {/* Right Summary Column (5 cols) */}
           <div className="lg:col-span-5 space-y-6">
             <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow-xl backdrop-blur-xl space-y-5">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Order Summary ({items.length} Items)</h3>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                {mounted ? t('cart_order_summary') : 'Order Summary'} ({mounted && language === 'bn' ? toBengaliNumber(items.length) : items.length} {mounted && language === 'bn' ? 'টি পণ্য' : 'Items'})
+              </h3>
 
               <div className="space-y-3 max-h-64 overflow-y-auto pr-1 scrollbar-thin">
                 {items.length === 0 ? (
-                  <p className="text-sm text-slate-500">No items currently in cart.</p>
+                  <p className="text-sm text-slate-500">{mounted && language === 'bn' ? 'কার্ট খালি।' : 'No items currently in cart.'}</p>
                 ) : (
                   items.map((item) => (
                     <div
@@ -500,11 +527,13 @@ export default function CheckoutPage() {
                       <div className="min-w-0 flex-1 pr-2">
                         <p className="font-semibold text-slate-900 dark:text-white truncate">{item.title}</p>
                         <p className="text-xs text-slate-500 dark:text-slate-400">
-                          Qty: {item.quantity} × ৳{item.price.toLocaleString()}
+                          {mounted && language === 'bn'
+                            ? `পরিমাণ: ${toBengaliNumber(item.quantity)} × ${formatCurrency(item.price, language)}`
+                            : `Qty: ${item.quantity} × ${formatCurrency(item.price, 'en')}`}
                         </p>
                       </div>
                       <span className="font-mono font-bold text-slate-900 dark:text-white shrink-0">
-                        ৳{(item.price * item.quantity).toLocaleString()}
+                        {mounted ? formatCurrency(item.price * item.quantity, language) : `৳${(item.price * item.quantity).toLocaleString()}`}
                       </span>
                     </div>
                   ))
@@ -516,40 +545,43 @@ export default function CheckoutPage() {
                 <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 space-y-1">
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-bold text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-emerald-500" /> প্রথম অর্ডার ১০% ছাড়
+                      <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
+                      {mounted && language === 'bn' ? 'প্রথম অর্ডার ১০% ছাড়' : 'First Order 10% Off'}
                     </span>
                     <span className="font-mono font-black text-emerald-600 dark:text-emerald-400">
-                      -৳{firstOrderDiscount.toLocaleString()}
+                      -{mounted ? formatCurrency(firstOrderDiscount, language) : `৳${firstOrderDiscount.toLocaleString()}`}
                     </span>
                   </div>
                   <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                    🔒 প্রথম অর্ডারে স্বয়ংক্রিয়ভাবে ১০% ছাড় সক্রিয় থাকায় অতিরিক্ত কুপন লক করা আছে।
+                    {mounted && language === 'bn' ? '🔒 প্রথম অর্ডারে স্বয়ংক্রিয়ভাবে ১০% ছাড় সক্রিয় আছে।' : '🔒 10% first-order discount is automatically active.'}
                   </p>
                 </div>
               ) : (
                 <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                   <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                    <Tag className="w-3.5 h-3.5 text-orange-500" /> Have a Coupon Code?
+                    <Tag className="w-3.5 h-3.5 text-orange-500" />
+                    {mounted ? t('cart_promo_coupon') : 'Have a Coupon Code?'}
                   </span>
                   <form onSubmit={handleApplyCoupon} className="flex gap-2">
                     <input
                       type="text"
                       value={couponCode}
                       onChange={(e) => setCouponCode(e.target.value)}
-                      placeholder="e.g. NEXUS10"
+                      placeholder={mounted && language === 'bn' ? 'যেমন: NEXUS10' : 'e.g. NEXUS10'}
                       className="flex-1 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white uppercase font-mono"
                     />
                     <button
                       type="submit"
-                      className="px-4 py-2 rounded-xl bg-orange-500 text-white font-bold text-xs hover:bg-orange-600 transition-colors"
+                      className="px-4 py-2 rounded-xl bg-orange-500 text-white font-bold text-xs hover:bg-orange-600 transition-colors cursor-pointer"
                     >
-                      Apply
+                      {mounted ? t('btn_apply') : 'Apply'}
                     </button>
                   </form>
                   {couponError && <p className="text-[11px] text-rose-500">{couponError}</p>}
                   {appliedCouponDiscount > 0 && (
                     <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
-                      <Check className="w-3 h-3" /> Coupon applied! Saved ৳{appliedCouponDiscount.toLocaleString()}
+                      <Check className="w-3 h-3" />
+                      {mounted && language === 'bn' ? `কুপন সফল! ছাড়: ${formatCurrency(appliedCouponDiscount, language)}` : `Coupon applied! Saved ${formatCurrency(appliedCouponDiscount, 'en')}`}
                     </p>
                   )}
                 </div>
@@ -561,10 +593,11 @@ export default function CheckoutPage() {
                 {isVipEligible && (
                   <div className="p-3 rounded-2xl bg-gradient-to-r from-amber-500/15 via-orange-500/15 to-rose-500/15 border border-amber-500/30 flex items-center justify-between text-xs">
                     <span className="font-bold text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-amber-500" /> VIP মেম্বারশিপ স্পেশাল ছাড়
+                      <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                      {mounted && language === 'bn' ? 'VIP মেম্বারশিপ স্পেশাল ছাড়' : 'VIP Member Welcome Perk'}
                     </span>
                     <span className="font-mono font-black text-amber-600 dark:text-amber-400">
-                      -৳200
+                      -{mounted ? formatCurrency(200, language) : '৳200'}
                     </span>
                   </div>
                 )}
@@ -580,16 +613,22 @@ export default function CheckoutPage() {
                           onChange={(e) => setUseCoinsChecked(e.target.checked)}
                           className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
                         />
-                        <span>Nexus Coins রিডিম করুন ({availableCoins.toLocaleString()} Coins আছে)</span>
+                        <span>
+                          {mounted && language === 'bn'
+                            ? `Nexus Coins রিডিম করুন (${toBengaliNumber(availableCoins)} কয়েন আছে)`
+                            : `Redeem Nexus Coins (${availableCoins} Coins available)`}
+                        </span>
                       </label>
                       {useCoinsChecked && coinsDiscount > 0 && (
                         <span className="font-mono font-black text-emerald-600 dark:text-emerald-400 text-xs">
-                          -৳{coinsDiscount.toLocaleString()}
+                          -{mounted ? formatCurrency(coinsDiscount, language) : `৳${coinsDiscount.toLocaleString()}`}
                         </span>
                       )}
                     </div>
                     <p className="text-[10px] text-slate-500 dark:text-slate-400 pl-6">
-                      🪙 প্রতি ৫০ কয়েনে ৫ টাকা ক্যাশ ডিসকাউন্ট (অর্ডার শেষে ব্যালান্স ০ হয়ে যাবে)
+                      {mounted && language === 'bn'
+                        ? '🪙 প্রতি ৫০ কয়েনে ৫ টাকা ক্যাশ ডিসকাউন্ট।'
+                        : '🪙 50 coins = ৳5 discount.'}
                     </p>
                   </div>
                 )}
@@ -598,53 +637,61 @@ export default function CheckoutPage() {
               {/* Pricing Breakdown */}
               <div className="space-y-2 pt-3 border-t border-slate-200 dark:border-slate-800 text-sm">
                 <div className="flex justify-between text-slate-600 dark:text-slate-400">
-                  <span>Subtotal</span>
-                  <span className="font-mono text-slate-900 dark:text-white font-bold">৳{subtotal.toLocaleString()}</span>
+                  <span>{mounted ? t('cart_subtotal') : 'Subtotal'}</span>
+                  <span className="font-mono text-slate-900 dark:text-white font-bold">
+                    {mounted ? formatCurrency(subtotal, language) : `৳${subtotal.toLocaleString()}`}
+                  </span>
                 </div>
 
                 {isFirstOrder && firstOrderDiscount > 0 && (
                   <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-semibold">
-                    <span>First Order Discount (10%)</span>
-                    <span className="font-mono font-bold">-৳{firstOrderDiscount.toLocaleString()}</span>
+                    <span>{mounted && language === 'bn' ? 'প্রথম অর্ডার ছাড় (১০%)' : 'First Order Discount (10%)'}</span>
+                    <span className="font-mono font-bold">-{mounted ? formatCurrency(firstOrderDiscount, language) : `৳${firstOrderDiscount.toLocaleString()}`}</span>
                   </div>
                 )}
 
                 {!isFirstOrder && appliedCouponDiscount > 0 && (
                   <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-semibold">
-                    <span>Coupon Discount</span>
-                    <span className="font-mono font-bold">-৳{appliedCouponDiscount.toLocaleString()}</span>
+                    <span>{mounted && language === 'bn' ? 'কুপন ছাড়' : 'Coupon Discount'}</span>
+                    <span className="font-mono font-bold">-{mounted ? formatCurrency(appliedCouponDiscount, language) : `৳${appliedCouponDiscount.toLocaleString()}`}</span>
                   </div>
                 )}
 
                 {vipDiscount > 0 && (
                   <div className="flex justify-between text-amber-600 dark:text-amber-400 font-semibold">
-                    <span>VIP Member Welcome Perk</span>
-                    <span className="font-mono font-bold">-৳{vipDiscount}</span>
+                    <span>{mounted && language === 'bn' ? 'ভিআইপি মেম্বার ছাড়' : 'VIP Member Welcome Perk'}</span>
+                    <span className="font-mono font-bold">-{mounted ? formatCurrency(vipDiscount, language) : '৳200'}</span>
                   </div>
                 )}
 
                 {coinsDiscount > 0 && (
                   <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-semibold">
-                    <span>Nexus Coins Discount ({coinsSpent} Coins)</span>
-                    <span className="font-mono font-bold">-৳{coinsDiscount.toLocaleString()}</span>
+                    <span>{mounted && language === 'bn' ? `কয়েন ছাড় (${toBengaliNumber(coinsSpent)} কয়েন)` : `Coins Discount (${coinsSpent} Coins)`}</span>
+                    <span className="font-mono font-bold">-{mounted ? formatCurrency(coinsDiscount, language) : `৳${coinsDiscount.toLocaleString()}`}</span>
                   </div>
                 )}
 
                 <div className="flex justify-between text-slate-600 dark:text-slate-400">
                   <span>
-                    Delivery Charge ({deliveryZone === 'inside_dhaka' ? 'Dhaka ৳60' : 'Outside ৳120'})
+                    {mounted ? t('cart_delivery_fee') : 'Delivery Charge'} ({deliveryZone === 'inside_dhaka' ? (mounted && language === 'bn' ? 'ঢাকা ৳৬০' : 'Dhaka ৳60') : (mounted && language === 'bn' ? 'ঢাকার বাইরে ৳১২০' : 'Outside ৳120')})
                   </span>
-                  <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">৳{deliveryFee}</span>
+                  <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">
+                    {mounted ? formatCurrency(deliveryFee, language) : `৳${deliveryFee}`}
+                  </span>
                 </div>
 
                 <div className="flex justify-between text-slate-600 dark:text-slate-400">
-                  <span>Estimated VAT (5%)</span>
-                  <span className="font-mono text-slate-900 dark:text-white font-bold">৳{vatTax.toLocaleString()}</span>
+                  <span>{mounted ? t('cart_vat') : 'Estimated VAT (5%)'}</span>
+                  <span className="font-mono text-slate-900 dark:text-white font-bold">
+                    {mounted ? formatCurrency(vatTax, language) : `৳${vatTax.toLocaleString()}`}
+                  </span>
                 </div>
 
                 <div className="flex justify-between pt-3 border-t border-slate-200 dark:border-slate-800 text-base font-black text-slate-900 dark:text-white">
-                  <span>Total Due</span>
-                  <span className="font-mono text-xl text-orange-600 dark:text-orange-400">৳{total.toLocaleString()} BDT</span>
+                  <span>{mounted ? t('cart_total_due') : 'Total Due'}</span>
+                  <span className="font-mono text-xl text-orange-600 dark:text-orange-400">
+                    {mounted ? formatCurrency(total, language) : `৳${total.toLocaleString()} BDT`}
+                  </span>
                 </div>
               </div>
             </div>

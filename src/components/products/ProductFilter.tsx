@@ -1,7 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useProductStore } from '@/store/useProductStore';
+import { useLanguageStore } from '@/store/useLanguageStore';
+import { getLocalizedCategory } from '@/lib/localizedProducts';
+import { formatCurrency, toBengaliNumber } from '@/lib/translations';
 import { Filter, RotateCcw, Search, X } from 'lucide-react';
 
 const CATEGORIES = [
@@ -35,6 +38,13 @@ interface ProductFilterProps {
 }
 
 export const ProductFilter: React.FC<ProductFilterProps> = ({ onClose }) => {
+  const { t, language } = useLanguageStore();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const {
     search,
     category,
@@ -59,7 +69,7 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({ onClose }) => {
       <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
         <div className="flex items-center gap-2 text-slate-900 dark:text-white font-semibold">
           <Filter className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-          <span>Filters & Refinements</span>
+          <span>{mounted ? t('filter_title') : 'Filters & Refinements'}</span>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -67,7 +77,7 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({ onClose }) => {
             className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            Reset
+            {mounted ? t('filter_reset') : 'Reset'}
           </button>
           {onClose && (
             <button
@@ -83,7 +93,7 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({ onClose }) => {
       {/* Search Input */}
       <div>
         <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
-          Search Products
+          {mounted ? (language === 'bn' ? 'পণ্য খুঁজুন' : 'Search Products') : 'Search Products'}
         </label>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
@@ -91,7 +101,7 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({ onClose }) => {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search audio, keyboard, watches..."
+            placeholder={mounted ? (language === 'bn' ? 'অডিও, কিবোর্ড, স্মার্টওয়াচ...' : 'Search audio, keyboard, watches...') : 'Search...'}
             className="w-full pl-9 pr-3 py-2 bg-slate-100 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-xs focus:outline-none focus:ring-1 focus:ring-orange-500"
           />
         </div>
@@ -100,7 +110,7 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({ onClose }) => {
       {/* Categories */}
       <div>
         <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2.5">
-          Category
+          {mounted ? t('filter_categories') : 'Categories'}
         </label>
         <div className="flex flex-wrap lg:flex-col gap-1">
           {CATEGORIES.map((cat) => (
@@ -113,7 +123,7 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({ onClose }) => {
                   : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/40 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
-              {cat}
+              {mounted ? getLocalizedCategory(cat, language) : cat}
             </button>
           ))}
         </div>
@@ -122,7 +132,7 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({ onClose }) => {
       {/* Brands */}
       <div>
         <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2.5">
-          Brand
+          {mounted ? t('filter_brands') : 'Popular Brands'}
         </label>
         <div className="flex flex-wrap lg:flex-col gap-1">
           {BRANDS.map((b) => (
@@ -135,7 +145,7 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({ onClose }) => {
                   : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/40 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
-              {b}
+              {b === 'All' ? (mounted && language === 'bn' ? 'সকল ব্র্যান্ড' : 'All Brands') : b}
             </button>
           ))}
         </div>
@@ -144,8 +154,10 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({ onClose }) => {
       {/* Price Range Slider & Presets in Bangladeshi Taka (৳ BDT) */}
       <div>
         <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 mb-2">
-          <span className="font-semibold uppercase tracking-wider">Max Budget (BDT)</span>
-          <span className="font-bold text-orange-600 dark:text-orange-400 font-mono">৳{maxPrice.toLocaleString()}</span>
+          <span className="font-semibold uppercase tracking-wider">{mounted ? t('filter_price_range') : 'Price Range'}</span>
+          <span className="font-bold text-orange-600 dark:text-orange-400 font-mono">
+            {mounted ? formatCurrency(maxPrice, language) : `৳${maxPrice.toLocaleString()}`}
+          </span>
         </div>
 
         {/* Quick Budget Chips */}
@@ -161,7 +173,9 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({ onClose }) => {
                   : 'bg-slate-100 dark:bg-slate-950/40 border-slate-200 dark:border-slate-800/80 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
-              {preset >= 150000 ? 'All' : `<৳${(preset / 1000).toFixed(0)}k`}
+              {preset >= 150000
+                ? (mounted && language === 'bn' ? 'সব' : 'All')
+                : (mounted && language === 'bn' ? `<৳${toBengaliNumber((preset / 1000).toFixed(0))}হাজার` : `<৳${(preset / 1000).toFixed(0)}k`)}
             </button>
           ))}
         </div>
@@ -180,7 +194,7 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({ onClose }) => {
       {/* Minimum Rating */}
       <div>
         <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
-          Minimum Rating
+          {mounted ? t('filter_min_rating') : 'Customer Rating'}
         </label>
         <div className="grid grid-cols-4 gap-1.5">
           {[4, 3, 2, 0].map((star) => (
@@ -193,7 +207,9 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({ onClose }) => {
                   : 'bg-slate-100 dark:bg-slate-950/40 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
-              {star > 0 ? `${star}★+` : 'All'}
+              {star > 0
+                ? (mounted && language === 'bn' ? `${toBengaliNumber(star)}★+` : `${star}★+`)
+                : (mounted && language === 'bn' ? 'সব' : 'All')}
             </button>
           ))}
         </div>
@@ -208,33 +224,35 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({ onClose }) => {
             onChange={(e) => setIsFlashSale(e.target.checked)}
             className="rounded border-slate-300 dark:border-slate-800 text-orange-600 focus:ring-orange-500 bg-white dark:bg-slate-950"
           />
-          <span className="font-semibold text-amber-600 dark:text-amber-400">⚡ Flash Sale Deals Only</span>
+          <span className="font-semibold text-amber-600 dark:text-amber-400">
+            {mounted ? t('filter_flash_only') : '⚡ Flash Sale Deals Only'}
+          </span>
         </label>
       </div>
 
       {/* Sort By */}
       <div>
         <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
-          Sort By
+          {mounted ? t('filter_sort_by') : 'Sort By'}
         </label>
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
           className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-orange-500"
         >
-          <option value="newest">Newest Arrivals</option>
-          <option value="price_asc">Price: Low to High</option>
-          <option value="price_desc">Price: High to Low</option>
-          <option value="rating">Highest Rated</option>
+          <option value="newest">{mounted ? t('sort_newest') : 'Newest Arrivals'}</option>
+          <option value="price_asc">{mounted ? t('sort_price_asc') : 'Price: Low to High'}</option>
+          <option value="price_desc">{mounted ? t('sort_price_desc') : 'Price: High to Low'}</option>
+          <option value="rating">{mounted ? t('sort_rating_desc') : 'Highest Customer Rating'}</option>
         </select>
       </div>
 
       {onClose && (
         <button
           onClick={onClose}
-          className="lg:hidden w-full py-3 rounded-xl bg-orange-500 text-white font-bold text-xs shadow-md shadow-orange-500/25"
+          className="lg:hidden w-full py-3 rounded-xl bg-orange-500 text-white font-bold text-xs shadow-md shadow-orange-500/25 cursor-pointer"
         >
-          Apply Filters & View Results
+          {mounted ? (language === 'bn' ? 'ফিল্টার প্রয়োগ করে পণ্য দেখুন' : 'Apply Filters & View Results') : 'Apply Filters'}
         </button>
       )}
     </div>
