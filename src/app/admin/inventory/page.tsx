@@ -177,9 +177,10 @@ const CATEGORIES = [
   'Apparel',
 ];
 
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-export default function AdminInventoryPage() {
+function InventoryContent() {
   const searchParams = useSearchParams();
   const [inventory, setInventory] = useState<IInventoryItem[]>(INITIAL_INVENTORY);
   const [searchQuery, setSearchQuery] = useState('');
@@ -390,7 +391,7 @@ export default function AdminInventoryPage() {
             <button
               type="button"
               onClick={() => setIsAddModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/25 transition-all cursor-pointer hover:scale-105"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-linear-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/25 transition-all cursor-pointer hover:scale-105"
             >
               <Plus className="w-4 h-4" />
               Add Product (৳ BDT)
@@ -503,7 +504,7 @@ export default function AdminInventoryPage() {
                   <th className="px-5 py-3.5">Sales Price (৳)</th>
                   <th className="px-5 py-3.5">Stock</th>
                   <th className="px-5 py-3.5">Status</th>
-                  <th className="px-5 py-3.5 text-right min-w-[210px]">Actions</th>
+                  <th className="px-5 py-3.5 text-right min-w-52.5">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
@@ -514,7 +515,7 @@ export default function AdminInventoryPage() {
                   return (
                     <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                       <td className="px-5 py-3.5 flex items-center gap-3">
-                        <div className="relative w-10 h-10 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-950 flex-shrink-0 border border-slate-200 dark:border-slate-800">
+                        <div className="relative w-10 h-10 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-950 shrink-0 border border-slate-200 dark:border-slate-800">
                           <Image src={item.image} alt={item.name} fill className="object-cover" />
                         </div>
                         <div>
@@ -1308,5 +1309,20 @@ export default function AdminInventoryPage() {
         )}
       </div>
     </RoleGuard>
+  );
+}
+
+export default function AdminInventoryPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-400 gap-3">
+          <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs font-semibold">Loading Inventory Data...</p>
+        </div>
+      }
+    >
+      <InventoryContent />
+    </Suspense>
   );
 }

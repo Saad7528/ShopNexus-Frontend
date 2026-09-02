@@ -257,7 +257,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             title="Visit Live Storefront"
           >
             <div className="flex items-center gap-2">
-              <ArrowUpRight className="w-4 h-4 text-orange-600 dark:text-indigo-400 flex-shrink-0" />
+              <ArrowUpRight className="w-4 h-4 text-orange-600 dark:text-indigo-400 shrink-0" />
               {(sidebarOpen || isMobile) && <span>Live Storefront</span>}
             </div>
             {(sidebarOpen || isMobile) && <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono">Online</span>}
