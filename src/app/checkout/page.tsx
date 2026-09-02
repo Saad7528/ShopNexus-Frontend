@@ -699,7 +699,7 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      {/* 💳 MFS BKASH / NAGAD PAYMENT SIMULATION MODAL */}
+      {/* MFS BKASH / NAGAD PAYMENT SIMULATION MODAL */}
       <MfsPaymentModal
         isOpen={isMfsModalOpen}
         onClose={() => setIsMfsModalOpen(false)}

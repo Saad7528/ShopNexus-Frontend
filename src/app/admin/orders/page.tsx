@@ -1157,7 +1157,7 @@ export default function AdminOrdersPage() {
                     <span>Send WhatsApp & Flag</span>
                   </button>
 
-                  {/* SMS / System Flag */}
+                  {/* SMS */}
                   <button
                     type="button"
                     onClick={() => handleSaveIssueReport('SMS')}
