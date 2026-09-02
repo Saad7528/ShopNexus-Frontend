@@ -28,7 +28,7 @@ export const LanguageToggle: React.FC<LanguageToggleProps> = ({
     );
   }
 
-  // Next language to switch to
+  // Next language to switch to  
   const targetLabel = language === 'bn' ? 'EN' : 'বাং';
   const tooltip = language === 'bn' ? 'Switch to English' : 'বাংলা ভাষায় দেখুন';
 
