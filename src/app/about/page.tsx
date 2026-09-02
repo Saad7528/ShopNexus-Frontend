@@ -448,7 +448,7 @@ export default function AboutAndFAQPage() {
         </div>
       </section>
 
-      {/* 🌟 5. CALL TO ACTION FOOTER BANNER */}
+      {/* 5. CALL TO ACTION FOOTER BANNER */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 border-t border-slate-200 dark:border-slate-800 bg-slate-100/60 dark:bg-slate-950">
         <div className="max-w-4xl mx-auto text-center space-y-5">
           <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
