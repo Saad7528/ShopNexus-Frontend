@@ -835,7 +835,7 @@ export default function AdminOrdersPage() {
                   <button
                     type="button"
                     onClick={handlePrint}
-                    className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/30 cursor-pointer"
+                    className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-linear-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/30 cursor-pointer"
                   >
                     <Printer className="w-4 h-4" /> Print All {selectedOrdersList.length} Invoices
                   </button>
