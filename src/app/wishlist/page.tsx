@@ -64,7 +64,7 @@ export default function WishlistPage() {
           )}
         </div>
 
-        {/* Empty state */}
+        {/* Empty */}
         {items.length === 0 ? (
           <div className="py-20 text-center rounded-3xl bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-white/5 shadow-sm backdrop-blur-xl">
             <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto text-slate-400 dark:text-slate-500 mb-4">

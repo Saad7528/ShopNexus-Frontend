@@ -116,7 +116,7 @@ export const FrequentlyBoughtTogether: React.FC<FrequentlyBoughtTogetherProps> =
             const isMain = item._id === mainProduct._id;
             return (
               <React.Fragment key={item._id}>
-                {idx > 0 && <Plus className="w-4 h-4 text-slate-400 flex-shrink-0" />}
+                {idx > 0 && <Plus className="w-4 h-4 text-slate-400 shrink-0" />}
                 <div
                   onClick={() => toggleItem(item._id)}
                   className={`relative p-2 sm:p-2.5 rounded-2xl border transition-all cursor-pointer flex-shrink-0 shadow-xs select-none ${

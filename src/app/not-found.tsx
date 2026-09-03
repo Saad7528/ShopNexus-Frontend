@@ -23,7 +23,7 @@ export default function NotFound() {
   return (
     <main className="min-h-[90vh] flex items-center justify-center relative overflow-hidden bg-slate-50 dark:bg-[#060913] text-slate-900 dark:text-white px-4 py-16 transition-colors duration-300">
       {/* Dynamic Ambient Background Glows */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] bg-gradient-to-tr from-orange-600/20 via-amber-500/15 to-transparent rounded-full blur-3xl pointer-events-none -z-10 animate-pulse" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] bg-linear-to-tr from-orange-600/20 via-amber-500/15 to-transparent rounded-full blur-3xl pointer-events-none -z-10 animate-pulse" />
       <div className="absolute bottom-10 left-10 w-72 h-72 bg-blue-600/10 dark:bg-blue-500/10 rounded-full blur-2xl pointer-events-none -z-10" />
       <div className="absolute top-10 right-10 w-72 h-72 bg-orange-500/10 rounded-full blur-2xl pointer-events-none -z-10" />
 
