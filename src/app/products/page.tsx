@@ -615,7 +615,7 @@ function ProductsContent() {
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10">
       {/* Header Banner */}
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-orange-50/90 via-white to-amber-50/60 dark:from-[#0b1120] dark:via-slate-900 dark:to-[#090d16] border border-orange-200 dark:border-orange-500/20 p-5 sm:p-10 mb-6 sm:mb-10 shadow-xl backdrop-blur-2xl">
+      <div className="relative rounded-3xl overflow-hidden bg-linear-to-r from-orange-50/90 via-white to-amber-50/60 dark:from-[#0b1120] dark:via-slate-900 dark:to-[#090d16] border border-orange-200 dark:border-orange-500/20 p-5 sm:p-10 mb-6 sm:mb-10 shadow-xl backdrop-blur-2xl">
         <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="max-w-2xl relative z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 dark:bg-orange-500/15 border border-orange-500/30 text-orange-600 dark:text-orange-400 text-[11px] sm:text-xs font-semibold uppercase tracking-wider mb-2 sm:mb-3">
@@ -719,7 +719,7 @@ function ProductsContent() {
               </p>
               <button
                 onClick={resetFilters}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] via-[#ff7700] to-[#ff4400] text-white text-xs font-semibold shadow-lg shadow-orange-500/25 cursor-pointer"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-linear-to-r from-[#ff4400] via-[#ff7700] to-[#ff4400] text-white text-xs font-semibold shadow-lg shadow-orange-500/25 cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5" /> {mounted ? t('filter_reset') : 'Reset All Filters'}
               </button>

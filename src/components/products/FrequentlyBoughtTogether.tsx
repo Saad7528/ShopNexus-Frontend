@@ -88,10 +88,10 @@ export const FrequentlyBoughtTogether: React.FC<FrequentlyBoughtTogetherProps> =
             const isSelected = selectedIds.includes(item._id);
             return (
               <React.Fragment key={item._id}>
-                {idx > 0 && <Plus className="w-4 h-4 text-slate-400 flex-shrink-0" />}
+                {idx > 0 && <Plus className="w-4 h-4 text-slate-400 shrink-0" />}
                 <div
                   onClick={() => toggleItem(item._id)}
-                  className={`relative p-2.5 rounded-2xl border transition-all cursor-pointer flex-shrink-0 shadow-xs ${
+                  className={`relative p-2.5 rounded-2xl border transition-all cursor-pointer shrink-0 shadow-xs ${
                     isSelected
                       ? 'bg-orange-500/10 dark:bg-orange-500/15 border-orange-500 ring-2 ring-orange-500/30'
                       : 'bg-slate-50 dark:bg-slate-950/40 border-slate-200 dark:border-slate-800/80 opacity-60'

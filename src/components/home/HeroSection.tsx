@@ -333,13 +333,13 @@ export const HeroSection: React.FC = () => {
 
       {/* 🌟 2. ANIMATED MEGA CAMPAIGN BANNER */}
       <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#ffaa00] via-[#ff7700] to-[#ff3300] p-2.5 sm:p-3 text-white shadow-md shadow-orange-500/20 border border-amber-300/40">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-full animate-[shimmer_3s_infinite]" />
+        <div className="relative overflow-hidden rounded-2xl bg-linear-to-r from-[#ffaa00] via-[#ff7700] to-[#ff3300] p-2.5 sm:p-3 text-white shadow-md shadow-orange-500/20 border border-amber-300/40">
+          <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/15 to-transparent -translate-x-full animate-[shimmer_3s_infinite]" />
 
           <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-2.5">
             {/* Left: Campaign Title & Badges */}
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-              <div className="px-3 py-1 rounded-xl bg-gradient-to-r from-red-600 to-rose-700 text-white font-black text-xs sm:text-sm uppercase tracking-wider shadow-md flex items-center gap-1.5 shrink-0">
+              <div className="px-3 py-1 rounded-xl bg-linear-to-r from-red-600 to-rose-700 text-white font-black text-xs sm:text-sm uppercase tracking-wider shadow-md flex items-center gap-1.5 shrink-0">
                 <Flame className="w-3.5 h-3.5 fill-amber-300 text-amber-300 animate-bounce" />
                 <span>{mounted ? t('banner_payday_sale') : 'PAYDAY MEGA SALE'}</span>
               </div>
