@@ -719,7 +719,7 @@ function ProductsContent() {
               </p>
               <button
                 onClick={resetFilters}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] via-[#ff7700] to-[#ff4400] text-white text-xs font-semibold shadow-lg shadow-orange-500/25 cursor-pointer"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-linear-to-r from-[#ff4400] via-[#ff7700] to-[#ff4400] text-white text-xs font-semibold shadow-lg shadow-orange-500/25 cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5" /> {mounted ? t('filter_reset') : 'Reset All Filters'}
               </button>
