@@ -38,7 +38,7 @@ import {
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, clearCart } = useCartStore();
-  const { user, isAuthenticated, spendCoins, useVipDiscount } = useAuthStore();
+  const { user, isAuthenticated, spendCoins, addCoins, useVipDiscount } = useAuthStore();
   const orders = useOrderStore((state) => state.orders);
   const { t, language } = useLanguageStore();
   const [mounted, setMounted] = useState(false);
@@ -47,11 +47,20 @@ export default function CheckoutPage() {
     setMounted(true);
   }, []);
 
-  // Coins & VIP State
+  // Subtotal calculation (Product rate only)
+  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  // 🪙 Base Loyalty Points Earning: 10 Points for every ৳100 of product subtotal (excluding delivery & VAT)
+  const earnedLoyaltyPoints = Math.floor(subtotal / 100) * 10;
+
+  // Coins & Loyalty Points State (Rule: 10 Points = ৳1 Discount, Min Order ৳500)
   const [useCoinsChecked, setUseCoinsChecked] = useState(false);
-  const availableCoins = user?.nexusCoins || 0;
-  const coinsDiscount = useCoinsChecked && availableCoins >= 50 ? Math.floor(availableCoins / 50) * 5 : 0;
-  const coinsSpent = useCoinsChecked ? availableCoins : 0;
+  const availableCoins = (user?.nexusCoins !== undefined && user?.nexusCoins !== null) ? user.nexusCoins : 500;
+  const isEligibleForPoints = subtotal >= 500;
+  const coinsDiscount = useCoinsChecked && isEligibleForPoints && availableCoins >= 10
+    ? Math.floor(availableCoins / 10) * 1
+    : 0;
+  const coinsSpent = useCoinsChecked && isEligibleForPoints ? availableCoins : 0;
 
   // VIP First Order discount: ৳200 flat off if user.isVipMember && !user.vipFirstOrderUsed
   const isVipEligible = !!user?.isVipMember && !user?.vipFirstOrderUsed;
@@ -106,7 +115,6 @@ export default function CheckoutPage() {
 
   // Dynamic delivery fee calculation: Inside Dhaka ৳60, Outside Dhaka ৳120
   const deliveryFee = deliveryZone === 'inside_dhaka' ? 60 : 120;
-  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   // 10% First order automatic discount
   const firstOrderDiscount = isFirstOrder ? Math.round(subtotal * 0.10) : 0;
@@ -194,6 +202,11 @@ export default function CheckoutPage() {
 
     // Save to persistent customer order history
     useOrderStore.getState().addOrder(newOrderObj);
+
+    // Auto-credit newly earned loyalty points (10 pts per ৳100 product subtotal)
+    if (earnedLoyaltyPoints > 0) {
+      addCoins(earnedLoyaltyPoints);
+    }
 
     // Deduct redeemed Nexus coins if applied
     if (useCoinsChecked && coinsSpent > 0) {
@@ -602,34 +615,43 @@ export default function CheckoutPage() {
                   </div>
                 )}
 
-                {/* 2. Nexus Coins Redeem Toggle (50 Coins = ৳5 Off) */}
-                {availableCoins >= 50 && (
+                {/* 2. Nexus Loyalty Points Redeem Toggle (10 Points = ৳1 Off, Min Spend ৳500) */}
+                {availableCoins >= 10 && (
                   <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/25 space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-800 dark:text-slate-200">
+                      <label className={`flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200 ${isEligibleForPoints ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'}`}>
                         <input
                           type="checkbox"
-                          checked={useCoinsChecked}
+                          checked={useCoinsChecked && isEligibleForPoints}
+                          disabled={!isEligibleForPoints}
                           onChange={(e) => setUseCoinsChecked(e.target.checked)}
-                          className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
+                          className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer disabled:cursor-not-allowed"
                         />
                         <span>
                           {mounted && language === 'bn'
-                            ? `Nexus Coins রিডিম করুন (${toBengaliNumber(availableCoins)} কয়েন আছে)`
-                            : `Redeem Nexus Coins (${availableCoins} Coins available)`}
+                            ? `লয়্যালটি পয়েন্ট ব্যবহার করুন (${toBengaliNumber(availableCoins)} পয়েন্ট = ৳${toBengaliNumber(Math.floor(availableCoins / 10))} ক্যাশ ছাড়)`
+                            : `Use Loyalty Points (${availableCoins} Pts = ৳${Math.floor(availableCoins / 10)} Value)`}
                         </span>
                       </label>
-                      {useCoinsChecked && coinsDiscount > 0 && (
+                      {useCoinsChecked && coinsDiscount > 0 && isEligibleForPoints && (
                         <span className="font-mono font-black text-emerald-600 dark:text-emerald-400 text-xs">
                           -{mounted ? formatCurrency(coinsDiscount, language) : `৳${coinsDiscount.toLocaleString()}`}
                         </span>
                       )}
                     </div>
-                    <p className="text-[10px] text-slate-500 dark:text-slate-400 pl-6">
-                      {mounted && language === 'bn'
-                        ? '🪙 প্রতি ৫০ কয়েনে ৫ টাকা ক্যাশ ডিসকাউন্ট।'
-                        : '🪙 50 coins = ৳5 discount.'}
-                    </p>
+                    {isEligibleForPoints ? (
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400 pl-6">
+                        {mounted && language === 'bn'
+                          ? '🪙 প্রতি ১০ পয়েন্টে ১ টাকা ক্যাশ ডিসকাউন্ট (১০ পয়েন্ট = ৳১)।'
+                          : '🪙 10 points = ৳1 instant cash discount.'}
+                      </p>
+                    ) : (
+                      <p className="text-[10px] text-amber-700 dark:text-amber-300 font-semibold pl-6">
+                        {mounted && language === 'bn'
+                          ? '⚠️ ন্যূনতম ৳৫০০ টাকার অর্ডারে পয়েন্ট ব্যবহার করা যাবে।'
+                          : '⚠️ Minimum ৳500 subtotal required to redeem loyalty points.'}
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
@@ -693,6 +715,23 @@ export default function CheckoutPage() {
                     {mounted ? formatCurrency(total, language) : `৳${total.toLocaleString()} BDT`}
                   </span>
                 </div>
+
+                {/* 🪙 Loyalty Points Reward Earned on this Order */}
+                {earnedLoyaltyPoints > 0 && (
+                  <div className="mt-3 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-between text-xs text-amber-800 dark:text-amber-300">
+                    <div className="flex items-center gap-2">
+                      <Coins className="w-4 h-4 text-amber-500 shrink-0" />
+                      <span>
+                        {mounted && language === 'bn'
+                          ? `এই অর্ডারে পাবেন ${toBengaliNumber(earnedLoyaltyPoints)} লয়্যালটি পয়েন্ট (প্রতি ৳১০০ এ ১০ পয়েন্ট)`
+                          : `Earn ${earnedLoyaltyPoints} Loyalty Points on this order (10 Pts per ৳100)`}
+                      </span>
+                    </div>
+                    <span className="font-bold font-mono text-amber-600 dark:text-amber-400 shrink-0">
+                      +{mounted && language === 'bn' ? toBengaliNumber(earnedLoyaltyPoints) : earnedLoyaltyPoints} pts
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

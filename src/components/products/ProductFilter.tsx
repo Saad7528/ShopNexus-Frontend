@@ -9,6 +9,7 @@ import { Filter, RotateCcw, Search, X } from 'lucide-react';
 
 const CATEGORIES = [
   'All',
+  'Combo Packages',
   'Audio',
   'Wearables',
   'Peripherals',

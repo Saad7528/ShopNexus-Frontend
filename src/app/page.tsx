@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { ProductCard } from '@/components/products/ProductCard';
 import { TestimonialSlider } from '@/components/home/TestimonialSlider';
 import { HeroSection } from '@/components/home/HeroSection';
+import { ComboDealsSection } from '@/components/home/ComboDealsSection';
 import { ALL_PRODUCTS } from '@/data/products';
 import {
   Sparkles,
@@ -309,6 +310,9 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* 🔥 EXCLUSIVE COMBO BUNDLES & LOYALTY REWARDS SECTION */}
+      <ComboDealsSection />
 
       {/* 🤖 8. 5 AI SUPERPOWERS SHOWCASE */}
       <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
