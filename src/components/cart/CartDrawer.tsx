@@ -27,7 +27,7 @@ export const CartDrawer: React.FC = () => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[70] overflow-hidden">
+    <div className="fixed inset-0 z-70 overflow-hidden">
       {/* Backdrop */}
       <div
         onClick={closeDrawer}
