@@ -9,7 +9,7 @@ import { useCartStore } from '@/store/useCartStore';
 import { useLanguageStore } from '@/store/useLanguageStore';
 import { formatCurrency, toBengaliNumber } from '@/lib/translations';
 import { getLocalizedProduct } from '@/lib/localizedProducts';
-import { Star, Zap, Plus, Check } from 'lucide-react';
+import { Star, Zap, Plus, Check, Coins, Sparkles } from 'lucide-react';
 
 interface ProductCardProps {
   product: Product;
@@ -68,6 +68,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
   const productUrl = `/products/${product._id || product.slug}`;
 
+  const isCombo = product.category === 'Combo Packages' || (product.tags && product.tags.includes('combo'));
+  const hasDualImages = isCombo && product.images && product.images.length >= 2;
+  const earnedLoyaltyPoints = Math.floor(displayPrice / 100) * 10;
+
   return (
     <Link
       href={productUrl}
@@ -81,24 +85,45 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           fill
           sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
           className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
+          unoptimized={product.images[0]?.startsWith('/')}
         />
 
-        {/* Flash Sale Badge */}
+        {/* Flash Sale / Combo Discount Badge */}
         {product.isFlashSale && (
-          <div className="absolute top-1 left-1 sm:top-2 sm:left-2 flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-linear-to-r from-[#ff4400] to-[#ff7700] text-white font-black text-[8.5px] sm:text-[9px] shadow-xs">
+          <div className="absolute top-1 left-1 sm:top-2 sm:left-2 flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white font-black text-[8px] sm:text-[9px] shadow-md z-10">
             <Zap className="w-2.5 h-2.5 fill-current" />
             <span>
               {product.flashSaleDiscountPercent
-                ? `-${mounted && language === 'bn' ? toBengaliNumber(product.flashSaleDiscountPercent) : product.flashSaleDiscountPercent}%`
-                : (mounted ? t('badge_sale') : 'SALE')}
+                ? `-${mounted && language === 'bn' ? toBengaliNumber(product.flashSaleDiscountPercent) : product.flashSaleDiscountPercent}%${isCombo ? ' COMBO' : ''}`
+                : (mounted ? (isCombo ? 'কম্বো' : t('badge_sale')) : (isCombo ? 'COMBO' : 'SALE'))}
             </span>
           </div>
         )}
 
-        {/* Low Stock Badge */}
-        {product.stock <= 5 && product.stock > 0 && (
-          <div className="absolute top-1 right-1 sm:top-2 sm:right-2 px-1.5 py-0.5 rounded-md bg-rose-500/90 backdrop-blur-md text-white text-[7.5px] sm:text-[9px] font-bold">
-            {mounted && language === 'bn' ? toBengaliNumber(product.stock) : product.stock} {mounted ? t('badge_left') : 'left'}
+        {/* Loyalty Coins Badge for Combo */}
+        {isCombo ? (
+          <div className="absolute top-1 right-1 sm:top-2 sm:right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-400 dark:bg-amber-500 text-slate-950 font-black text-[8px] sm:text-[9px] shadow-md z-10">
+            <Coins className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-slate-950" />
+            <span>+{mounted && language === 'bn' ? toBengaliNumber(earnedLoyaltyPoints) : earnedLoyaltyPoints} pts</span>
+          </div>
+        ) : (
+          /* Low Stock Badge */
+          product.stock <= 5 && product.stock > 0 && (
+            <div className="absolute top-1 right-1 sm:top-2 sm:right-2 px-1.5 py-0.5 rounded-md bg-rose-500/90 backdrop-blur-md text-white text-[7.5px] sm:text-[9px] font-bold z-10">
+              {mounted && language === 'bn' ? toBengaliNumber(product.stock) : product.stock} {mounted ? t('badge_left') : 'left'}
+            </div>
+          )
+        )}
+
+        {/* Bottom Combo Header Tag (Clean, no AI star/sparkle icon) */}
+        {isCombo && (
+          <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-slate-950/90 via-slate-950/60 to-transparent py-1.5 px-2.5 flex items-center justify-between text-[8px] sm:text-[9px] text-white font-bold z-10">
+            <span className="text-orange-300 font-semibold tracking-wide">
+              {mounted && language === 'bn' ? 'কম্বো বান্ডেল (২টি গ্যাজেট)' : 'Combo Bundle (2 Items)'}
+            </span>
+            <span className="text-emerald-300 font-mono">
+              {mounted && language === 'bn' ? 'বিশেষ সেভার অফার' : 'Super Saver'}
+            </span>
           </div>
         )}
       </div>
@@ -113,6 +138,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           >
             {productTitle}
           </h3>
+          {isCombo && product.description && (
+            <p className="text-[9px] text-orange-600 dark:text-orange-400 font-medium line-clamp-1 mb-0.5">
+              {product.description}
+            </p>
+          )}
 
           {/* Rating */}
           <div className="flex items-center gap-1">

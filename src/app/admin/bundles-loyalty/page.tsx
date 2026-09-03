@@ -36,28 +36,8 @@ import {
   ChevronDown,
 } from 'lucide-react';
 
-interface IBundleItem {
-  id?: string;
-  title: string;
-  image: string;
-  regularPrice: number;
-  category?: string;
-}
-
-interface IBundleDeal {
-  id: string;
-  title: string;
-  badge: string;
-  description?: string;
-  promoCode?: string;
-  purchaseInstruction?: string;
-  items: IBundleItem[];
-  originalTotal: number;
-  bundlePrice: number;
-  savings: number;
-  status: 'Active' | 'Draft' | 'Expired';
-  salesCount: number;
-}
+import { IBundleItem, IBundleDeal, INITIAL_BUNDLES } from '@/data/bundles';
+import { useBundleStore } from '@/store/useBundleStore';
 
 interface ICustomerLoyalty {
   id: string;
@@ -68,96 +48,6 @@ interface ICustomerLoyalty {
   totalSpent: number;
   lastRedeemed: string;
 }
-
-const INITIAL_BUNDLES: IBundleDeal[] = [
-  {
-    id: 'b-1',
-    title: 'Ultimate Audiophile Master Combo',
-    badge: '🔥 15% OFF BUNDLE',
-    description: 'হাই-ফাই মিউজিক ও নয়েজ ক্যান্সেলেশনের সেরা কম্বিনেশন। একসাথে কিনলে ১০,৭১০ টাকা সাশ্রয়!',
-    promoCode: 'AUDIOPRO15',
-    purchaseInstruction: 'চেকআউটে অটো ডিসকাউন্ট প্রযোজ্য অথবা কোড AUDIOPRO15 ব্যবহার করুন',
-    items: [
-      {
-        id: 'p1',
-        title: 'Sony WH-1000XM5 Wireless Noise-Cancelling Headphones',
-        image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&q=80',
-        regularPrice: 32500,
-        category: 'Audio',
-      },
-      {
-        id: 'p2',
-        title: 'Bose QuietComfort Ultra Spatial Audio Headphones',
-        image: 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=600&q=80',
-        regularPrice: 38900,
-        category: 'Audio',
-      },
-    ],
-    originalTotal: 71400,
-    bundlePrice: 60690,
-    savings: 10710,
-    status: 'Active',
-    salesCount: 38,
-  },
-  {
-    id: 'b-2',
-    title: 'Titanium Creator Pro Suite',
-    badge: '⭐ POPULAR COMBO',
-    description: 'স্মার্ট লাইফস্টাইল ও প্রোডাক্টিভিটি বুস্ট করার জন্য প্রিমিয়াম স্মার্টওয়াচ এবং মেকানিক্যাল কিবোর্ড।',
-    promoCode: 'CREATORVIP',
-    purchaseInstruction: 'এক ক্লিকে কম্বো অর্ডার করুন এবং ফ্রি ডেলিভারি উপভোগ করুন',
-    items: [
-      {
-        id: 'p-smartwatch',
-        title: 'Apple Watch Ultra 2 Aerospace Titanium',
-        image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80',
-        regularPrice: 79900,
-        category: 'Wearables',
-      },
-      {
-        id: 'p-keychron',
-        title: 'Keychron Q1 Pro Custom Keyboard',
-        image: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=600&q=80',
-        regularPrice: 17900,
-        category: 'Gaming',
-      },
-    ],
-    originalTotal: 97800,
-    bundlePrice: 85900,
-    savings: 11900,
-    status: 'Active',
-    salesCount: 52,
-  },
-  {
-    id: 'b-3',
-    title: 'Esports Competitive Duo',
-    badge: '🎮 GAMER SPECIAL',
-    description: 'আল্ট্রা-লাইটওয়েট ওয়্যারলেস গেমিং মাউস ও মেকানিক্যাল কাস্টম কিবোর্ড কম্বো।',
-    promoCode: 'ESPORTS10',
-    purchaseInstruction: 'গেমিং বান্ডেল ডিসকাউন্টের সাথে পাবেন ৩ মাসের রিপ্লেসমেন্ট ওয়ারেন্টি',
-    items: [
-      {
-        id: 'p-mouse',
-        title: 'Razer Viper V2 Pro Ultra-Lightweight',
-        image: 'https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=600&q=80',
-        regularPrice: 11900,
-        category: 'Gaming',
-      },
-      {
-        id: 'p-keychron',
-        title: 'Keychron Q1 Pro Custom Keyboard',
-        image: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=600&q=80',
-        regularPrice: 17900,
-        category: 'Gaming',
-      },
-    ],
-    originalTotal: 29800,
-    bundlePrice: 25500,
-    savings: 4300,
-    status: 'Active',
-    salesCount: 64,
-  },
-];
 
 const BADGE_PRESETS = [
   '🔥 15% OFF BUNDLE',
@@ -210,7 +100,7 @@ const INITIAL_LOYALTY_CUSTOMERS: ICustomerLoyalty[] = [
 
 export default function BundlesAndLoyaltyPage() {
   const [activeTab, setActiveTab] = useState<'bundles' | 'loyalty'>('bundles');
-  const [bundles, setBundles] = useState<IBundleDeal[]>(INITIAL_BUNDLES);
+  const { bundles, addBundle, updateBundle, deleteBundle } = useBundleStore();
   const [loyaltyCustomers, setLoyaltyCustomers] = useState<ICustomerLoyalty[]>(INITIAL_LOYALTY_CUSTOMERS);
   
   // Create / Edit Bundle Modal State
@@ -353,28 +243,23 @@ export default function BundlesAndLoyaltyPage() {
     const orig = parseInt(originalTotalInput) || 0;
     const bund = parseInt(bundlePriceInput) || 0;
     const savings = Math.max(0, orig - bund);
+    const rewardPts = Math.floor(bund / 100) * 10;
 
     if (editingBundleId) {
       // Update existing bundle
-      setBundles((prev) =>
-        prev.map((b) =>
-          b.id === editingBundleId
-            ? {
-                ...b,
-                title: bundleTitle,
-                badge: bundleBadge,
-                description: bundleDescription,
-                promoCode: bundlePromoCode.toUpperCase(),
-                purchaseInstruction: bundlePurchaseInstruction,
-                items: selectedItems.length > 0 ? selectedItems : b.items,
-                originalTotal: orig,
-                bundlePrice: bund,
-                savings: savings,
-                status: bundleStatus,
-              }
-            : b
-        )
-      );
+      updateBundle(editingBundleId, {
+        title: bundleTitle,
+        badge: bundleBadge,
+        description: bundleDescription,
+        promoCode: bundlePromoCode.toUpperCase(),
+        purchaseInstruction: bundlePurchaseInstruction,
+        items: selectedItems.length > 0 ? selectedItems : undefined,
+        originalTotal: orig,
+        bundlePrice: bund,
+        savings: savings,
+        rewardPoints: rewardPts,
+        status: bundleStatus,
+      });
     } else {
       // Create new bundle
       const newDeal: IBundleDeal = {
@@ -395,11 +280,12 @@ export default function BundlesAndLoyaltyPage() {
         originalTotal: orig,
         bundlePrice: bund,
         savings: savings,
+        rewardPoints: rewardPts,
         status: bundleStatus,
         salesCount: 0,
       };
 
-      setBundles((prev) => [newDeal, ...prev]);
+      addBundle(newDeal);
     }
 
     setIsBundleModalOpen(false);
@@ -627,7 +513,7 @@ export default function BundlesAndLoyaltyPage() {
                         type="button"
                         onClick={() => {
                           if (confirm(`Are you sure you want to delete "${deal.title}"?`)) {
-                            setBundles((prev) => prev.filter((b) => b.id !== deal.id));
+                            deleteBundle(deal.id);
                           }
                         }}
                         className="p-1.5 rounded-xl hover:bg-rose-500/10 text-slate-400 hover:text-rose-500 transition-colors cursor-pointer"
