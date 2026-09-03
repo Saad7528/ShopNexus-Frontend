@@ -48,8 +48,8 @@ export default function ForgotPasswordPage() {
 
   return (
     <AuthBackground>
-      {/* Centered Clickable ShopNexus Logo */}
-      <BrandLogo size="lg" className="mb-4 drop-shadow-lg" />
+      {/* Centered Clickable ShopNexus Logo (Universal crisp white on cinematic dark auth background) */}
+      <BrandLogo size="lg" variant="white" className="mb-4 drop-shadow-xl" />
 
       <div className="max-w-md w-full p-8 rounded-3xl bg-white/95 dark:bg-slate-900/85 border border-white/20 dark:border-slate-800/80 shadow-2xl shadow-black/40 backdrop-blur-2xl space-y-6">
         {/* Header */}

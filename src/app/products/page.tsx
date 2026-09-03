@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { ProductFilter } from '@/components/products/ProductFilter';
 import { ProductCard } from '@/components/products/ProductCard';
 import { useProductStore, Product } from '@/store/useProductStore';
+import { useBundleStore, convertBundleToProduct } from '@/store/useBundleStore';
 import { useLanguageStore } from '@/store/useLanguageStore';
 import { getLocalizedCategory } from '@/lib/localizedProducts';
 import { toBengaliNumber } from '@/lib/translations';
@@ -544,10 +545,79 @@ const FALLBACK_PRODUCTS: Product[] = [
     totalReviews: 240,
     tags: ['smart-mug', 'temperature-control', 'smart-home'],
   },
+
+  // --- COMBO PACKAGES & BUNDLES (3 Combos) ---
+  {
+    _id: 'combo-1',
+    title: 'Ultimate Audiophile Master Combo (Sony XM5 + Bose QC Ultra)',
+    slug: 'ultimate-audiophile-master-combo',
+    description: 'হাই-ফাই মিউজিক ও নয়েজ ক্যান্সেলেশনের সেরা কম্বিনেশন। একসাথে কিনলে ১০,৭১০ টাকা সাশ্রয় ও ৬০০ লয়্যালটি পয়েন্ট বোনাস!',
+    category: 'Combo Packages',
+    brand: 'Sony',
+    price: 71400,
+    discountPrice: 60690,
+    stock: 15,
+    images: [
+      '/images/combos/combo-1.jpg',
+      'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80',
+      'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800&q=80',
+    ],
+    vendorName: 'ShopNexus Official',
+    isFlashSale: true,
+    flashSaleDiscountPercent: 15,
+    averageRating: 5.0,
+    totalReviews: 86,
+    tags: ['combo', 'bundle', 'audio', 'savings', 'special-offer'],
+  },
+  {
+    _id: 'combo-2',
+    title: 'Titanium Creator Pro Suite (Apple Watch Ultra 2 + Keychron Q1 Pro)',
+    slug: 'titanium-creator-pro-suite',
+    description: 'স্মার্ট লাইফস্টাইল ও প্রোডাক্টিভিটি বুস্ট করার জন্য প্রিমিয়াম স্মার্টওয়াচ এবং মেকানিক্যাল কিবোর্ড কম্বো।',
+    category: 'Combo Packages',
+    brand: 'Apple',
+    price: 97800,
+    discountPrice: 85900,
+    stock: 12,
+    images: [
+      '/images/combos/combo-2.jpg',
+      'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80',
+      'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=800&q=80',
+    ],
+    vendorName: 'ShopNexus Official',
+    isFlashSale: true,
+    flashSaleDiscountPercent: 12,
+    averageRating: 4.9,
+    totalReviews: 64,
+    tags: ['combo', 'bundle', 'wearable', 'gaming', 'savings'],
+  },
+  {
+    _id: 'combo-3',
+    title: 'Esports Competitive Duo (Razer Viper V2 Pro + Keychron Q1 Pro)',
+    slug: 'esports-competitive-duo',
+    description: 'আল্ট্রা-লাইটওয়েট ওয়্যারলেস গেমিং মাউস ও মেকানিক্যাল কাস্টম কিবোর্ড কম্বো।',
+    category: 'Combo Packages',
+    brand: 'Razer',
+    price: 29800,
+    discountPrice: 25500,
+    stock: 20,
+    images: [
+      '/images/combos/combo-3.jpg',
+      'https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=800&q=80',
+      'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=800&q=80',
+    ],
+    vendorName: 'ShopNexus Official',
+    isFlashSale: true,
+    flashSaleDiscountPercent: 14,
+    averageRating: 4.9,
+    totalReviews: 92,
+    tags: ['combo', 'bundle', 'gaming', 'esports', 'savings'],
+  },
 ];
 
 const CATEGORIES_LIST = [
   'All',
+  'Combo Packages',
   'Audio',
   'Wearables',
   'Peripherals',
@@ -573,7 +643,18 @@ function ProductsContent() {
 
   const { t, language } = useLanguageStore();
   const [mounted, setMounted] = useState(false);
-  const [products, setProducts] = useState<Product[]>(FALLBACK_PRODUCTS);
+  const rawBundles = useBundleStore((state) => state.bundles);
+
+  // Merge custom dynamic bundles with base products stably cached with useMemo
+  const allCatalogProducts = React.useMemo(() => {
+    const bundleProducts = rawBundles
+      .filter((b) => b.status === 'Active')
+      .map(convertBundleToProduct);
+    const nonCombos = FALLBACK_PRODUCTS.filter((p) => p.category !== 'Combo Packages');
+    return [...bundleProducts, ...nonCombos];
+  }, [rawBundles]);
+
+  const [products, setProducts] = useState<Product[]>(allCatalogProducts);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   useEffect(() => {
@@ -588,7 +669,7 @@ function ProductsContent() {
   }, [searchParams, setSearch, setCategory]);
 
   useEffect(() => {
-    let filtered = [...FALLBACK_PRODUCTS];
+    let filtered = [...allCatalogProducts];
     if (search) {
       filtered = filtered.filter(
         (p) =>
@@ -608,14 +689,14 @@ function ProductsContent() {
     if (sortBy === 'rating') filtered.sort((a, b) => b.averageRating - a.averageRating);
 
     setProducts(filtered);
-  }, [search, category, brand, maxPrice, minRating, sortBy, isFlashSale]);
+  }, [search, category, brand, maxPrice, minRating, sortBy, isFlashSale, allCatalogProducts]);
 
   const activeFiltersCount = (category ? 1 : 0) + (brand ? 1 : 0) + (isFlashSale ? 1 : 0) + (minRating > 0 ? 1 : 0) + (search ? 1 : 0);
 
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10">
       {/* Header Banner */}
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-orange-50/90 via-white to-amber-50/60 dark:from-[#0b1120] dark:via-slate-900 dark:to-[#090d16] border border-orange-200 dark:border-orange-500/20 p-5 sm:p-10 mb-6 sm:mb-10 shadow-xl backdrop-blur-2xl">
+      <div className="relative rounded-3xl overflow-hidden bg-linear-to-r from-orange-50/90 via-white to-amber-50/60 dark:from-[#0b1120] dark:via-slate-900 dark:to-[#090d16] border border-orange-200 dark:border-orange-500/20 p-5 sm:p-10 mb-6 sm:mb-10 shadow-xl backdrop-blur-2xl">
         <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="max-w-2xl relative z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 dark:bg-orange-500/15 border border-orange-500/30 text-orange-600 dark:text-orange-400 text-[11px] sm:text-xs font-semibold uppercase tracking-wider mb-2 sm:mb-3">
@@ -719,7 +800,7 @@ function ProductsContent() {
               </p>
               <button
                 onClick={resetFilters}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] via-[#ff7700] to-[#ff4400] text-white text-xs font-semibold shadow-lg shadow-orange-500/25 cursor-pointer"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-linear-to-r from-[#ff4400] via-[#ff7700] to-[#ff4400] text-white text-xs font-semibold shadow-lg shadow-orange-500/25 cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5" /> {mounted ? t('filter_reset') : 'Reset All Filters'}
               </button>

@@ -339,7 +339,7 @@ export const HeroSection: React.FC = () => {
           <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-2.5">
             {/* Left: Campaign Title & Badges */}
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-              <div className="px-3 py-1 rounded-xl bg-gradient-to-r from-red-600 to-rose-700 text-white font-black text-xs sm:text-sm uppercase tracking-wider shadow-md flex items-center gap-1.5 shrink-0">
+              <div className="px-3 py-1 rounded-xl bg-linear-to-r from-red-600 to-rose-700 text-white font-black text-xs sm:text-sm uppercase tracking-wider shadow-md flex items-center gap-1.5 shrink-0">
                 <Flame className="w-3.5 h-3.5 fill-amber-300 text-amber-300 animate-bounce" />
                 <span>{mounted ? t('banner_payday_sale') : 'PAYDAY MEGA SALE'}</span>
               </div>
@@ -385,7 +385,7 @@ export const HeroSection: React.FC = () => {
       >
         <div className="grid grid-cols-12 gap-3.5 items-stretch">
           {/* 🌟 8 COLS (2/3 WIDTH): Main Campaign Mega Slider (Big Product Image & 3s Transition) */}
-          <div className="col-span-8 relative rounded-2xl overflow-hidden bg-linear-to-br from-white via-slate-50 to-orange-50/40 dark:from-slate-900 dark:via-slate-900/90 dark:to-slate-950 border border-slate-200 dark:border-slate-800/80 shadow-md backdrop-blur-2xl p-4 sm:p-5 flex flex-col justify-between min-h-[270px]">
+          <div className="col-span-8 relative rounded-2xl overflow-hidden bg-gradient-to-br from-white via-slate-50 to-orange-50/40 dark:from-slate-900 dark:via-slate-900/90 dark:to-slate-950 border border-slate-200 dark:border-slate-800/80 shadow-md backdrop-blur-2xl p-4 sm:p-5 flex flex-col justify-between min-h-[270px]">
             {/* Top Bar: Slide Badge & Countdown Timer */}
             <div className="flex flex-wrap items-center justify-between gap-2 relative z-10">
               <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-orange-500/15 border border-orange-500/30 text-orange-600 dark:text-orange-400 text-[11px] font-bold">
@@ -414,7 +414,7 @@ export const HeroSection: React.FC = () => {
                   </span>
                   <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-white leading-tight">
                     {slide.title}{' '}
-                    <span className="bg-linear-to-r from-[#ff4400] via-[#ff7700] to-[#ffaa00] bg-clip-text text-transparent">
+                    <span className="bg-gradient-to-r from-[#ff4400] via-[#ff7700] to-[#ffaa00] bg-clip-text text-transparent">
                       {slide.titleHighlight}
                     </span>
                   </h1>

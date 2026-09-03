@@ -9,12 +9,14 @@ interface BrandLogoProps {
   href?: string;
   className?: string;
   showSubtitle?: boolean;
+  variant?: 'auto' | 'white' | 'dark';
 }
 
 export const BrandLogo: React.FC<BrandLogoProps> = ({
   size = 'md',
   href = '/',
   className = '',
+  variant = 'auto',
 }) => {
   const sizeConfig = {
     sm: {
@@ -39,9 +41,17 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
     },
   }[size];
 
+  // If variant is 'white', text is always pure white regardless of light/dark theme (essential for dark auth background)
+  const textColorClass =
+    variant === 'white'
+      ? 'text-white'
+      : variant === 'dark'
+      ? 'text-slate-950'
+      : 'text-slate-950 dark:text-white';
+
   const content = (
     <div className={`relative inline-flex items-center ${sizeConfig.gap} shrink-0 group transition-transform duration-200 hover:scale-[1.02] ${className}`}>
-      {/* 🌟 New Official 3D Gold-Orange Emblem (Flawless on both Light & Dark themes) */}
+      {/* 🌟 Official 3D Gold-Orange Emblem (Flawless on both Light & Dark themes) */}
       <div className="relative shrink-0 flex items-center justify-center">
         <Image
           src="/shopnexus-gold-emblem.png"
@@ -53,8 +63,8 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
         />
       </div>
 
-      {/* 🌟 Typography: Vertically centered, black in light mode, white in dark mode, orange Nexus in both */}
-      <span className={`${sizeConfig.textSize} font-black tracking-tight leading-none text-slate-950 dark:text-white transition-colors select-none`}>
+      {/* 🌟 Typography: Crisp white in 'white' variant, responsive in 'auto', glowing gradient for Nexus */}
+      <span className={`${sizeConfig.textSize} font-black tracking-tight leading-none ${textColorClass} transition-colors select-none`}>
         Shop<span className="bg-gradient-to-r from-[#ff4400] via-[#ff6600] to-[#ff8800] bg-clip-text text-transparent">Nexus</span>
       </span>
     </div>

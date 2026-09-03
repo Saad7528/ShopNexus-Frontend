@@ -206,22 +206,33 @@ export const Navbar: React.FC = () => {
 
             {/* Action Icons Bar */}
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-              {/* 1-Click EN | বাং Language Switcher */}
-              <LanguageToggle />
+              {/* 1-Click EN | বাং Language Switcher (Desktop Only - on Mobile/Tablet it is in Hamburger Menu) */}
+              <LanguageToggle className="hidden lg:inline-flex" />
 
-              {/* Theme Toggle Button (Mobile, Tablet & Desktop) */}
-              <button
-                type="button"
-                onClick={toggleTheme}
-                className="inline-flex p-2 sm:p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-orange-500 dark:hover:text-orange-300 transition-all cursor-pointer shadow-xs"
-                title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+              {/* Dynamic Theme Toggle Button:
+                  - Desktop (lg): Always visible
+                  - Mobile / Tablet (< lg): Smoothly merges/slides into Hamburger Menu on scroll, and springs back on top!
+              */}
+              <div
+                className={`transition-all duration-300 ease-out origin-right flex items-center ${
+                  isScrolled
+                    ? 'opacity-0 scale-0 w-0 -mr-1.5 sm:-mr-2 pointer-events-none lg:opacity-100 lg:scale-100 lg:w-auto lg:mr-0 lg:pointer-events-auto'
+                    : 'opacity-100 scale-100 w-auto mr-0'
+                }`}
               >
-                {isMounted && theme === 'light' ? (
-                  <Moon className="w-4 h-4 text-slate-700" />
-                ) : (
-                  <Sun className="w-4 h-4 text-orange-400" />
-                )}
-              </button>
+                <button
+                  type="button"
+                  onClick={toggleTheme}
+                  className="inline-flex p-2 sm:p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-orange-500 dark:hover:text-orange-300 transition-all cursor-pointer shadow-xs"
+                  title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+                >
+                  {isMounted && theme === 'light' ? (
+                    <Moon className="w-4 h-4 text-slate-700" />
+                  ) : (
+                    <Sun className="w-4 h-4 text-orange-400" />
+                  )}
+                </button>
+              </div>
 
               {/* Notification Bell Button (Tablet & Desktop) */}
               <button
@@ -365,7 +376,9 @@ export const Navbar: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="lg:hidden p-2 rounded-xl text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer"
+                className={`relative lg:hidden p-2 rounded-xl text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer transition-all duration-300 ${
+                  isScrolled ? 'hover:border-orange-500/50 shadow-xs' : ''
+                }`}
                 title="Open Navigation Menu"
               >
                 {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -376,10 +389,45 @@ export const Navbar: React.FC = () => {
           {/* Mobile & Tablet Navigation Menu */}
           {mobileMenuOpen && (
             <div className="lg:hidden py-3 border-t border-slate-200 dark:border-slate-800/80 space-y-3 animate-in fade-in-50">
-              {/* Mobile Phone (< sm) Login / User Profile Card */}
-              <div className="sm:hidden">
+              {/* 1. Navigation Page Links (হোম, পণ্যসমূহ, ফ্ল্যাশ ডিল) at TOP */}
+              <div className="flex flex-col gap-1">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-between transition-all ${
+                      pathname === link.href
+                        ? 'text-orange-600 dark:text-orange-400 bg-orange-500/10 border border-orange-500/30 shadow-xs'
+                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900'
+                    }`}
+                  >
+                    <span>{link.label}</span>
+                    {link.badge && (
+                      <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-full bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white">
+                        {link.badge}
+                      </span>
+                    )}
+                  </Link>
+                ))}
+
+                {/* If Admin: Quick Link to Admin Dashboard */}
+                {isMounted && isAuthenticated && user?.role === 'admin' && (
+                  <Link
+                    href="/admin/dashboard"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="px-4 py-2.5 rounded-xl text-xs font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 border border-orange-500/20 hover:bg-orange-500/20 flex items-center gap-2 transition-all shadow-xs"
+                  >
+                    <ShieldCheck className="w-4 h-4 text-orange-500" />
+                    <span>{isMounted ? t('nav_admin_dashboard') : 'Admin Dashboard'}</span>
+                  </Link>
+                )}
+              </div>
+
+              {/* 2. User Profile / Sign In Card (Under Navigation Links) */}
+              <div className="pt-1 border-t border-slate-200/80 dark:border-slate-800/80">
                 {isMounted && isAuthenticated && user ? (
-                  <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3">
+                  <div className="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3">
                     <Link
                       href="/profile"
                       onClick={() => setMobileMenuOpen(false)}
@@ -387,9 +435,9 @@ export const Navbar: React.FC = () => {
                     >
                       {user.avatar ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={user.avatar} alt={user.name || 'User'} className="w-9 h-9 rounded-xl object-cover border border-orange-500/40 shrink-0" />
+                        <img src={user.avatar} alt={user.name || 'User'} className="w-8 h-8 rounded-xl object-cover border border-orange-500/40 shrink-0" />
                       ) : (
-                        <div className="w-9 h-9 rounded-xl bg-orange-500/20 text-orange-600 dark:text-orange-400 flex items-center justify-center font-bold text-xs shrink-0">
+                        <div className="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-600 dark:text-orange-400 flex items-center justify-center font-bold text-xs shrink-0">
                           {user.name ? user.name[0].toUpperCase() : 'U'}
                         </div>
                       )}
@@ -414,32 +462,59 @@ export const Navbar: React.FC = () => {
                     onClick={() => setMobileMenuOpen(false)}
                     className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white text-xs font-bold flex items-center justify-center gap-2 shadow-md shadow-orange-500/20"
                   >
-                    <User className="w-4 h-4" /> Sign In / Create Account
+                    <User className="w-4 h-4" /> {isMounted ? t('nav_sign_in') : 'Sign In / Create Account'}
                   </Link>
                 )}
               </div>
 
-              {/* Navigation Page Links */}
-              <div className="flex flex-col gap-1">
-                {navLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-between transition-all ${
-                      pathname === link.href
-                        ? 'text-orange-600 dark:text-orange-400 bg-orange-500/10 border border-orange-500/30'
-                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900'
-                    }`}
+              {/* 3. Mobile Theme (Light/Dark) & Language Switcher at BOTTOM */}
+              <div className="space-y-2 pt-1 border-t border-slate-200/80 dark:border-slate-800/80">
+                {/* Theme Mode Switcher */}
+                <div className="p-2.5 rounded-2xl bg-slate-100 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2">
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2 pl-1">
+                    {theme === 'dark' ? <Moon className="w-4 h-4 text-orange-400" /> : <Sun className="w-4 h-4 text-orange-500" />}
+                    <span>{language === 'bn' ? (theme === 'dark' ? 'ডার্ক মোড' : 'লাইট মোড') : (theme === 'dark' ? 'Dark Theme' : 'Light Theme')}</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={toggleTheme}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-800 dark:text-slate-200 hover:text-orange-500 dark:hover:text-orange-400 shadow-xs cursor-pointer transition-all"
                   >
-                    <span>{link.label}</span>
-                    {link.badge && (
-                      <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-full bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white">
-                        {link.badge}
-                      </span>
-                    )}
-                  </Link>
-                ))}
+                    <span>{theme === 'dark' ? '☀️ ' + (language === 'bn' ? 'লাইট' : 'Light') : '🌙 ' + (language === 'bn' ? 'ডার্ক' : 'Dark')}</span>
+                  </button>
+                </div>
+
+                {/* Language Switcher (বাংলা / English) */}
+                <div className="p-2.5 rounded-2xl bg-slate-100 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2">
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 pl-1">
+                    <span className="text-sm">🌐</span>
+                    <span>{language === 'bn' ? 'ভাষা / Language' : 'Language / ভাষা'}</span>
+                  </span>
+                  <div className="flex items-center p-1 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-xs">
+                    <button
+                      type="button"
+                      onClick={() => language !== 'en' && useLanguageStore.getState().setLanguage('en')}
+                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        language === 'en'
+                          ? 'bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white shadow-xs'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      English
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => language !== 'bn' && useLanguageStore.getState().setLanguage('bn')}
+                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        language === 'bn'
+                          ? 'bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white shadow-xs'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      বাংলা
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           )}

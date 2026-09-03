@@ -27,7 +27,7 @@ export const CartDrawer: React.FC = () => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[70] overflow-hidden">
+    <div className="fixed inset-0 z-70 overflow-hidden">
       {/* Backdrop */}
       <div
         onClick={closeDrawer}
@@ -37,7 +37,7 @@ export const CartDrawer: React.FC = () => {
       {/* Drawer Panel */}
       <div className="absolute inset-y-0 right-0 max-w-full flex pl-10">
         <div className="w-screen max-w-md bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col">
-        
+          {/* Header */}
           <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-9 h-9 rounded-xl bg-orange-500/10 dark:bg-orange-500/15 border border-orange-500/25 flex items-center justify-center text-orange-600 dark:text-orange-400">
