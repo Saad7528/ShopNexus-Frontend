@@ -9,14 +9,10 @@ export function convertBundleToProduct(b: IBundleDeal): Product {
       ? Math.round(((b.originalTotal - b.bundlePrice) / b.originalTotal) * 100)
       : 15;
 
-  let bundleImages = b.items.map((it) => it.image).filter(Boolean);
-  if (b.id === 'b-1' || b.id === 'combo-1') {
-    bundleImages = ['/images/combos/combo-1.jpg', ...bundleImages];
-  } else if (b.id === 'b-2' || b.id === 'combo-2') {
-    bundleImages = ['/images/combos/combo-2.jpg', ...bundleImages];
-  } else if (b.id === 'b-3' || b.id === 'combo-3') {
-    bundleImages = ['/images/combos/combo-3.jpg', ...bundleImages];
-  }
+  const bundleImages =
+    b.items && b.items.length > 0
+      ? b.items.map((it) => it.image).filter(Boolean)
+      : ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&q=80'];
 
   return {
     _id: b.id,
