@@ -3,6 +3,8 @@
 import React from 'react';
 import Image from 'next/image';
 import { CartItemType, useCartStore } from '@/store/useCartStore';
+import { useLanguageStore } from '@/store/useLanguageStore';
+import { formatCurrency, toBengaliNumber } from '@/lib/translations';
 import { Minus, Plus, Trash2, AlertCircle } from 'lucide-react';
 
 interface CartItemProps {
@@ -11,6 +13,7 @@ interface CartItemProps {
 
 export const CartItem: React.FC<CartItemProps> = ({ item }) => {
   const { updateQuantity, removeItem } = useCartStore();
+  const { language } = useLanguageStore();
   const isMaxStock = item.quantity >= item.stock;
   const isLowStock = item.stock <= 5;
 
@@ -33,7 +36,7 @@ export const CartItem: React.FC<CartItemProps> = ({ item }) => {
           <button
             onClick={() => removeItem(item.productId)}
             className="text-slate-400 dark:text-slate-500 hover:text-rose-500 dark:hover:text-rose-400 p-1 transition-colors flex-shrink-0 cursor-pointer"
-            title="Remove item"
+            title={language === 'bn' ? 'পণ্যটি মুছে ফেলুন' : 'Remove item'}
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
@@ -43,16 +46,20 @@ export const CartItem: React.FC<CartItemProps> = ({ item }) => {
           <span className="text-[11px] text-slate-500 dark:text-slate-400">{item.vendorName}</span>
           {isLowStock && (
             <span className="inline-flex items-center gap-0.5 text-[10px] text-amber-600 dark:text-amber-400 font-medium bg-amber-500/10 px-1.5 py-0.2 rounded border border-amber-500/20">
-              <AlertCircle className="w-2.5 h-2.5" /> Only {item.stock} left
+              <AlertCircle className="w-2.5 h-2.5" /> {language === 'bn' ? `মাত্র ${toBengaliNumber(item.stock)}টি বাকি` : `Only ${item.stock} left`}
             </span>
           )}
         </div>
 
         <div className="flex items-center justify-between mt-2.5">
           <div className="flex items-baseline gap-1.5 font-mono">
-            <span className="text-xs font-bold text-slate-900 dark:text-white">৳{(item.price * item.quantity).toLocaleString()}</span>
+            <span className="text-xs font-bold text-slate-900 dark:text-white">
+              {formatCurrency(item.price * item.quantity, language)}
+            </span>
             {item.quantity > 1 && (
-              <span className="text-[10px] text-slate-400 dark:text-slate-500">(৳{item.price.toLocaleString()}/ea)</span>
+              <span className="text-[10px] text-slate-400 dark:text-slate-500">
+                ({formatCurrency(item.price, language)}{language === 'bn' ? '/টি' : '/ea'})
+              </span>
             )}
           </div>
 
@@ -61,16 +68,18 @@ export const CartItem: React.FC<CartItemProps> = ({ item }) => {
             <button
               onClick={() => updateQuantity(item.productId, item.quantity - 1)}
               className="p-1 rounded text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-              title="Decrease quantity"
+              title={language === 'bn' ? 'পরিমাণ কমান' : 'Decrease quantity'}
             >
               <Minus className="w-3 h-3" />
             </button>
-            <span className="text-xs font-bold text-slate-900 dark:text-white px-2 min-w-[20px] text-center">{item.quantity}</span>
+            <span className="text-xs font-bold text-slate-900 dark:text-white px-2 min-w-[20px] text-center">
+              {language === 'bn' ? toBengaliNumber(item.quantity) : item.quantity}
+            </span>
             <button
               onClick={() => updateQuantity(item.productId, item.quantity + 1)}
               disabled={isMaxStock}
               className="p-1 rounded text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
-              title={isMaxStock ? 'Maximum available stock reached' : 'Increase quantity'}
+              title={isMaxStock ? (language === 'bn' ? 'সর্বোচ্চ স্টক শেষ' : 'Maximum available stock reached') : (language === 'bn' ? 'পরিমাণ বাড়ান' : 'Increase quantity')}
             >
               <Plus className="w-3 h-3" />
             </button>
