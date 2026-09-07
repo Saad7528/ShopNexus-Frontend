@@ -22,8 +22,8 @@ export default function DevTelemetryToggle({ compact = false }: { compact?: bool
     }
   }, []);
 
-  if (!mounted || !isLocal) {
-    return null; // Localhost only: automatically hidden in production builds
+  if (!mounted) {
+    return null;
   }
 
   return (
