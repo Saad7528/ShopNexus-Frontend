@@ -79,6 +79,8 @@ export default function VisitorAnalyticsPage() {
     blockIP,
     unblockIP,
     simulateLiveUpdate,
+    telemetryMode,
+    syncBackendSessions,
   } = useVisitorAnalyticsStore();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -89,23 +91,29 @@ export default function VisitorAnalyticsPage() {
   const [liveDbUsers, setLiveDbUsers] = useState<any[]>([]);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-  const { telemetryMode, syncBackendSessions } = useVisitorAnalyticsStore();
 
-  // Live cross-browser & incognito telemetry sync with backend
+  // Live cross-browser & incognito telemetry sync with backend & MongoDB Atlas
   useEffect(() => {
     const fetchVisitorStats = async () => {
       try {
-        const [resLiveTelemetry, resUsers] = await Promise.all([
-          fetch(`${API_URL}/telemetry/live-sessions`),
-          fetch(`${API_URL}/admin/users`),
-        ]);
-        if (resLiveTelemetry.ok) {
+        // 1. Fetch from Next.js serverless API directly (Vercel compatible)
+        let resLiveTelemetry = await fetch(`/api/telemetry/live-sessions?range=${timeFilter}`).catch(() => null);
+        if ((!resLiveTelemetry || !resLiveTelemetry.ok) && API_URL && !API_URL.startsWith('/api') && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+          resLiveTelemetry = await fetch(`${API_URL}/telemetry/live-sessions?range=${timeFilter}`).catch(() => null);
+        }
+
+        let resUsers = await fetch('/api/admin/users').catch(() => null);
+        if ((!resUsers || !resUsers.ok) && API_URL && !API_URL.startsWith('/api') && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+          resUsers = await fetch(`${API_URL}/admin/users`).catch(() => null);
+        }
+
+        if (resLiveTelemetry && resLiveTelemetry.ok) {
           const telemetryJson = await resLiveTelemetry.json();
           if (telemetryJson?.success && Array.isArray(telemetryJson.data)) {
             syncBackendSessions(telemetryJson.data);
           }
         }
-        if (resUsers.ok) {
+        if (resUsers && resUsers.ok) {
           const usersData = await resUsers.json();
           if (usersData?.data && Array.isArray(usersData.data)) {
             setLiveDbUsers(usersData.data);
@@ -122,9 +130,9 @@ export default function VisitorAnalyticsPage() {
       if (telemetryMode === 'demo') {
         simulateLiveUpdate();
       }
-    }, 2000);
+    }, 2500);
     return () => clearInterval(interval);
-  }, [telemetryMode, syncBackendSessions, simulateLiveUpdate, API_URL]);
+  }, [telemetryMode, timeFilter, syncBackendSessions, simulateLiveUpdate, API_URL]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -134,7 +142,7 @@ export default function VisitorAnalyticsPage() {
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
-      const res = await fetch(`${API_URL}/telemetry/live-sessions`);
+      const res = await fetch(`/api/telemetry/live-sessions?range=${timeFilter}`);
       if (res.ok) {
         const json = await res.json();
         if (json?.data) syncBackendSessions(json.data);
