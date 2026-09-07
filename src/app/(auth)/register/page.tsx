@@ -245,7 +245,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-600 hover:brightness-110 text-white font-semibold text-xs rounded-xl shadow-lg shadow-orange-600/20 transition-all duration-200 disabled:opacity-50 cursor-pointer active:scale-[0.99] mt-3"
+            className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-linear-to-r from-orange-600 via-orange-500 to-amber-600 hover:brightness-110 text-white font-semibold text-xs rounded-xl shadow-lg shadow-orange-600/20 transition-all duration-200 disabled:opacity-50 cursor-pointer active:scale-[0.99] mt-3"
           >
             {isLoading ? (
               <>
@@ -277,7 +277,7 @@ export default function RegisterPage() {
             <div className="absolute -top-16 -right-16 w-48 h-48 bg-orange-500/20 rounded-full blur-2xl pointer-events-none" />
 
             {/* Icon Banner */}
-            <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-tr from-orange-600 to-amber-500 flex items-center justify-center text-white shadow-xl shadow-orange-500/30 animate-bounce">
+            <div className="mx-auto w-16 h-16 rounded-2xl bg-linear-to-tr from-orange-600 to-amber-500 flex items-center justify-center text-white shadow-xl shadow-orange-500/30 animate-bounce">
               <Gift className="w-8 h-8" />
             </div>
 
@@ -323,7 +323,7 @@ export default function RegisterPage() {
             <button
               type="button"
               onClick={handleContinueShopping}
-              className="w-full py-3 px-6 rounded-xl bg-gradient-to-r from-orange-600 via-orange-500 to-amber-600 hover:brightness-110 text-white font-bold text-xs sm:text-sm shadow-xl shadow-orange-500/25 transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3 px-6 rounded-xl bg-linear-to-r from-orange-600 via-orange-500 to-amber-600 hover:brightness-110 text-white font-bold text-xs sm:text-sm shadow-xl shadow-orange-500/25 transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
             >
               <ShoppingBag className="w-4 h-4" />
               কেনাকাটা শুরু করুন (Start Shopping)

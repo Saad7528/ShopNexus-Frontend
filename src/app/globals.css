@@ -34,6 +34,14 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Remove default browser focus outline on click while preserving keyboard accessibility */
+a:focus:not(:focus-visible),
+button:focus:not(:focus-visible),
+[role="button"]:focus:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 body {
   overflow-x: clip;
   width: 100%;
