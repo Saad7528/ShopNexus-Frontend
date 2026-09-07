@@ -53,87 +53,84 @@ interface SlideData {
   };
 }
 
-const HERO_SLIDES: SlideData[] = [
+const getHeroSlides = (isBn: boolean): SlideData[] => [
   {
     id: 1,
-    tag: 'MEGA FLASH SALE 2026',
+    tag: isBn ? 'মেগা ফ্ল্যাশ সেল ২০২৬' : 'MEGA FLASH SALE 2026',
     tagIcon: Flame,
     title: 'Sony WH-1000XM5',
-    titleHighlight: 'Acoustic Precision',
-    description: 'Industry-leading noise cancellation with Auto NC Optimizer, 30-hour battery life, and crystal-clear sound.',
+    titleHighlight: isBn ? 'অ্যাকোস্টিক প্রিসিশন' : 'Acoustic Precision',
+    description: isBn
+      ? 'অটো এনসি অপ্টিমাইজার সহ ইন্ডাস্ট্রি-লিডিং নয়েজ ক্যান্সেলেশন, ৩০ ঘণ্টার ব্যাটারি লাইফ ও ক্রিস্টাল ক্লিয়ার সাউন্ড।'
+      : 'Industry-leading noise cancellation with Auto NC Optimizer, 30-hour battery life, and crystal-clear sound.',
     price: 32500,
     originalPrice: 38000,
-    discountBadge: 'Save ৳5,500',
-    ctaText: 'Add to Cart',
+    discountBadge: isBn ? 'বাঁচবে ৳৫,৫০০' : 'Save ৳5,500',
+    ctaText: isBn ? 'কার্টে যোগ করুন' : 'Add to Cart',
     ctaLink: '/cart',
-    secondaryCtaText: 'All Flash Deals',
+    secondaryCtaText: isBn ? 'সকল ফ্ল্যাশ ডিল' : 'All Flash Deals',
     secondaryCtaLink: '/flash-sales',
     colors: [
-      { name: 'Midnight Black', hex: '#111827', img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800' },
-      { name: 'Platinum Silver', hex: '#e2e8f0', img: 'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=800' },
-      { name: 'Sunset Orange', hex: '#ea580c', img: 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800' },
+      { name: isBn ? 'মিডনাইট ব্ল্যাক' : 'Midnight Black', hex: '#111827', img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800' },
+      { name: isBn ? 'প্লাটিনাম সিলভার' : 'Platinum Silver', hex: '#e2e8f0', img: 'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=800' },
+      { name: isBn ? 'সানসেট অরেঞ্জ' : 'Sunset Orange', hex: '#ea580c', img: 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800' },
     ],
     productPayload: {
       id: 'prod_sony_xm5',
-      title: 'Sony WH-1000XM5 Wireless Headphones',
+      title: isBn ? 'সনি WH-1000XM5 ওয়্যারলেস হেডফোন' : 'Sony WH-1000XM5 Wireless Headphones',
       price: 32500,
       image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800',
     },
   },
   {
     id: 2,
-    tag: 'DIGITAL WALLET SPECIAL',
+    tag: isBn ? 'ডিজিটাল ওয়ালেট স্পেশাল' : 'DIGITAL WALLET SPECIAL',
     tagIcon: Wallet,
-    title: '10% Extra Cashback',
-    titleHighlight: 'bKash & Nagad Pay',
-    description: 'Enjoy instant 10% cashback (up to ৳1,500) on all hardware & audio purchases with code NEXUS10 at checkout.',
+    title: isBn ? '১০% এক্সট্রা ক্যাশব্যাক' : '10% Extra Cashback',
+    titleHighlight: isBn ? 'বিকাশ ও নগদ পে' : 'bKash & Nagad Pay',
+    description: isBn
+      ? 'চেকআউটে NEXUS10 কোড ব্যবহার করে সকল হার্ডওয়্যার ও অডিও ক্রয়ে পান ইনস্ট্যান্ট ১০% ক্যাশব্যাক (সর্বোচ্চ ৳১,৫০০ পর্যন্ত)।'
+      : 'Enjoy instant 10% cashback (up to ৳1,500) on all hardware & audio purchases with code NEXUS10 at checkout.',
     price: 1500,
     originalPrice: 0,
-    discountBadge: '10% Instant Voucher',
-    ctaText: 'Explore Catalog',
+    discountBadge: isBn ? '১০% ইনস্ট্যান্ট ভাউচার' : '10% Instant Voucher',
+    ctaText: isBn ? 'ক্যাটালগ দেখুন' : 'Explore Catalog',
     ctaLink: '/products',
-    secondaryCtaText: 'Apply at Checkout',
+    secondaryCtaText: isBn ? 'চেকআউটে ব্যবহার করুন' : 'Apply at Checkout',
     secondaryCtaLink: '/checkout',
     voucherCode: 'NEXUS10',
     colors: [
-      { name: 'Digital Voucher', hex: '#ec4899', img: '/images/bkash_nagad_cashback.jpg' },
+      { name: isBn ? 'ডিজিটাল ভাউচার' : 'Digital Voucher', hex: '#ec4899', img: '/images/bkash_nagad_cashback.jpg' },
     ],
   },
   {
     id: 3,
-    tag: 'WORKSTATION ESSENTIAL',
+    tag: isBn ? 'ওয়ার্কস্টেশন এসেনশিয়াল' : 'WORKSTATION ESSENTIAL',
     tagIcon: Keyboard,
     title: 'Keychron Q1 Pro',
-    titleHighlight: 'CNC Custom Mechanical',
-    description: 'Full aluminum body, wireless Bluetooth 5.1 & Type-C wired, hot-swappable switches, and programmable VIA keymaps.',
+    titleHighlight: isBn ? 'সিএনসি কাস্টম মেকানিক্যাল' : 'CNC Custom Mechanical',
+    description: isBn
+      ? 'সম্পূর্ণ অ্যালুমিনিয়াম বডি, ওয়্যারলেস ব্লুটুথ ৫.১ ও টাইপ-সি ক্যাবল, হট-সোয়াপ্যাবল সুইচ এবং প্রোগ্রামেবল ভিআইএ কীম্যাপ।'
+      : 'Full aluminum body, wireless Bluetooth 5.1 & Type-C wired, hot-swappable switches, and programmable VIA keymaps.',
     price: 17900,
     originalPrice: 21500,
-    discountBadge: 'Save ৳3,600',
-    ctaText: 'Add to Cart',
+    discountBadge: isBn ? 'বাঁচবে ৳৩,৬০০' : 'Save ৳3,600',
+    ctaText: isBn ? 'কার্টে যোগ করুন' : 'Add to Cart',
     ctaLink: '/cart',
-    secondaryCtaText: 'View Keyboards',
+    secondaryCtaText: isBn ? 'কিবোর্ড দেখুন' : 'View Keyboards',
     secondaryCtaLink: '/products?category=Peripherals',
-    specs: ['CNC Aluminum', 'Hot-Swappable', 'Wireless + Wired'],
+    specs: isBn ? ['সিএনসি অ্যালুমিনিয়াম', 'হট-সোয়াপ্যাবল', 'ওয়্যারলেস + ক্যাবল'] : ['CNC Aluminum', 'Hot-Swappable', 'Wireless + Wired'],
     productPayload: {
       id: 'prod_keychron_q1',
-      title: 'Keychron Q1 Pro Custom Keyboard',
+      title: isBn ? 'কিক্রন Q1 Pro কাস্টম কিবোর্ড' : 'Keychron Q1 Pro Custom Keyboard',
       price: 17900,
       image: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=800',
     },
     colors: [
-      { name: 'Carbon Black', hex: '#1e293b', img: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=800' },
-      { name: 'Retro White', hex: '#f8fafc', img: 'https://images.unsplash.com/photo-1618384887929-16ec33fab9ef?w=800' },
+      { name: isBn ? 'কার্বন ব্ল্যাক' : 'Carbon Black', hex: '#1e293b', img: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=800' },
+      { name: isBn ? 'রেট্রো হোয়াইট' : 'Retro White', hex: '#f8fafc', img: 'https://images.unsplash.com/photo-1618384887929-16ec33fab9ef?w=800' },
     ],
   },
-];
-
-const CATEGORY_CHIPS = [
-  { label: '⚡ Flash Deals', href: '/flash-sales' },
-  { label: '🎧 Audio & Sound', href: '/products?category=Audio' },
-  { label: '⌚ Smartwatches', href: '/products?category=Wearables' },
-  { label: '⌨️ Keyboards & Mice', href: '/products?category=Peripherals' },
-  { label: '🏠 Smart Home', href: '/products?category=Smart+Home' },
-  { label: '📦 All Catalog', href: '/products' },
 ];
 
 const LIVE_NOTICES = [
@@ -159,6 +156,9 @@ export const HeroSection: React.FC = () => {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const isBn = mounted && language === 'bn';
+  const slides = getHeroSlides(isBn);
 
   const liveNotices = [
     t('ticker_1'),
@@ -230,12 +230,12 @@ export const HeroSection: React.FC = () => {
 
   // Slide Auto Advance (3 Seconds per slide)
   const nextSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
+    setCurrentSlide((prev) => (prev + 1) % slides.length);
     setSelectedColorIdx(0);
-  }, []);
+  }, [slides.length]);
 
   const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + HERO_SLIDES.length) % HERO_SLIDES.length);
+    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
     setSelectedColorIdx(0);
   };
 
@@ -245,7 +245,7 @@ export const HeroSection: React.FC = () => {
     return () => clearInterval(interval);
   }, [isPaused, nextSlide]);
 
-  const slide = HERO_SLIDES[currentSlide];
+  const slide = slides[currentSlide] || slides[0];
   const TagIcon = slide.tagIcon;
   const currentImg = slide.colors ? slide.colors[selectedColorIdx].img : slide.productPayload?.image || '';
 
@@ -396,9 +396,11 @@ export const HeroSection: React.FC = () => {
               {slide.id === 1 && (
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 text-[11px] font-mono font-bold text-slate-800 dark:text-white">
                   <Timer className="w-3 h-3 text-orange-500" />
-                  <span>Ends:</span>
+                  <span>{isBn ? 'শেষ হতে বাকি:' : 'Ends in:'}</span>
                   <span className="text-orange-600 dark:text-orange-400">
-                    {String(timeLeft.hours).padStart(2, '0')}h : {String(timeLeft.minutes).padStart(2, '0')}m : {String(timeLeft.seconds).padStart(2, '0')}s
+                    {isBn
+                      ? `${toBengaliNumber(String(timeLeft.hours).padStart(2, '0'))}ঘ : ${toBengaliNumber(String(timeLeft.minutes).padStart(2, '0'))}মি : ${toBengaliNumber(String(timeLeft.seconds).padStart(2, '0'))}সে`
+                      : `${String(timeLeft.hours).padStart(2, '0')}h : ${String(timeLeft.minutes).padStart(2, '0')}m : ${String(timeLeft.seconds).padStart(2, '0')}s`}
                   </span>
                 </div>
               )}
@@ -427,7 +429,9 @@ export const HeroSection: React.FC = () => {
                 {/* Color Swatches if available */}
                 {slide.colors && slide.colors.length > 1 && (
                   <div className="flex items-center gap-1.5 pt-0.5">
-                    <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400">Color:</span>
+                    <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400">
+                      {isBn ? 'কালার:' : 'Color:'}
+                    </span>
                     <div className="flex items-center gap-1.5">
                       {slide.colors.map((c, idx) => (
                         <button
@@ -453,7 +457,9 @@ export const HeroSection: React.FC = () => {
                 {slide.voucherCode && (
                   <div className="p-1.5 px-2.5 rounded-xl bg-white dark:bg-slate-950/80 border border-orange-500/40 flex items-center justify-between gap-2 max-w-xs shadow-xs">
                     <div>
-                      <span className="text-[8px] text-slate-500 uppercase font-semibold block">Voucher Code</span>
+                      <span className="text-[8px] text-slate-500 uppercase font-semibold block">
+                        {isBn ? 'ভাউচার কোড' : 'Voucher Code'}
+                      </span>
                       <span className="font-mono text-xs font-black text-orange-600 dark:text-orange-400 tracking-wider">
                         {slide.voucherCode}
                       </span>
@@ -464,7 +470,7 @@ export const HeroSection: React.FC = () => {
                       className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-orange-500 text-white font-bold text-[9px] shadow-xs hover:bg-orange-600 transition-all cursor-pointer"
                     >
                       {copiedCode ? <Check className="w-2.5 h-2.5" /> : <Copy className="w-2.5 h-2.5" />}
-                      <span>{copiedCode ? 'Copied' : 'Copy'}</span>
+                      <span>{copiedCode ? (isBn ? 'কপিকৃত' : 'Copied') : (isBn ? 'কপি' : 'Copy')}</span>
                     </button>
                   </div>
                 )}
@@ -474,11 +480,11 @@ export const HeroSection: React.FC = () => {
                   {slide.price > 0 && (
                     <div className="flex items-baseline gap-1.5 font-mono mr-1">
                       <span className="text-base font-black text-slate-900 dark:text-white">
-                        ৳{slide.price.toLocaleString()}
+                        {isBn ? `৳${toBengaliNumber(slide.price.toLocaleString('en-US'))}` : `৳${slide.price.toLocaleString()}`}
                       </span>
                       {slide.originalPrice > 0 && (
                         <span className="text-[10px] line-through text-slate-400">
-                          ৳{slide.originalPrice.toLocaleString()}
+                          {isBn ? `৳${toBengaliNumber(slide.originalPrice.toLocaleString('en-US'))}` : `৳${slide.originalPrice.toLocaleString()}`}
                         </span>
                       )}
                     </div>
@@ -528,7 +534,7 @@ export const HeroSection: React.FC = () => {
             {/* Slider Navigation Dots */}
             <div className="flex items-center justify-between pt-1 border-t border-slate-200/80 dark:border-slate-800 relative z-10">
               <div className="flex items-center gap-1.5">
-                {HERO_SLIDES.map((_, idx) => (
+                {slides.map((_, idx) => (
                   <button
                     key={idx}
                     type="button"
@@ -584,16 +590,16 @@ export const HeroSection: React.FC = () => {
             <div className="relative z-10 flex items-center justify-between gap-1">
               <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-red-600 text-white text-[10px] font-black tracking-wider uppercase shadow-md animate-pulse">
                 <Flame className="w-3 h-3 fill-amber-300 text-amber-300" />
-                <span>NOV 2026 DROP</span>
+                <span>{isBn ? 'নভেম্বর ২০২৬ ড্রপ' : 'NOV 2026 DROP'}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 {isAuthenticated && (
                   <span className="text-[9px] font-bold bg-orange-500/15 text-orange-600 dark:text-orange-400 px-1.5 py-0.5 rounded border border-orange-500/25">
-                    🔥 দিন {loginStreak} স্ট্রিক
+                    🔥 {isBn ? `দিন ${toBengaliNumber(loginStreak)} স্ট্রিক` : `Day ${loginStreak} Streak`}
                   </span>
                 )}
                 <span className="text-[10px] font-mono font-black text-orange-600 dark:text-amber-400 bg-orange-500/10 dark:bg-amber-400/10 px-2 py-0.5 rounded-md border border-orange-500/30 dark:border-amber-400/30">
-                  ৫০% - ৮০% OFF
+                  {isBn ? '৫০% - ৮০% ছাড়' : '50% - 80% OFF'}
                 </span>
               </div>
             </div>
@@ -606,32 +612,40 @@ export const HeroSection: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-sm font-black text-slate-900 dark:text-white leading-tight">
-                    Black Friday Mega Madness
+                    {isBn ? 'ব্ল্যাক ফ্রাইডে মেগা ধামাকা' : 'Black Friday Mega Madness'}
                   </h3>
                   <span className="text-[10px] text-orange-600 dark:text-amber-300 font-bold block">
-                    প্রতিদিন ভিজিটে ৫ কয়েন, টানা স্ট্রিকে আরও বেশি এবং VIP সুবিধা!
+                    {isBn
+                      ? 'প্রতিদিন ভিজিটে ৫ কয়েন, টানা স্ট্রিকে আরও বেশি এবং VIP সুবিধা!'
+                      : '5 Coins daily on visit, higher streak bonus & VIP perks!'}
                   </span>
                 </div>
               </div>
 
               <p className="text-[11px] text-slate-700 dark:text-slate-300 leading-snug">
-                প্রতিদিন ১০ সেকেন্ড ভিজিটে জিতুন ৫ কয়েন (টানা স্ট্রিকে ১০ ও ১৫ কয়েন)। অর্জিত কয়েন দিয়ে কেনাকাটায় ডিসকাউন্ট উপভোগ করুন এবং মোট ৫০০ কয়েন হলে ব্ল্যাক ফ্রাইডেতে বিশাল VIP ডিসকাউন্ট আনলক করুন!
+                {isBn
+                  ? 'প্রতিদিন ১০ সেকেন্ড ভিজিটে জিতুন ৫ কয়েন (টানা স্ট্রিকে ১০ ও ১৫ কয়েন)। অর্জিত কয়েন দিয়ে কেনাকাটায় ডিসকাউন্ট উপভোগ করুন এবং মোট ৫০০ কয়েন হলে ব্ল্যাক ফ্রাইডেতে বিশাল VIP ডিসকাউন্ট আনলক করুন!'
+                  : 'Earn 5 coins on 10s daily visit (10 & 15 coins on consecutive streaks). Use earned coins for checkout discounts & unlock massive VIP perks at 500 coins!'}
               </p>
 
               {/* Live Coin Vault / Claim Box */}
               <div className="p-2 rounded-xl bg-white/80 dark:bg-white/5 border border-orange-200 dark:border-white/10 backdrop-blur-md flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <span className="text-[10px] font-bold text-slate-800 dark:text-slate-200">
-                    Vault: <strong className="text-orange-600 dark:text-amber-400 font-mono text-xs">{currentCoins.toLocaleString()} Coins</strong>
+                    {isBn ? 'কয়েন ভল্ট:' : 'Vault:'}{' '}
+                    <strong className="text-orange-600 dark:text-amber-400 font-mono text-xs">
+                      {isBn ? toBengaliNumber(currentCoins.toLocaleString()) : currentCoins.toLocaleString()}{' '}
+                      {isBn ? 'কয়েন' : 'Coins'}
+                    </strong>
                   </span>
                 </div>
                 {isVip ? (
                   <span className="text-[9px] text-amber-500 dark:text-amber-300 font-black bg-amber-500/15 border border-amber-500/30 px-1.5 py-0.5 rounded flex items-center gap-0.5">
-                    <Crown className="w-2.5 h-2.5" /> VIP UNLOCKED
+                    <Crown className="w-2.5 h-2.5" /> {isBn ? 'VIP আনলকড' : 'VIP UNLOCKED'}
                   </span>
                 ) : (
                   <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-500/15 px-1.5 py-0.5 rounded">
-                    {isAuthenticated ? `দিন ${loginStreak} সক্রিয়` : 'লগইন করুন'}
+                    {isAuthenticated ? (isBn ? `দিন ${toBengaliNumber(loginStreak)} সক্রিয়` : `Day ${loginStreak} Active`) : (isBn ? 'লগইন করুন' : 'Sign In')}
                   </span>
                 )}
               </div>
@@ -653,17 +667,17 @@ export const HeroSection: React.FC = () => {
                 {isVip ? (
                   <>
                     <Crown className="w-3.5 h-3.5 text-amber-300 fill-current" />
-                    <span>👑 VIP Active (৳200 Welcome Perk Unlocked)</span>
+                    <span>{isBn ? '👑 VIP সক্রিয় (৳২০০ ওয়েলকাম পার্ক আনলকড)' : '👑 VIP Active (৳200 Welcome Perk Unlocked)'}</span>
                   </>
                 ) : currentCoins >= 500 ? (
                   <>
                     <Gift className="w-3.5 h-3.5" />
-                    <span>Claim VIP Pass (500 Coins) ❯</span>
+                    <span>{isBn ? 'ভিআইপি পাস সংগ্রহ করুন (৫০০ কয়েন) ❯' : 'Claim VIP Pass (500 Coins) ❯'}</span>
                   </>
                 ) : (
                   <>
                     <Gift className="w-3.5 h-3.5" />
-                    <span>Claim VIP Pass (500 Coins Needed)</span>
+                    <span>{isBn ? 'ভিআইপি পাস সংগ্রহ করুন (৫০০ কয়েন প্রয়োজন)' : 'Claim VIP Pass (500 Coins Needed)'}</span>
                   </>
                 )}
               </button>
@@ -678,9 +692,9 @@ export const HeroSection: React.FC = () => {
       <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
           <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider shrink-0 mr-1 hidden sm:inline">
-            Quick Explore:
+            {isBn ? 'কুইক এক্সপ্লোর:' : 'Quick Explore:'}
           </span>
-          {CATEGORY_CHIPS.map((chip, idx) => (
+          {categoryChips.map((chip, idx) => (
             <Link
               key={idx}
               href={chip.href}

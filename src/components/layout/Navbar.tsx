@@ -3,13 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useCartStore } from '@/store/useCartStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
 import { useNotificationStore } from '@/store/useNotificationStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useThemeStore } from '@/store/useThemeStore';
 import {
-  ShoppingBag,
   Heart,
   Search,
   Menu,
@@ -26,7 +24,6 @@ import {
 } from 'lucide-react';
 import { VisualSearchModal } from '@/components/ai/VisualSearchModal';
 import { NotificationDrawer } from '@/components/notifications/NotificationDrawer';
-import { CartDrawer } from '@/components/cart/CartDrawer';
 import { BrandLogo } from '@/components/common/BrandLogo';
 import { LanguageToggle } from '@/components/common/LanguageToggle';
 import { useLanguageStore } from '@/store/useLanguageStore';
@@ -39,7 +36,6 @@ export const Navbar: React.FC = () => {
   const { t, language } = useLanguageStore();
 
   // Stores
-  const { items: cartItems, openDrawer } = useCartStore();
   const { items: wishlistItems } = useWishlistStore();
   const { unreadCount, openDrawer: openNotificationDrawer } = useNotificationStore();
   const { user, isAuthenticated, logout } = useAuthStore();
@@ -51,8 +47,6 @@ export const Navbar: React.FC = () => {
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [visualSearchOpen, setVisualSearchOpen] = useState(false);
-  const [cartAnimated, setCartAnimated] = useState(false);
-  const prevCountRef = React.useRef(0);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -89,17 +83,7 @@ export const Navbar: React.FC = () => {
     };
   }, [userDropdownOpen]);
 
-  const itemCount = isMounted ? cartItems.reduce((acc, item) => acc + item.quantity, 0) : 0;
 
-  // Trigger animation when items are added to cart
-  useEffect(() => {
-    if (isMounted && itemCount > prevCountRef.current) {
-      setCartAnimated(true);
-      const timer = setTimeout(() => setCartAnimated(false), 500);
-      return () => clearTimeout(timer);
-    }
-    prevCountRef.current = itemCount;
-  }, [itemCount, isMounted]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -136,17 +120,17 @@ export const Navbar: React.FC = () => {
   return (
     <>
       <header
-        className={`sticky top-0 z-50 w-full transition-all duration-300 ${
+        className={`sticky top-0 z-50 w-full transition-[padding] duration-300 ease-out pointer-events-none ${
           isScrolled
-            ? 'pt-2 sm:pt-3 px-3 sm:px-5 lg:px-8 pointer-events-none'
-            : 'pt-0 px-0 bg-white dark:bg-[#090d16] border-b border-slate-200 dark:border-slate-800/80'
+            ? 'pt-2 sm:pt-3 px-3 sm:px-5 lg:px-8'
+            : 'pt-0 px-0'
         }`}
       >
         <div
-          className={`transition-all duration-300 ${
+          className={`pointer-events-auto mx-auto transition-all duration-300 ease-out ${
             isScrolled
-              ? 'pointer-events-auto max-w-6xl mx-auto rounded-2xl sm:rounded-full bg-white/65 dark:bg-[#090d16]/65 backdrop-blur-md border border-slate-200/80 dark:border-white/10 shadow-xl shadow-slate-900/10 dark:shadow-black/40 px-3.5 sm:px-5 lg:px-6'
-              : 'max-w-7xl mx-auto px-3 sm:px-6 lg:px-8'
+              ? 'max-w-6xl rounded-2xl sm:rounded-full bg-white/85 dark:bg-[#090d16]/85 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/90 shadow-xl shadow-slate-900/5 dark:shadow-black/40 px-3.5 sm:px-5 lg:px-6'
+              : 'w-full max-w-7xl rounded-none bg-white dark:bg-[#090d16] border border-transparent border-b-slate-200/80 dark:border-b-slate-800/80 px-3 sm:px-6 lg:px-8 shadow-none'
           }`}
         >
           <div
@@ -263,23 +247,7 @@ export const Navbar: React.FC = () => {
                 )}
               </Link>
 
-              {/* Cart Drawer Trigger Button (Always Visible & Prominent) */}
-              <button
-                type="button"
-                onClick={openDrawer}
-                className={`relative flex items-center gap-1 sm:gap-2 py-2 px-2.5 sm:px-3.5 rounded-xl bg-gradient-to-r from-[#ff4400] via-[#ff7700] to-[#ff4400] hover:from-[#e63d00] hover:to-[#ff6600] text-white text-xs font-bold shadow-lg transition-all duration-300 active:scale-95 cursor-pointer ${
-                  cartAnimated
-                    ? 'scale-105 shadow-orange-500/60 brightness-110'
-                    : 'shadow-orange-500/25'
-                }`}
-                title={isMounted ? t('nav_cart') : 'Cart'}
-              >
-                <ShoppingBag className="w-4 h-4" />
-                <span className="hidden sm:inline">{isMounted ? t('nav_cart') : 'Cart'}</span>
-                <span className="w-4.5 h-4.5 sm:w-5 sm:h-5 rounded-full bg-white/25 text-white text-[10px] sm:text-[11px] font-bold flex items-center justify-center">
-                  {isMounted ? (language === 'bn' ? toBengaliNumber(itemCount) : itemCount) : 0}
-                </span>
-              </button>
+
 
               {/* Desktop / Tablet User Auth Profile / Login Button */}
               {isMounted && isAuthenticated && user ? (
@@ -527,7 +495,6 @@ export const Navbar: React.FC = () => {
         onClose={() => setVisualSearchOpen(false)}
       />
       <NotificationDrawer />
-      <CartDrawer />
     </>
   );
 };

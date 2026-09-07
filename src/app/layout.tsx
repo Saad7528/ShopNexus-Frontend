@@ -4,8 +4,10 @@ import './globals.css';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { CartDrawer } from '@/components/cart/CartDrawer';
+import { FloatingCartWidget } from '@/components/cart/FloatingCartWidget';
 import { ChatbotWidget } from '@/components/ai/ChatbotWidget';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
+import StorefrontTelemetryTracker from '@/components/analytics/StorefrontTelemetryTracker';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -51,11 +53,17 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-slate-950 text-slate-100 dark:bg-slate-950 dark:text-slate-100 selection:bg-[#ff4400] selection:text-white transition-colors duration-200">
         <ThemeProvider>
+          {/* Real-time Customer Storefront Telemetry Tracker (Excludes Internal Admin Traffic) */}
+          <StorefrontTelemetryTracker />
+
           {/* Global Navigation Bar */}
           <Navbar />
 
           {/* Global Slide-Over Shopping Cart Drawer */}
           <CartDrawer />
+
+          {/* Interactive Floating Draggable Sticky Cart Widget */}
+          <FloatingCartWidget />
 
           {/* Main Application Body */}
           <main className="flex-1 w-full">{children}</main>
