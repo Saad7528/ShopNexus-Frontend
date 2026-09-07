@@ -4,7 +4,16 @@ import mongoose from 'mongoose';
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    let body: any = {};
+    const text = await req.text();
+    if (text) {
+      try {
+        body = JSON.parse(text);
+      } catch (_e) {
+        body = {};
+      }
+    }
+
     const {
       sessionId,
       pathname = '/',
@@ -17,6 +26,7 @@ export async function POST(req: NextRequest) {
       cartCount = 0,
       cartTotal = 0,
       referrer = 'Direct Storefront Visit',
+      status = 'active',
     } = body;
 
     if (!sessionId) {
@@ -96,9 +106,9 @@ export async function POST(req: NextRequest) {
             id: sessionId,
             currentUrl: pathname,
             durationSeconds: (existing.durationSeconds || 1) + safeElapsed,
-            lastActiveAt: 'Live Now',
+            lastActiveAt: status === 'idle' ? 'Left Page' : 'Live Now',
             updatedAt: now,
-            status: 'active',
+            status: status === 'idle' ? 'idle' : 'active',
             routeHistory,
             ...(isNewPage ? { pageviews: (existing.pageviews || 1) + 1 } : {}),
             ...(userName ? { customerName: `${userName} (Active Customer)` } : {}),
@@ -132,13 +142,13 @@ export async function POST(req: NextRequest) {
         referrer,
         durationSeconds: 1,
         pageviews: 1,
-        status: 'active',
+        status: status === 'idle' ? 'idle' : 'active',
         isCartActive: cartCount > 0,
         cartItemsCount: cartCount,
         cartValueBDT: cartTotal,
         isBounced: false,
         startedAt: timeFormatted,
-        lastActiveAt: 'Live Now',
+        lastActiveAt: status === 'idle' ? 'Left Page' : 'Live Now',
         routeHistory: [
           {
             path: pathname,

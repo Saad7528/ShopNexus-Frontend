@@ -21,9 +21,12 @@ export async function GET(req: NextRequest) {
     let query: any = {};
 
     if (range === 'live') {
-      // Strict 10-second instant live threshold
-      const tenSecondsAgo = new Date(now.getTime() - 10 * 1000);
-      query = { updatedAt: { $gte: tenSecondsAgo } };
+      // 35-second threshold and exclude idle to prevent flickering while ensuring instant cleanup on page exit
+      const thirtyFiveSecondsAgo = new Date(now.getTime() - 35 * 1000);
+      query = { 
+        updatedAt: { $gte: thirtyFiveSecondsAgo },
+        status: { $ne: 'idle' }
+      };
     } else if (range === 'today') {
       const startOfDay = new Date(now);
       startOfDay.setHours(0, 0, 0, 0);
@@ -78,7 +81,7 @@ export async function GET(req: NextRequest) {
     const uniqueSessions = Array.from(ipMap.values());
 
     const mappedSessions = uniqueSessions.map((s: any) => {
-      const isCurrentlyOnline = range === 'live' || (s.updatedAt && now.getTime() - new Date(s.updatedAt).getTime() <= 10000);
+      const isCurrentlyOnline = range === 'live' || (s.status !== 'idle' && s.updatedAt && now.getTime() - new Date(s.updatedAt).getTime() <= 35000);
 
       // Default route history if empty
       const defaultRoutes = [
