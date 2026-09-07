@@ -226,6 +226,17 @@ export default function VisitorAnalyticsPage() {
     }
 
     return matchSearch && matchStatus && matchDevice && matchKpi;
+  }).map((sess, idx) => {
+    // If live MongoDB user exists, link real user account
+    if (liveDbUsers.length > 0) {
+      const userMatch = liveDbUsers[idx % liveDbUsers.length];
+      return {
+        ...sess,
+        customerName: userMatch.name || userMatch.email?.split('@')[0] || sess.customerName,
+        contactPhone: userMatch.phoneNumber || sess.contactPhone,
+      };
+    }
+    return sess;
   });
 
   const timeFilterLabels: Record<TimeFilter, string> = {
