@@ -125,11 +125,29 @@ export default function CheckoutPage() {
   const vatTax = Math.round(discountedSubtotal * 0.05);
   const total = discountedSubtotal + deliveryFee + vatTax;
 
-  const handleApplyCoupon = (e: React.FormEvent) => {
+  const handleApplyCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isFirstOrder) return;
     setCouponError(null);
     const code = couponCode.trim().toUpperCase();
+
+    // Try backend live coupon validation first
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+    try {
+      const res = await fetch(`${API_URL}/coupons/validate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, cartTotal: subtotal }),
+      });
+      const data = await res.json();
+      if (res.ok && data?.success && data?.data?.discountAmount) {
+        setAppliedCouponDiscount(Math.round(data.data.discountAmount));
+        return;
+      }
+    } catch (_err) {
+      // Fall through to local demo coupons
+    }
+
     if (code === 'NEXUS10') {
       setAppliedCouponDiscount(Math.round(subtotal * 0.10));
     } else if (code === 'SAVE15') {
@@ -202,6 +220,36 @@ export default function CheckoutPage() {
 
     // Save to persistent customer order history
     useOrderStore.getState().addOrder(newOrderObj);
+
+    // Send order to MongoDB Backend via POST /api/orders
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+    const authState = useAuthStore.getState();
+    fetch(`${API_URL}/orders`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(authState.token ? { Authorization: `Bearer ${authState.token}` } : {}),
+      },
+      body: JSON.stringify({
+        items: items.map((it) => ({
+          productId: it.productId,
+          name: it.title,
+          price: it.price,
+          quantity: it.quantity,
+          image: it.image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80',
+        })),
+        shippingAddress: {
+          fullName: shippingAddress.fullName,
+          phoneNumber: shippingAddress.phoneNumber,
+          streetAddress: shippingAddress.streetAddress,
+          city: shippingAddress.city,
+          state: shippingAddress.state || 'Dhaka',
+          zipCode: shippingAddress.zipCode || '1213',
+          country: shippingAddress.country || 'Bangladesh',
+        },
+        paymentMethod: paymentMethod === 'stripe_card' ? 'stripe_card' : paymentMethod === 'cash_on_delivery' ? 'cash_on_delivery' : 'mfs_bkash_nagad',
+      }),
+    }).catch((err) => console.error('Error saving order to backend DB:', err));
 
     // Auto-credit newly earned loyalty points (10 pts per ৳100 product subtotal)
     if (earnedLoyaltyPoints > 0) {
@@ -738,7 +786,7 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      {/* MFS BKASH / NAGAD PAYMENT SIMULATION MODAL */}
+      {/* 💳 MFS BKASH / NAGAD PAYMENT SIMULATION MODAL */}
       <MfsPaymentModal
         isOpen={isMfsModalOpen}
         onClose={() => setIsMfsModalOpen(false)}

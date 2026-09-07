@@ -87,9 +87,54 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
     return b || null;
   }, [productId, rawBundles]);
 
+  const [apiProduct, setApiProduct] = useState<any | null>(null);
+
+  useEffect(() => {
+    const fetchLiveProduct = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/products/${productId}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data?.data?.product) {
+          setApiProduct(data.data.product);
+        }
+      } catch (e) {
+        console.error('Could not fetch product detail from API:', e);
+      }
+    };
+    fetchLiveProduct();
+  }, [productId]);
+
   // Standard Product resolution
-  const rawProduct = getProductByIdOrSlug(productId);
-  const localized = rawProduct && mounted ? getLocalizedProduct(rawProduct, language) : null;
+  const rawProduct = apiProduct
+    ? {
+        _id: apiProduct._id,
+        title: apiProduct.title || apiProduct.name,
+        slug: apiProduct.slug,
+        brand: apiProduct.brand || 'ShopNexus Official',
+        vendorName: apiProduct.vendorName || 'ShopNexus Official Store',
+        price: apiProduct.price || 0,
+        discountPrice: apiProduct.discountPrice,
+        averageRating: apiProduct.averageRating || 5.0,
+        totalReviews: apiProduct.totalReviews || 18,
+        stock: apiProduct.stock ?? 12,
+        category: apiProduct.category || 'Hardware & Acoustics',
+        description: apiProduct.description || '',
+        images: apiProduct.images?.length > 0 ? apiProduct.images : ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80'],
+        isFlashSale: !!apiProduct.isFlashSale,
+        flashSaleDiscountPercent: apiProduct.flashSaleDiscountPercent || 0,
+        tags: apiProduct.tags || ['official', 'authentic'],
+        trustBadges: apiProduct.trustBadges || {
+          hasFastDelivery: true,
+          hasWarranty: true,
+          warrantyText: '১ বছরের অফিসিয়াল ওয়ারেন্টি',
+          hasReturnPolicy: true,
+          isOfficialGenuine: true,
+        },
+      }
+    : getProductByIdOrSlug(productId);
+
+  const localized = rawProduct && mounted ? getLocalizedProduct(rawProduct as any, language) : null;
 
   const product = {
     id: rawProduct?._id || productId,
@@ -123,7 +168,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
   const cartItems = useCartStore((state) => state.items);
 
   const isInCart = cartItems.some((item) => item.productId === product.id);
-  const isCartAdded = addedSuccess || isInCart;
+  const isCartAdded = isInCart;
 
   // Combo Bundle Handlers
   const handleAddBundleToCart = () => {

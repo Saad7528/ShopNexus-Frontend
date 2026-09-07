@@ -20,7 +20,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const addItem = useCartStore((state) => state.addItem);
   const cartItems = useCartStore((state) => state.items);
   const { t, language } = useLanguageStore();
-  const [isAdded, setIsAdded] = React.useState(false);
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
@@ -31,10 +30,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const productTitle = localized ? localized.title : product.title;
 
   const isInCart = cartItems.some((item) => item.productId === product._id || item.productId === product.slug);
-  const isButtonAdded = isAdded || isInCart;
+  const isButtonAdded = isInCart;
 
   const displayPrice = product.isFlashSale && product.discountPrice ? product.discountPrice : product.price;
   const originalPrice = product.price;
+  const hasDiscount = (product.isFlashSale && !!product.discountPrice) || originalPrice > displayPrice;
+  const discountPercent = product.flashSaleDiscountPercent || (hasDiscount ? Math.round(((originalPrice - displayPrice) / originalPrice) * 100) : 0);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -48,7 +49,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       stock: product.stock,
       vendorName: product.vendorName,
     });
-    setIsAdded(true);
   };
 
   const handleBuyNow = (e: React.MouseEvent) => {
@@ -72,21 +72,116 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const hasDualImages = isCombo && product.images && product.images.length >= 2;
   const earnedLoyaltyPoints = Math.floor(displayPrice / 100) * 10;
 
+  const defaultFallbackImage = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80';
+  const [imgSrc, setImgSrc] = React.useState<string>(
+    product.images[0] || defaultFallbackImage
+  );
+
+  React.useEffect(() => {
+    setImgSrc(product.images[0] || defaultFallbackImage);
+  }, [product.images]);
+
+  // Auto-Cycling Layer Switcher for Mobile & Desktop Ambient Showcase
+  const [activeLayer, setActiveLayer] = React.useState<1 | 2>(1);
+  const [isHovered, setIsHovered] = React.useState<boolean>(false);
+  const [manualHoverIndex, setManualHoverIndex] = React.useState<1 | 2 | null>(null);
+
+  React.useEffect(() => {
+    if (!hasDualImages || isHovered) return;
+
+    const interval = setInterval(() => {
+      setActiveLayer((prev) => (prev === 1 ? 2 : 1));
+    }, 2600); // 2.6s balanced ambient flip
+
+    return () => clearInterval(interval);
+  }, [hasDualImages, isHovered]);
+
+  const currentFront = manualHoverIndex !== null ? manualHoverIndex : activeLayer;
+
   return (
     <Link
       href={productUrl}
       className="group relative flex flex-col bg-white dark:bg-slate-900/80 hover:bg-slate-50 dark:hover:bg-slate-900 border border-slate-200 dark:border-slate-800/90 hover:border-orange-500 dark:hover:border-orange-500/50 rounded-xl sm:rounded-2xl overflow-hidden transition-all duration-300 shadow-xs hover:shadow-xl hover:shadow-orange-500/10 hover:-translate-y-0.5 cursor-pointer"
     >
       {/* 1. Product Image & Badges (Compact 4:3 on mobile, 1:1 on desktop) */}
-      <div className="relative aspect-[4/3] sm:aspect-square w-full overflow-hidden bg-slate-100 dark:bg-slate-950/60">
-        <Image
-          src={product.images[0] || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80'}
-          alt={productTitle}
-          fill
-          sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-          className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
-          unoptimized={product.images[0]?.startsWith('/')}
-        />
+      <div
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => {
+          setIsHovered(false);
+          setManualHoverIndex(null);
+        }}
+        className="relative aspect-[4/3] sm:aspect-square w-full overflow-hidden bg-slate-100 dark:bg-slate-950/60"
+      >
+        {hasDualImages ? (
+          /* ✨ Ambient Auto-Cycling & Interactive Layer-Pop Dual-Card for Combos */
+          <div className="relative w-full h-full bg-gradient-to-br from-slate-100 via-slate-50 to-slate-200 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 overflow-hidden">
+            {/* Ambient Radial Backdrop Glow */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,119,0,0.12),transparent_70%)] pointer-events-none" />
+
+            {/* 1st Product Card (Top-Left Layer) */}
+            <div
+              onMouseEnter={() => setManualHoverIndex(1)}
+              onMouseLeave={() => setManualHoverIndex(null)}
+              className={`absolute top-2.5 left-2.5 sm:top-3 sm:left-3 w-[56%] h-[65%] rounded-xl sm:rounded-2xl bg-white dark:bg-slate-900 border overflow-hidden transition-all duration-500 ease-out ${
+                currentFront === 1
+                  ? 'z-30 scale-[1.02] shadow-2xl shadow-black/25 dark:shadow-black/60 border-orange-500/80 dark:border-orange-500/70'
+                  : 'z-10 scale-[0.96] opacity-75 brightness-90 border-slate-200/60 dark:border-slate-800/60'
+              }`}
+            >
+              <Image
+                src={product.images[0] || defaultFallbackImage}
+                alt={`${productTitle} - Item 1`}
+                fill
+                sizes="(max-width: 768px) 35vw, 20vw"
+                className="object-contain p-2 transition-transform duration-500"
+                unoptimized={product.images[0]?.startsWith('/')}
+                onError={() => setImgSrc(defaultFallbackImage)}
+              />
+            </div>
+
+            {/* 2nd Product Card (Bottom-Right Layer with Overlap) */}
+            <div
+              onMouseEnter={() => setManualHoverIndex(2)}
+              onMouseLeave={() => setManualHoverIndex(null)}
+              className={`absolute bottom-2.5 right-2.5 sm:bottom-3 sm:right-3 w-[56%] h-[65%] rounded-xl sm:rounded-2xl bg-white dark:bg-slate-900 border overflow-hidden transition-all duration-500 ease-out ${
+                currentFront === 2
+                  ? 'z-30 scale-[1.02] shadow-2xl shadow-black/25 dark:shadow-black/60 border-orange-500/80 dark:border-orange-500/70'
+                  : 'z-10 scale-[0.96] opacity-75 brightness-90 border-slate-200/60 dark:border-slate-800/60'
+              }`}
+            >
+              <Image
+                src={product.images[1] || defaultFallbackImage}
+                alt={`${productTitle} - Item 2`}
+                fill
+                sizes="(max-width: 768px) 35vw, 20vw"
+                className="object-contain p-2 transition-transform duration-500"
+                unoptimized={product.images[1]?.startsWith('/')}
+                onError={() => setImgSrc(defaultFallbackImage)}
+              />
+            </div>
+
+            {/* Glowing Center Plus (+) Badge */}
+            <div
+              className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none rounded-full bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white font-black text-xs sm:text-sm flex items-center justify-center shadow-xl shadow-orange-500/50 border-2 border-white dark:border-slate-900 transition-all duration-500 ${
+                isHovered
+                  ? 'z-35 scale-90 opacity-60'
+                  : 'z-25 w-7 h-7 sm:w-8 sm:h-8 group-hover:scale-110 group-hover:rotate-90'
+              }`}
+            >
+              <Plus className="w-4 h-4 stroke-[3]" />
+            </div>
+          </div>
+        ) : (
+          <Image
+            src={imgSrc}
+            alt={productTitle}
+            fill
+            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+            className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
+            unoptimized={imgSrc.startsWith('/')}
+            onError={() => setImgSrc(defaultFallbackImage)}
+          />
+        )}
 
         {/* Flash Sale / Combo Discount Badge */}
         {product.isFlashSale && (
@@ -115,11 +210,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           )
         )}
 
-        {/* Bottom Combo Header Tag (Clean, no AI star/sparkle icon) */}
+        {/* Bottom Combo Header Tag */}
         {isCombo && (
-          <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-slate-950/90 via-slate-950/60 to-transparent py-1.5 px-2.5 flex items-center justify-between text-[8px] sm:text-[9px] text-white font-bold z-10">
+          <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-slate-950/90 via-slate-950/60 to-transparent py-1 px-2 sm:py-1.5 sm:px-2.5 flex items-center justify-between text-[7.5px] sm:text-[9px] text-white font-bold z-10">
             <span className="text-orange-300 font-semibold tracking-wide">
-              {mounted && language === 'bn' ? 'কম্বো বান্ডেল (২টি গ্যাজেট)' : 'Combo Bundle (2 Items)'}
+              {mounted && language === 'bn'
+                ? `কম্বো বান্ডেল (${product.images.length >= 2 ? toBengaliNumber(product.images.length) : '২'}টি গ্যাজেট)`
+                : `Combo Bundle (${product.images.length >= 2 ? product.images.length : '2'} Items)`}
             </span>
             <span className="text-emerald-300 font-mono">
               {mounted && language === 'bn' ? 'বিশেষ সেভার অফার' : 'Super Saver'}
@@ -160,13 +257,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
         {/* 3. Price & Sleek Action Buttons (+ Add & ⚡ Buy Now) */}
         <div className="pt-1 border-t border-slate-100 dark:border-slate-800/60 space-y-1">
-          <div className="flex items-baseline justify-between gap-1">
-            <span className="text-xs sm:text-sm font-black text-slate-900 dark:text-white font-mono truncate">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-xs sm:text-sm font-black text-slate-900 dark:text-white font-mono">
               {mounted ? formatCurrency(displayPrice, language) : `৳${displayPrice.toLocaleString()}`}
             </span>
-            {product.isFlashSale && product.discountPrice && (
-              <span className="text-[8.5px] sm:text-[9px] text-slate-400 dark:text-slate-500 line-through font-mono truncate">
+            {hasDiscount && (
+              <span className="text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-500 line-through font-mono">
                 {mounted ? formatCurrency(originalPrice, language) : `৳${originalPrice.toLocaleString()}`}
+              </span>
+            )}
+            {hasDiscount && discountPercent > 0 && (
+              <span className="ml-auto text-[8.5px] sm:text-[9px] font-extrabold px-1.5 py-0.5 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 font-mono leading-none">
+                {mounted && language === 'bn' ? `-${toBengaliNumber(discountPercent)}%` : `-${discountPercent}%`}
               </span>
             )}
           </div>

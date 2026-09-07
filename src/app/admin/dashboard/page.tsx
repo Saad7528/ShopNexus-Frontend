@@ -328,13 +328,58 @@ const AUDIT_LOGS = [
   },
 ];
 
+import { useAuthStore } from '@/store/useAuthStore';
+
 export default function AdminDashboardPage() {
+  const { token } = useAuthStore();
   const [timeRange, setTimeRange] = useState<TimeRange>('6months');
-  const liveVisitorCount = useVisitorAnalyticsStore((s) => s.liveVisitorCount);
   const [activeModal, setActiveModal] = useState<DashboardModalType>('none');
   const [staffTab, setStaffTab] = useState<'timesheet' | 'audit-trail'>('timesheet');
+  const [liveMetrics, setLiveMetrics] = useState<any>(null);
 
-  const currentData = TIME_SERIES_DATA[timeRange];
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      try {
+        const res = await fetch(`${API_URL}/admin/metrics`, {
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data?.data?.summary) {
+          setLiveMetrics(data.data);
+        }
+      } catch (err) {
+        console.error('Could not fetch live dashboard metrics:', err);
+      }
+    };
+
+    fetchMetrics();
+  }, [API_URL, token]);
+
+  const { liveVisitorCount, telemetryMode } = useVisitorAnalyticsStore();
+  const baseData = TIME_SERIES_DATA[timeRange];
+
+  const currentData = telemetryMode === 'real'
+    ? {
+        totalRevenue: liveMetrics?.summary?.totalRevenue ?? 0,
+        totalOrders: liveMetrics?.summary?.totalOrders ?? 0,
+        aov: liveMetrics?.summary?.averageOrderValue ?? 0,
+        growth: 'Live MongoDB Data',
+        chart: liveMetrics?.salesTrends && liveMetrics.salesTrends.length > 0
+          ? liveMetrics.salesTrends.map((t: any) => ({ label: t.month, revenue: t.revenue, orders: t.orders }))
+          : baseData.chart,
+      }
+    : {
+        ...baseData,
+        totalRevenue: baseData.totalRevenue,
+        totalOrders: baseData.totalOrders,
+        aov: baseData.aov,
+        chart: baseData.chart,
+      };
 
   return (
     <RoleGuard allowedRoles={['admin']}>

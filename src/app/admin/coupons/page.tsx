@@ -98,11 +98,54 @@ const INITIAL_ABANDONED_CARTS: IAbandonedCart[] = [
   },
 ];
 
+import { useAuthStore } from '@/store/useAuthStore';
+
 export default function AdminCouponsPage() {
+  const { token } = useAuthStore();
   const [coupons, setCoupons] = useState<ICoupon[]>(INITIAL_COUPONS);
   const [abandonedCarts, setAbandonedCarts] = useState<IAbandonedCart[]>(INITIAL_ABANDONED_CARTS);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+  // Fetch live coupons from backend MongoDB on mount
+  React.useEffect(() => {
+    const fetchLiveCoupons = async () => {
+      try {
+        const res = await fetch(`${API_URL}/coupons/admin`, {
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data?.data?.coupons && Array.isArray(data.data.coupons)) {
+          const mapped: ICoupon[] = data.data.coupons.map((c: any) => ({
+            id: c._id,
+            code: c.code,
+            discountPercentage: c.discountValue || 10,
+            minOrderAmount: c.minPurchaseAmount || 0,
+            usageLimit: c.usageLimit || 500,
+            usedCount: c.usedCount || 0,
+            expiresAt: c.expiryDate ? new Date(c.expiryDate).toISOString().split('T')[0] : '2026-12-31',
+            isActive: c.isActive !== false,
+          }));
+
+          if (mapped.length > 0) {
+            setCoupons((prev) => {
+              const existingCodes = new Set(mapped.map((m) => m.code));
+              return [...mapped, ...prev.filter((p) => !existingCodes.has(p.code))];
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Could not fetch live coupons:', err);
+      }
+    };
+
+    fetchLiveCoupons();
+  }, [API_URL, token]);
 
   const [newCoupon, setNewCoupon] = useState({
     code: '',
@@ -117,7 +160,7 @@ export default function AdminCouponsPage() {
     setTimeout(() => setToastMsg(null), 3000);
   };
 
-  const handleCreateCoupon = (e: React.FormEvent) => {
+  const handleCreateCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCoupon.code) {
       alert('Please enter a coupon code.');
@@ -138,6 +181,37 @@ export default function AdminCouponsPage() {
     setCoupons([created, ...coupons]);
     setIsCreateModalOpen(false);
     showToast(`Coupon "${created.code}" created successfully!`);
+
+    // Async DB creation
+    try {
+      const res = await fetch(`${API_URL}/coupons`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          code: created.code,
+          discountType: 'percentage',
+          discountValue: created.discountPercentage,
+          minPurchaseAmount: created.minOrderAmount,
+          usageLimit: created.usageLimit,
+          expiryDate: new Date(created.expiresAt).toISOString(),
+        }),
+      });
+
+      if (res.ok) {
+        const resData = await res.json();
+        if (resData?.data?.coupon?._id) {
+          setCoupons((prev) =>
+            prev.map((c) => (c.id === created.id ? { ...c, id: resData.data.coupon._id } : c))
+          );
+        }
+      }
+    } catch (err) {
+      console.error('Error saving coupon to DB:', err);
+    }
+
     setNewCoupon({
       code: '',
       discountPercentage: '15',
@@ -161,10 +235,22 @@ export default function AdminCouponsPage() {
     showToast('Coupon status updated!');
   };
 
-  const handleDeleteCoupon = (id: string, code: string) => {
+  const handleDeleteCoupon = async (id: string, code: string) => {
     if (confirm(`Are you sure you want to delete coupon code "${code}"?`)) {
       setCoupons((prev) => prev.filter((c) => c.id !== id));
       showToast(`Coupon "${code}" deleted.`);
+
+      // Async DB deletion
+      try {
+        await fetch(`${API_URL}/coupons/${id}`, {
+          method: 'DELETE',
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
+      } catch (err) {
+        console.error('Error deleting coupon from DB:', err);
+      }
     }
   };
 

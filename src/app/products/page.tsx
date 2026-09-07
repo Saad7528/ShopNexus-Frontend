@@ -290,7 +290,7 @@ const FALLBACK_PRODUCTS: Product[] = [
     price: 24000,
     discountPrice: 21500,
     stock: 9,
-    images: ['https://images.unsplash.com/photo-1541140532154-b024d705b909?w=800&q=80'],
+    images: ['https://images.unsplash.com/photo-1595225476474-87563907a212?w=800&q=80'],
     vendorName: 'Nexus Direct',
     isFlashSale: false,
     averageRating: 4.7,
@@ -397,7 +397,7 @@ const FALLBACK_PRODUCTS: Product[] = [
     price: 17500,
     discountPrice: 15200,
     stock: 20,
-    images: ['https://images.unsplash.com/photo-1563770660941-20978e870e26?w=800&q=80'],
+    images: ['https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&q=80'],
     vendorName: 'Nexus Direct',
     isFlashSale: false,
     averageRating: 4.8,
@@ -432,7 +432,7 @@ const FALLBACK_PRODUCTS: Product[] = [
     price: 16000,
     discountPrice: 14200,
     stock: 30,
-    images: ['https://images.unsplash.com/photo-1609592424368-eb871a9ec603?w=800&q=80'],
+    images: ['https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=800&q=80'],
     vendorName: 'Nexus Direct',
     isFlashSale: true,
     flashSaleDiscountPercent: 11,
@@ -643,16 +643,56 @@ function ProductsContent() {
 
   const { t, language } = useLanguageStore();
   const [mounted, setMounted] = useState(false);
+  const [liveDbProducts, setLiveDbProducts] = useState<Product[]>([]);
   const rawBundles = useBundleStore((state) => state.bundles);
 
-  // Merge custom dynamic bundles with base products stably cached with useMemo
+  useEffect(() => {
+    const fetchDbProducts = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/products?limit=100`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data?.data?.products && Array.isArray(data.data.products) && data.data.products.length > 0) {
+          const mapped: Product[] = data.data.products.map((p: any) => ({
+            _id: p._id,
+            title: p.title || p.name,
+            slug: p.slug || p._id,
+            description: p.description || '',
+            category: p.category || 'Audio',
+            brand: p.brand || 'ShopNexus Official',
+            price: p.price || 0,
+            discountPrice: p.discountPrice,
+            stock: p.stock ?? 20,
+            images: p.images?.length > 0 ? p.images : ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80'],
+            vendorName: p.vendorName || 'ShopNexus Official',
+            isFlashSale: !!p.isFlashSale,
+            flashSaleDiscountPercent: p.flashSaleDiscountPercent || (p.discountPrice && p.price ? Math.round(((p.price - p.discountPrice) / p.price) * 100) : 0),
+            averageRating: p.averageRating || 4.8,
+            totalReviews: p.totalReviews || 12,
+            tags: p.tags || ['popular', 'official'],
+          }));
+          setLiveDbProducts(mapped);
+        }
+      } catch (err) {
+        console.error('Could not fetch DB products:', err);
+      }
+    };
+    fetchDbProducts();
+  }, []);
+
+  // Merge custom dynamic bundles with live DB products and base products
   const allCatalogProducts = React.useMemo(() => {
     const bundleProducts = rawBundles
       .filter((b) => b.status === 'Active')
       .map(convertBundleToProduct);
     const nonCombos = FALLBACK_PRODUCTS.filter((p) => p.category !== 'Combo Packages');
-    return [...bundleProducts, ...nonCombos];
-  }, [rawBundles]);
+
+    const liveIds = new Set(liveDbProducts.map((p) => p._id));
+    const liveSlugs = new Set(liveDbProducts.map((p) => p.slug));
+    const dedupedFallbacks = nonCombos.filter((p) => !liveIds.has(p._id) && !liveSlugs.has(p.slug));
+
+    return [...bundleProducts, ...liveDbProducts, ...dedupedFallbacks];
+  }, [rawBundles, liveDbProducts]);
 
   const [products, setProducts] = useState<Product[]>(allCatalogProducts);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
@@ -696,7 +736,7 @@ function ProductsContent() {
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10">
       {/* Header Banner */}
-      <div className="relative rounded-3xl overflow-hidden bg-linear-to-r from-orange-50/90 via-white to-amber-50/60 dark:from-[#0b1120] dark:via-slate-900 dark:to-[#090d16] border border-orange-200 dark:border-orange-500/20 p-5 sm:p-10 mb-6 sm:mb-10 shadow-xl backdrop-blur-2xl">
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-orange-50/90 via-white to-amber-50/60 dark:from-[#0b1120] dark:via-slate-900 dark:to-[#090d16] border border-orange-200 dark:border-orange-500/20 p-5 sm:p-10 mb-6 sm:mb-10 shadow-xl backdrop-blur-2xl">
         <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="max-w-2xl relative z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 dark:bg-orange-500/15 border border-orange-500/30 text-orange-600 dark:text-orange-400 text-[11px] sm:text-xs font-semibold uppercase tracking-wider mb-2 sm:mb-3">
@@ -800,7 +840,7 @@ function ProductsContent() {
               </p>
               <button
                 onClick={resetFilters}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-linear-to-r from-[#ff4400] via-[#ff7700] to-[#ff4400] text-white text-xs font-semibold shadow-lg shadow-orange-500/25 cursor-pointer"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] via-[#ff7700] to-[#ff4400] text-white text-xs font-semibold shadow-lg shadow-orange-500/25 cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5" /> {mounted ? t('filter_reset') : 'Reset All Filters'}
               </button>
