@@ -102,23 +102,35 @@ export default function StorefrontTelemetryTracker() {
     const clientEnv = getClientEnvironment();
 
     const sendPing = () => {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-      fetch(`${API_URL}/telemetry/heartbeat`, {
+      const payload = {
+        sessionId,
+        pathname,
+        device: clientEnv.device,
+        deviceModel: clientEnv.deviceModel,
+        os: clientEnv.os,
+        browser: clientEnv.browser,
+        userName: user?.name,
+        contactPhone: user?.phoneNumber,
+        cartCount: totalCount,
+        cartTotal: totalAmount,
+      };
+
+      // 1. Direct Next.js Serverless Route (Always works on Vercel without localhost barrier)
+      fetch('/api/telemetry/heartbeat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sessionId,
-          pathname,
-          device: clientEnv.device,
-          deviceModel: clientEnv.deviceModel,
-          os: clientEnv.os,
-          browser: clientEnv.browser,
-          userName: user?.name,
-          contactPhone: user?.phoneNumber,
-          cartCount: totalCount,
-          cartTotal: totalAmount,
-        }),
+        body: JSON.stringify(payload),
       }).catch(() => {});
+
+      // 2. Also ping dedicated backend if configured
+      const API_URL = process.env.NEXT_PUBLIC_API_URL;
+      if (API_URL && !API_URL.startsWith('/api') && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+        fetch(`${API_URL}/telemetry/heartbeat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }).catch(() => {});
+      }
     };
 
     // 1. Update local Zustand state
