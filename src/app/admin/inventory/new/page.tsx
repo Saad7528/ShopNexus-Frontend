@@ -151,14 +151,25 @@ export default function NewProductPage() {
     };
 
     try {
-      const res = await fetch(`${API_URL}/products`, {
+      let res = await fetch('/api/products', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify(payload),
-      });
+      }).catch(() => null);
+
+      if ((!res || !res.ok) && API_URL && !API_URL.startsWith('/api') && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+        res = await fetch(`${API_URL}/products`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify(payload),
+        }).catch(() => null);
+      }
 
       // Also persist to local session cache for instant preview
       try {
