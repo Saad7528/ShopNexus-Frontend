@@ -179,9 +179,11 @@ const CATEGORIES = [
 
 import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useAuthStore } from '@/store/useAuthStore';
 
 function InventoryContent() {
   const searchParams = useSearchParams();
+  const { token } = useAuthStore();
   const [inventory, setInventory] = useState<IInventoryItem[]>(INITIAL_INVENTORY);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'low-stock' | 'flash'>(
@@ -192,6 +194,56 @@ function InventoryContent() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingProductModal, setEditingProductModal] = useState<IInventoryItem | null>(null);
   const [feedbackMsg, setFeedbackMsg] = useState<{ text: string; type: 'success' | 'delete' } | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+  // Fetch live products from backend MongoDB on mount
+  React.useEffect(() => {
+    const fetchLiveProducts = async () => {
+      try {
+        const res = await fetch(`${API_URL}/products?limit=100`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data?.data?.products && Array.isArray(data.data.products) && data.data.products.length > 0) {
+          const mapped: IInventoryItem[] = data.data.products.map((p: any) => ({
+            id: p._id,
+            sku: p.variants?.[0]?.sku || `SKU-${p._id?.toString().slice(-4)}`,
+            barcode: `BC-${p._id?.toString().slice(-6)}`,
+            name: p.title || p.name,
+            category: p.category || 'Audio',
+            brand: p.brand || 'ShopNexus Official',
+            costPrice: Math.round((p.price || 5000) * 0.7),
+            price: p.price || 0,
+            discountPrice: p.discountPrice,
+            vatTaxPercent: 7.5,
+            stock: p.stock ?? 20,
+            threshold: 5,
+            image: p.images?.[0] || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&q=80',
+            isFlashSale: !!p.isFlashSale,
+            variantColor: p.variants?.[0]?.name || 'Standard',
+            slug: p.slug || p._id,
+            hasFastDelivery: true,
+            hasWarranty: true,
+            warrantyText: '১ বছরের অফিসিয়াল ওয়ারেন্টি',
+            hasReturnPolicy: true,
+            isOfficialGenuine: true,
+          }));
+
+          // Merge live DB products with default catalog so nothing is lost
+          setInventory((prev) => {
+            const existingIds = new Set(mapped.map((m) => m.id));
+            const remainingDefault = prev.filter((p) => !existingIds.has(p.id));
+            return [...mapped, ...remainingDefault];
+          });
+        }
+      } catch (err) {
+        console.error('Could not sync live inventory, fallback active:', err);
+      }
+    };
+
+    fetchLiveProducts();
+  }, [API_URL]);
 
   // Sync with URL query param if user arrives via link
   React.useEffect(() => {
@@ -237,18 +289,45 @@ function InventoryContent() {
     setEditStockValue(item.stock);
   };
 
-  const saveQuickStock = (id: string) => {
+  const saveQuickStock = async (id: string) => {
+    // Optimistic UI update
     setInventory((prev) =>
       prev.map((item) => (item.id === id ? { ...item, stock: editStockValue } : item))
     );
     setEditingId(null);
     showFeedback('Stock quantity updated in real-time!', 'success');
+
+    // Async DB update
+    try {
+      await fetch(`${API_URL}/products/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ stock: editStockValue }),
+      });
+    } catch (e) {
+      console.error('Failed to sync stock change with DB:', e);
+    }
   };
 
-  const handleDeleteProduct = (id: string, name: string) => {
+  const handleDeleteProduct = async (id: string, name: string) => {
     if (confirm(`Are you sure you want to remove "${name}" from the live catalog?`)) {
       setInventory((prev) => prev.filter((item) => item.id !== id));
       showFeedback(`Removed "${name}" from catalog.`, 'delete');
+
+      // Async DB deletion
+      try {
+        await fetch(`${API_URL}/products/${id}`, {
+          method: 'DELETE',
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
+      } catch (e) {
+        console.error('Failed to delete from live DB:', e);
+      }
     }
   };
 
@@ -263,18 +342,41 @@ function InventoryContent() {
     });
   };
 
-  const handleSaveFullEdit = (e: React.FormEvent) => {
+  const handleSaveFullEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingProductModal) return;
 
+    const updated = { ...editingProductModal };
     setInventory((prev) =>
-      prev.map((item) => (item.id === editingProductModal.id ? editingProductModal : item))
+      prev.map((item) => (item.id === updated.id ? updated : item))
     );
-    showFeedback(`Product "${editingProductModal.name}" updated successfully!`, 'success');
+    showFeedback(`Product "${updated.name}" updated successfully!`, 'success');
     setEditingProductModal(null);
+
+    // Async DB update
+    try {
+      await fetch(`${API_URL}/products/${updated.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          title: updated.name,
+          category: updated.category,
+          brand: updated.brand,
+          price: updated.price,
+          discountPrice: updated.discountPrice,
+          stock: updated.stock,
+          isFlashSale: updated.isFlashSale,
+        }),
+      });
+    } catch (err) {
+      console.error('Failed to sync edit with live DB:', err);
+    }
   };
 
-  const handleAddProduct = (e: React.FormEvent) => {
+  const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newProduct.name || !newProduct.price) {
       alert('Please provide product title and sales price.');
@@ -334,6 +436,47 @@ function InventoryContent() {
       hasReturnPolicy: true,
       isOfficialGenuine: true,
     });
+
+    // Async DB creation
+    try {
+      const res = await fetch(`${API_URL}/products`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          title: itemToAdd.name,
+          category: itemToAdd.category,
+          brand: itemToAdd.brand,
+          price: itemToAdd.price,
+          discountPrice: itemToAdd.discountPrice,
+          stock: itemToAdd.stock,
+          images: [itemToAdd.image],
+          description: newProduct.description || `${itemToAdd.name} - Genuine product with official warranty`,
+          isFlashSale: itemToAdd.isFlashSale,
+          variants: [
+            {
+              sku: itemToAdd.sku,
+              name: itemToAdd.variantColor || 'Standard',
+              price: itemToAdd.price,
+              stock: itemToAdd.stock,
+            },
+          ],
+        }),
+      });
+
+      if (res.ok) {
+        const resData = await res.json();
+        if (resData?.data?.product?._id) {
+          setInventory((prev) =>
+            prev.map((it) => (it.id === itemToAdd.id ? { ...it, id: resData.data.product._id } : it))
+          );
+        }
+      }
+    } catch (err) {
+      console.error('Failed to persist new product to DB:', err);
+    }
   };
 
   const lowStockCount = inventory.filter((item) => item.stock <= item.threshold).length;
@@ -585,15 +728,14 @@ function InventoryContent() {
                             </button>
                           )}
 
-                          {/* 🌟 FULL PRODUCT EDIT BUTTON */}
-                          <button
-                            type="button"
-                            onClick={() => handleOpenEditModal(item)}
+                          {/* 🌟 FULL PRODUCT EDIT BUTTON (Dedicated Route) */}
+                          <Link
+                            href={`/admin/inventory/edit/${item.id}`}
                             className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-orange-500/10 dark:bg-orange-500/15 hover:bg-orange-500/20 dark:hover:bg-orange-500/25 text-orange-600 dark:text-orange-400 border border-orange-500/30 text-xs font-bold shadow-2xs transition-all cursor-pointer"
                             title="Edit All Product Details"
                           >
                             <Sliders className="w-3.5 h-3.5" /> Edit
-                          </button>
+                          </Link>
 
                           {/* Delete Product */}
                           <button
@@ -613,700 +755,6 @@ function InventoryContent() {
             </table>
           </div>
         </div>
-
-        {/* 🌟 1. FULL-FEATURED EDIT PRODUCT MODAL */}
-        {editingProductModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md overflow-y-auto">
-            <div className="relative w-full max-w-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5 my-8 max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-xl bg-orange-500/10 border border-orange-500/30 flex items-center justify-center text-orange-600 dark:text-orange-400">
-                    <Sliders className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-black text-slate-900 dark:text-white">Edit Product Specification (৳ BDT)</h2>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400">Update pricing, cost margin, variants, stock, barcode, and flash sale</p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setEditingProductModal(null)}
-                  className="p-2 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <form onSubmit={handleSaveFullEdit} className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                  {/* Product Title */}
-                  <div className="sm:col-span-2">
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                      Product Name / Title *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={editingProductModal.name}
-                      onChange={(e) =>
-                        setEditingProductModal({ ...editingProductModal, name: e.target.value })
-                      }
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
-                    />
-                  </div>
-
-                  {/* Category */}
-                  <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                      Category *
-                    </label>
-                    <select
-                      value={editingProductModal.category}
-                      onChange={(e) =>
-                        setEditingProductModal({ ...editingProductModal, category: e.target.value })
-                      }
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
-                    >
-                      {CATEGORIES.map((cat) => (
-                        <option key={cat} value={cat}>
-                          {cat}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Brand */}
-                  <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                      Brand Name
-                    </label>
-                    <input
-                      type="text"
-                      value={editingProductModal.brand}
-                      onChange={(e) =>
-                        setEditingProductModal({ ...editingProductModal, brand: e.target.value })
-                      }
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
-                    />
-                  </div>
-
-                  {/* SKU */}
-                  <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                      SKU Code
-                    </label>
-                    <input
-                      type="text"
-                      value={editingProductModal.sku}
-                      onChange={(e) =>
-                        setEditingProductModal({ ...editingProductModal, sku: e.target.value })
-                      }
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
-                    />
-                  </div>
-
-                  {/* Barcode */}
-                  <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                      Barcode Label
-                    </label>
-                    <input
-                      type="text"
-                      value={editingProductModal.barcode}
-                      onChange={(e) =>
-                        setEditingProductModal({ ...editingProductModal, barcode: e.target.value })
-                      }
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
-                    />
-                  </div>
-
-                  {/* Cost Price (৳) */}
-                  <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                      Cost per Item (৳ BDT)
-                    </label>
-                    <input
-                      type="number"
-                      value={editingProductModal.costPrice}
-                      onChange={(e) =>
-                        setEditingProductModal({
-                          ...editingProductModal,
-                          costPrice: parseFloat(e.target.value) || 0,
-                        })
-                      }
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
-                    />
-                  </div>
-
-                  {/* Selling Price (৳) */}
-                  <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                      Sales Price (৳ BDT) *
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      value={editingProductModal.price}
-                      onChange={(e) =>
-                        setEditingProductModal({
-                          ...editingProductModal,
-                          price: parseFloat(e.target.value) || 0,
-                        })
-                      }
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
-                    />
-                  </div>
-
-                  {/* Discount / Flash Price (৳) */}
-                  <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                      Discount Price (৳ BDT)
-                    </label>
-                    <input
-                      type="number"
-                      value={editingProductModal.discountPrice || ''}
-                      onChange={(e) =>
-                        setEditingProductModal({
-                          ...editingProductModal,
-                          discountPrice: e.target.value ? parseFloat(e.target.value) : undefined,
-                        })
-                      }
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
-                    />
-                  </div>
-
-                  {/* VAT / Tax Class */}
-                  <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                      VAT / Tax Class
-                    </label>
-                    <select
-                      value={editingProductModal.vatTaxPercent}
-                      onChange={(e) =>
-                        setEditingProductModal({
-                          ...editingProductModal,
-                          vatTaxPercent: parseFloat(e.target.value) || 0,
-                        })
-                      }
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
-                    >
-                      <option value="0">0% (Tax Exempt)</option>
-                      <option value="5">5% Standard VAT</option>
-                      <option value="7.5">7.5% Electronics VAT</option>
-                      <option value="15">15% Luxury Class</option>
-                    </select>
-                  </div>
-
-                  {/* Current Stock */}
-                  <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                      Current Stock (Units) *
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      value={editingProductModal.stock}
-                      onChange={(e) =>
-                        setEditingProductModal({
-                          ...editingProductModal,
-                          stock: parseInt(e.target.value) || 0,
-                        })
-                      }
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
-                    />
-                  </div>
-
-                  {/* Variant Option */}
-                  <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                      Variant (Color/Size)
-                    </label>
-                    <input
-                      type="text"
-                      value={editingProductModal.variantColor || ''}
-                      onChange={(e) =>
-                        setEditingProductModal({
-                          ...editingProductModal,
-                          variantColor: e.target.value,
-                        })
-                      }
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
-                    />
-                  </div>
-
-                  {/* Image CDN URL */}
-                  <div className="sm:col-span-3">
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                      Product Image CDN URL
-                    </label>
-                    <input
-                      type="url"
-                      value={editingProductModal.image}
-                      onChange={(e) =>
-                        setEditingProductModal({
-                          ...editingProductModal,
-                          image: e.target.value,
-                        })
-                      }
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
-                    />
-                  </div>
-                </div>
-
-                {/* Trust Badges & Guarantees Configuration */}
-                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                    <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                      <ShieldCheck className="w-4 h-4 text-orange-500" /> Trust Badges & Guarantee Policies (স্টোরে প্রদর্শিত সুবিধা)
-                    </span>
-                    <span className="text-[10px] text-slate-500 dark:text-slate-400">যেসব অপশন সিলেক্ট করবেন কেবল সেগুলোই কাস্টমার পেইজে দেখাবে</span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-                    {/* 1. Fast Delivery */}
-                    <label className="flex items-center gap-2.5 p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer hover:border-orange-500/50 transition-colors">
-                      <input
-                        type="checkbox"
-                        checked={editingProductModal.hasFastDelivery !== false}
-                        onChange={(e) =>
-                          setEditingProductModal({
-                            ...editingProductModal,
-                            hasFastDelivery: e.target.checked,
-                          })
-                        }
-                        className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
-                      />
-                      <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200">
-                        <Truck className="w-3.5 h-3.5 text-orange-500" />
-                        <span>২৪ ঘণ্টায় দ্রুত হোম ডেলিভারি</span>
-                      </div>
-                    </label>
-
-                    {/* 2. Return Policy */}
-                    <label className="flex items-center gap-2.5 p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer hover:border-orange-500/50 transition-colors">
-                      <input
-                        type="checkbox"
-                        checked={editingProductModal.hasReturnPolicy !== false}
-                        onChange={(e) =>
-                          setEditingProductModal({
-                            ...editingProductModal,
-                            hasReturnPolicy: e.target.checked,
-                          })
-                        }
-                        className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
-                      />
-                      <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200">
-                        <RotateCcw className="w-3.5 h-3.5 text-indigo-500" />
-                        <span>৭ দিনের সহজ রিটার্ন পলিসি</span>
-                      </div>
-                    </label>
-
-                    {/* 3. Genuine Product */}
-                    <label className="flex items-center gap-2.5 p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer hover:border-orange-500/50 transition-colors">
-                      <input
-                        type="checkbox"
-                        checked={editingProductModal.isOfficialGenuine !== false}
-                        onChange={(e) =>
-                          setEditingProductModal({
-                            ...editingProductModal,
-                            isOfficialGenuine: e.target.checked,
-                          })
-                        }
-                        className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
-                      />
-                      <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200">
-                        <Check className="w-3.5 h-3.5 text-amber-500" />
-                        <span>১০০% জেনুইন অরিজিনাল প্রোডাক্ট</span>
-                      </div>
-                    </label>
-
-                    {/* 4. Warranty Option & Text */}
-                    <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2">
-                      <label className="flex items-center gap-2.5 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={editingProductModal.hasWarranty !== false}
-                          onChange={(e) =>
-                            setEditingProductModal({
-                              ...editingProductModal,
-                              hasWarranty: e.target.checked,
-                            })
-                          }
-                          className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
-                        />
-                        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200">
-                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                          <span>অফিসিয়াল ওয়ারেন্টি প্রযোজ্য</span>
-                        </div>
-                      </label>
-                      {editingProductModal.hasWarranty !== false && (
-                        <input
-                          type="text"
-                          placeholder="e.g. ১ বছরের অফিসিয়াল ওয়ারেন্টি"
-                          value={editingProductModal.warrantyText || '১ বছরের অফিসিয়াল ওয়ারেন্টি'}
-                          onChange={(e) =>
-                            setEditingProductModal({
-                              ...editingProductModal,
-                              warrantyText: e.target.value,
-                            })
-                          }
-                          className="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-[11px] focus:outline-none focus:border-orange-500"
-                        />
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 pt-2">
-                  <input
-                    type="checkbox"
-                    id="editFlashSaleToggle"
-                    checked={editingProductModal.isFlashSale || false}
-                    onChange={(e) =>
-                      setEditingProductModal({
-                        ...editingProductModal,
-                        isFlashSale: e.target.checked,
-                      })
-                    }
-                    className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
-                  />
-                  <label htmlFor="editFlashSaleToggle" className="text-xs text-slate-700 dark:text-slate-300 font-semibold cursor-pointer">
-                    Enable Flash Sale Promotion Campaign (Shows with Live Countdown)
-                  </label>
-                </div>
-
-                <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
-                  <button
-                    type="button"
-                    onClick={() => setEditingProductModal(null)}
-                    className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition-all cursor-pointer border border-slate-200 dark:border-slate-700"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/25 transition-all cursor-pointer hover:scale-105"
-                  >
-                    Save All Changes (৳ BDT)
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* 🌟 2. FULL-FEATURED ADD PRODUCT MODAL */}
-        {isAddModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md overflow-y-auto">
-            <div className="relative w-full max-w-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5 my-8 max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-xl bg-orange-500/10 border border-orange-500/30 flex items-center justify-center text-orange-600 dark:text-orange-400">
-                    <Plus className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-black text-slate-900 dark:text-white">Add New Product (৳ Taka Specification)</h2>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400">Enter pricing, cost per item, variants, SEO metadata, and barcodes</p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsAddModalOpen(false)}
-                  className="p-2 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <form onSubmit={handleAddProduct} className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                  {/* Product Title */}
-                  <div className="sm:col-span-2">
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                      Product Name / Title *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. Sony WH-1000XM5 Wireless ANC Headphones"
-                      value={newProduct.name}
-                      onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
-                    />
-                  </div>
-
-                  {/* Category */}
-                  <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                      Category *
-                    </label>
-                    <select
-                      value={newProduct.category}
-                      onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
-                    >
-                      {CATEGORIES.map((cat) => (
-                        <option key={cat} value={cat}>
-                          {cat}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Brand */}
-                  <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                      Brand Name
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Sony, Apple, Keychron"
-                      value={newProduct.brand}
-                      onChange={(e) => setNewProduct({ ...newProduct, brand: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
-                    />
-                  </div>
-
-                  {/* SKU */}
-                  <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                      SKU Code
-                    </label>
-                    <input
-                      type="text"
-                      value={newProduct.sku}
-                      onChange={(e) => setNewProduct({ ...newProduct, sku: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
-                    />
-                  </div>
-
-                  {/* Barcode */}
-                  <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                      Barcode Label
-                    </label>
-                    <input
-                      type="text"
-                      value={newProduct.barcode}
-                      onChange={(e) => setNewProduct({ ...newProduct, barcode: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
-                    />
-                  </div>
-
-                  {/* Cost Price (৳) */}
-                  <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                      Cost per Item (৳ BDT)
-                    </label>
-                    <input
-                      type="number"
-                      placeholder="28000"
-                      value={newProduct.costPrice}
-                      onChange={(e) => setNewProduct({ ...newProduct, costPrice: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
-                    />
-                  </div>
-
-                  {/* Selling Price (৳) */}
-                  <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                      Sales Price (৳ BDT) *
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      placeholder="38500"
-                      value={newProduct.price}
-                      onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
-                    />
-                  </div>
-
-                  {/* Discount / Flash Price (৳) */}
-                  <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                      Discount Price (৳ BDT)
-                    </label>
-                    <input
-                      type="number"
-                      placeholder="32500"
-                      value={newProduct.discountPrice}
-                      onChange={(e) => setNewProduct({ ...newProduct, discountPrice: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
-                    />
-                  </div>
-
-                  {/* VAT / Tax */}
-                  <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                      VAT / Tax Class
-                    </label>
-                    <select
-                      value={newProduct.vatTaxPercent}
-                      onChange={(e) => setNewProduct({ ...newProduct, vatTaxPercent: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
-                    >
-                      <option value="0">0% (Tax Exempt)</option>
-                      <option value="5">5% Standard VAT</option>
-                      <option value="7.5">7.5% Electronics VAT</option>
-                      <option value="15">15% Luxury Class</option>
-                    </select>
-                  </div>
-
-                  {/* Initial Stock */}
-                  <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                      Initial Stock (Units) *
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      value={newProduct.stock}
-                      onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
-                    />
-                  </div>
-
-                  {/* Variant Option */}
-                  <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                      Variant (Color/Size)
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Space Gray, Titanium"
-                      value={newProduct.variantColor}
-                      onChange={(e) => setNewProduct({ ...newProduct, variantColor: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
-                    />
-                  </div>
-
-                  {/* Image URL */}
-                  <div className="sm:col-span-3">
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                      Product Image CDN URL
-                    </label>
-                    <input
-                      type="url"
-                      placeholder="https://images.unsplash.com/photo-..."
-                      value={newProduct.image}
-                      onChange={(e) => setNewProduct({ ...newProduct, image: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-colors"
-                    />
-                  </div>
-                </div>
-
-                {/* Trust Badges & Guarantees Configuration */}
-                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                    <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                      <ShieldCheck className="w-4 h-4 text-orange-500" /> Trust Badges & Guarantee Policies (স্টোরে প্রদর্শিত সুবিধা)
-                    </span>
-                    <span className="text-[10px] text-slate-500 dark:text-slate-400">যেসব অপশন সিলেক্ট করবেন কেবল সেগুলোই কাস্টমার পেইজে দেখাবে</span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-                    {/* 1. Fast Delivery */}
-                    <label className="flex items-center gap-2.5 p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer hover:border-orange-500/50 transition-colors">
-                      <input
-                        type="checkbox"
-                        checked={newProduct.hasFastDelivery}
-                        onChange={(e) => setNewProduct({ ...newProduct, hasFastDelivery: e.target.checked })}
-                        className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
-                      />
-                      <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200">
-                        <Truck className="w-3.5 h-3.5 text-orange-500" />
-                        <span>২৪ ঘণ্টায় দ্রুত হোম ডেলিভারি</span>
-                      </div>
-                    </label>
-
-                    {/* 2. Return Policy */}
-                    <label className="flex items-center gap-2.5 p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer hover:border-orange-500/50 transition-colors">
-                      <input
-                        type="checkbox"
-                        checked={newProduct.hasReturnPolicy}
-                        onChange={(e) => setNewProduct({ ...newProduct, hasReturnPolicy: e.target.checked })}
-                        className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
-                      />
-                      <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200">
-                        <RotateCcw className="w-3.5 h-3.5 text-indigo-500" />
-                        <span>৭ দিনের সহজ রিটার্ন পলিসি</span>
-                      </div>
-                    </label>
-
-                    {/* 3. Genuine Product */}
-                    <label className="flex items-center gap-2.5 p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer hover:border-orange-500/50 transition-colors">
-                      <input
-                        type="checkbox"
-                        checked={newProduct.isOfficialGenuine}
-                        onChange={(e) => setNewProduct({ ...newProduct, isOfficialGenuine: e.target.checked })}
-                        className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
-                      />
-                      <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200">
-                        <Check className="w-3.5 h-3.5 text-amber-500" />
-                        <span>১০০% জেনুইন অরিজিনাল প্রোডাক্ট</span>
-                      </div>
-                    </label>
-
-                    {/* 4. Warranty Option & Text */}
-                    <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2">
-                      <label className="flex items-center gap-2.5 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={newProduct.hasWarranty}
-                          onChange={(e) => setNewProduct({ ...newProduct, hasWarranty: e.target.checked })}
-                          className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
-                        />
-                        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200">
-                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                          <span>অফিসিয়াল ওয়ারেন্টি প্রযোজ্য</span>
-                        </div>
-                      </label>
-                      {newProduct.hasWarranty && (
-                        <input
-                          type="text"
-                          placeholder="e.g. ১ বছরের অফিসিয়াল ওয়ারেন্টি"
-                          value={newProduct.warrantyText}
-                          onChange={(e) => setNewProduct({ ...newProduct, warrantyText: e.target.value })}
-                          className="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-[11px] focus:outline-none focus:border-orange-500"
-                        />
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 pt-2">
-                  <input
-                    type="checkbox"
-                    id="addFlashSaleToggle"
-                    checked={newProduct.isFlashSale}
-                    onChange={(e) => setNewProduct({ ...newProduct, isFlashSale: e.target.checked })}
-                    className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
-                  />
-                  <label htmlFor="addFlashSaleToggle" className="text-xs text-slate-700 dark:text-slate-300 font-semibold cursor-pointer">
-                    Enable Flash Sale Promotion Campaign (Shows with Live Countdown)
-                  </label>
-                </div>
-
-                <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
-                  <button
-                    type="button"
-                    onClick={() => setIsAddModalOpen(false)}
-                    className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition-all cursor-pointer border border-slate-200 dark:border-slate-700"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/25 transition-all cursor-pointer hover:scale-105"
-                  >
-                    Publish to Catalog (৳ BDT)
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
       </div>
     </RoleGuard>
   );
