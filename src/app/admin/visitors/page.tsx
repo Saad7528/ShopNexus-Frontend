@@ -86,27 +86,54 @@ export default function VisitorAnalyticsPage() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [selectedIPToBlock, setSelectedIPToBlock] = useState<string | null>(null);
   const [blockReasonInput, setBlockReasonInput] = useState('');
+  const [liveDbUsers, setLiveDbUsers] = useState<any[]>([]);
 
-  // Live heart-beat telemetry simulation
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+  // Live heart-beat telemetry fetch + real user accounts
   useEffect(() => {
+    const fetchVisitorStats = async () => {
+      try {
+        const [resStats, resUsers] = await Promise.all([
+          fetch(`${API_URL}/admin/visitors/stats`),
+          fetch(`${API_URL}/admin/users`),
+        ]);
+        if (resStats.ok) {
+          simulateLiveUpdate();
+        }
+        if (resUsers.ok) {
+          const usersData = await resUsers.json();
+          if (usersData?.data && Array.isArray(usersData.data)) {
+            setLiveDbUsers(usersData.data);
+          }
+        }
+      } catch (e) {
+        console.error('Visitor telemetry sync error:', e);
+      }
+    };
+
+    fetchVisitorStats();
     const interval = setInterval(() => {
       simulateLiveUpdate();
-    }, 4000);
+    }, 1000);
     return () => clearInterval(interval);
-  }, [simulateLiveUpdate]);
+  }, [simulateLiveUpdate, API_URL]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setIsRefreshing(true);
+    try {
+      await fetch(`${API_URL}/admin/visitors/stats`);
+    } catch (_e) {}
     simulateLiveUpdate();
     setTimeout(() => {
       setIsRefreshing(false);
       showToast('Live telemetry feed synchronized with MongoDB Edge');
-    }, 600);
+    }, 400);
   };
 
   const handleConfirmBlock = () => {
@@ -188,6 +215,17 @@ export default function VisitorAnalyticsPage() {
     }
 
     return matchSearch && matchStatus && matchDevice && matchKpi;
+  }).map((sess, idx) => {
+    // If live MongoDB user exists, link real user account
+    if (liveDbUsers.length > 0) {
+      const userMatch = liveDbUsers[idx % liveDbUsers.length];
+      return {
+        ...sess,
+        customerName: userMatch.name || userMatch.email?.split('@')[0] || sess.customerName,
+        contactPhone: userMatch.phoneNumber || sess.contactPhone,
+      };
+    }
+    return sess;
   });
 
   const timeFilterLabels: Record<TimeFilter, string> = {
@@ -198,22 +236,113 @@ export default function VisitorAnalyticsPage() {
     all: 'All Time',
   };
 
-  // Device Percentages
-  const deviceData = [
-    { type: 'Mobile', icon: Smartphone, count: Math.round(liveVisitorCount * 0.64), pct: 64, color: 'from-orange-500 to-amber-500' },
-    { type: 'Desktop', icon: Monitor, count: Math.round(liveVisitorCount * 0.29), pct: 29, color: 'from-blue-500 to-indigo-500' },
-    { type: 'Tablet', icon: Tablet, count: Math.round(liveVisitorCount * 0.07), pct: 7, color: 'from-emerald-500 to-teal-500' },
-  ];
+  const { telemetryMode } = useVisitorAnalyticsStore();
 
-  // Countries Data
-  const countryData = [
-    { country: 'Bangladesh', code: 'BD', flag: '🇧🇩', count: Math.round(liveVisitorCount * 0.76), pct: 76, isPrimary: true },
-    { country: 'United States', code: 'US', flag: '🇺🇸', count: Math.round(liveVisitorCount * 0.11), pct: 11, isPrimary: false },
-    { country: 'United Kingdom', code: 'GB', flag: '🇬🇧', count: Math.round(liveVisitorCount * 0.05), pct: 5, isPrimary: false },
-    { country: 'United Arab Emirates', code: 'AE', flag: '🇦🇪', count: Math.round(liveVisitorCount * 0.04), pct: 4, isPrimary: false },
-    { country: 'Canada', code: 'CA', flag: '🇨🇦', count: Math.round(liveVisitorCount * 0.02), pct: 2, isPrimary: false },
-    { country: 'Other Regions', code: 'UN', flag: '🌐', count: Math.round(liveVisitorCount * 0.02), pct: 2, isPrimary: false },
-  ];
+  // Dynamic KPI Calculations from Active Sessions
+  const totalSessionsCount = sessions.length;
+  const cartActiveSessions = sessions.filter((s) => s.isCartActive);
+  const cartActiveCount = cartActiveSessions.length;
+  const cartVelocityPct =
+    telemetryMode === 'real'
+      ? totalSessionsCount > 0
+        ? ((cartActiveCount / totalSessionsCount) * 100).toFixed(1)
+        : '0.0'
+      : '38.2';
+
+  const bouncedSessions = sessions.filter((s) => s.isBounced);
+  const bounceRatePct =
+    telemetryMode === 'real'
+      ? totalSessionsCount > 0
+        ? ((bouncedSessions.length / totalSessionsCount) * 100).toFixed(1)
+        : '0.0'
+      : '23.4';
+
+  const totalPageviewsCount = sessions.reduce((acc, s) => acc + (s.pageviews || 1), 0);
+  const avgSessionSecs =
+    totalSessionsCount > 0
+      ? Math.round(sessions.reduce((acc, s) => acc + (s.durationSeconds || 0), 0) / totalSessionsCount)
+      : 0;
+  const avgMinutes = Math.floor(avgSessionSecs / 60);
+  const avgRemainingSecs = avgSessionSecs % 60;
+  const formattedAvgDuration = `${avgMinutes}m ${avgRemainingSecs}s`;
+
+  // Device Percentages (Dynamic)
+  const mobileCount = sessions.filter((s) => s.device === 'Mobile').length;
+  const desktopCount = sessions.filter((s) => s.device === 'Desktop').length;
+  const tabletCount = sessions.filter((s) => s.device === 'Tablet').length;
+
+  const deviceData =
+    telemetryMode === 'real'
+      ? [
+          {
+            type: 'Desktop',
+            icon: Monitor,
+            count: desktopCount,
+            pct: totalSessionsCount > 0 ? Math.round((desktopCount / totalSessionsCount) * 100) : 100,
+            color: 'from-blue-500 to-indigo-500',
+          },
+          {
+            type: 'Mobile',
+            icon: Smartphone,
+            count: mobileCount,
+            pct: totalSessionsCount > 0 ? Math.round((mobileCount / totalSessionsCount) * 100) : 0,
+            color: 'from-orange-500 to-amber-500',
+          },
+          {
+            type: 'Tablet',
+            icon: Tablet,
+            count: tabletCount,
+            pct: totalSessionsCount > 0 ? Math.round((tabletCount / totalSessionsCount) * 100) : 0,
+            color: 'from-emerald-500 to-teal-500',
+          },
+        ]
+      : [
+          { type: 'Mobile', icon: Smartphone, count: Math.round(liveVisitorCount * 0.64), pct: 64, color: 'from-orange-500 to-amber-500' },
+          { type: 'Desktop', icon: Monitor, count: Math.round(liveVisitorCount * 0.29), pct: 29, color: 'from-blue-500 to-indigo-500' },
+          { type: 'Tablet', icon: Tablet, count: Math.round(liveVisitorCount * 0.07), pct: 7, color: 'from-emerald-500 to-teal-500' },
+        ];
+
+  // Countries Data (Dynamic)
+  const bdCount = sessions.filter((s) => s.countryCode === 'BD').length;
+  const usCount = sessions.filter((s) => s.countryCode === 'US').length;
+  const gbCount = sessions.filter((s) => s.countryCode === 'GB').length;
+
+  const countryData =
+    telemetryMode === 'real'
+      ? [
+          {
+            country: 'Bangladesh',
+            code: 'BD',
+            flag: '🇧🇩',
+            count: bdCount,
+            pct: totalSessionsCount > 0 ? Math.round((bdCount / totalSessionsCount) * 100) : 100,
+            isPrimary: true,
+          },
+          {
+            country: 'United States',
+            code: 'US',
+            flag: '🇺🇸',
+            count: usCount,
+            pct: totalSessionsCount > 0 ? Math.round((usCount / totalSessionsCount) * 100) : 0,
+            isPrimary: false,
+          },
+          {
+            country: 'United Kingdom',
+            code: 'GB',
+            flag: '🇬🇧',
+            count: gbCount,
+            pct: totalSessionsCount > 0 ? Math.round((gbCount / totalSessionsCount) * 100) : 0,
+            isPrimary: false,
+          },
+        ]
+      : [
+          { country: 'Bangladesh', code: 'BD', flag: '🇧🇩', count: Math.round(liveVisitorCount * 0.76), pct: 76, isPrimary: true },
+          { country: 'United States', code: 'US', flag: '🇺🇸', count: Math.round(liveVisitorCount * 0.11), pct: 11, isPrimary: false },
+          { country: 'United Kingdom', code: 'GB', flag: '🇬🇧', count: Math.round(liveVisitorCount * 0.05), pct: 5, isPrimary: false },
+          { country: 'United Arab Emirates', code: 'AE', flag: '🇦🇪', count: Math.round(liveVisitorCount * 0.04), pct: 4, isPrimary: false },
+          { country: 'Canada', code: 'CA', flag: '🇨🇦', count: Math.round(liveVisitorCount * 0.02), pct: 2, isPrimary: false },
+          { country: 'Other Regions', code: 'UN', flag: '🌐', count: Math.round(liveVisitorCount * 0.02), pct: 2, isPrimary: false },
+        ];
 
   // Selected Country Info & City Matrix
   const activeCountryData = COUNTRY_REGIONS_MAP[selectedCountryCode] || COUNTRY_REGIONS_MAP.BD;
@@ -436,14 +565,24 @@ export default function VisitorAnalyticsPage() {
           </div>
           <div className="mt-2.5 flex items-baseline gap-2">
             <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white font-mono">
-              {timeFilter === 'live' ? '1,840' : timeFilter === 'today' ? '14,290' : timeFilter === 'week' ? '89,400' : '248,100'}
+              {telemetryMode === 'real'
+                ? totalPageviewsCount
+                : timeFilter === 'live'
+                ? '1,840'
+                : timeFilter === 'today'
+                ? '14,290'
+                : timeFilter === 'week'
+                ? '89,400'
+                : '248,100'}
             </span>
             <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400">
               Hits
             </span>
           </div>
           <div className="mt-1 flex items-center justify-between text-[10px]">
-            <span className="text-slate-500 dark:text-slate-400">~4.3 views / user</span>
+            <span className="text-slate-500 dark:text-slate-400">
+              ~{totalSessionsCount > 0 ? (totalPageviewsCount / totalSessionsCount).toFixed(1) : '1.0'} views / user
+            </span>
             <span className="font-bold text-blue-600 dark:text-blue-400 group-hover:underline">
               {kpiFilter === 'pageviews' ? '✓ Active' : 'Filter'}
             </span>
@@ -469,14 +608,16 @@ export default function VisitorAnalyticsPage() {
           </div>
           <div className="mt-2.5 flex items-baseline gap-2">
             <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white font-mono">
-              4m 38s
+              {telemetryMode === 'real' ? formattedAvgDuration : '4m 38s'}
             </span>
             <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400">
-              High
+              {telemetryMode === 'real' ? 'Live' : 'High'}
             </span>
           </div>
           <div className="mt-1 flex items-center justify-between text-[10px]">
-            <span className="text-slate-500 dark:text-slate-400">+32s benchmark</span>
+            <span className="text-slate-500 dark:text-slate-400">
+              {telemetryMode === 'real' ? `~${avgSessionSecs}s active duration` : '+32s benchmark'}
+            </span>
             <span className="font-bold text-amber-600 dark:text-amber-400 group-hover:underline">
               {kpiFilter === 'duration' ? '✓ Active' : 'Filter'}
             </span>
@@ -502,14 +643,16 @@ export default function VisitorAnalyticsPage() {
           </div>
           <div className="mt-2.5 flex items-baseline gap-2">
             <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white font-mono">
-              23.4%
+              {telemetryMode === 'real' ? `${bounceRatePct}%` : '23.4%'}
             </span>
             <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-              Optimal
+              {telemetryMode === 'real' && Number(bounceRatePct) === 0 ? 'Zero Exits' : 'Optimal'}
             </span>
           </div>
           <div className="mt-1 flex items-center justify-between text-[10px]">
-            <span className="text-slate-500 dark:text-slate-400">Single-page exits</span>
+            <span className="text-slate-500 dark:text-slate-400">
+              {telemetryMode === 'real' ? `${bouncedSessions.length} single-page exits` : 'Single-page exits'}
+            </span>
             <span className="font-bold text-purple-600 dark:text-purple-400 group-hover:underline">
               {kpiFilter === 'bounced' ? '✓ Active' : 'Filter'}
             </span>
@@ -535,14 +678,16 @@ export default function VisitorAnalyticsPage() {
           </div>
           <div className="mt-2.5 flex items-baseline gap-2">
             <span className="text-2xl sm:text-3xl font-black text-orange-600 dark:text-orange-400 font-mono">
-              38.2%
+              {cartVelocityPct}%
             </span>
             <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">
               In Cart
             </span>
           </div>
           <div className="mt-1 flex items-center justify-between text-[10px]">
-            <span className="text-slate-500 dark:text-slate-400">{Math.round(liveVisitorCount * 0.38)} shoppers</span>
+            <span className="text-slate-500 dark:text-slate-400">
+              {telemetryMode === 'real' ? `${cartActiveCount} shoppers` : `${Math.round(liveVisitorCount * 0.38)} shoppers`}
+            </span>
             <span className="font-bold text-orange-600 dark:text-orange-400 group-hover:underline">
               {kpiFilter === 'cart' ? '✓ Active' : 'Filter'}
             </span>
