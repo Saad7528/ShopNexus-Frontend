@@ -275,7 +275,8 @@ export default function VisitorAnalyticsPage() {
   });
 
   const timeFilterLabels: Record<TimeFilter, string> = {
-    live: '⚡ Live (30m)',
+    live: '⚡ Live',
+    '30m': 'Past 30m',
     today: 'Today (24h)',
     week: 'Last 7 Days',
     month: 'Last 30 Days',
@@ -494,7 +495,7 @@ export default function VisitorAnalyticsPage() {
         <div className="flex flex-wrap items-center gap-2.5">
           {/* Time Filter Pills */}
           <div className="flex items-center p-1 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-            {(['live', 'today', 'week', 'month', 'all'] as TimeFilter[]).map((filter) => (
+            {(['live', '30m', 'today', 'week', 'month', 'all'] as TimeFilter[]).map((filter) => (
               <button
                 key={filter}
                 type="button"

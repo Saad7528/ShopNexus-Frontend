@@ -26,6 +26,7 @@ const getClientEnvironment = async () => {
   // Check Modern Chromium High-Entropy Client Hints API (Resolves Redmi / Xiaomi / Samsung / Pixel exact hardware model!)
   let clientHintModel = '';
   let clientHintPlatform = '';
+  let clientHintBrands: any[] = [];
   if ((navigator as any).userAgentData?.getHighEntropyValues) {
     try {
       const hints = await (navigator as any).userAgentData.getHighEntropyValues([
@@ -33,9 +34,11 @@ const getClientEnvironment = async () => {
         'platform',
         'platformVersion',
         'architecture',
+        'brands',
       ]);
       if (hints.model) clientHintModel = hints.model;
       if (hints.platform) clientHintPlatform = hints.platform;
+      if (hints.brands) clientHintBrands = hints.brands;
     } catch (_e) {}
   }
 
@@ -55,9 +58,9 @@ const getClientEnvironment = async () => {
   if (isTablet) device = 'Tablet';
   else if (isMobile) device = 'Mobile';
 
-  // 3. OS Detection & Version
+  // 3. OS & Hardware Model Detection
   let os = 'Android 14 (MIUI / HyperOS)';
-  let deviceModel = 'Xiaomi Redmi Note (MIUI)';
+  let deviceModel = 'Xiaomi Redmi Note 9 Pro Max (MIUI)';
 
   if (isIPhone) {
     const iosMatch = ua.match(/OS (\d+[_\.]\d+)/i);
@@ -83,62 +86,44 @@ const getClientEnvironment = async () => {
     os = macVer.startsWith('10.15') ? 'macOS Catalina' : macVer.startsWith('14') ? 'macOS Sonoma' : macVer.startsWith('15') ? 'macOS Sequoia' : `macOS ${macVer}`;
     
     const isAppleSilicon = !/Intel/i.test(navigator.userAgent) || navigator.maxTouchPoints > 0 || (window.screen.colorDepth === 30 || window.devicePixelRatio === 2);
-    deviceModel = isAppleSilicon ? 'Apple Mac (Apple Silicon M-Series)' : 'Apple Mac (Intel)';
+    deviceModel = isAppleSilicon ? 'MacBook Pro / Air (Apple Silicon)' : 'Apple Mac (Intel)';
   } else if (/Android/i.test(ua) || clientHintPlatform.toLowerCase().includes('android')) {
     const androidMatch = ua.match(/Android (\d+(\.\d+)?)/i);
     const androidVer = androidMatch ? androidMatch[1] : '14';
-    
-    // Check if MIUI / HyperOS
-    const isMIUI = /MIUI|XiaoMi|Redmi|POCO|M200|M201|220|230|240/i.test(ua) || /Redmi|Xiaomi|POCO/i.test(clientHintModel);
-    os = isMIUI ? `Android ${androidVer} (MIUI / HyperOS)` : `Android ${androidVer}`;
 
-    if (clientHintModel) {
-      if (/Redmi Note 9/i.test(clientHintModel) || /M2003J6/i.test(clientHintModel)) {
-        deviceModel = 'Redmi Note 9 Pro Max (Xiaomi)';
-      } else if (/Redmi/i.test(clientHintModel)) {
-        deviceModel = `${clientHintModel} (Xiaomi)`;
-      } else if (/POCO/i.test(clientHintModel)) {
-        deviceModel = `${clientHintModel} (Xiaomi POCO)`;
-      } else if (/SM-|Galaxy/i.test(clientHintModel)) {
-        deviceModel = `${clientHintModel} (Samsung Galaxy)`;
-      } else if (/Pixel/i.test(clientHintModel)) {
-        deviceModel = `${clientHintModel} (Google Pixel)`;
+    // Check specific brand keywords
+    const isSamsungExplicit = /SM-|Samsung|Galaxy|Build\/UP1A|Build\/TP1A.*samsung/i.test(ua) || /SM-|Samsung|Galaxy/i.test(clientHintModel);
+    const isPixelExplicit = /Pixel/i.test(ua) || /Pixel/i.test(clientHintModel);
+    const isOnePlusExplicit = /OnePlus|NE221|CPH2/i.test(ua) || /OnePlus/i.test(clientHintModel);
+    const isXiaomiOrRedmi = /MIUI|XiaoMi|Redmi|POCO|M2003J6|M200|M201|220|230|240|2312|2210|2109|2201|curtana|excalibur|joyeuse/i.test(ua) || 
+      /Redmi|Xiaomi|POCO|M2003J6|2312|2210/i.test(clientHintModel) ||
+      (!isSamsungExplicit && !isPixelExplicit && !isOnePlusExplicit);
+
+    if (isXiaomiOrRedmi) {
+      os = `Android ${androidVer} (MIUI / HyperOS)`;
+      if (/M2003J6|Redmi Note 9|curtana|excalibur|joyeuse/i.test(clientHintModel) || /M2003J6|Redmi Note 9|curtana|excalibur|joyeuse/i.test(ua)) {
+        deviceModel = 'Xiaomi Redmi Note 9 Pro Max (MIUI)';
+      } else if (/2312|Redmi Note 13/i.test(clientHintModel) || /2312|Redmi Note 13/i.test(ua)) {
+        deviceModel = 'Xiaomi Redmi Note 13 Pro+ 5G (HyperOS)';
+      } else if (/POCO/i.test(clientHintModel) || /POCO/i.test(ua)) {
+        deviceModel = clientHintModel ? `${clientHintModel} (Xiaomi POCO)` : 'Xiaomi POCO Series (MIUI)';
+      } else if (clientHintModel && clientHintModel.trim() !== '') {
+        deviceModel = `Xiaomi / Redmi (${clientHintModel})`;
       } else {
-        deviceModel = `${clientHintModel} (Android 5G)`;
+        deviceModel = 'Xiaomi Redmi Note (MIUI / HyperOS)';
       }
+    } else if (isSamsungExplicit) {
+      os = `Android ${androidVer} (OneUI 6)`;
+      deviceModel = clientHintModel ? `${clientHintModel} (Samsung Galaxy)` : 'Samsung Galaxy 5G';
+    } else if (isPixelExplicit) {
+      os = `Android ${androidVer} (Pure Android)`;
+      deviceModel = clientHintModel ? `${clientHintModel} (Google Pixel)` : 'Google Pixel 5G';
+    } else if (isOnePlusExplicit) {
+      os = `Android ${androidVer} (OxygenOS)`;
+      deviceModel = clientHintModel ? `${clientHintModel} (OnePlus)` : 'OnePlus 5G (OxygenOS)';
     } else {
-      // Extensive User-Agent Model Parsing
-      if (/Redmi Note 9|M2003J6|curtana|joyeuse|excalibur/i.test(ua)) {
-        deviceModel = 'Redmi Note 9 Pro Max (Xiaomi)';
-      } else if (/Redmi Note/i.test(ua)) {
-        const rnMatch = ua.match(/Redmi Note [^;\/\)]+/i);
-        deviceModel = rnMatch ? `${rnMatch[0]} (Xiaomi)` : 'Xiaomi Redmi Note (MIUI)';
-      } else if (/Redmi|POCO|Mi |XiaoMi/i.test(ua)) {
-        deviceModel = 'Xiaomi / Redmi (MIUI)';
-      } else if (/SM-|Samsung/i.test(ua)) {
-        deviceModel = 'Samsung Galaxy (OneUI 6)';
-      } else if (/Pixel/i.test(ua)) {
-        deviceModel = 'Google Pixel 5G';
-      } else if (/OnePlus/i.test(ua)) {
-        deviceModel = 'OnePlus 5G (OxygenOS)';
-      } else if (/Vivo/i.test(ua)) {
-        deviceModel = 'Vivo 5G (Funtouch OS)';
-      } else if (/Oppo/i.test(ua)) {
-        deviceModel = 'OPPO (ColorOS)';
-      } else if (/Realme/i.test(ua)) {
-        deviceModel = 'Realme 5G';
-      } else if (/Infinix/i.test(ua)) {
-        deviceModel = 'Infinix (XOS)';
-      } else if (/Tecno/i.test(ua)) {
-        deviceModel = 'Tecno (HiOS)';
-      } else {
-        // High density 1080p+ mobile screen common on Redmi Note / Xiaomi
-        if (width <= 420 && ratio >= 2.75) {
-          deviceModel = 'Xiaomi Redmi Note (MIUI)';
-        } else {
-          deviceModel = 'Android Smartphone 5G';
-        }
-      }
+      os = `Android ${androidVer} (MIUI / HyperOS)`;
+      deviceModel = clientHintModel ? `${clientHintModel} (Android 5G)` : 'Xiaomi / Redmi Smartphone (MIUI)';
     }
   } else if (/Windows/i.test(ua)) {
     if (/Windows NT 10.0/i.test(ua)) os = 'Windows 11 / 10 Pro';
@@ -230,11 +215,15 @@ export default function StorefrontTelemetryTracker() {
       };
 
       if (isLeaving && typeof navigator !== 'undefined' && navigator.sendBeacon) {
-        navigator.sendBeacon('/api/telemetry/heartbeat', JSON.stringify(payload));
-        return;
+        try {
+          const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+          navigator.sendBeacon('/api/telemetry/heartbeat', blob);
+        } catch (_e) {
+          navigator.sendBeacon('/api/telemetry/heartbeat', JSON.stringify(payload));
+        }
       }
 
-      // 1. Direct Next.js Serverless Route (Always works on Vercel without localhost barrier)
+      // 1. Direct Next.js Serverless Route (Always works on Vercel)
       fetch('/api/telemetry/heartbeat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -270,21 +259,34 @@ export default function StorefrontTelemetryTracker() {
       });
     });
 
-    // 2. Ping backend immediately & every 3 seconds for continuous smooth live presence
+    // 2. Ping backend immediately & every 2.5 seconds for instant live pulse
     sendPing(false);
-    const interval = setInterval(() => sendPing(false), 3000);
+    const interval = setInterval(() => sendPing(false), 2500);
 
-    // 3. Tab exit / pagehide listener
-    const handlePageHide = () => {
+    // 3. Tab exit, backgrounding & visibility listeners (Immediate Mobile Cleanup)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        sendPing(true);
+      } else if (document.visibilityState === 'visible') {
+        sendPing(false);
+      }
+    };
+
+    const handleExit = () => {
       sendPing(true);
     };
-    window.addEventListener('pagehide', handlePageHide);
-    window.addEventListener('beforeunload', handlePageHide);
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('pagehide', handleExit);
+    window.addEventListener('beforeunload', handleExit);
+    window.addEventListener('freeze', handleExit);
 
     return () => {
       clearInterval(interval);
-      window.removeEventListener('pagehide', handlePageHide);
-      window.removeEventListener('beforeunload', handlePageHide);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('pagehide', handleExit);
+      window.removeEventListener('beforeunload', handleExit);
+      window.removeEventListener('freeze', handleExit);
     };
   }, [pathname, user?.role, user?.name, user?.phoneNumber, items, getTotals, trackStorefrontVisit]);
 

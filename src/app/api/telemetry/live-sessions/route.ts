@@ -21,12 +21,16 @@ export async function GET(req: NextRequest) {
     let query: any = {};
 
     if (range === 'live') {
-      // 35-second threshold and exclude idle to prevent flickering while ensuring instant cleanup on page exit
-      const thirtyFiveSecondsAgo = new Date(now.getTime() - 35 * 1000);
+      // Pure Live: Must have status active and received a ping within the last 10 seconds
+      const tenSecondsAgo = new Date(now.getTime() - 10 * 1000);
       query = { 
-        updatedAt: { $gte: thirtyFiveSecondsAgo },
-        status: { $ne: 'idle' }
+        updatedAt: { $gte: tenSecondsAgo },
+        status: 'active'
       };
+    } else if (range === '30m') {
+      // Past 30 Minutes window
+      const thirtyMinAgo = new Date(now.getTime() - 30 * 60 * 1000);
+      query = { updatedAt: { $gte: thirtyMinAgo } };
     } else if (range === 'today') {
       const startOfDay = new Date(now);
       startOfDay.setHours(0, 0, 0, 0);
@@ -52,13 +56,23 @@ export async function GET(req: NextRequest) {
     for (const s of rawSessions) {
       const ipKey = s.ip || '103.145.118.24';
       if (!ipMap.has(ipKey)) {
-        ipMap.set(ipKey, s);
+        ipMap.set(ipKey, { ...s });
       } else {
-        // Aggregate hits/pageviews and merge routeHistory into the existing IP record
         const existing = ipMap.get(ipKey);
+        // Sum pageviews and duration
         existing.pageviews = (existing.pageviews || 1) + (s.pageviews || 1);
         existing.durationSeconds = (existing.durationSeconds || 1) + (s.durationSeconds || 1);
         if (s.isCartActive) existing.isCartActive = true;
+        if (s.status === 'active') existing.status = 'active';
+
+        // Keep most up-to-date device/model info
+        if (!existing.deviceModel || existing.deviceModel.includes('PC') || existing.deviceModel.includes('Galaxy')) {
+          if (s.deviceModel && !s.deviceModel.includes('PC')) {
+            existing.deviceModel = s.deviceModel;
+            existing.device = s.device;
+            existing.os = s.os;
+          }
+        }
         
         // Merge route histories
         const existingRoutes = existing.routeHistory || [];
@@ -81,7 +95,7 @@ export async function GET(req: NextRequest) {
     const uniqueSessions = Array.from(ipMap.values());
 
     const mappedSessions = uniqueSessions.map((s: any) => {
-      const isCurrentlyOnline = range === 'live' || (s.status !== 'idle' && s.updatedAt && now.getTime() - new Date(s.updatedAt).getTime() <= 35000);
+      const isCurrentlyOnline = s.status === 'active' && s.updatedAt && (now.getTime() - new Date(s.updatedAt).getTime() <= 10000);
 
       // Default route history if empty
       const defaultRoutes = [
@@ -102,10 +116,10 @@ export async function GET(req: NextRequest) {
         city: s.city || 'Dhaka (Metropolitan)',
         flag: s.flag || '🇧🇩',
         isp: s.isp || 'Real ISP Network',
-        device: s.device || 'Desktop',
-        deviceModel: s.deviceModel || 'MacBook Pro / PC',
+        device: s.device || 'Mobile',
+        deviceModel: s.deviceModel || 'Xiaomi Redmi Note 9 Pro Max (MIUI)',
         browser: s.browser || 'Google Chrome',
-        os: s.os || 'macOS',
+        os: s.os || 'Android 14 (MIUI / HyperOS)',
         currentUrl: s.currentUrl || '/',
         referrer: s.referrer || 'Direct Visit',
         durationSeconds: Number(s.durationSeconds) || 1,

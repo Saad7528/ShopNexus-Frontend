@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type TimeFilter = 'live' | 'today' | 'week' | 'month' | 'all';
+export type TimeFilter = 'live' | '30m' | 'today' | 'week' | 'month' | 'all';
 export type DeviceType = 'Mobile' | 'Desktop' | 'Tablet';
 export type SessionStatus = 'active' | 'idle' | 'blocked' | 'bot' | 'bounced';
 export type KpiFilterType = 'all' | 'live' | 'pageviews' | 'duration' | 'bounced' | 'cart';
@@ -547,6 +547,7 @@ export const useVisitorAnalyticsStore = create<VisitorAnalyticsState>()(
         const isReal = get().telemetryMode === 'real';
         const demoCounts: Record<TimeFilter, number> = {
           live: 48,
+          '30m': 320,
           today: 1840,
           week: 12450,
           month: 48920,
@@ -554,6 +555,7 @@ export const useVisitorAnalyticsStore = create<VisitorAnalyticsState>()(
         };
         const realCounts: Record<TimeFilter, number> = {
           live: get().sessions.filter((s) => s.status === 'active').length,
+          '30m': get().sessions.length,
           today: get().sessions.length,
           week: get().sessions.length,
           month: get().sessions.length,
