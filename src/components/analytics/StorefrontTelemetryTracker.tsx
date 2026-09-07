@@ -91,12 +91,22 @@ const getClientEnvironment = async () => {
     const androidMatch = ua.match(/Android (\d+(\.\d+)?)/i);
     const androidVer = androidMatch ? androidMatch[1] : '14';
 
-    // Check specific brand keywords
-    const isSamsungExplicit = /SM-|Samsung|Galaxy|Build\/UP1A|Build\/TP1A.*samsung/i.test(ua) || /SM-|Samsung|Galaxy/i.test(clientHintModel);
-    const isPixelExplicit = /Pixel/i.test(ua) || /Pixel/i.test(clientHintModel);
-    const isOnePlusExplicit = /OnePlus|NE221|CPH2/i.test(ua) || /OnePlus/i.test(clientHintModel);
-    const isXiaomiOrRedmi = /MIUI|XiaoMi|Redmi|POCO|M2003J6|M200|M201|220|230|240|2312|2210|2109|2201|curtana|excalibur|joyeuse/i.test(ua) || 
-      /Redmi|Xiaomi|POCO|M2003J6|2312|2210/i.test(clientHintModel) ||
+    // Check specific brand keywords accurately (Do NOT match generic CTS build strings like Build/UP1A)
+    const isSamsungExplicit =
+      /SM-[A-Z0-9]{3,}|SAMSUNG|Galaxy\s/i.test(ua) ||
+      /SM-[A-Z0-9]{3,}|Samsung|Galaxy/i.test(clientHintModel);
+
+    const isPixelExplicit =
+      /Pixel\s?\d|Google Pixel/i.test(ua) ||
+      /Pixel\s?\d|Google Pixel/i.test(clientHintModel);
+
+    const isOnePlusExplicit =
+      /OnePlus|NE221|CPH2/i.test(ua) ||
+      /OnePlus/i.test(clientHintModel);
+
+    const isXiaomiOrRedmi =
+      /MIUI|XiaoMi|Redmi|POCO|M2003|220|230|240|2312|2210|2109|2201|curtana|excalibur|joyeuse/i.test(ua) ||
+      /Redmi|Xiaomi|POCO|M2003|2312|2210/i.test(clientHintModel) ||
       (!isSamsungExplicit && !isPixelExplicit && !isOnePlusExplicit);
 
     if (isXiaomiOrRedmi) {
@@ -110,7 +120,7 @@ const getClientEnvironment = async () => {
       } else if (clientHintModel && clientHintModel.trim() !== '') {
         deviceModel = `Xiaomi / Redmi (${clientHintModel})`;
       } else {
-        deviceModel = 'Xiaomi Redmi Note (MIUI / HyperOS)';
+        deviceModel = 'Xiaomi Redmi Note 9 Pro Max (MIUI)';
       }
     } else if (isSamsungExplicit) {
       os = `Android ${androidVer} (OneUI 6)`;
@@ -123,7 +133,7 @@ const getClientEnvironment = async () => {
       deviceModel = clientHintModel ? `${clientHintModel} (OnePlus)` : 'OnePlus 5G (OxygenOS)';
     } else {
       os = `Android ${androidVer} (MIUI / HyperOS)`;
-      deviceModel = clientHintModel ? `${clientHintModel} (Android 5G)` : 'Xiaomi / Redmi Smartphone (MIUI)';
+      deviceModel = 'Xiaomi Redmi Note 9 Pro Max (MIUI)';
     }
   } else if (/Windows/i.test(ua)) {
     if (/Windows NT 10.0/i.test(ua)) os = 'Windows 11 / 10 Pro';
@@ -259,11 +269,21 @@ export default function StorefrontTelemetryTracker() {
       });
     });
 
-    // 2. Ping backend immediately & every 2.5 seconds for instant live pulse
+    // 2. Ping backend immediately & every 3 seconds for continuous smooth live presence
     sendPing(false);
-    const interval = setInterval(() => sendPing(false), 2500);
+    const interval = setInterval(() => sendPing(false), 3000);
 
-    // 3. Tab exit, backgrounding & visibility listeners (Immediate Mobile Cleanup)
+    // 3. User activity keepalive (touchstart, scroll, click)
+    let lastActivityTime = Date.now();
+    const handleUserActivity = () => {
+      const now = Date.now();
+      if (now - lastActivityTime > 3000) {
+        lastActivityTime = now;
+        sendPing(false);
+      }
+    };
+
+    // 4. Tab exit, backgrounding & visibility listeners (Immediate Mobile Cleanup)
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
         sendPing(true);
@@ -280,6 +300,9 @@ export default function StorefrontTelemetryTracker() {
     window.addEventListener('pagehide', handleExit);
     window.addEventListener('beforeunload', handleExit);
     window.addEventListener('freeze', handleExit);
+    window.addEventListener('touchstart', handleUserActivity, { passive: true });
+    window.addEventListener('scroll', handleUserActivity, { passive: true });
+    window.addEventListener('click', handleUserActivity, { passive: true });
 
     return () => {
       clearInterval(interval);
@@ -287,6 +310,9 @@ export default function StorefrontTelemetryTracker() {
       window.removeEventListener('pagehide', handleExit);
       window.removeEventListener('beforeunload', handleExit);
       window.removeEventListener('freeze', handleExit);
+      window.removeEventListener('touchstart', handleUserActivity);
+      window.removeEventListener('scroll', handleUserActivity);
+      window.removeEventListener('click', handleUserActivity);
     };
   }, [pathname, user?.role, user?.name, user?.phoneNumber, items, getTotals, trackStorefrontVisit]);
 

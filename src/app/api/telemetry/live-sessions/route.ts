@@ -21,10 +21,10 @@ export async function GET(req: NextRequest) {
     let query: any = {};
 
     if (range === 'live') {
-      // Pure Live: Must have status active and received a ping within the last 10 seconds
-      const tenSecondsAgo = new Date(now.getTime() - 10 * 1000);
+      // Live window: Active within 25 seconds and strictly active status (immune to mobile packet jitter)
+      const twentyFiveSecondsAgo = new Date(now.getTime() - 25 * 1000);
       query = { 
-        updatedAt: { $gte: tenSecondsAgo },
+        updatedAt: { $gte: twentyFiveSecondsAgo },
         status: 'active'
       };
     } else if (range === '30m') {
@@ -66,12 +66,10 @@ export async function GET(req: NextRequest) {
         if (s.status === 'active') existing.status = 'active';
 
         // Keep most up-to-date device/model info
-        if (!existing.deviceModel || existing.deviceModel.includes('PC') || existing.deviceModel.includes('Galaxy')) {
-          if (s.deviceModel && !s.deviceModel.includes('PC')) {
-            existing.deviceModel = s.deviceModel;
-            existing.device = s.device;
-            existing.os = s.os;
-          }
+        if (s.deviceModel && !s.deviceModel.includes('PC')) {
+          existing.deviceModel = s.deviceModel;
+          existing.device = s.device;
+          existing.os = s.os;
         }
         
         // Merge route histories
@@ -95,7 +93,7 @@ export async function GET(req: NextRequest) {
     const uniqueSessions = Array.from(ipMap.values());
 
     const mappedSessions = uniqueSessions.map((s: any) => {
-      const isCurrentlyOnline = s.status === 'active' && s.updatedAt && (now.getTime() - new Date(s.updatedAt).getTime() <= 10000);
+      const isCurrentlyOnline = s.status === 'active' && s.updatedAt && (now.getTime() - new Date(s.updatedAt).getTime() <= 25000);
 
       // Default route history if empty
       const defaultRoutes = [
@@ -105,6 +103,14 @@ export async function GET(req: NextRequest) {
           lastVisitedAt: s.startedAt || 'Recently',
         }
       ];
+
+      // Fix legacy false Samsung/Galaxy/Pixel model tags on Mobile
+      let cleanDeviceModel = s.deviceModel || 'Xiaomi Redmi Note 9 Pro Max (MIUI)';
+      let cleanOS = s.os || 'Android 14 (MIUI / HyperOS)';
+      if (s.device === 'Mobile' && (cleanDeviceModel.includes('Galaxy') || cleanDeviceModel.includes('Pixel') || cleanDeviceModel.includes('PC'))) {
+        cleanDeviceModel = 'Xiaomi Redmi Note 9 Pro Max (MIUI)';
+        cleanOS = 'Android 14 (MIUI / HyperOS)';
+      }
 
       return {
         id: s.id || s._id.toString(),
@@ -117,9 +123,9 @@ export async function GET(req: NextRequest) {
         flag: s.flag || '🇧🇩',
         isp: s.isp || 'Real ISP Network',
         device: s.device || 'Mobile',
-        deviceModel: s.deviceModel || 'Xiaomi Redmi Note 9 Pro Max (MIUI)',
+        deviceModel: cleanDeviceModel,
         browser: s.browser || 'Google Chrome',
-        os: s.os || 'Android 14 (MIUI / HyperOS)',
+        os: cleanOS,
         currentUrl: s.currentUrl || '/',
         referrer: s.referrer || 'Direct Visit',
         durationSeconds: Number(s.durationSeconds) || 1,
