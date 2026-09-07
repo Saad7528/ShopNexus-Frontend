@@ -32,6 +32,7 @@ import {
 import { useThemeStore } from '@/store/useThemeStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useVisitorAnalyticsStore } from '@/store/useVisitorAnalyticsStore';
+import DevTelemetryToggle from '@/components/admin/DevTelemetryToggle';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -206,12 +207,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   key={item.href}
                   href={item.href}
                   onClick={() => isMobile && setSidebarOpen(false)}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-colors duration-150 outline-none focus:outline-none focus:ring-0 focus-visible:outline-none select-none ${
                     !sidebarOpen && !isMobile ? 'justify-center' : 'justify-between'
                   } ${
                     isActive
                       ? 'bg-orange-500/10 dark:bg-orange-500/15 text-orange-600 dark:text-orange-400 border border-orange-500/30 shadow-sm'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60 border border-transparent'
                   }`}
                   title={!sidebarOpen && !isMobile ? item.title : undefined}
                 >
@@ -321,20 +322,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
-            {/* Live Visitors Clickable Topbar Pill */}
-            <Link
-              href="/admin/visitors"
-              className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/25 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center gap-1.5 sm:gap-2 transition-all shadow-2xs hover:scale-105 active:scale-95 cursor-pointer"
-              title="View Real-Time Live Visitors & Traffic Intelligence"
-            >
-              <span className="relative flex h-2 sm:h-2.5 w-2 sm:w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 sm:h-2.5 w-2 sm:w-2.5 bg-emerald-500" />
-              </span>
-              <span>
-                {liveVisitorCount} <span className="hidden sm:inline">Live Visitors</span><span className="sm:hidden">Live</span>
-              </span>
-            </Link>
+            {/* Dev Telemetry Toggle (Localhost only) */}
+            <DevTelemetryToggle compact />
 
             {/* Theme Toggle */}
             <button

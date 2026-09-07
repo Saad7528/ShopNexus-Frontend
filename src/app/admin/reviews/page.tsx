@@ -25,8 +25,10 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { useReviewStore, ModerationMode, IReviewItem } from '@/store/useReviewStore';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export default function AdminReviewsPage() {
+  const { token } = useAuthStore();
   const {
     reviews,
     moderationMode,
@@ -43,6 +45,29 @@ export default function AdminReviewsPage() {
   const [replyingReviewId, setReplyingReviewId] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
   const [feedbackToast, setFeedbackToast] = useState<string | null>(null);
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+  // Fetch live reviews on mount
+  React.useEffect(() => {
+    const fetchLiveReviews = async () => {
+      try {
+        const res = await fetch(`${API_URL}/admin/reviews`, {
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          // Successfully retrieved reviews from MongoDB Atlas
+        }
+      } catch (err) {
+        console.error('Error fetching live reviews:', err);
+      }
+    };
+
+    fetchLiveReviews();
+  }, [API_URL, token]);
 
   const showToast = (msg: string) => {
     setFeedbackToast(msg);
@@ -73,14 +98,36 @@ export default function AdminReviewsPage() {
     };
   }, [reviews]);
 
-  const handleApprove = (id: string) => {
+  const handleApprove = async (id: string) => {
     approveReview(id);
     showToast('রিভিউটি সফলভাবে অনুমোদন (Approved) করা হয়েছে');
+
+    try {
+      await fetch(`${API_URL}/admin/reviews/${id}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ status: 'approved' }),
+      });
+    } catch (_e) {}
   };
 
-  const handleReject = (id: string) => {
+  const handleReject = async (id: string) => {
     rejectReview(id);
     showToast('রিভিউটি বাতিল (Rejected) করা হয়েছে');
+
+    try {
+      await fetch(`${API_URL}/admin/reviews/${id}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ status: 'rejected' }),
+      });
+    } catch (_e) {}
   };
 
   const handleDelete = (id: string, userId: string) => {

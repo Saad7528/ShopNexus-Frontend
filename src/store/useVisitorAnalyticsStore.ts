@@ -127,35 +127,7 @@ export const COUNTRY_REGIONS_MAP: Record<string, { country: string; flag: string
 
 export type TelemetryMode = 'real' | 'demo';
 
-export const REAL_CUSTOMER_SESSIONS: VisitorSession[] = [
-  {
-    id: 'sess_live_shopper_1',
-    ip: '103.145.118.24',
-    customerName: 'Tanvir Ahmed (Storefront Shopper)',
-    contactPhone: '+880 1712-884910',
-    country: 'Bangladesh',
-    countryCode: 'BD',
-    city: 'Dhaka (Gulshan-2)',
-    flag: '🇧🇩',
-    isp: 'Grameenphone 4G/Fiber',
-    device: 'Mobile',
-    deviceModel: 'Samsung Galaxy S24 Ultra',
-    browser: 'Chrome Mobile 124',
-    os: 'Android 14',
-    currentUrl: '/products',
-    referrer: 'Direct Storefront Visit',
-    durationSeconds: 185,
-    pageviews: 5,
-    status: 'active',
-    isCartActive: true,
-    cartItemsCount: 1,
-    cartValueBDT: 32500,
-    cartItemsSummary: 'Sony WH-1000XM5 ANC Headphones',
-    isBounced: false,
-    startedAt: '3m ago',
-    lastActiveAt: 'Live Now',
-  },
-];
+export const REAL_CUSTOMER_SESSIONS: VisitorSession[] = [];
 
 interface VisitorAnalyticsState {
   telemetryMode: TelemetryMode;
@@ -189,11 +161,17 @@ interface VisitorAnalyticsState {
     userName?: string;
     cartCount?: number;
     cartTotal?: number;
+    device?: DeviceType;
+    deviceModel?: string;
+    os?: string;
+    browser?: string;
   }) => void;
+  syncBackendSessions: (backendSessions: VisitorSession[]) => void;
   blockIP: (ip: string, reason?: string) => void;
   unblockIP: (ip: string) => void;
   simulateLiveUpdate: () => void;
 }
+
 
 const INITIAL_SESSIONS: VisitorSession[] = [
   {
@@ -533,7 +511,7 @@ export const useVisitorAnalyticsStore = create<VisitorAnalyticsState>()(
       selectedCountryCode: 'BD',
       blockedCountries: ['RU', 'KP'],
       geoPolicyMode: 'global',
-      liveVisitorCount: 1,
+      liveVisitorCount: 0,
       sessions: REAL_CUSTOMER_SESSIONS,
       blockedIPs: INITIAL_BLOCKED,
       searchQuery: '',
@@ -545,8 +523,8 @@ export const useVisitorAnalyticsStore = create<VisitorAnalyticsState>()(
         if (telemetryMode === 'real') {
           set({
             telemetryMode: 'real',
-            liveVisitorCount: 1,
-            sessions: REAL_CUSTOMER_SESSIONS,
+            liveVisitorCount: 0,
+            sessions: [],
           });
         } else {
           set({
@@ -567,14 +545,14 @@ export const useVisitorAnalyticsStore = create<VisitorAnalyticsState>()(
           all: 218500,
         };
         const realCounts: Record<TimeFilter, number> = {
-          live: 1,
-          today: 12,
-          week: 45,
-          month: 120,
-          all: 120,
+          live: get().sessions.filter((s) => s.status === 'active').length,
+          today: get().sessions.length,
+          week: get().sessions.length,
+          month: get().sessions.length,
+          all: get().sessions.length,
         };
         const counts = isReal ? realCounts : demoCounts;
-        set({ timeFilter, liveVisitorCount: counts[timeFilter] || (isReal ? 1 : 48) });
+        set({ timeFilter, liveVisitorCount: counts[timeFilter] ?? (isReal ? 0 : 48) });
       },
 
       setKpiFilter: (kpiFilter) => {
@@ -599,7 +577,17 @@ export const useVisitorAnalyticsStore = create<VisitorAnalyticsState>()(
       setStatusFilter: (statusFilter) => set({ statusFilter }),
       setDeviceFilter: (deviceFilter) => set({ deviceFilter }),
 
-      trackStorefrontVisit: ({ pathname, userRole, userName, cartCount = 0, cartTotal = 0 }) => {
+      trackStorefrontVisit: ({
+        pathname,
+        userRole,
+        userName,
+        cartCount = 0,
+        cartTotal = 0,
+        device = 'Desktop',
+        deviceModel = 'MacBook Pro 16" (Apple Silicon)',
+        os = 'macOS Sonoma',
+        browser = 'Google Chrome 124',
+      }) => {
         const isInternalRole = (role?: string) => {
           if (!role) return false;
           const norm = role.toLowerCase().trim();
@@ -625,24 +613,28 @@ export const useVisitorAnalyticsStore = create<VisitorAnalyticsState>()(
             isCartActive: cartCount > 0,
             cartItemsCount: cartCount,
             cartValueBDT: cartTotal,
+            device: device || curr.device,
+            deviceModel: deviceModel || curr.deviceModel,
+            os: os || curr.os,
+            browser: browser || curr.browser,
             lastActiveAt: 'Live Now',
             status: 'active',
           };
-          set({ sessions: updated, liveVisitorCount: Math.max(1, state.liveVisitorCount) });
+          set({ sessions: updated, liveVisitorCount: updated.filter((s) => s.status === 'active').length });
         } else {
           const newShopper: VisitorSession = {
             id: 'sess_live_shopper_1',
             ip: '103.145.118.24',
-            customerName: userName ? `${userName} (Active Customer)` : 'Tanvir Ahmed (Storefront Shopper)',
+            customerName: userName ? `${userName} (Active Customer)` : 'Guest Shopper (Storefront)',
             country: 'Bangladesh',
             countryCode: 'BD',
-            city: 'Dhaka (Gulshan-2)',
+            city: 'Dhaka (Metropolitan & Gulshan)',
             flag: '🇧🇩',
-            isp: 'Grameenphone 4G/Fiber',
-            device: typeof window !== 'undefined' && window.innerWidth < 768 ? 'Mobile' : 'Desktop',
-            deviceModel: 'Storefront Client Terminal',
-            browser: 'Chrome 124',
-            os: 'Client OS',
+            isp: 'Dhaka Fiber Gigabit Broadband',
+            device,
+            deviceModel,
+            browser,
+            os,
             currentUrl: pathname,
             referrer: 'Direct Storefront Visit',
             durationSeconds: 1,
@@ -657,9 +649,18 @@ export const useVisitorAnalyticsStore = create<VisitorAnalyticsState>()(
           };
           set({
             sessions: [newShopper, ...state.sessions],
-            liveVisitorCount: Math.max(1, state.liveVisitorCount),
+            liveVisitorCount: 1,
           });
         }
+      },
+
+      syncBackendSessions: (backendSessions: VisitorSession[]) => {
+        const state = get();
+        if (state.telemetryMode !== 'real') return;
+        set({
+          sessions: backendSessions,
+          liveVisitorCount: backendSessions.filter((s) => s.status === 'active').length,
+        });
       },
 
       blockIP: (ip: string, reason = 'Administrative Block by Root Security') => {
@@ -681,10 +682,11 @@ export const useVisitorAnalyticsStore = create<VisitorAnalyticsState>()(
           s.ip === ip ? { ...s, status: 'blocked' as SessionStatus } : s
         );
 
+        const activeSessions = updatedSessions.filter((s) => s.status === 'active');
         set({
           blockedIPs: updatedBlocked,
           sessions: updatedSessions,
-          liveVisitorCount: Math.max(1, state.liveVisitorCount - 1),
+          liveVisitorCount: activeSessions.length,
         });
       },
 
@@ -704,7 +706,11 @@ export const useVisitorAnalyticsStore = create<VisitorAnalyticsState>()(
       simulateLiveUpdate: () => {
         const state = get();
         if (state.telemetryMode === 'real') {
-          // Increment duration for active customer storefront sessions
+          const activeSessions = state.sessions.filter((s) => s.status === 'active');
+          if (activeSessions.length === 0) {
+            set({ liveVisitorCount: 0 });
+            return;
+          }
           const updatedSessions = state.sessions.map((s) => {
             if (s.status === 'active') {
               return {
@@ -715,7 +721,7 @@ export const useVisitorAnalyticsStore = create<VisitorAnalyticsState>()(
             }
             return s;
           });
-          set({ liveVisitorCount: Math.max(1, state.sessions.filter((s) => s.status === 'active').length), sessions: updatedSessions });
+          set({ liveVisitorCount: activeSessions.length, sessions: updatedSessions });
         } else {
           const delta = Math.random() > 0.7 ? Math.floor(Math.random() * 3) - 1 : 0;
           const currentCount = state.liveVisitorCount;
@@ -736,7 +742,7 @@ export const useVisitorAnalyticsStore = create<VisitorAnalyticsState>()(
       },
     }),
     {
-      name: 'shopnexus-visitor-analytics-storage-v5',
+      name: 'shopnexus-visitor-analytics-storage-v10',
     }
   )
 );

@@ -89,17 +89,21 @@ export default function VisitorAnalyticsPage() {
   const [liveDbUsers, setLiveDbUsers] = useState<any[]>([]);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+  const { telemetryMode, syncBackendSessions } = useVisitorAnalyticsStore();
 
-  // Live heart-beat telemetry fetch + real user accounts
+  // Live cross-browser & incognito telemetry sync with backend
   useEffect(() => {
     const fetchVisitorStats = async () => {
       try {
-        const [resStats, resUsers] = await Promise.all([
-          fetch(`${API_URL}/admin/visitors/stats`),
+        const [resLiveTelemetry, resUsers] = await Promise.all([
+          fetch(`${API_URL}/telemetry/live-sessions`),
           fetch(`${API_URL}/admin/users`),
         ]);
-        if (resStats.ok) {
-          simulateLiveUpdate();
+        if (resLiveTelemetry.ok) {
+          const telemetryJson = await resLiveTelemetry.json();
+          if (telemetryJson?.success && Array.isArray(telemetryJson.data)) {
+            syncBackendSessions(telemetryJson.data);
+          }
         }
         if (resUsers.ok) {
           const usersData = await resUsers.json();
@@ -114,10 +118,13 @@ export default function VisitorAnalyticsPage() {
 
     fetchVisitorStats();
     const interval = setInterval(() => {
-      simulateLiveUpdate();
-    }, 1000);
+      fetchVisitorStats();
+      if (telemetryMode === 'demo') {
+        simulateLiveUpdate();
+      }
+    }, 2000);
     return () => clearInterval(interval);
-  }, [simulateLiveUpdate, API_URL]);
+  }, [telemetryMode, syncBackendSessions, simulateLiveUpdate, API_URL]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -127,12 +134,16 @@ export default function VisitorAnalyticsPage() {
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
-      await fetch(`${API_URL}/admin/visitors/stats`);
+      const res = await fetch(`${API_URL}/telemetry/live-sessions`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json?.data) syncBackendSessions(json.data);
+      }
     } catch (_e) {}
-    simulateLiveUpdate();
+    if (telemetryMode === 'demo') simulateLiveUpdate();
     setTimeout(() => {
       setIsRefreshing(false);
-      showToast('Live telemetry feed synchronized with MongoDB Edge');
+      showToast('Live telemetry feed synchronized with Backend Edge');
     }, 400);
   };
 
@@ -236,8 +247,6 @@ export default function VisitorAnalyticsPage() {
     all: 'All Time',
   };
 
-  const { telemetryMode } = useVisitorAnalyticsStore();
-
   // Dynamic KPI Calculations from Active Sessions
   const totalSessionsCount = sessions.length;
   const cartActiveSessions = sessions.filter((s) => s.isCartActive);
@@ -278,7 +287,7 @@ export default function VisitorAnalyticsPage() {
             type: 'Desktop',
             icon: Monitor,
             count: desktopCount,
-            pct: totalSessionsCount > 0 ? Math.round((desktopCount / totalSessionsCount) * 100) : 100,
+            pct: totalSessionsCount > 0 ? Math.round((desktopCount / totalSessionsCount) * 100) : 0,
             color: 'from-blue-500 to-indigo-500',
           },
           {
@@ -302,10 +311,68 @@ export default function VisitorAnalyticsPage() {
           { type: 'Tablet', icon: Tablet, count: Math.round(liveVisitorCount * 0.07), pct: 7, color: 'from-emerald-500 to-teal-500' },
         ];
 
+  // Dynamic OS Distribution
+  const osDistribution = React.useMemo(() => {
+    if (telemetryMode === 'real') {
+      if (sessions.length === 0) {
+        return [{ os: 'No Active Sessions', count: '0%', share: 0 }];
+      }
+      const counts: Record<string, number> = {};
+      sessions.forEach((s) => {
+        const osName = s.os || 'Unknown OS';
+        counts[osName] = (counts[osName] || 0) + 1;
+      });
+      return Object.entries(counts)
+        .map(([os, count]) => ({
+          os,
+          count: `${Math.round((count / sessions.length) * 100)}% (${count} session${count > 1 ? 's' : ''})`,
+          share: Math.round((count / sessions.length) * 100),
+        }))
+        .sort((a, b) => b.share - a.share);
+    }
+    return [
+      { os: 'Android 14 / 13 (Samsung, Xiaomi, Pixel)', count: '48%', share: 48 },
+      { os: 'iOS 17 (iPhone 15, 14, 13)', count: '24%', share: 24 },
+      { os: 'Windows 11 / 10 (Dell, Lenovo, ASUS)', count: '20%', share: 20 },
+      { os: 'macOS Sonoma (MacBook Pro, Air)', count: '6%', share: 6 },
+      { os: 'Linux / Crawler Spiders', count: '2%', share: 2 },
+    ];
+  }, [telemetryMode, sessions]);
+
+  // Dynamic Browser Distribution
+  const browserDistribution = React.useMemo(() => {
+    if (telemetryMode === 'real') {
+      if (sessions.length === 0) {
+        return [{ browser: 'No Active Sessions', count: '0%', share: 0 }];
+      }
+      const counts: Record<string, number> = {};
+      sessions.forEach((s) => {
+        const browserName = s.browser || 'Unknown Browser';
+        counts[browserName] = (counts[browserName] || 0) + 1;
+      });
+      return Object.entries(counts)
+        .map(([browser, count]) => ({
+          browser,
+          count: `${Math.round((count / sessions.length) * 100)}% (${count} session${count > 1 ? 's' : ''})`,
+          share: Math.round((count / sessions.length) * 100),
+        }))
+        .sort((a, b) => b.share - a.share);
+    }
+    return [
+      { browser: 'Google Chrome 124', count: '58%', share: 58 },
+      { browser: 'Apple Safari 17.5', count: '26%', share: 26 },
+      { browser: 'Microsoft Edge 124', count: '8%', share: 8 },
+      { browser: 'Samsung Internet 24', count: '5%', share: 5 },
+      { browser: 'Mozilla Firefox 125', count: '3%', share: 3 },
+    ];
+  }, [telemetryMode, sessions]);
+
   // Countries Data (Dynamic)
-  const bdCount = sessions.filter((s) => s.countryCode === 'BD').length;
-  const usCount = sessions.filter((s) => s.countryCode === 'US').length;
-  const gbCount = sessions.filter((s) => s.countryCode === 'GB').length;
+  const countryCounts: Record<string, number> = {};
+  sessions.forEach((s) => {
+    const code = s.countryCode || 'BD';
+    countryCounts[code] = (countryCounts[code] || 0) + 1;
+  });
 
   const countryData =
     telemetryMode === 'real'
@@ -314,24 +381,24 @@ export default function VisitorAnalyticsPage() {
             country: 'Bangladesh',
             code: 'BD',
             flag: '🇧🇩',
-            count: bdCount,
-            pct: totalSessionsCount > 0 ? Math.round((bdCount / totalSessionsCount) * 100) : 100,
+            count: countryCounts['BD'] || 0,
+            pct: totalSessionsCount > 0 ? Math.round(((countryCounts['BD'] || 0) / totalSessionsCount) * 100) : 0,
             isPrimary: true,
           },
           {
             country: 'United States',
             code: 'US',
             flag: '🇺🇸',
-            count: usCount,
-            pct: totalSessionsCount > 0 ? Math.round((usCount / totalSessionsCount) * 100) : 0,
+            count: countryCounts['US'] || 0,
+            pct: totalSessionsCount > 0 ? Math.round(((countryCounts['US'] || 0) / totalSessionsCount) * 100) : 0,
             isPrimary: false,
           },
           {
             country: 'United Kingdom',
             code: 'GB',
             flag: '🇬🇧',
-            count: gbCount,
-            pct: totalSessionsCount > 0 ? Math.round((gbCount / totalSessionsCount) * 100) : 0,
+            count: countryCounts['GB'] || 0,
+            pct: totalSessionsCount > 0 ? Math.round(((countryCounts['GB'] || 0) / totalSessionsCount) * 100) : 0,
             isPrimary: false,
           },
         ]
@@ -346,8 +413,9 @@ export default function VisitorAnalyticsPage() {
 
   // Selected Country Info & City Matrix
   const activeCountryData = COUNTRY_REGIONS_MAP[selectedCountryCode] || COUNTRY_REGIONS_MAP.BD;
-  const selectedCountryTotalVisitors = countryData.find((c) => c.code === selectedCountryCode)?.count || 32;
-  const selectedCountryPct = countryData.find((c) => c.code === selectedCountryCode)?.pct || 76;
+  const currentCountryObj = countryData.find((c) => c.code === selectedCountryCode);
+  const selectedCountryTotalVisitors = currentCountryObj ? currentCountryObj.count : (telemetryMode === 'real' ? 0 : 32);
+  const selectedCountryPct = currentCountryObj ? currentCountryObj.pct : (telemetryMode === 'real' ? 0 : 76);
 
   // Traffic Sources
   const trafficSources = [
@@ -852,15 +920,22 @@ export default function VisitorAnalyticsPage() {
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
                     {filteredSessions.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="py-10 text-center text-slate-500">
-                          <div className="flex flex-col items-center justify-center gap-2">
-                            <Search className="w-6 h-6 text-slate-400 opacity-60" />
-                            <span>No visitor sessions matching the filter criteria.</span>
+                        <td colSpan={7} className="py-12 text-center text-slate-500">
+                          <div className="flex flex-col items-center justify-center gap-2.5 max-w-md mx-auto">
+                            <Activity className="w-8 h-8 text-orange-500/60 animate-pulse" />
+                            <span className="font-bold text-slate-800 dark:text-white text-sm">
+                              {telemetryMode === 'real' ? 'No Active Shoppers on Storefront Right Now' : 'No sessions matching the filter'}
+                            </span>
+                            <p className="text-xs text-slate-500">
+                              {telemetryMode === 'real'
+                                ? 'Real telemetry mode only tracks customer storefront activity (admin portal is excluded). Open any storefront page (/products, /cart) in another tab or mobile device to see live telemetry.'
+                                : 'Try changing your search keywords or KPI filter.'}
+                            </p>
                             {kpiFilter !== 'all' && (
                               <button
                                 type="button"
                                 onClick={() => setKpiFilter('all')}
-                                className="text-orange-600 dark:text-orange-400 font-bold underline"
+                                className="text-xs text-orange-600 dark:text-orange-400 font-bold underline cursor-pointer mt-1"
                               >
                                 Clear current KPI filter
                               </button>
@@ -1202,7 +1277,29 @@ export default function VisitorAnalyticsPage() {
 
                 <div className="space-y-3">
                   {activeCountryData.cities.map((cityObj) => {
-                    const cityLiveCount = Math.max(1, Math.round((selectedCountryTotalVisitors * cityObj.percentage) / 100));
+                    const isRealMode = telemetryMode === 'real';
+                    let cityLiveCount = 0;
+                    let cityPercentage = 0;
+
+                    if (isRealMode) {
+                      const countrySessions = sessions.filter((s) => s.countryCode === selectedCountryCode);
+                      const matchedSessions = countrySessions.filter(
+                        (s) =>
+                          s.city?.toLowerCase().includes(cityObj.city.toLowerCase()) ||
+                          cityObj.city.toLowerCase().includes(s.city?.toLowerCase() || '') ||
+                          s.city?.toLowerCase().includes(cityObj.subdivision.toLowerCase()) ||
+                          cityObj.subdivision.toLowerCase().includes(s.city?.toLowerCase() || '')
+                      );
+                      cityLiveCount = matchedSessions.length;
+                      cityPercentage =
+                        countrySessions.length > 0
+                          ? Math.round((cityLiveCount / countrySessions.length) * 100)
+                          : 0;
+                    } else {
+                      cityLiveCount = Math.round((selectedCountryTotalVisitors * cityObj.percentage) / 100);
+                      cityPercentage = cityObj.percentage;
+                    }
+
                     return (
                       <div
                         key={cityObj.city}
@@ -1210,7 +1307,11 @@ export default function VisitorAnalyticsPage() {
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                            <div
+                              className={`w-2 h-2 rounded-full shrink-0 ${
+                                cityLiveCount > 0 ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400 opacity-40'
+                              }`}
+                            />
                             <div>
                               <span className="text-xs font-bold text-slate-900 dark:text-white block">
                                 {cityObj.city}
@@ -1223,7 +1324,7 @@ export default function VisitorAnalyticsPage() {
                           <div className="flex items-center gap-2.5 text-xs font-mono font-bold">
                             <span className="text-slate-500">{cityLiveCount} live</span>
                             <span className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400">
-                              {cityObj.percentage}%
+                              {cityPercentage}%
                             </span>
                           </div>
                         </div>
@@ -1232,7 +1333,7 @@ export default function VisitorAnalyticsPage() {
                         <div className="h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
                           <div
                             className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-500"
-                            style={{ width: `${cityObj.percentage}%` }}
+                            style={{ width: `${cityPercentage}%` }}
                           />
                         </div>
                       </div>
@@ -1286,13 +1387,7 @@ export default function VisitorAnalyticsPage() {
                 Operating System Distribution
               </h3>
               <div className="space-y-2.5 text-xs">
-                {[
-                  { os: 'Android 14 / 13 (Samsung, Xiaomi, Pixel)', count: '48%', share: 48 },
-                  { os: 'iOS 17 (iPhone 15, 14, 13)', count: '24%', share: 24 },
-                  { os: 'Windows 11 / 10 (Dell, Lenovo, ASUS)', count: '20%', share: 20 },
-                  { os: 'macOS Sonoma (MacBook Pro, Air)', count: '6%', share: 6 },
-                  { os: 'Linux / Crawler Spiders', count: '2%', share: 2 },
-                ].map((item) => (
+                {osDistribution.map((item) => (
                   <div key={item.os} className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
                     <span className="font-semibold text-slate-700 dark:text-slate-300">{item.os}</span>
                     <span className="font-mono font-bold text-slate-900 dark:text-white">{item.count}</span>
@@ -1308,13 +1403,7 @@ export default function VisitorAnalyticsPage() {
                 Browser Ecosystem
               </h3>
               <div className="space-y-2.5 text-xs">
-                {[
-                  { browser: 'Google Chrome 124', count: '58%', share: 58 },
-                  { browser: 'Apple Safari 17.5', count: '26%', share: 26 },
-                  { browser: 'Microsoft Edge 124', count: '8%', share: 8 },
-                  { browser: 'Samsung Internet 24', count: '5%', share: 5 },
-                  { browser: 'Mozilla Firefox 125', count: '3%', share: 3 },
-                ].map((item) => (
+                {browserDistribution.map((item) => (
                   <div key={item.browser} className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
                     <span className="font-semibold text-slate-700 dark:text-slate-300">{item.browser}</span>
                     <span className="font-mono font-bold text-slate-900 dark:text-white">{item.count}</span>
