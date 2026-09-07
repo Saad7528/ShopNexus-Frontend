@@ -9,9 +9,9 @@ export async function POST(req: NextRequest) {
       sessionId,
       pathname = '/',
       device = 'Desktop',
-      deviceModel = 'MacBook Pro 16" (Apple Silicon)',
-      os = 'macOS Sonoma',
-      browser = 'Google Chrome 124',
+      deviceModel = 'MacBook Pro / PC',
+      os = 'macOS / Windows',
+      browser = 'Google Chrome',
       userName,
       contactPhone,
       cartCount = 0,
@@ -55,33 +55,61 @@ export async function POST(req: NextRequest) {
     }
 
     const telemetryCollection = db.collection('telemetry_sessions');
-
     const now = new Date();
-    const existing = await telemetryCollection.findOne({ id: sessionId });
+    const timeFormatted = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    // Check for existing session by sessionId OR recent active IP (within last 30 minutes)
+    const thirtyMinAgo = new Date(now.getTime() - 30 * 60 * 1000);
+    const existing = await telemetryCollection.findOne({
+      $or: [
+        { id: sessionId },
+        { ip: clientIp, updatedAt: { $gte: thirtyMinAgo } }
+      ]
+    });
 
     if (existing) {
       const elapsed = Math.round((now.getTime() - new Date(existing.updatedAt || existing.lastActiveAt).getTime()) / 1000);
+      const safeElapsed = Math.max(1, Math.min(15, elapsed));
       const isNewPage = existing.currentUrl !== pathname;
-      
+
+      // Update or append route navigation journey
+      let routeHistory: Array<{ path: string; durationSeconds: number; lastVisitedAt: string }> = Array.isArray(existing.routeHistory)
+        ? [...existing.routeHistory]
+        : [{ path: existing.currentUrl || '/', durationSeconds: existing.durationSeconds || 1, lastVisitedAt: timeFormatted }];
+
+      const currentRouteIndex = routeHistory.findIndex((r) => r.path === pathname);
+      if (currentRouteIndex >= 0) {
+        routeHistory[currentRouteIndex].durationSeconds += safeElapsed;
+        routeHistory[currentRouteIndex].lastVisitedAt = timeFormatted;
+      } else {
+        routeHistory.push({
+          path: pathname,
+          durationSeconds: 1,
+          lastVisitedAt: timeFormatted,
+        });
+      }
+
       await telemetryCollection.updateOne(
-        { id: sessionId },
+        { _id: existing._id },
         {
           $set: {
+            id: sessionId,
             currentUrl: pathname,
-            durationSeconds: (existing.durationSeconds || 1) + Math.max(1, Math.min(30, elapsed)),
+            durationSeconds: (existing.durationSeconds || 1) + safeElapsed,
             lastActiveAt: 'Live Now',
             updatedAt: now,
             status: 'active',
+            routeHistory,
             ...(isNewPage ? { pageviews: (existing.pageviews || 1) + 1 } : {}),
             ...(userName ? { customerName: `${userName} (Active Customer)` } : {}),
             ...(contactPhone ? { contactPhone } : {}),
             isCartActive: cartCount > 0,
             cartItemsCount: cartCount,
             cartValueBDT: cartTotal,
-            device,
-            deviceModel,
-            os,
-            browser,
+            device: device || existing.device,
+            deviceModel: deviceModel || existing.deviceModel,
+            os: os || existing.os,
+            browser: browser || existing.browser,
           },
         }
       );
@@ -89,7 +117,7 @@ export async function POST(req: NextRequest) {
       const newSession = {
         id: sessionId,
         ip: clientIp,
-        customerName: userName ? `${userName} (Active Customer)` : 'Guest Shopper (Storefront)',
+        customerName: userName ? `${userName} (Active Customer)` : 'Guest Shopper',
         contactPhone: contactPhone || undefined,
         country,
         countryCode,
@@ -109,8 +137,15 @@ export async function POST(req: NextRequest) {
         cartItemsCount: cartCount,
         cartValueBDT: cartTotal,
         isBounced: false,
-        startedAt: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        startedAt: timeFormatted,
         lastActiveAt: 'Live Now',
+        routeHistory: [
+          {
+            path: pathname,
+            durationSeconds: 1,
+            lastVisitedAt: timeFormatted,
+          }
+        ],
         createdAt: now,
         updatedAt: now,
       };

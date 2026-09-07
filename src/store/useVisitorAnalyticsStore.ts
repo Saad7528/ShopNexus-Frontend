@@ -7,6 +7,12 @@ export type SessionStatus = 'active' | 'idle' | 'blocked' | 'bot' | 'bounced';
 export type KpiFilterType = 'all' | 'live' | 'pageviews' | 'duration' | 'bounced' | 'cart';
 export type GeoPolicyMode = 'global' | 'domestic_only';
 
+export interface RouteHistoryItem {
+  path: string;
+  durationSeconds: number;
+  lastVisitedAt: string;
+}
+
 export interface VisitorSession {
   id: string;
   ip: string;
@@ -34,6 +40,8 @@ export interface VisitorSession {
   bounceReason?: string;
   startedAt: string;
   lastActiveAt: string;
+  routeHistory?: RouteHistoryItem[];
+  updatedAt?: string | Date;
 }
 
 export interface BlockedIPRecord {
