@@ -14,7 +14,7 @@ interface LanguageState {
 export const useLanguageStore = create<LanguageState>()(
   persist(
     (set, get) => ({
-      language: 'bn',
+      language: 'bn', // Default to Bengali as requested
       setLanguage: (language: Language) => set({ language }),
       toggleLanguage: () => {
         const nextLang: Language = get().language === 'en' ? 'bn' : 'en';

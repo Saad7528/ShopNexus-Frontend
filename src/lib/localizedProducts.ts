@@ -3,6 +3,7 @@ import { Language, formatCurrency, toBengaliNumber } from './translations';
 
 export const CATEGORY_TRANSLATIONS: Record<string, { en: string; bn: string }> = {
   All: { en: 'All Categories', bn: 'সকল ক্যাটাগরি' },
+  'Combo Packages': { en: '🎁 Combo Packages & Bundles', bn: '🎁 কম্বো প্যাকেজ ও বান্ডেল' },
   Audio: { en: 'Audio & Acoustics', bn: 'অডিও ও সাউন্ড' },
   Wearables: { en: 'Smartwatches & Wearables', bn: 'স্মার্টওয়াচ ও পরিধানযোগ্য' },
   Peripherals: { en: 'Keyboards & Mice', bn: 'কিবোর্ড ও মাউস' },

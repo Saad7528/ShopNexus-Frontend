@@ -24,7 +24,7 @@ export function exportToBrandedExcel(
       ? 'Live Real-Time Active Sessions'
       : 'Comprehensive Visitor & Traffic Telemetry Report';
 
-  // Build high-styled HTML/XML Spreadsheet compatible with Microsoft Excel, Google Sheets, Apple Number
+  // Build high-styled HTML/XML Spreadsheet compatible with Microsoft Excel, Google Sheets, Apple Numbers
   const htmlContent = `
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
 <head>

@@ -18,16 +18,24 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({
   fallbackUrl = '/login',
 }) => {
   const { user, isAuthenticated } = useAuthStore();
-  const [isMounted, setIsMounted] = useState(false);
-  const router = useRouter();
+  const [hasHydrated, setHasHydrated] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
+    if (useAuthStore.persist?.hasHydrated?.()) {
+      setHasHydrated(true);
+      return;
+    }
+    const unsub = useAuthStore.persist?.onFinishHydration?.(() => {
+      setHasHydrated(true);
+    });
+    // Fallback ensures hydration is marked true on client mount
+    setHasHydrated(true);
+    return () => unsub?.();
   }, []);
 
-  if (!isMounted) {
+  if (!hasHydrated) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center bg-slate-50 dark:bg-[#0b0f19] text-slate-500 dark:text-slate-400 text-sm">
+      <div className="min-h-[70vh] flex items-center justify-center bg-transparent text-slate-500 dark:text-slate-400 text-sm">
         <div className="animate-pulse">Verifying security credentials...</div>
       </div>
     );
