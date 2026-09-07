@@ -434,7 +434,7 @@ export const ALL_PRODUCTS: Product[] = [
     discountPrice: 15200,
     stock: 20,
     images: [
-      'https://images.unsplash.com/photo-1563770660941-20978e870e26?w=800&q=80',
+      'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&q=80',
     ],
     vendorName: 'ShopNexus Official',
     isFlashSale: false,
@@ -473,7 +473,7 @@ export const ALL_PRODUCTS: Product[] = [
     discountPrice: 14200,
     stock: 30,
     images: [
-      'https://images.unsplash.com/photo-1609592424368-eb871a9ec603?w=800&q=80',
+      'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=800&q=80',
     ],
     vendorName: 'ShopNexus Official',
     isFlashSale: true,
