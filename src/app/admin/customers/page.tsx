@@ -194,13 +194,92 @@ const INITIAL_CUSTOMERS: ICustomer[] = [
   },
 ];
 
+import { useAuthStore } from '@/store/useAuthStore';
+
 export default function AdminCustomersRBACPage() {
+  const { token } = useAuthStore();
   const [staffList, setStaffList] = useState<IStaffRole[]>(INITIAL_STAFF);
   const [customers, setCustomers] = useState<ICustomer[]>(INITIAL_CUSTOMERS);
   const [selectedRoleInfo, setSelectedRoleInfo] = useState<keyof typeof ROLE_DEFINITIONS | null>(null);
   const [isAddStaffOpen, setIsAddStaffOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+  // Fetch live users from MongoDB Atlas
+  React.useEffect(() => {
+    const fetchLiveUsers = async () => {
+      try {
+        const res = await fetch(`${API_URL}/admin/users`, {
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data?.data && Array.isArray(data.data)) {
+          const liveUsers = data.data;
+
+          // Map customers
+          const liveCustomers: ICustomer[] = liveUsers
+            .filter((u: any) => u.role === 'customer' || !u.role)
+            .map((u: any) => ({
+              id: u._id,
+              name: u.name || 'Valued Shopper',
+              email: u.email,
+              phone: u.phoneNumber || '+880 1700-000000',
+              ordersCount: 3,
+              totalSpent: u.nexusCoins ? u.nexusCoins * 20 : 35000,
+              returnRate: 0,
+              isFlaggedFraud: !!u.isLocked,
+              joinedDate: u.createdAt ? new Date(u.createdAt).toISOString().split('T')[0] : '2026-01-15',
+            }));
+
+          // Map staff / admins / vendors
+          const liveStaff: IStaffRole[] = liveUsers
+            .filter((u: any) => u.role === 'admin' || u.role === 'vendor')
+            .map((u: any) => {
+              const roleTitle: IStaffRole['role'] = u.role === 'admin' ? 'Super Admin' : 'Inventory Manager';
+              return {
+                id: u._id,
+                name: u.name,
+                email: u.email,
+                role: roleTitle,
+                permissions: {
+                  canViewOrders: true,
+                  canEditOrders: u.role === 'admin',
+                  canManageCatalog: true,
+                  canManageLogistics: u.role === 'admin',
+                  canManageFinance: u.role === 'admin',
+                  canAccessRBAC: u.role === 'admin',
+                },
+                status: 'Active',
+                createdAt: u.createdAt ? new Date(u.createdAt).toISOString().split('T')[0] : '2026-01-01',
+              };
+            });
+
+          if (liveCustomers.length > 0) {
+            setCustomers((prev) => {
+              const ids = new Set(liveCustomers.map((c) => c.id));
+              return [...liveCustomers, ...prev.filter((c) => !ids.has(c.id))];
+            });
+          }
+
+          if (liveStaff.length > 0) {
+            setStaffList((prev) => {
+              const ids = new Set(liveStaff.map((s) => s.id));
+              return [...liveStaff, ...prev.filter((s) => !ids.has(s.id))];
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Could not fetch live users from DB:', err);
+      }
+    };
+
+    fetchLiveUsers();
+  }, [API_URL, token]);
 
   // New Staff State
   const [newStaff, setNewStaff] = useState({
@@ -257,10 +336,22 @@ export default function AdminCustomersRBACPage() {
     showToast(`Updated fraud restriction status for ${name}`);
   };
 
-  const handleDeleteStaff = (id: string, name: string) => {
+  const handleDeleteStaff = async (id: string, name: string) => {
     if (confirm(`Are you sure you want to revoke credentials for "${name}"?`)) {
       setStaffList((prev) => prev.filter((s) => s.id !== id));
       showToast(`Revoked staff access for "${name}"`);
+
+      // Async DB deletion if Mongo ID
+      try {
+        await fetch(`${API_URL}/admin/users/${id}`, {
+          method: 'DELETE',
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
+      } catch (err) {
+        console.error('Error deleting staff from DB:', err);
+      }
     }
   };
 

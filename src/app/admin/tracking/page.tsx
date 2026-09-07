@@ -98,13 +98,60 @@ const INITIAL_PARCELS: IParcel[] = [
   },
 ];
 
+import { useAuthStore } from '@/store/useAuthStore';
+
 export default function AdminTrackingPage() {
+  const { token } = useAuthStore();
   const [parcels, setParcels] = useState<IParcel[]>(INITIAL_PARCELS);
   const [selectedParcel, setSelectedParcel] = useState<IParcel>(INITIAL_PARCELS[0]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusUpdatedToast, setStatusUpdatedToast] = useState<string | null>(null);
 
-  const updateStage = (trackingId: string, newStage: number) => {
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+  // Fetch live tracking orders from MongoDB Atlas
+  React.useEffect(() => {
+    const fetchLiveParcels = async () => {
+      try {
+        const res = await fetch(`${API_URL}/admin/tracking/parcels`, {
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data?.data && Array.isArray(data.data) && data.data.length > 0) {
+          const mapped: IParcel[] = data.data.map((p: any) => ({
+            trackingId: p.trackingNumber,
+            orderId: p.orderId,
+            customerName: p.recipient?.name || 'Customer',
+            phone: p.recipient?.phone || '+880 1700-000000',
+            destination: p.recipient?.address || 'Dhaka',
+            courierPartner: p.courier?.includes('Pathao') ? 'Pathao Courier' : 'Steadfast',
+            stageIndex: Math.min(4, Math.max(0, (p.currentStage || 3) - 1)),
+            itemsCount: p.items?.length || 1,
+            totalAmount: p.amount || 15000,
+            lastUpdated: p.lastUpdated || 'Just now',
+            estimatedDelivery: p.statusText === 'Delivered' ? 'Delivered' : 'Within 24-48h',
+          }));
+
+          setParcels((prev) => {
+            const existingIds = new Set(mapped.map((m) => m.trackingId));
+            return [...mapped, ...prev.filter((p) => !existingIds.has(p.trackingId))];
+          });
+          if (mapped.length > 0) {
+            setSelectedParcel(mapped[0]);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching live tracking parcels:', err);
+      }
+    };
+
+    fetchLiveParcels();
+  }, [API_URL, token]);
+
+  const updateStage = async (trackingId: string, newStage: number) => {
     setParcels((prev) =>
       prev.map((p) => (p.trackingId === trackingId ? { ...p, stageIndex: newStage, lastUpdated: 'Just now' } : p))
     );
@@ -113,6 +160,24 @@ export default function AdminTrackingPage() {
     }
     setStatusUpdatedToast(`Status updated to "${STAGES[newStage].label}"`);
     setTimeout(() => setStatusUpdatedToast(null), 3000);
+
+    // Map stage to order status
+    const stageStatusMap = ['pending', 'processing', 'processing', 'shipped', 'delivered'];
+    const targetStatus = stageStatusMap[newStage] || 'shipped';
+
+    try {
+      const parcelObj = parcels.find((p) => p.trackingId === trackingId);
+      if (parcelObj?.orderId) {
+        await fetch(`${API_URL}/admin/orders/${parcelObj.orderId}/status`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ orderStatus: targetStatus }),
+        });
+      }
+    } catch (_e) {}
   };
 
   const filteredParcels = parcels.filter(

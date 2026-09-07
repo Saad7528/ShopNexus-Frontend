@@ -33,6 +33,7 @@ import {
   Send,
   HelpCircle,
   Sparkles,
+  RefreshCw,
   Copy,
 } from 'lucide-react';
 
@@ -204,7 +205,10 @@ const INITIAL_ORDERS: IOrder[] = [
   },
 ];
 
+import { useAuthStore } from '@/store/useAuthStore';
+
 export default function AdminOrdersPage() {
+  const { token } = useAuthStore();
   const [orders, setOrders] = useState<IOrder[]>(INITIAL_ORDERS);
   const [activeFilter, setActiveFilter] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
@@ -227,10 +231,96 @@ export default function AdminOrdersPage() {
   const [rangeStart, setRangeStart] = useState('9018');
   const [rangeEnd, setRangeEnd] = useState('9032');
 
-  const handleStatusChange = (orderId: string, newStatus: IOrder['status']) => {
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+  // Fetch live orders from MongoDB backend
+  React.useEffect(() => {
+    const fetchLiveOrders = async () => {
+      try {
+        const res = await fetch(`${API_URL}/admin/orders`, {
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data?.data && Array.isArray(data.data) && data.data.length > 0) {
+          const mapped: IOrder[] = data.data.map((o: any, idx: number) => {
+            const rawStatus = (o.orderStatus || 'pending').toLowerCase();
+            const statusMap: Record<string, IOrder['status']> = {
+              pending: 'Pending',
+              processing: 'Processing',
+              shipped: 'Shipped',
+              delivered: 'Delivered',
+              cancelled: 'Cancelled',
+            };
+            const mappedStatus = statusMap[rawStatus] || 'Confirmed';
+
+            return {
+              id: o._id,
+              orderNumber: o.trackingNumber ? `NX-${o.trackingNumber.slice(-8)}` : `NX-ORD-${9100 + idx}`,
+              numericId: 9100 + idx,
+              customerName: o.shippingAddress?.fullName || o.user?.name || 'Valued Customer',
+              customerEmail: o.user?.email || 'customer@nexus.io',
+              customerPhone: o.shippingAddress?.phoneNumber || '+880 1700-000000',
+              customerAddress: `${o.shippingAddress?.streetAddress || ''}, ${o.shippingAddress?.city || ''}`,
+              items: (o.items || []).map((it: any) => ({
+                title: it.name,
+                quantity: it.quantity,
+                price: it.price,
+                sku: `SKU-${it.product?.toString().slice(-4) || 'GEN'}`,
+              })),
+              subtotal: o.subtotal || 0,
+              vatTax: o.taxAmount || 0,
+              deliveryFee: o.shippingFee || 0,
+              total: o.totalAmount || 0,
+              paymentMethod:
+                o.paymentMethod === 'cash_on_delivery'
+                  ? 'Cash on Delivery (COD)'
+                  : o.paymentMethod === 'stripe_card'
+                  ? 'Stripe Card'
+                  : 'bKash Online',
+              status: mappedStatus,
+              courier: 'Pathao Courier',
+              trackingCode: o.trackingNumber || `TRK-NX-${Date.now().toString().slice(-5)}`,
+              createdAt: o.createdAt ? new Date(o.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Today',
+              isToday: true,
+            };
+          });
+
+          setOrders((prev) => {
+            const existingIds = new Set(mapped.map((m) => m.id));
+            const remainingDefault = prev.filter((p) => !existingIds.has(p.id));
+            return [...mapped, ...remainingDefault];
+          });
+        }
+      } catch (err) {
+        console.error('Could not fetch live admin orders:', err);
+      }
+    };
+
+    fetchLiveOrders();
+  }, [API_URL, token]);
+
+  const handleStatusChange = async (orderId: string, newStatus: IOrder['status']) => {
+    // Optimistic UI update
     setOrders((prev) =>
       prev.map((ord) => (ord.id === orderId ? { ...ord, status: newStatus } : ord))
     );
+
+    // Async DB update
+    try {
+      await fetch(`${API_URL}/admin/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ orderStatus: newStatus.toLowerCase() }),
+      });
+    } catch (e) {
+      console.error('Error syncing order status with DB:', e);
+    }
   };
 
   const handlePrint = () => {
@@ -835,7 +925,7 @@ export default function AdminOrdersPage() {
                   <button
                     type="button"
                     onClick={handlePrint}
-                    className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-linear-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/30 cursor-pointer"
+                    className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/30 cursor-pointer"
                   >
                     <Printer className="w-4 h-4" /> Print All {selectedOrdersList.length} Invoices
                   </button>
@@ -1157,7 +1247,7 @@ export default function AdminOrdersPage() {
                     <span>Send WhatsApp & Flag</span>
                   </button>
 
-                  {/* SMS */}
+                  {/* SMS / System Flag */}
                   <button
                     type="button"
                     onClick={() => handleSaveIssueReport('SMS')}
