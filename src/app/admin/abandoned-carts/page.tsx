@@ -54,8 +54,104 @@ interface IAbandonedCart {
   updatedAt?: string;
 }
 
+import { useVisitorAnalyticsStore } from '@/store/useVisitorAnalyticsStore';
+
+const DEMO_ABANDONED_CARTS: IAbandonedCart[] = [
+  {
+    id: 'demo_cart_1',
+    customerName: 'Tanvir Ahmed (Active Member)',
+    customerPhone: '+880 1712-884910',
+    customerEmail: 'tanvir.ahmed@gmail.com',
+    items: [
+      {
+        id: 'p1',
+        title: 'Sony WH-1000XM5 Wireless Noise-Cancelling Headphones',
+        image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80',
+        price: 32500,
+        quantity: 1,
+      },
+    ],
+    cartTotal: 34125,
+    timeAgo: '12m ago',
+    status: 'Uncontacted',
+    recoveryDiscountCode: '',
+  },
+  {
+    id: 'demo_cart_2',
+    customerName: 'Sadia Rahman (Cart Value ৳84k)',
+    customerPhone: '+880 1819-445566',
+    customerEmail: 'sadia.rahman@yahoo.com',
+    items: [
+      {
+        id: 'p3',
+        title: 'Apple AirPods Max (Space Gray)',
+        image: 'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=800&q=80',
+        price: 52000,
+        quantity: 1,
+      },
+      {
+        id: 'p5',
+        title: 'Sennheiser Momentum 4 Wireless',
+        image: 'https://images.unsplash.com/photo-1484704849700-f032a568e944?w=800&q=80',
+        price: 31000,
+        quantity: 1,
+      },
+    ],
+    cartTotal: 87150,
+    timeAgo: '45m ago',
+    status: 'Uncontacted',
+    recoveryDiscountCode: '',
+  },
+  {
+    id: 'demo_cart_3',
+    customerName: 'Asmual Obaidul Hoque (VIP Bundle)',
+    customerPhone: '01833452232',
+    customerEmail: 'asmual01@gmail.com',
+    items: [
+      {
+        id: 'b-1',
+        title: 'Ultimate Audiophile Master Combo',
+        image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&q=80',
+        price: 60690,
+        quantity: 1,
+      },
+      {
+        id: 'b-2',
+        title: 'Titanium Creator Pro Suite',
+        image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80',
+        price: 85900,
+        quantity: 1,
+      },
+    ],
+    cartTotal: 180850,
+    timeAgo: '2h ago',
+    status: 'WhatsApp Sent',
+    recoveryDiscountCode: 'COMEBACK10',
+  },
+  {
+    id: 'demo_cart_4',
+    customerName: 'Nusrat Jahan',
+    customerPhone: '+880 1622-778899',
+    customerEmail: 'nusrat.jahan@hotmail.com',
+    items: [
+      {
+        id: 'p9',
+        title: 'Samsung Galaxy Watch 6 Classic 47mm',
+        image: 'https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=800&q=80',
+        price: 88000,
+        quantity: 1,
+      },
+    ],
+    cartTotal: 92400,
+    timeAgo: '4h ago',
+    status: 'Recovered',
+    recoveryDiscountCode: 'SAVE500',
+  },
+];
+
 export default function AbandonedCartsPage() {
   const { token } = useAuthStore();
+  const { telemetryMode } = useVisitorAnalyticsStore();
   const [carts, setCarts] = useState<IAbandonedCart[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -125,24 +221,53 @@ export default function AbandonedCartsPage() {
     setCustomRecoveryText('');
   };
 
-  // Fetch live abandoned carts from MongoDB Atlas
+  // Fetch live abandoned carts from MongoDB Atlas / Backend API
   const fetchAbandonedCarts = useCallback(async (isManualRefresh = false) => {
     if (isManualRefresh) setIsRefreshing(true);
     else setIsLoading(true);
 
-    try {
-      const res = await fetch(`${API_URL}/admin/abandoned-carts`, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      });
+    if (telemetryMode === 'demo') {
+      setCarts(DEMO_ABANDONED_CARTS);
+      setIsLoading(false);
+      setIsRefreshing(false);
+      return;
+    }
 
-      if (res.ok) {
-        const json = await res.json();
-        if (json?.data && Array.isArray(json.data)) {
-          setCarts(json.data);
+    try {
+      let fetched: IAbandonedCart[] | null = null;
+
+      // 1. Direct Next.js Atlas Route (works seamlessly across localhost & local network phone connections)
+      try {
+        const nextRes = await fetch('/api/admin/abandoned-carts');
+        if (nextRes.ok) {
+          const json = await nextRes.json();
+          if (json?.data && Array.isArray(json.data)) {
+            fetched = json.data;
+          }
         }
+      } catch (_e) {}
+
+      // 2. Fallback to Express Backend if needed
+      if (!fetched && API_URL) {
+        try {
+          const res = await fetch(`${API_URL}/admin/abandoned-carts`, {
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+          });
+
+          if (res.ok) {
+            const json = await res.json();
+            if (json?.data && Array.isArray(json.data)) {
+              fetched = json.data;
+            }
+          }
+        } catch (_e) {}
+      }
+
+      if (fetched) {
+        setCarts(fetched);
       }
     } catch (err) {
       console.error('Failed to fetch abandoned carts:', err);
@@ -150,14 +275,14 @@ export default function AbandonedCartsPage() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [API_URL, token]);
+  }, [API_URL, token, telemetryMode]);
 
   useEffect(() => {
     fetchAbandonedCarts();
-    // Auto-refresh telemetry every 30 seconds
+    // Auto-refresh telemetry every 15 seconds
     const interval = setInterval(() => {
       fetchAbandonedCarts(false);
-    }, 30000);
+    }, 15000);
     return () => clearInterval(interval);
   }, [fetchAbandonedCarts]);
 
@@ -198,13 +323,19 @@ export default function AbandonedCartsPage() {
 
     // Async DB update to persist 'WhatsApp Sent' status in MongoDB
     try {
-      await fetch(`${API_URL}/admin/abandoned-carts/${activeRecoveryCart.id}/recover`, {
+      await fetch(`/api/admin/abandoned-carts/${activeRecoveryCart.id}/recover`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ discountCode: promoCode, status: 'WhatsApp Sent' }),
+      }).catch(async () => {
+        await fetch(`${API_URL}/admin/abandoned-carts/${activeRecoveryCart.id}/recover`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ discountCode: promoCode, status: 'WhatsApp Sent' }),
+        });
       });
     } catch (_e) {
       console.error('Error recording WhatsApp recovery dispatch:', _e);
@@ -224,13 +355,19 @@ export default function AbandonedCartsPage() {
 
   const handleUpdateStatus = async (cartId: string, newStatus: IAbandonedCart['status']) => {
     try {
-      await fetch(`${API_URL}/admin/abandoned-carts/${cartId}/status`, {
+      await fetch(`/api/admin/abandoned-carts/${cartId}/status`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
+      }).catch(async () => {
+        await fetch(`${API_URL}/admin/abandoned-carts/${cartId}/status`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ status: newStatus }),
+        });
       });
 
       setCarts((prev) =>
