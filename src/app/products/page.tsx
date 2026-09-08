@@ -649,14 +649,19 @@ function ProductsContent() {
   useEffect(() => {
     const fetchDbProducts = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/products?limit=100`);
-        if (!res.ok) return;
-        const data = await res.json();
-        if (data?.data?.products && Array.isArray(data.data.products) && data.data.products.length > 0) {
-          const mapped: Product[] = data.data.products.map((p: any) => ({
-            _id: p._id,
+        let res = await fetch('/api/products?limit=100').catch(() => null);
+        if ((!res || !res.ok) && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+          const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+          res = await fetch(`${API_URL}/products?limit=100`).catch(() => null);
+        }
+        if (!res || !res.ok) return;
+        const data = await res.json().catch(() => null);
+        const productsList = data?.data?.products || (Array.isArray(data?.data) ? data.data : null);
+        if (productsList && Array.isArray(productsList) && productsList.length > 0) {
+          const mapped: Product[] = productsList.map((p: any) => ({
+            _id: p._id || p.id,
             title: p.title || p.name,
-            slug: p.slug || p._id,
+            slug: p.slug || p._id || p.id,
             description: p.description || '',
             category: p.category || 'Audio',
             brand: p.brand || 'ShopNexus Official',
@@ -673,10 +678,9 @@ function ProductsContent() {
           }));
           setLiveDbProducts(mapped);
         }
-      } catch (err) {
-        console.error('Could not fetch DB products:', err);
-      }
+      } catch (_err) {}
     };
+
     fetchDbProducts();
   }, []);
 

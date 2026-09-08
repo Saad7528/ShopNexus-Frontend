@@ -92,15 +92,19 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
   useEffect(() => {
     const fetchLiveProduct = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/products/${productId}`);
-        if (!res.ok) return;
-        const data = await res.json();
+        let res = await fetch(`/api/products/${productId}`).catch(() => null);
+        if ((!res || !res.ok) && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+          const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+          res = await fetch(`${API_URL}/products/${productId}`).catch(() => null);
+        }
+        if (!res || !res.ok) return;
+        const data = await res.json().catch(() => null);
         if (data?.data?.product) {
           setApiProduct(data.data.product);
+        } else if (data?.data) {
+          setApiProduct(data.data);
         }
-      } catch (e) {
-        console.error('Could not fetch product detail from API:', e);
-      }
+      } catch (_e) {}
     };
     fetchLiveProduct();
   }, [productId]);
