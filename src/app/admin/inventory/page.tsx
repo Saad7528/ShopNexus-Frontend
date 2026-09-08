@@ -534,14 +534,13 @@ function InventoryContent() {
               </button>
             )}
 
-            <button
-              type="button"
-              onClick={() => setIsAddModalOpen(true)}
+            <Link
+              href="/admin/inventory/new"
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/25 transition-all cursor-pointer hover:scale-105"
             >
               <Plus className="w-4 h-4" />
               Add Product (৳ BDT)
-            </button>
+            </Link>
           </div>
         </div>
 

@@ -26,6 +26,11 @@ import {
   HelpCircle,
   Eye,
   Image as ImageIcon,
+  Coins,
+  RefreshCw,
+  Star,
+  ShoppingCart,
+  Trash2,
 } from 'lucide-react';
 
 const CATEGORIES = [
@@ -39,6 +44,15 @@ const CATEGORIES = [
   'Combo Packages',
 ];
 
+const PRESET_IMAGES = [
+  { name: 'Headphones', url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80' },
+  { name: 'Smartwatch', url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80' },
+  { name: 'Keyboard', url: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=800&q=80' },
+  { name: 'Gaming Mouse', url: 'https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=800&q=80' },
+  { name: 'Camera/Gimbal', url: 'https://images.unsplash.com/photo-1564466809058-bf4114d55352?w=800&q=80' },
+  { name: 'Earbuds', url: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800&q=80' },
+];
+
 export default function NewProductPage() {
   const router = useRouter();
   const { token } = useAuthStore();
@@ -46,6 +60,7 @@ export default function NewProductPage() {
   const [formData, setFormData] = useState({
     name: '',
     brand: '',
+    vendorName: 'ShopNexus Official Store',
     category: 'Audio',
     sku: `SKU-${Date.now().toString().slice(-6)}`,
     barcode: `BC-${Date.now().toString().slice(-6)}`,
@@ -53,12 +68,17 @@ export default function NewProductPage() {
     price: '',
     discountPrice: '',
     customDiscountPercent: '',
+    rewardPoints: '', // Loyalty Points
     vatTaxPercent: '7.5',
     stock: '25',
     threshold: '5',
-    variantColor: '',
+    variantColor: 'Midnight Black, Platinum Silver',
+    variantSize: 'Standard Unit',
     image: '',
+    galleryImage1: '',
+    galleryImage2: '',
     description: '',
+    tags: 'official, authentic, warranty',
     isFlashSale: false,
     hasFastDelivery: true,
     hasWarranty: true,
@@ -75,15 +95,30 @@ export default function NewProductPage() {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  // Live Pricing & Profit Calculations
+  // Live Pricing & Calculations
   const sellingPrice = parseFloat(formData.price) || 0;
   const costPrice = parseFloat(formData.costPrice) || 0;
   const discountPrice = parseFloat(formData.discountPrice) || 0;
   const effectivePrice = discountPrice > 0 ? discountPrice : sellingPrice;
 
+  // Loyalty Reward Points (Default: 10 pts per ৳100)
+  const defaultCalculatedPoints = Math.floor(effectivePrice / 100) * 10;
+  const finalRewardPoints = formData.rewardPoints ? parseInt(formData.rewardPoints, 10) : defaultCalculatedPoints;
+  const cashbackValue = Math.floor(finalRewardPoints / 10);
+
   const grossProfit = effectivePrice > 0 && costPrice > 0 ? effectivePrice - costPrice : 0;
   const profitMargin = effectivePrice > 0 ? Math.round((grossProfit / effectivePrice) * 100) : 0;
-  const markupPercent = costPrice > 0 ? Math.round((grossProfit / costPrice) * 100) : 0;
+
+  // Auto Generator for SKU & Barcode
+  const regenerateIdentifiers = () => {
+    const randomSuffix = Math.floor(100000 + Math.random() * 900000).toString();
+    const catCode = formData.category.slice(0, 3).toUpperCase();
+    setFormData((prev) => ({
+      ...prev,
+      sku: `SKU-${catCode}-${randomSuffix}`,
+      barcode: `BC-${randomSuffix}`,
+    }));
+  };
 
   // Handle Quick & Custom Discount
   const handleApplyDiscountPercent = (pct: number) => {
@@ -122,25 +157,43 @@ export default function NewProductPage() {
     setIsSubmitting(true);
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
+    // Compile Images
+    const rawImages = [
+      formData.image.trim(),
+      formData.galleryImage1.trim(),
+      formData.galleryImage2.trim(),
+    ].filter(Boolean);
+
+    const imagesList = rawImages.length > 0 
+      ? rawImages 
+      : ['https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80'];
+
+    const tagsArray = formData.tags
+      .split(',')
+      .map((t) => t.trim().toLowerCase())
+      .filter(Boolean);
+
     const payload = {
       title: formData.name.trim(),
-      slug: formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''),
-      description: formData.description || `${formData.name} - Official hardware gadget from ${formData.brand || 'ShopNexus'}.`,
+      slug: formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') + `-${Date.now().toString().slice(-4)}`,
+      description: formData.description || `${formData.name} - Official verified hardware gadget from ${formData.brand || 'ShopNexus'}.`,
       category: formData.category,
       brand: formData.brand || 'ShopNexus Official',
+      vendorName: formData.vendorName || 'ShopNexus Official Store',
       price: sellingPrice,
       discountPrice: discountPrice > 0 ? discountPrice : undefined,
       costPrice: costPrice > 0 ? costPrice : undefined,
       stock: parseInt(formData.stock, 10) || 10,
       sku: formData.sku,
       barcode: formData.barcode,
-      images: [formData.image.trim() || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80'],
-      vendorName: 'ShopNexus Official',
+      rewardPoints: finalRewardPoints,
+      images: imagesList,
       isFlashSale: formData.isFlashSale,
       flashSaleDiscountPercent:
         discountPrice > 0 && sellingPrice > discountPrice
           ? Math.round(((sellingPrice - discountPrice) / sellingPrice) * 100)
           : undefined,
+      tags: tagsArray.length > 0 ? tagsArray : ['official', 'authentic'],
       trustBadges: {
         hasFastDelivery: formData.hasFastDelivery,
         hasWarranty: formData.hasWarranty,
@@ -171,7 +224,7 @@ export default function NewProductPage() {
         }).catch(() => null);
       }
 
-      // Also persist to local session cache for instant preview
+      // Also persist to local session cache for instant preview in inventory
       try {
         const existingRaw = localStorage.getItem('shopnexus_custom_products');
         const existing = existingRaw ? JSON.parse(existingRaw) : [];
@@ -187,20 +240,22 @@ export default function NewProductPage() {
         localStorage.setItem('shopnexus_custom_products', JSON.stringify([newLocalItem, ...existing]));
       } catch (_e) {}
 
-      showToast('🎉 নতুন প্রোডাক্ট সফলভাবে ক্যাটালগে পাবলিশ হয়েছে!');
+      showToast('🎉 নতুন প্রোডাক্ট সফলভাবে ক্যাটালগে যুক্ত হয়েছে!');
       setTimeout(() => {
         router.push('/admin/inventory');
-      }, 1200);
+      }, 1000);
     } catch (err) {
       console.error('Error creating product:', err);
       showToast('প্রোডাক্ট সেভ করা হয়েছে এবং লোকাল ইনভেন্টরিতে আপডেট করা হয়েছে।');
       setTimeout(() => {
         router.push('/admin/inventory');
-      }, 1200);
+      }, 1000);
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  const previewImage = formData.image || PRESET_IMAGES[0].url;
 
   return (
     <RoleGuard allowedRoles={['admin', 'vendor']}>
@@ -231,7 +286,7 @@ export default function NewProductPage() {
               </div>
               <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
                 <Plus className="w-6 h-6 text-orange-600 dark:text-orange-400" />
-                Add New Product (৳ Taka Specification)
+                Add New Product (৳ BDT Specification)
               </h1>
             </div>
           </div>
@@ -255,17 +310,20 @@ export default function NewProductPage() {
           </div>
         </div>
 
-        {/* 2-Column Shopify-Style Form Layout */}
+        {/* 2-Column Responsive Layout */}
         <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* LEFT MAIN COLUMN (8 of 12 Cols ~ 67%) */}
           <div className="lg:col-span-8 space-y-6">
             {/* 1. Basic Product Information Card */}
             <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-              <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800/80 pb-3">
-                <Package className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-                <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
-                  1. General Information
-                </h2>
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-3">
+                <div className="flex items-center gap-2">
+                  <Package className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                  <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                    1. General Information & Identity
+                  </h2>
+                </div>
+                <span className="text-[10px] text-slate-400 uppercase font-mono">Storefront Catalog</span>
               </div>
 
               {/* Title */}
@@ -283,17 +341,60 @@ export default function NewProductPage() {
                 />
               </div>
 
+              {/* Brand & Vendor */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                    Brand Name
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Sony, Apple, Keychron, Bose, Razer"
+                    value={formData.brand}
+                    onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                    Vendor / Merchant Name
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="ShopNexus Official Store"
+                    value={formData.vendorName}
+                    onChange={(e) => setFormData({ ...formData, vendorName: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
               {/* Description */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                  Description & Key Highlights
+                  Description & Key Specifications
                 </label>
                 <textarea
                   rows={4}
-                  placeholder="পণ্যের বিশেষ ফিচারসমূহ, স্পেসিফিকেশন এবং ব্যবহারের নিয়মাবলি লিখুন..."
+                  placeholder="পণ্যের বিশেষ ফিচারসমূহ, স্পেসিফিকেশন এবং ব্যবহারের নিয়মাবলি বিস্তারিতভাবে লিখুন..."
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs leading-relaxed focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-all"
+                />
+              </div>
+
+              {/* Tags */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  Search & Recommendation Tags (Comma-separated)
+                </label>
+                <input
+                  type="text"
+                  placeholder="wireless, anc, hifi, gaming, bluetooth 5.3"
+                  value={formData.tags}
+                  onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none"
                 />
               </div>
             </div>
@@ -304,71 +405,152 @@ export default function NewProductPage() {
                 <div className="flex items-center gap-2">
                   <ImageIcon className="w-4 h-4 text-orange-600 dark:text-orange-400" />
                   <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
-                    2. Product Media (High-Res CDN)
+                    2. Product Images & Gallery URLs
                   </h2>
                 </div>
-                <span className="text-[11px] text-slate-500 font-mono">Unsplash / Image CDN URL</span>
+                <span className="text-[10px] text-slate-400 font-mono">High-Res CDN</span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="sm:col-span-2 space-y-2">
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                    Primary Image URL
-                  </label>
+              {/* Quick Preset Selector */}
+              <div>
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 block">
+                  Quick Demo Preset Images:
+                </span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {PRESET_IMAGES.map((preset) => (
+                    <button
+                      key={preset.name}
+                      type="button"
+                      onClick={() => setFormData((prev) => ({ ...prev, image: preset.url }))}
+                      className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-orange-500/10 hover:text-orange-600 dark:hover:text-orange-400 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
+                    >
+                      {preset.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Primary Image URL */}
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                  Primary Cover Image URL <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://images.unsplash.com/photo-..."
+                  value={formData.image}
+                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none transition-all"
+                />
+              </div>
+
+              {/* Additional Gallery URLs */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-500 mb-1">Gallery Image 2 URL (Optional)</label>
                   <input
                     type="url"
-                    placeholder="https://images.unsplash.com/photo-..."
-                    value={formData.image}
-                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                    className="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none transition-all"
+                    placeholder="https://images.unsplash.com/..."
+                    value={formData.galleryImage1}
+                    onChange={(e) => setFormData({ ...formData, galleryImage1: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none"
                   />
-                  <p className="text-[11px] text-slate-500">
-                    সরাসরি আনস্প্ল্যাশ বা ক্লাউডিনারি ইমেজ ইউআরএল পেস্ট করুন। ছবি না দিলে স্বয়ংক্রিয় ডিফল্ট গ্যাজেট ইমেজ প্রদর্শিত হবে।
-                  </p>
                 </div>
 
-                {/* Live Image Preview Frame */}
-                <div className="flex flex-col items-center justify-center p-2 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 aspect-square relative overflow-hidden group">
-                  {formData.image ? (
-                    <Image
-                      src={formData.image}
-                      alt="Preview"
-                      fill
-                      className="object-cover rounded-xl"
-                      onError={() => setFormData({ ...formData, image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80' })}
-                    />
-                  ) : (
-                    <div className="text-center p-3 text-slate-400 space-y-1">
-                      <ImageIcon className="w-8 h-8 mx-auto stroke-1" />
-                      <span className="text-[10px] font-semibold block">Live Image Preview</span>
-                    </div>
-                  )}
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-500 mb-1">Gallery Image 3 URL (Optional)</label>
+                  <input
+                    type="url"
+                    placeholder="https://images.unsplash.com/..."
+                    value={formData.galleryImage2}
+                    onChange={(e) => setFormData({ ...formData, galleryImage2: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none"
+                  />
                 </div>
               </div>
             </div>
 
-            {/* 3. Variants & Technical Specs */}
+            {/* 3. SKU, Barcode & Identification Card */}
             <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-              <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800/80 pb-3">
-                <Layers className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-                <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
-                  3. Variant Options & Hardware Specs
-                </h2>
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-3">
+                <div className="flex items-center gap-2">
+                  <Barcode className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                  <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                    3. Inventory Barcode & SKU Codes
+                  </h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={regenerateIdentifiers}
+                  className="inline-flex items-center gap-1 text-[11px] font-bold text-orange-600 dark:text-orange-400 hover:underline cursor-pointer"
+                >
+                  <RefreshCw className="w-3 h-3" /> Auto-Generate
+                </button>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                    Color / Material Variant
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    SKU Code (Stock Keeping Unit)
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. Space Gray, Titanium, Matte Black"
-                    value={formData.variantColor}
-                    onChange={(e) => setFormData({ ...formData, variantColor: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none"
+                    value={formData.sku}
+                    onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-mono font-bold focus:border-orange-500 focus:outline-none"
                   />
                 </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Barcode / EAN
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.barcode}
+                    onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-mono font-bold focus:border-orange-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 4. Variants & Technical Specs */}
+            <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+              <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800/80 pb-3">
+                <Layers className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                  4. Variants & Alert Thresholds
+                </h2>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                    Color Variants
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Space Gray, Silver, Deep Navy"
+                    value={formData.variantColor}
+                    onChange={(e) => setFormData({ ...formData, variantColor: e.target.value })}
+                    className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                    Size / Edition Variant
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Standard Unit, Creator Edition"
+                    value={formData.variantSize}
+                    onChange={(e) => setFormData({ ...formData, variantSize: e.target.value })}
+                    className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none"
+                  />
+                </div>
+
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                     Low Stock Alert Threshold
@@ -378,22 +560,22 @@ export default function NewProductPage() {
                     placeholder="5"
                     value={formData.threshold}
                     onChange={(e) => setFormData({ ...formData, threshold: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-mono focus:border-orange-500 focus:outline-none"
+                    className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-mono focus:border-orange-500 focus:outline-none"
                   />
                 </div>
               </div>
             </div>
 
-            {/* 4. Trust Badges & Guarantee Policies Card */}
+            {/* 5. Trust Badges & Guarantee Policies Card */}
             <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-3">
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4 text-emerald-500" />
                   <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
-                    4. Trust Badges & Store Guarantees
+                    5. Trust Badges & Store Guarantees
                   </h2>
                 </div>
-                <span className="text-[10px] text-slate-500">প্রোডাক্ট পেইজে সরাসরি প্রদর্শিত হবে</span>
+                <span className="text-[10px] text-slate-400">প্রোডাক্ট পেইজে সরাসরি প্রদর্শিত হবে</span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -474,14 +656,14 @@ export default function NewProductPage() {
               <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800/80 pb-3">
                 <DollarSign className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
-                  Pricing & Profit
+                  Pricing & Profit (৳ BDT)
                 </h2>
               </div>
 
               {/* Selling Price */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  Selling Price (বিক্রয়মূল্য ৳) <span className="text-rose-500">*</span>
+                  Sales Price (বিক্রয়মূল্য ৳) <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
                   <span className="absolute left-3.5 top-2.5 text-slate-400 font-mono font-bold">৳</span>
@@ -529,10 +711,10 @@ export default function NewProductPage() {
                   />
                 </div>
 
-                {/* Quick Presets + Open Custom % Input */}
+                {/* Quick Presets */}
                 <div className="space-y-1.5 pt-1">
                   <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase">
-                    <span>Quick Discount Presets:</span>
+                    <span>Quick Discount:</span>
                     <span>Custom %</span>
                   </div>
                   <div className="flex items-center gap-1.5 flex-wrap">
@@ -541,13 +723,12 @@ export default function NewProductPage() {
                         key={pct}
                         type="button"
                         onClick={() => handleApplyDiscountPercent(pct)}
-                        className="px-2 py-1 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 font-bold text-[11px] border border-orange-500/20 transition-colors"
+                        className="px-2 py-1 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 font-bold text-[11px] border border-orange-500/20 transition-colors cursor-pointer"
                       >
                         {pct}%
                       </button>
                     ))}
-                    {/* Custom Input */}
-                    <div className="flex-1 min-w-[70px] relative">
+                    <div className="flex-1 min-w-[70px]">
                       <input
                         type="number"
                         placeholder="e.g. 7%"
@@ -560,7 +741,35 @@ export default function NewProductPage() {
                 </div>
               </div>
 
-              {/* Live Profit Margin Metric Card */}
+              {/* 🌟 2. LOYALTY REWARD POINTS ENGINE (কত পয়েন্ট পাবে এটা কিনলে সেটা) */}
+              <div className="p-3.5 rounded-2xl bg-amber-400/10 border border-amber-400/25 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-xs font-black text-amber-600 dark:text-amber-400">
+                    <Coins className="w-4 h-4 fill-amber-500" />
+                    <span>Loyalty Reward Points</span>
+                  </div>
+                  <span className="text-[10px] text-slate-400">৳১০০ = ১০ কয়েন</span>
+                </div>
+
+                <div className="relative">
+                  <input
+                    type="number"
+                    placeholder={`Auto: ${defaultCalculatedPoints} pts`}
+                    value={formData.rewardPoints}
+                    onChange={(e) => setFormData({ ...formData, rewardPoints: e.target.value })}
+                    className="w-full px-3 py-1.5 rounded-xl bg-white dark:bg-slate-950 border border-amber-400/30 text-slate-900 dark:text-white font-mono text-xs font-bold focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between text-[11px] font-bold text-slate-600 dark:text-slate-300 pt-0.5">
+                  <span>গ্রাহক বোনাস পাবে:</span>
+                  <span className="text-amber-600 dark:text-amber-400 font-mono">
+                    +{finalRewardPoints} Points (৳{cashbackValue} Cashback)
+                  </span>
+                </div>
+              </div>
+
+              {/* Profit Margin Metric Card */}
               <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 space-y-1">
                 <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300">
                   <span>Gross Profit:</span>
@@ -573,31 +782,14 @@ export default function NewProductPage() {
                   <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">{profitMargin}%</span>
                 </div>
               </div>
-
-              {/* VAT Class */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  VAT / Tax Category
-                </label>
-                <select
-                  value={formData.vatTaxPercent}
-                  onChange={(e) => setFormData({ ...formData, vatTaxPercent: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none focus:border-orange-500"
-                >
-                  <option value="0">0% (Tax Exempt)</option>
-                  <option value="5">5% Standard VAT</option>
-                  <option value="7.5">7.5% Electronics Standard</option>
-                  <option value="15">15% Luxury Electronics</option>
-                </select>
-              </div>
             </div>
 
-            {/* 2. Organization & Inventory Card */}
+            {/* 3. Category & Organization Card */}
             <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
               <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800/80 pb-3">
                 <Tag className="w-4 h-4 text-orange-600 dark:text-orange-400" />
                 <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
-                  Organization & Stock
+                  Category & Inventory Stock
                 </h2>
               </div>
 
@@ -609,7 +801,7 @@ export default function NewProductPage() {
                 <select
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-bold focus:outline-none focus:border-orange-500"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-bold focus:outline-none focus:border-orange-500 cursor-pointer"
                 >
                   {CATEGORIES.map((cat) => (
                     <option key={cat} value={cat}>
@@ -617,20 +809,6 @@ export default function NewProductPage() {
                     </option>
                   ))}
                 </select>
-              </div>
-
-              {/* Brand */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  Brand Name
-                </label>
-                <input
-                  type="text"
-                  placeholder="Sony, Apple, Keychron, Anker"
-                  value={formData.brand}
-                  onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-orange-500"
-                />
               </div>
 
               {/* Initial Stock */}
@@ -648,30 +826,8 @@ export default function NewProductPage() {
                 />
               </div>
 
-              {/* SKU & Barcode */}
-              <div className="grid grid-cols-2 gap-2.5 pt-1">
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-500 mb-1">SKU Code</label>
-                  <input
-                    type="text"
-                    value={formData.sku}
-                    onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                    className="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-mono focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-500 mb-1">Barcode</label>
-                  <input
-                    type="text"
-                    value={formData.barcode}
-                    onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
-                    className="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-mono focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              {/* Flash Sale Campaign Toggle */}
-              <label className="flex items-center gap-3 p-3 rounded-2xl bg-orange-500/10 border border-orange-500/20 cursor-pointer mt-2">
+              {/* Flash Sale Toggle */}
+              <label className="flex items-center gap-3 p-3 rounded-2xl bg-orange-500/10 border border-orange-500/20 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={formData.isFlashSale}
@@ -683,9 +839,55 @@ export default function NewProductPage() {
                     <Zap className="w-3.5 h-3.5 fill-current" />
                     <span>Flash Sale Campaign</span>
                   </div>
-                  <span className="text-[10px] text-slate-500">স্টোরফ্রন্ট কাউন্টডাউনে প্রদর্শিত হবে</span>
+                  <span className="text-[10px] text-slate-500">স্টোরফ্রন্ট কাউন্টডাউনে স্পেশাল ব্যাজ দেখাবে</span>
                 </div>
               </label>
+            </div>
+
+            {/* 4. Live Storefront Card Preview */}
+            <div className="p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
+              <div className="flex items-center gap-1.5 text-xs font-black text-slate-700 dark:text-slate-300">
+                <Eye className="w-3.5 h-3.5 text-orange-500" />
+                <span>Live Storefront Preview</span>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-950 p-3 space-y-2.5">
+                <div className="aspect-square rounded-xl bg-slate-100 dark:bg-slate-900 relative overflow-hidden flex items-center justify-center">
+                  <Image
+                    src={previewImage}
+                    alt="Preview"
+                    fill
+                    className="object-contain p-2"
+                    unoptimized
+                  />
+                  {formData.isFlashSale && (
+                    <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white text-[9px] font-black">
+                      FLASH SALE
+                    </div>
+                  )}
+                  <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[9px] font-black flex items-center gap-1">
+                    <Coins className="w-2.5 h-2.5 fill-slate-950" />
+                    <span>+{finalRewardPoints} pts</span>
+                  </div>
+                </div>
+
+                <div>
+                  <span className="text-[10px] text-orange-500 font-bold uppercase">{formData.category}</span>
+                  <h4 className="text-xs font-bold text-slate-900 dark:text-white line-clamp-1">
+                    {formData.name || 'Your New Product Title'}
+                  </h4>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <span className="text-sm font-black text-slate-900 dark:text-white font-mono">
+                      ৳{(discountPrice > 0 ? discountPrice : (sellingPrice || 38500)).toLocaleString()}
+                    </span>
+                    {discountPrice > 0 && (
+                      <span className="text-xs text-slate-400 line-through font-mono">
+                        ৳{sellingPrice.toLocaleString()}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </form>
