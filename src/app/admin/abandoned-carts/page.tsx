@@ -29,8 +29,6 @@ import {
   Percent,
   Banknote,
   Truck,
-  Sliders,
-  Globe,
 } from 'lucide-react';
 
 interface IAbandonedItem {
@@ -162,7 +160,6 @@ export default function AbandonedCartsPage() {
   // WhatsApp Recovery Modal State
   const [activeRecoveryCart, setActiveRecoveryCart] = useState<IAbandonedCart | null>(null);
   const [recipientPhone, setRecipientPhone] = useState('');
-  const [domainTarget, setDomainTarget] = useState<'live' | 'local'>('live');
   const [discountType, setDiscountType] = useState<string>('flat_200');
   const [customValue, setCustomValue] = useState<string>('200');
   const [promoCode, setPromoCode] = useState<string>('SAVE200');
@@ -172,13 +169,6 @@ export default function AbandonedCartsPage() {
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
   const VERCEL_LIVE_URL = 'https://shop-nexus-frontend-ten.vercel.app';
-
-  const getEffectiveBaseUrl = useCallback(() => {
-    if (domainTarget === 'local' && typeof window !== 'undefined') {
-      return window.location.origin;
-    }
-    return VERCEL_LIVE_URL;
-  }, [domainTarget]);
 
   // Helper to compute discount offer text and suggested coupon code
   const getOfferDetails = useCallback((type: string, customVal: string) => {
@@ -215,8 +205,7 @@ export default function AbandonedCartsPage() {
   const getRecoveryMessage = (cart: IAbandonedCart, code: string, type: string, customVal: string) => {
     const itemNames = (cart.items || []).map((i) => i.title).join(', ') || 'আপনার পছন্দের পণ্য';
     const { text: offerText } = getOfferDetails(type, customVal);
-    const baseUrl = getEffectiveBaseUrl();
-    const recoveryUrl = `${baseUrl}/checkout?recoverCart=${cart.id}&code=${code}`;
+    const recoveryUrl = `${VERCEL_LIVE_URL}/checkout?recoverCart=${cart.id}&code=${code}`;
     return `আসসালামু আলাইকুম ${cart.customerName || 'Shopper'}! ShopNexus-এ আপনার কার্টে "${itemNames}" রেখে গিয়েছিলেন। আপনার জন্য বিশেষ ${offerText} কুপন কোড: "${code}" তৈরি করা হয়েছে। এখনই চেকআউট সম্পন্ন করে অফিশিয়াল পণ্যটি নিশ্চিত করুন:\n${recoveryUrl}`;
   };
 
@@ -818,59 +807,6 @@ export default function AbandonedCartsPage() {
                   </div>
                 )}
               </div>
-
-                {/* Destination Storefront Domain Switcher */}
-                <div className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <label className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 uppercase text-[10px]">
-                      <Globe className="w-3.5 h-3.5 text-blue-500" />
-                      Recovery Checkout Destination:
-                    </label>
-                    <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400">
-                      {domainTarget === 'live' ? '🌐 Live Production' : '💻 Local Dev'}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setDomainTarget('live');
-                        setCustomRecoveryText('');
-                      }}
-                      className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer border ${
-                        domainTarget === 'live'
-                          ? 'bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-500/20'
-                          : 'bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-blue-500/50'
-                      }`}
-                    >
-                      <Globe className="w-3.5 h-3.5" />
-                      <span>Live Vercel Link</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setDomainTarget('local');
-                        setCustomRecoveryText('');
-                      }}
-                      className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer border ${
-                        domainTarget === 'local'
-                          ? 'bg-orange-600 text-white border-orange-600 shadow-sm shadow-orange-500/20'
-                          : 'bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-orange-500/50'
-                      }`}
-                    >
-                      <Sliders className="w-3.5 h-3.5" />
-                      <span>Local Dev (Port 3000)</span>
-                    </button>
-                  </div>
-
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
-                    {domainTarget === 'live'
-                      ? 'অরিজিনাল কাস্টমারকে পাঠানোর জন্য লাইভ লিংক (shop-nexus-frontend-ten.vercel.app) ব্যবহার হবে।'
-                      : 'লোকাল মেশিনে নিজে টেস্ট করার জন্য Localhost লিংক জেনারেট হবে।'}
-                  </p>
-                </div>
 
                 {/* Message Preview */}
                 <div className="space-y-1.5">
