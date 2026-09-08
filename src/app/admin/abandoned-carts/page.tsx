@@ -30,6 +30,7 @@ import {
   Banknote,
   Truck,
   Sliders,
+  Globe,
 } from 'lucide-react';
 
 interface IAbandonedItem {
@@ -160,6 +161,8 @@ export default function AbandonedCartsPage() {
 
   // WhatsApp Recovery Modal State
   const [activeRecoveryCart, setActiveRecoveryCart] = useState<IAbandonedCart | null>(null);
+  const [recipientPhone, setRecipientPhone] = useState('');
+  const [domainTarget, setDomainTarget] = useState<'live' | 'local'>('live');
   const [discountType, setDiscountType] = useState<string>('flat_200');
   const [customValue, setCustomValue] = useState<string>('200');
   const [promoCode, setPromoCode] = useState<string>('SAVE200');
@@ -168,6 +171,14 @@ export default function AbandonedCartsPage() {
   const [isSending, setIsSending] = useState(false);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+  const VERCEL_LIVE_URL = 'https://shop-nexus-frontend-ten.vercel.app';
+
+  const getEffectiveBaseUrl = useCallback(() => {
+    if (domainTarget === 'local' && typeof window !== 'undefined') {
+      return window.location.origin;
+    }
+    return VERCEL_LIVE_URL;
+  }, [domainTarget]);
 
   // Helper to compute discount offer text and suggested coupon code
   const getOfferDetails = useCallback((type: string, customVal: string) => {
@@ -204,7 +215,18 @@ export default function AbandonedCartsPage() {
   const getRecoveryMessage = (cart: IAbandonedCart, code: string, type: string, customVal: string) => {
     const itemNames = (cart.items || []).map((i) => i.title).join(', ') || 'আপনার পছন্দের পণ্য';
     const { text: offerText } = getOfferDetails(type, customVal);
-    return `আসসালামু আলাইকুম ${cart.customerName || 'Shopper'}! ShopNexus-এ আপনার কার্টে "${itemNames}" রেখে গিয়েছিলেন। আপনার জন্য বিশেষ ${offerText} কুপন কোড: "${code}" তৈরি করা হয়েছে। এখনই চেকআউট সম্পন্ন করে অফিশিয়াল পণ্যটি নিশ্চিত করুন: https://shopnexus.io/checkout?code=${code}`;
+    const baseUrl = getEffectiveBaseUrl();
+    const recoveryUrl = `${baseUrl}/checkout?recoverCart=${cart.id}&code=${code}`;
+    return `আসসালামু আলাইকুম ${cart.customerName || 'Shopper'}! ShopNexus-এ আপনার কার্টে "${itemNames}" রেখে গিয়েছিলেন। আপনার জন্য বিশেষ ${offerText} কুপন কোড: "${code}" তৈরি করা হয়েছে। এখনই চেকআউট সম্পন্ন করে অফিশিয়াল পণ্যটি নিশ্চিত করুন:\n${recoveryUrl}`;
+  };
+
+  const handleOpenRecoveryModal = (cart: IAbandonedCart) => {
+    setActiveRecoveryCart(cart);
+    setRecipientPhone(cart.customerPhone || '');
+    setDiscountType('flat_200');
+    setCustomValue('200');
+    setPromoCode(cart.recoveryDiscountCode || 'SAVE200');
+    setCustomRecoveryText('');
   };
 
   const handleDiscountTypeChange = (newType: string) => {
@@ -314,19 +336,30 @@ export default function AbandonedCartsPage() {
 
   const handleSendWhatsAppRecovery = async () => {
     if (!activeRecoveryCart) return;
+    const phoneToUse = (recipientPhone || activeRecoveryCart.customerPhone || '').trim();
+    const cleanPhone = phoneToUse.replace(/[^0-9]/g, '');
+
+    if (!cleanPhone || cleanPhone.length < 8) {
+      alert('অনুগ্রহ করে কাস্টমারের সঠিক WhatsApp ফোন নম্বর ইনপুট দিন।');
+      return;
+    }
+
     setIsSending(true);
 
     const msg = customRecoveryText || getRecoveryMessage(activeRecoveryCart, promoCode, discountType, customValue);
-    const cleanPhone = (activeRecoveryCart.customerPhone || '').replace(/[^0-9]/g, '');
     const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
     window.open(waUrl, '_blank');
 
-    // Async DB update to persist 'WhatsApp Sent' status in MongoDB
+    // Async DB update to persist 'WhatsApp Sent' status and customer phone in MongoDB
     try {
       await fetch(`/api/admin/abandoned-carts/${activeRecoveryCart.id}/recover`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ discountCode: promoCode, status: 'WhatsApp Sent' }),
+        body: JSON.stringify({
+          discountCode: promoCode,
+          customerPhone: phoneToUse,
+          status: 'WhatsApp Sent',
+        }),
       }).catch(async () => {
         await fetch(`${API_URL}/admin/abandoned-carts/${activeRecoveryCart.id}/recover`, {
           method: 'POST',
@@ -334,7 +367,11 @@ export default function AbandonedCartsPage() {
             'Content-Type': 'application/json',
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
-          body: JSON.stringify({ discountCode: promoCode, status: 'WhatsApp Sent' }),
+          body: JSON.stringify({
+            discountCode: promoCode,
+            customerPhone: phoneToUse,
+            status: 'WhatsApp Sent',
+          }),
         });
       });
     } catch (_e) {
@@ -345,7 +382,12 @@ export default function AbandonedCartsPage() {
     setCarts((prev) =>
       prev.map((c) =>
         c.id === activeRecoveryCart.id
-          ? { ...c, status: 'WhatsApp Sent', recoveryDiscountCode: promoCode }
+          ? {
+              ...c,
+              customerPhone: phoneToUse,
+              status: 'WhatsApp Sent',
+              recoveryDiscountCode: promoCode,
+            }
           : c
       )
     );
@@ -546,10 +588,16 @@ export default function AbandonedCartsPage() {
                     <tr key={cart.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                       <td className="px-5 py-3.5">
                         <div className="font-bold text-slate-900 dark:text-white">{cart.customerName || 'Guest Shopper'}</div>
-                        <span className="text-[11px] font-mono text-orange-600 dark:text-orange-400 block flex items-center gap-1">
-                          <Phone className="w-3 h-3 text-orange-500" /> {cart.customerPhone || '+880 1700-000000'}
-                        </span>
-                        <span className="text-[10px] text-slate-400 dark:text-slate-500">{cart.customerEmail || 'shopper@tempmail.io'}</span>
+                        {cart.customerPhone ? (
+                          <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-semibold mt-0.5">
+                            <Phone className="w-3 h-3 text-emerald-500" /> {cart.customerPhone}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-amber-500/90 dark:text-amber-400 flex items-center gap-1 font-bold mt-0.5">
+                            <AlertCircle className="w-3 h-3 text-amber-500" /> No Phone Provided
+                          </span>
+                        )}
+                        <span className="text-[10px] text-slate-400 dark:text-slate-500 block mt-0.5">{cart.customerEmail || 'No email recorded'}</span>
                       </td>
                       <td className="px-5 py-3.5">
                         <div className="space-y-1.5 max-w-xs">
@@ -620,13 +668,7 @@ export default function AbandonedCartsPage() {
                         ) : (
                           <button
                             type="button"
-                            onClick={() => {
-                              setActiveRecoveryCart(cart);
-                              setDiscountType('flat_200');
-                              setCustomValue('200');
-                              setPromoCode(cart.recoveryDiscountCode || 'SAVE200');
-                              setCustomRecoveryText('');
-                            }}
+                            onClick={() => handleOpenRecoveryModal(cart)}
                             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-600/25 transition-all cursor-pointer hover:scale-105"
                           >
                             <MessageCircle className="w-3.5 h-3.5" />
@@ -669,15 +711,15 @@ export default function AbandonedCartsPage() {
                 </button>
               </div>
 
-              {/* Recipient & Cart Breakdown */}
-              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
+              {/* Recipient & Cart Breakdown with Editable Phone */}
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-3">
                 <div className="flex items-center justify-between text-xs">
                   <div>
                     <span className="font-bold text-slate-900 dark:text-white block">
                       {activeRecoveryCart.customerName || 'Guest Shopper'}
                     </span>
-                    <span className="font-mono text-orange-600 dark:text-orange-400">
-                      {activeRecoveryCart.customerPhone || '+880 1700-000000'}
+                    <span className="text-[10px] text-slate-400 block">
+                      {activeRecoveryCart.customerEmail || 'No email provided'}
                     </span>
                   </div>
                   <div className="text-right">
@@ -688,6 +730,24 @@ export default function AbandonedCartsPage() {
                       {(activeRecoveryCart.items || []).length} item(s) in cart
                     </span>
                   </div>
+                </div>
+
+                <div className="pt-2.5 border-t border-slate-200/70 dark:border-slate-800/70">
+                  <label className="block text-[10px] uppercase font-bold text-slate-600 dark:text-slate-300 mb-1 flex items-center justify-between">
+                    <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+                      <Phone className="w-3.5 h-3.5" /> Customer WhatsApp Phone:
+                    </span>
+                    {!recipientPhone.trim() && (
+                      <span className="text-amber-500 text-[10px] font-bold">⚠️ নাম্বার ইনপুট দেওয়া প্রয়োজন</span>
+                    )}
+                  </label>
+                  <input
+                    type="tel"
+                    value={recipientPhone}
+                    onChange={(e) => setRecipientPhone(e.target.value)}
+                    placeholder="e.g. 01712345678 বা +8801712345678"
+                    className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-mono font-bold text-xs text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none shadow-xs"
+                  />
                 </div>
               </div>
 
@@ -759,12 +819,65 @@ export default function AbandonedCartsPage() {
                 )}
               </div>
 
-              {/* Message */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between text-xs">
-                  <label className="font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                    WhatsApp Message Preview:
-                  </label>
+                {/* Destination Storefront Domain Switcher */}
+                <div className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <label className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 uppercase text-[10px]">
+                      <Globe className="w-3.5 h-3.5 text-blue-500" />
+                      Recovery Checkout Destination:
+                    </label>
+                    <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400">
+                      {domainTarget === 'live' ? '🌐 Live Production' : '💻 Local Dev'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDomainTarget('live');
+                        setCustomRecoveryText('');
+                      }}
+                      className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer border ${
+                        domainTarget === 'live'
+                          ? 'bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-500/20'
+                          : 'bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-blue-500/50'
+                      }`}
+                    >
+                      <Globe className="w-3.5 h-3.5" />
+                      <span>Live Vercel Link</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDomainTarget('local');
+                        setCustomRecoveryText('');
+                      }}
+                      className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer border ${
+                        domainTarget === 'local'
+                          ? 'bg-orange-600 text-white border-orange-600 shadow-sm shadow-orange-500/20'
+                          : 'bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-orange-500/50'
+                      }`}
+                    >
+                      <Sliders className="w-3.5 h-3.5" />
+                      <span>Local Dev (Port 3000)</span>
+                    </button>
+                  </div>
+
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
+                    {domainTarget === 'live'
+                      ? 'অরিজিনাল কাস্টমারকে পাঠানোর জন্য লাইভ লিংক (shop-nexus-frontend-ten.vercel.app) ব্যবহার হবে।'
+                      : 'লোকাল মেশিনে নিজে টেস্ট করার জন্য Localhost লিংক জেনারেট হবে।'}
+                  </p>
+                </div>
+
+                {/* Message Preview */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <label className="font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                      WhatsApp Message Preview:
+                    </label>
                   <button
                     type="button"
                     onClick={() => {

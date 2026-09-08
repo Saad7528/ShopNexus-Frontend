@@ -36,7 +36,7 @@ export async function GET(_req: NextRequest) {
       id: c._id.toString(),
       customerName: c.customerName || 'Guest Shopper',
       customerEmail: c.customerEmail || 'shopper@tempmail.io',
-      customerPhone: c.customerPhone || '+880 1700-000000',
+      customerPhone: c.customerPhone && !c.customerPhone.includes('1700-000000') ? c.customerPhone : '',
       items: (c.items || []).map((i: any, idx: number) => ({
         id: i.productId ? i.productId.toString() : `item-${idx}`,
         title: i.title || 'Product Item',
