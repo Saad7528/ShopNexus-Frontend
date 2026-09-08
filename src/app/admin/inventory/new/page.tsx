@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -23,17 +23,17 @@ import {
   Percent,
   CheckCircle2,
   AlertCircle,
-  HelpCircle,
   Eye,
   Image as ImageIcon,
+  UploadCloud,
   Coins,
   RefreshCw,
-  Star,
-  ShoppingCart,
   Trash2,
+  X,
+  FolderPlus,
 } from 'lucide-react';
 
-const CATEGORIES = [
+const INITIAL_CATEGORIES = [
   'Audio',
   'Wearables',
   'Peripherals',
@@ -41,21 +41,29 @@ const CATEGORIES = [
   'Smart Home',
   'Electronics',
   'Computing',
+  'Gaming',
   'Combo Packages',
-];
-
-const PRESET_IMAGES = [
-  { name: 'Headphones', url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80' },
-  { name: 'Smartwatch', url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80' },
-  { name: 'Keyboard', url: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=800&q=80' },
-  { name: 'Gaming Mouse', url: 'https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=800&q=80' },
-  { name: 'Camera/Gimbal', url: 'https://images.unsplash.com/photo-1564466809058-bf4114d55352?w=800&q=80' },
-  { name: 'Earbuds', url: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800&q=80' },
 ];
 
 export default function NewProductPage() {
   const router = useRouter();
   const { token } = useAuthStore();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Categories State (Supports adding custom categories dynamically)
+  const [categoriesList, setCategoriesList] = useState<string[]>(INITIAL_CATEGORIES);
+  const [isAddingNewCategory, setIsAddingNewCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+
+  // Media Tab: 'upload' (File upload from device) | 'url' (Image URLs)
+  const [mediaMode, setMediaMode] = useState<'upload' | 'url'>('upload');
+
+  // Uploaded Files (Base64 data URLs)
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+
+  // Dynamic Image URLs (Primary + Extra gallery URLs)
+  const [primaryImageUrl, setPrimaryImageUrl] = useState('');
+  const [extraImageUrls, setExtraImageUrls] = useState<string[]>([]);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -74,9 +82,6 @@ export default function NewProductPage() {
     threshold: '5',
     variantColor: 'Midnight Black, Platinum Silver',
     variantSize: 'Standard Unit',
-    image: '',
-    galleryImage1: '',
-    galleryImage2: '',
     description: '',
     tags: 'official, authentic, warranty',
     isFlashSale: false,
@@ -94,6 +99,11 @@ export default function NewProductPage() {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
   };
+
+  // Compile active images list based on selected media mode
+  const activeImages = mediaMode === 'upload'
+    ? uploadedImages
+    : [primaryImageUrl.trim(), ...extraImageUrls.map((u) => u.trim())].filter(Boolean);
 
   // Live Pricing & Calculations
   const sellingPrice = parseFloat(formData.price) || 0;
@@ -147,6 +157,64 @@ export default function NewProductPage() {
     });
   };
 
+  // Handle Custom Category Addition
+  const handleAddCustomCategory = () => {
+    const trimmed = newCategoryName.trim();
+    if (!trimmed) return;
+    if (!categoriesList.includes(trimmed)) {
+      setCategoriesList((prev) => [...prev, trimmed]);
+    }
+    setFormData((prev) => ({ ...prev, category: trimmed }));
+    setNewCategoryName('');
+    setIsAddingNewCategory(false);
+    showToast(`✓ Category "${trimmed}" added and selected!`);
+  };
+
+  // Handle File Upload
+  const handleFileUpload = (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const fileArray = Array.from(files);
+
+    fileArray.forEach((file) => {
+      if (!file.type.startsWith('image/')) {
+        showToast('Only image files (JPG, PNG, WebP) are allowed.');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        if (result) {
+          setUploadedImages((prev) => [...prev, result]);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+
+    showToast(`✓ ${fileArray.length} image(s) uploaded successfully!`);
+  };
+
+  const handleRemoveUploadedImage = (index: number) => {
+    setUploadedImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Handle Dynamic Extra Image URLs
+  const handleAddExtraImageUrl = () => {
+    setExtraImageUrls((prev) => [...prev, '']);
+  };
+
+  const handleUpdateExtraImageUrl = (index: number, val: string) => {
+    setExtraImageUrls((prev) => {
+      const copy = [...prev];
+      copy[index] = val;
+      return copy;
+    });
+  };
+
+  const handleRemoveExtraImageUrl = (index: number) => {
+    setExtraImageUrls((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim() || !formData.price) {
@@ -157,15 +225,8 @@ export default function NewProductPage() {
     setIsSubmitting(true);
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
-    // Compile Images
-    const rawImages = [
-      formData.image.trim(),
-      formData.galleryImage1.trim(),
-      formData.galleryImage2.trim(),
-    ].filter(Boolean);
-
-    const imagesList = rawImages.length > 0 
-      ? rawImages 
+    const finalImagesList = activeImages.length > 0
+      ? activeImages
       : ['https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80'];
 
     const tagsArray = formData.tags
@@ -187,7 +248,7 @@ export default function NewProductPage() {
       sku: formData.sku,
       barcode: formData.barcode,
       rewardPoints: finalRewardPoints,
-      images: imagesList,
+      images: finalImagesList,
       isFlashSale: formData.isFlashSale,
       flashSaleDiscountPercent:
         discountPrice > 0 && sellingPrice > discountPrice
@@ -224,7 +285,7 @@ export default function NewProductPage() {
         }).catch(() => null);
       }
 
-      // Also persist to local session cache for instant preview in inventory
+      // Persist to local session cache for instant preview in inventory
       try {
         const existingRaw = localStorage.getItem('shopnexus_custom_products');
         const existing = existingRaw ? JSON.parse(existingRaw) : [];
@@ -254,8 +315,6 @@ export default function NewProductPage() {
       setIsSubmitting(false);
     }
   };
-
-  const previewImage = formData.image || PRESET_IMAGES[0].url;
 
   return (
     <RoleGuard allowedRoles={['admin', 'vendor']}>
@@ -334,7 +393,7 @@ export default function NewProductPage() {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Sony WH-1000XM5 Wireless ANC Headphones"
+                  placeholder="Enter product title / name..."
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-sm font-semibold focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-all"
@@ -349,7 +408,7 @@ export default function NewProductPage() {
                   </label>
                   <input
                     type="text"
-                    placeholder="Sony, Apple, Keychron, Bose, Razer"
+                    placeholder="Enter brand name..."
                     value={formData.brand}
                     onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none"
@@ -362,7 +421,7 @@ export default function NewProductPage() {
                   </label>
                   <input
                     type="text"
-                    placeholder="ShopNexus Official Store"
+                    placeholder="Enter vendor name..."
                     value={formData.vendorName}
                     onChange={(e) => setFormData({ ...formData, vendorName: e.target.value })}
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none"
@@ -377,7 +436,7 @@ export default function NewProductPage() {
                 </label>
                 <textarea
                   rows={4}
-                  placeholder="পণ্যের বিশেষ ফিচারসমূহ, স্পেসিফিকেশন এবং ব্যবহারের নিয়মাবলি বিস্তারিতভাবে লিখুন..."
+                  placeholder="Enter comprehensive product description, key specs, and highlights..."
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs leading-relaxed focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-all"
@@ -391,7 +450,7 @@ export default function NewProductPage() {
                 </label>
                 <input
                   type="text"
-                  placeholder="wireless, anc, hifi, gaming, bluetooth 5.3"
+                  placeholder="e.g. wireless, anc, gaming, mechanical, official"
                   value={formData.tags}
                   onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
                   className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none"
@@ -399,75 +458,175 @@ export default function NewProductPage() {
               </div>
             </div>
 
-            {/* 2. Media & Product Imagery Card */}
+            {/* 2. DUAL-MODE MEDIA & IMAGE GALLERY STUDIO */}
             <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800/80 pb-3">
                 <div className="flex items-center gap-2">
                   <ImageIcon className="w-4 h-4 text-orange-600 dark:text-orange-400" />
                   <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
-                    2. Product Images & Gallery URLs
+                    2. Product Images & Gallery Studio
                   </h2>
                 </div>
-                <span className="text-[10px] text-slate-400 font-mono">High-Res CDN</span>
+
+                {/* Mode Switcher: Device Upload vs URL List */}
+                <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+                  <button
+                    type="button"
+                    onClick={() => setMediaMode('upload')}
+                    className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      mediaMode === 'upload'
+                        ? 'bg-white dark:bg-slate-900 text-orange-600 dark:text-orange-400 shadow-xs'
+                        : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    <UploadCloud className="w-3.5 h-3.5" />
+                    <span>Upload from Device</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setMediaMode('url')}
+                    className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      mediaMode === 'url'
+                        ? 'bg-white dark:bg-slate-900 text-orange-600 dark:text-orange-400 shadow-xs'
+                        : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    <ImageIcon className="w-3.5 h-3.5" />
+                    <span>Image URLs</span>
+                  </button>
+                </div>
               </div>
 
-              {/* Quick Preset Selector */}
-              <div>
-                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 block">
-                  Quick Demo Preset Images:
-                </span>
-                <div className="flex items-center gap-2 flex-wrap">
-                  {PRESET_IMAGES.map((preset) => (
-                    <button
-                      key={preset.name}
-                      type="button"
-                      onClick={() => setFormData((prev) => ({ ...prev, image: preset.url }))}
-                      className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-orange-500/10 hover:text-orange-600 dark:hover:text-orange-400 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
-                    >
-                      {preset.name}
-                    </button>
+              {/* MODE 1: FILE UPLOAD FROM DEVICE */}
+              {mediaMode === 'upload' ? (
+                <div className="space-y-4">
+                  {/* Drag and Drop Zone */}
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleFileUpload(e.dataTransfer.files);
+                    }}
+                    className="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-orange-500 dark:hover:border-orange-500/80 rounded-2xl p-6 sm:p-8 text-center cursor-pointer transition-colors bg-slate-50/50 dark:bg-slate-950/40 group space-y-2"
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      className="hidden"
+                      onChange={(e) => handleFileUpload(e.target.files)}
+                    />
+                    <div className="w-12 h-12 rounded-2xl bg-orange-500/10 text-orange-600 dark:text-orange-400 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
+                      <UploadCloud className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
+                        Click to browse or drag and drop images here
+                      </span>
+                      <span className="text-[11px] text-slate-400">
+                        Supports high-resolution PNG, JPG, WebP (Multiple images allowed)
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Uploaded Thumbnails Grid */}
+                  {uploadedImages.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300">
+                        <span>Uploaded Images ({uploadedImages.length}):</span>
+                        <span className="text-[11px] text-slate-400 font-normal">First image will be the Primary Cover</span>
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        {uploadedImages.map((img, idx) => (
+                          <div
+                            key={idx}
+                            className="relative aspect-square rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 group shadow-xs"
+                          >
+                            <Image src={img} alt={`Upload ${idx + 1}`} fill className="object-cover" />
+                            {idx === 0 && (
+                              <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-orange-600 text-white text-[9px] font-black shadow-md z-10">
+                                COVER
+                              </div>
+                            )}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRemoveUploadedImage(idx);
+                              }}
+                              className="absolute top-2 right-2 p-1.5 rounded-xl bg-rose-500/90 text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shadow-md hover:bg-rose-600"
+                              title="Delete Image"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* MODE 2: DYNAMIC IMAGE URL LIST */
+                <div className="space-y-4">
+                  {/* Primary Cover Image URL */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                      Primary Cover Image URL <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://example.com/cover-image.jpg"
+                      value={primaryImageUrl}
+                      onChange={(e) => setPrimaryImageUrl(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none"
+                    />
+                  </div>
+
+                  {/* Extra Gallery URLs List */}
+                  {extraImageUrls.map((url, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <div className="flex-1">
+                        <label className="block text-[11px] font-bold text-slate-500 mb-1">
+                          Gallery Image #{idx + 2} URL
+                        </label>
+                        <input
+                          type="url"
+                          placeholder={`https://example.com/gallery-image-${idx + 2}.jpg`}
+                          value={url}
+                          onChange={(e) => handleUpdateExtraImageUrl(idx, e.target.value)}
+                          className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveExtraImageUrl(idx)}
+                        className="mt-5 p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border border-rose-500/20 transition-colors cursor-pointer"
+                        title="Remove URL"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   ))}
-                </div>
-              </div>
 
-              {/* Primary Image URL */}
-              <div className="space-y-2">
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                  Primary Cover Image URL <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="url"
-                  placeholder="https://images.unsplash.com/photo-..."
-                  value={formData.image}
-                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none transition-all"
-                />
-              </div>
-
-              {/* Additional Gallery URLs */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-500 mb-1">Gallery Image 2 URL (Optional)</label>
-                  <input
-                    type="url"
-                    placeholder="https://images.unsplash.com/..."
-                    value={formData.galleryImage1}
-                    onChange={(e) => setFormData({ ...formData, galleryImage1: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none"
-                  />
+                  {/* Add URL Button */}
+                  <button
+                    type="button"
+                    onClick={handleAddExtraImageUrl}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-orange-500/10 text-slate-700 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 border border-slate-200 dark:border-slate-700 text-xs font-bold transition-colors cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add Another Image URL</span>
+                  </button>
                 </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-500 mb-1">Gallery Image 3 URL (Optional)</label>
-                  <input
-                    type="url"
-                    placeholder="https://images.unsplash.com/..."
-                    value={formData.galleryImage2}
-                    onChange={(e) => setFormData({ ...formData, galleryImage2: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none"
-                  />
-                </div>
-              </div>
+              )}
             </div>
 
             {/* 3. SKU, Barcode & Identification Card */}
@@ -531,7 +690,7 @@ export default function NewProductPage() {
                   </label>
                   <input
                     type="text"
-                    placeholder="Space Gray, Silver, Deep Navy"
+                    placeholder="e.g. Space Gray, Silver, Deep Navy"
                     value={formData.variantColor}
                     onChange={(e) => setFormData({ ...formData, variantColor: e.target.value })}
                     className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none"
@@ -544,7 +703,7 @@ export default function NewProductPage() {
                   </label>
                   <input
                     type="text"
-                    placeholder="Standard Unit, Creator Edition"
+                    placeholder="e.g. Standard Unit, Creator Edition"
                     value={formData.variantSize}
                     onChange={(e) => setFormData({ ...formData, variantSize: e.target.value })}
                     className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none"
@@ -670,7 +829,7 @@ export default function NewProductPage() {
                   <input
                     type="number"
                     required
-                    placeholder="38500"
+                    placeholder="0.00"
                     value={formData.price}
                     onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                     className="w-full pl-8 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono font-bold text-sm focus:border-orange-500 focus:outline-none"
@@ -687,7 +846,7 @@ export default function NewProductPage() {
                   <span className="absolute left-3.5 top-2.5 text-slate-400 font-mono font-bold">৳</span>
                   <input
                     type="number"
-                    placeholder="28000"
+                    placeholder="0.00"
                     value={formData.costPrice}
                     onChange={(e) => setFormData({ ...formData, costPrice: e.target.value })}
                     className="w-full pl-8 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-mono text-xs focus:border-orange-500 focus:outline-none"
@@ -704,7 +863,7 @@ export default function NewProductPage() {
                   <span className="absolute left-3.5 top-2.5 text-slate-400 font-mono font-bold">৳</span>
                   <input
                     type="number"
-                    placeholder="32500"
+                    placeholder="0.00 (Optional)"
                     value={formData.discountPrice}
                     onChange={(e) => setFormData({ ...formData, discountPrice: e.target.value })}
                     className="w-full pl-8 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-orange-600 dark:text-orange-400 font-mono font-bold text-xs focus:border-orange-500 focus:outline-none"
@@ -741,7 +900,7 @@ export default function NewProductPage() {
                 </div>
               </div>
 
-              {/* 🌟 2. LOYALTY REWARD POINTS ENGINE (কত পয়েন্ট পাবে এটা কিনলে সেটা) */}
+              {/* 🌟 2. LOYALTY REWARD POINTS ENGINE */}
               <div className="p-3.5 rounded-2xl bg-amber-400/10 border border-amber-400/25 space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5 text-xs font-black text-amber-600 dark:text-amber-400">
@@ -784,32 +943,74 @@ export default function NewProductPage() {
               </div>
             </div>
 
-            {/* 3. Category & Organization Card */}
+            {/* 3. Category & Organization Card (With Custom Category Addition) */}
             <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-              <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800/80 pb-3">
-                <Tag className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-                <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
-                  Category & Inventory Stock
-                </h2>
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-3">
+                <div className="flex items-center gap-2">
+                  <Tag className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                  <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                    Category & Stock
+                  </h2>
+                </div>
+                {!isAddingNewCategory && (
+                  <button
+                    type="button"
+                    onClick={() => setIsAddingNewCategory(true)}
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-orange-600 dark:text-orange-400 hover:underline cursor-pointer"
+                  >
+                    <FolderPlus className="w-3.5 h-3.5" /> + New Category
+                  </button>
+                )}
               </div>
 
-              {/* Category */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  Product Category <span className="text-rose-500">*</span>
-                </label>
-                <select
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-bold focus:outline-none focus:border-orange-500 cursor-pointer"
-                >
-                  {CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {/* Category Dropdown or Inline Creator */}
+              {isAddingNewCategory ? (
+                <div className="p-3 rounded-2xl bg-orange-500/10 border border-orange-500/30 space-y-2 animate-in fade-in">
+                  <label className="block text-xs font-bold text-orange-700 dark:text-orange-300">
+                    Create New Category
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      placeholder="e.g. Drones & Robotics"
+                      value={newCategoryName}
+                      onChange={(e) => setNewCategoryName(e.target.value)}
+                      className="flex-1 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-950 border border-orange-500/40 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddCustomCategory}
+                      className="px-3 py-1.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold shadow-xs cursor-pointer"
+                    >
+                      Add
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsAddingNewCategory(false)}
+                      className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Product Category <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-bold focus:outline-none focus:border-orange-500 cursor-pointer"
+                  >
+                    {categoriesList.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               {/* Initial Stock */}
               <div>
@@ -819,7 +1020,7 @@ export default function NewProductPage() {
                 <input
                   type="number"
                   required
-                  placeholder="25"
+                  placeholder="Enter available quantity (e.g. 25)"
                   value={formData.stock}
                   onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
                   className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-mono font-bold focus:outline-none focus:border-orange-500"
@@ -839,36 +1040,50 @@ export default function NewProductPage() {
                     <Zap className="w-3.5 h-3.5 fill-current" />
                     <span>Flash Sale Campaign</span>
                   </div>
-                  <span className="text-[10px] text-slate-500">স্টোরফ্রন্ট কাউন্টডাউনে স্পেশাল ব্যাজ দেখাবে</span>
+                  <span className="text-[10px] text-slate-500">স্টোরফ্রন্টে লাইভ কাউন্টডাউন ও ছাড় ব্যাজ দেখাবে</span>
                 </div>
               </label>
             </div>
 
-            {/* 4. Live Storefront Card Preview */}
+            {/* 4. Live Storefront Card Preview (Zero Dummy Sony fallback) */}
             <div className="p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
-              <div className="flex items-center gap-1.5 text-xs font-black text-slate-700 dark:text-slate-300">
-                <Eye className="w-3.5 h-3.5 text-orange-500" />
-                <span>Live Storefront Preview</span>
+              <div className="flex items-center justify-between text-xs font-black text-slate-700 dark:text-slate-300">
+                <div className="flex items-center gap-1.5">
+                  <Eye className="w-3.5 h-3.5 text-orange-500" />
+                  <span>Live Storefront Preview</span>
+                </div>
+                <span className="text-[10px] text-slate-400 font-normal">Real-time update</span>
               </div>
 
               <div className="rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-950 p-3 space-y-2.5">
-                <div className="aspect-square rounded-xl bg-slate-100 dark:bg-slate-900 relative overflow-hidden flex items-center justify-center">
-                  <Image
-                    src={previewImage}
-                    alt="Preview"
-                    fill
-                    className="object-contain p-2"
-                    unoptimized
-                  />
+                <div className="aspect-square rounded-xl bg-slate-100 dark:bg-slate-900 relative overflow-hidden flex items-center justify-center border border-slate-200/60 dark:border-slate-800/60">
+                  {activeImages.length > 0 ? (
+                    <Image
+                      src={activeImages[0]}
+                      alt="Preview"
+                      fill
+                      className="object-contain p-2"
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="text-center p-4 space-y-1 text-slate-400 dark:text-slate-600">
+                      <ImageIcon className="w-8 h-8 mx-auto stroke-1" />
+                      <span className="text-[10px] font-bold block uppercase tracking-wider">No Image Selected</span>
+                      <span className="text-[9px] block">Upload or enter image URL</span>
+                    </div>
+                  )}
+
                   {formData.isFlashSale && (
-                    <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white text-[9px] font-black">
+                    <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white text-[9px] font-black shadow-md">
                       FLASH SALE
                     </div>
                   )}
-                  <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[9px] font-black flex items-center gap-1">
-                    <Coins className="w-2.5 h-2.5 fill-slate-950" />
-                    <span>+{finalRewardPoints} pts</span>
-                  </div>
+                  {finalRewardPoints > 0 && (
+                    <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[9px] font-black flex items-center gap-1 shadow-md">
+                      <Coins className="w-2.5 h-2.5 fill-slate-950" />
+                      <span>+{finalRewardPoints} pts</span>
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -878,9 +1093,9 @@ export default function NewProductPage() {
                   </h4>
                   <div className="flex items-baseline gap-2 mt-1">
                     <span className="text-sm font-black text-slate-900 dark:text-white font-mono">
-                      ৳{(discountPrice > 0 ? discountPrice : (sellingPrice || 38500)).toLocaleString()}
+                      ৳{(discountPrice > 0 ? discountPrice : (sellingPrice || 0)).toLocaleString()}
                     </span>
-                    {discountPrice > 0 && (
+                    {discountPrice > 0 && sellingPrice > 0 && (
                       <span className="text-xs text-slate-400 line-through font-mono">
                         ৳{sellingPrice.toLocaleString()}
                       </span>
