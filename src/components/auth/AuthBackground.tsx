@@ -49,7 +49,7 @@ export const AuthBackground: React.FC<AuthBackgroundProps> = ({ children }) => {
 
         {/* 2. Soft & Deep Dark Overlay to give rich contrast and focus to the auth card */}
         <div className="absolute inset-0 bg-slate-950/65 backdrop-blur-[3px]" />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-slate-950/80" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/10 to-slate-950/40" />
 
         {/* 3. Subtle Brand Accent Orbs */}
         <div className="absolute -top-24 -left-24 w-80 h-80 bg-orange-500/15 rounded-full blur-3xl pointer-events-none" />
