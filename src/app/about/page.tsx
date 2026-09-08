@@ -16,7 +16,6 @@ import {
   Package,
   Layers,
   ArrowRight,
-  Search,
   MessageSquare,
   Lock,
   Headphones,
@@ -24,9 +23,7 @@ import {
   Gift,
   CreditCard,
 } from 'lucide-react';
-import { useOrderStore } from '@/store/useOrderStore';
 import { useLanguageStore } from '@/store/useLanguageStore';
-import { formatCurrency, toBengaliNumber } from '@/lib/translations';
 
 interface FAQItem {
   questionBn: string;
@@ -60,9 +57,9 @@ const FAQS: FAQItem[] = [
     questionBn: 'লগইন না করে আমি কীভাবে আমার অর্ডারের পার্সেল ট্র্যাক করব?',
     questionEn: 'How can I track my parcel without logging in?',
     answerBn:
-      'অর্ডার কনফার্ম করার পর আপনার মোবাইলে তাৎক্ষণিক SMS-এর মাধ্যমে একটি ট্র্যাকিং নম্বর (যেমন: TRK-NX-88219) চলে যাবে। আপনি এই পেজের ট্র্যাকিং বক্সে অথবা আমাদের ট্র্যাকিং সেকশনে গিয়ে শুধু আপনার মোবাইল নম্বর বা ট্র্যাকিং কোড দিলেই লাইভ স্ট্যাটাস দেখতে পাবেন।',
+      'অর্ডার কনফার্ম করার পর আপনার মোবাইলে তাৎক্ষণিক SMS-এর মাধ্যমে একটি ট্র্যাকিং নম্বর (যেমন: TRK-NX-88219) চলে যাবে। আপনি সরাসরি আমাদের ডেডিকেটেড ট্র্যাকিং পোর্টালে (/track) গিয়ে শুধু আপনার অর্ডার নম্বর বা ট্র্যাকিং কোড দিলেই লাইভ স্ট্যাটাস দেখতে পাবেন।',
     answerEn:
-      'After confirming an order, you will receive an SMS with your tracking code (e.g., TRK-NX-88219). You can track live courier status directly using this code.',
+      'After confirming an order, you will receive an SMS with your tracking code (e.g., TRK-NX-88219). You can track live courier status directly on our tracking portal (/track) using this code.',
   },
   {
     category: 'Payments',
@@ -96,38 +93,12 @@ const FAQS: FAQItem[] = [
 export default function AboutAndFAQPage() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   const [activeCategory, setActiveCategory] = useState<string>('All');
-  const [trackingQuery, setTrackingQuery] = useState('');
-  const [searchedOrder, setSearchedOrder] = useState<any>(null);
-  const [searchNotFound, setSearchNotFound] = useState(false);
   const { t, language } = useLanguageStore();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  const { orders } = useOrderStore();
-
-  const handleTrackSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!trackingQuery.trim()) return;
-
-    const cleanQuery = trackingQuery.trim().toLowerCase();
-    const found = orders.find(
-      (o) =>
-        o.orderNumber.toLowerCase() === cleanQuery ||
-        o.trackingNumber.toLowerCase() === cleanQuery ||
-        o.shippingAddress.toLowerCase().includes(cleanQuery)
-    );
-
-    if (found) {
-      setSearchedOrder(found);
-      setSearchNotFound(false);
-    } else {
-      setSearchedOrder(null);
-      setSearchNotFound(true);
-    }
-  };
 
   const filteredFaqs =
     activeCategory === 'All'
@@ -138,68 +109,70 @@ export default function AboutAndFAQPage() {
     <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f19] text-slate-900 dark:text-white">
       {/* 🌟 1. HERO SECTION */}
       <section className="relative overflow-hidden pt-12 pb-20 px-4 sm:px-6 lg:px-8 border-b border-slate-200 dark:border-slate-800">
-        <div className="absolute inset-0 bg-gradient-to-b from-orange-50/50 via-white to-slate-50 dark:from-slate-900/40 dark:via-[#0b0f19] dark:to-[#0b0f19] pointer-events-none" />
-        <div className="max-w-5xl mx-auto text-center relative z-10 space-y-6">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/25 text-orange-600 dark:text-orange-400 text-xs font-bold uppercase tracking-wider">
-            <Sparkles className="w-3.5 h-3.5" />
-            {mounted && language === 'bn' ? 'শপনেক্সাস পরিচিতি ও সহায়তা কেন্দ্র' : 'About ShopNexus & FAQ Hub'}
+        {/* Ambient background glow */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-gradient-to-tr from-orange-500/15 via-amber-500/10 to-transparent blur-3xl rounded-full pointer-events-none" />
+
+        <div className="relative max-w-5xl mx-auto text-center space-y-6">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-500/10 dark:bg-orange-500/15 border border-orange-500/25 text-orange-600 dark:text-orange-400 text-xs font-bold uppercase tracking-wider">
+            <Sparkles className="w-4 h-4" />
+            <span>{mounted && language === 'bn' ? 'পরবর্তী প্রজন্মের ই-কমার্স' : 'Next-Gen E-Commerce Architecture'}</span>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight text-slate-900 dark:text-white leading-tight">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight text-slate-900 dark:text-white leading-[1.1]">
             {mounted && language === 'bn' ? (
               <>
-                বাংলাদেশের জন্য আধুনিক ও বুদ্ধিমান <br />
-                <span className="bg-gradient-to-r from-[#ff4400] via-[#ff7700] to-amber-500 bg-clip-text text-transparent">
-                  পরবর্তী প্রজন্মের ই-কমার্স ইকোসিস্টেম
+                স্মার্ট কেনাকাটা, প্রিমিয়াম অভিজ্ঞতা ও <br className="hidden sm:inline" />
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-orange-500 via-amber-400 to-orange-600">
+                  ১০০% অফিশিয়াল অথেনটিসিটি
                 </span>
               </>
             ) : (
               <>
-                Modern, Intelligent & Certified <br />
-                <span className="bg-gradient-to-r from-[#ff4400] via-[#ff7700] to-amber-500 bg-clip-text text-transparent">
-                  Next-Gen E-Commerce Ecosystem
+                Engineered for Speed, Reliability & <br className="hidden sm:inline" />
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-orange-500 via-amber-400 to-orange-600">
+                  100% Genuine Hardware
                 </span>
               </>
             )}
           </h1>
 
-          <p className="max-w-2xl mx-auto text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
+          <p className="text-sm sm:text-base md:text-lg text-slate-600 dark:text-slate-300 max-w-3xl mx-auto leading-relaxed">
             {mounted && language === 'bn'
-              ? 'ShopNexus তৈরি করা হয়েছে সাধারণ ক্রেতাদের ঝামেলামুক্ত কেনাকাটার অভিজ্ঞতা দিতে—যেখানে অ্যাকাউন্ট রেজিস্ট্রেশন ছাড়াও দ্রুত ১-ক্লিকে অর্ডার, বিকাশ/নগদে ইনস্ট্যান্ট পেমেন্ট এবং ২৪-৪৮ ঘণ্টায় এক্সপ্রেস হোম ডেলিভারি পাওয়া যায়।'
-              : 'ShopNexus is engineered to deliver a seamless shopping experience—featuring 1-Click direct orders, instant bKash/Nagad checkout, and 24-48h express nationwide dispatch.'}
+              ? 'ShopNexus হলো বাংলাদেশের শীর্ষস্থানীয় আল্ট্রা-ফাস্ট প্রিমিয়াম গ্যাজেট ও ইলেকট্রনিক্স মার্কেটপ্লেস। কোনো পাসওয়ার্ড বা রেজিস্ট্রেশনের বাধ্যবাধকতা ছাড়াই এক ক্লিকে অর্ডার করুন এবং পান ২৪-৪৮ ঘণ্টার নির্ভরযোগ্য হোম ডেলিভারি।'
+              : 'ShopNexus is Bangladesh’s premier technology storefront, built for instant 1-click guest ordering, transparent parcel tracking, and 100% manufacturer warranty.'}
           </p>
 
-          <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
+          <div className="pt-4 flex flex-wrap items-center justify-center gap-4">
             <Link
               href="/products"
-              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-sm shadow-xl shadow-orange-500/25 transition-all cursor-pointer"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/25 transition-all cursor-pointer"
             >
-              <ShoppingBag className="w-4 h-4" /> {mounted ? t('btn_explore_products') : 'Explore Products'}
+              {mounted ? t('btn_explore_products') : 'Explore Products'} <ArrowRight className="w-4 h-4" />
             </Link>
             <a
               href="#faq-section"
-              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 font-semibold text-sm transition-all cursor-pointer shadow-sm"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs shadow-sm transition-all cursor-pointer"
             >
               <HelpCircle className="w-4 h-4 text-orange-500" />
-              {mounted && language === 'bn' ? 'সাধারণ প্রশ্নোত্তর দেখুন' : 'View Frequently Asked Questions'}
+              {mounted && language === 'bn' ? 'সাধারণ প্রশ্নাবলী (FAQ)' : 'Read FAQ'}
             </a>
           </div>
         </div>
       </section>
 
-      {/* 🌟 2. PLATFORM CORE FEATURES SHOWCASE */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-12">
-        <div className="text-center space-y-3 max-w-2xl mx-auto">
+      {/* 🌟 2. PILLARS / HIGHLIGHTS SECTION */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+        <div className="text-center space-y-3 mb-12">
           <span className="text-xs font-bold uppercase tracking-wider text-orange-600 dark:text-orange-400">
-            {mounted && language === 'bn' ? 'কেন আমরা আলাদা' : 'Why ShopNexus?'}
+            Why ShopNexus
           </span>
           <h2 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white">
-            {mounted && language === 'bn' ? 'গ্রাহকদের জন্য আমাদের বিশেষ সুবিধাসমূহ' : 'The 6 Core Pillars of ShopNexus'}
+            {mounted && language === 'bn' ? 'কেন আমরা গ্রাহকের প্রথম পছন্দ?' : 'Built on 6 Trust Pillars'}
           </h2>
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-xl mx-auto">
             {mounted && language === 'bn'
-              ? 'প্রতিটি ফিচার ডিজাইন করা হয়েছে কাস্টমারদের সর্বোচ্চ গতি, স্বচ্ছতা এবং নিরাপত্তা নিশ্চিত করতে।'
-              : 'Our promise to deliver an unparalleled hardware shopping experience with speed, clarity, and security.'}
+              ? 'নিরাপত্তা, গতি এবং আস্থার সর্বোচ্চ সমন্বয়ে প্রতিটি অর্ডারের নিখুঁত নিশ্চয়তা।'
+              : 'Our core architectural commitments to reliability, fast delivery, and authentic hardware.'}
           </p>
         </div>
 
@@ -210,72 +183,72 @@ export default function AboutAndFAQPage() {
               <Zap className="w-6 h-6" />
             </div>
             <h3 className="text-base font-bold text-slate-900 dark:text-white">
-              {mounted && language === 'bn' ? '১-ক্লিক গেস্ট চেকআউট' : '1-Click Direct Guest Checkout'}
+              {mounted && language === 'bn' ? '১-ক্লিক ডিরেক্ট অর্ডার (Guest Checkout)' : '1-Click Direct Guest Checkout'}
             </h3>
             <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
               {mounted && language === 'bn'
-                ? 'কোনো পাসওয়ার্ড বা সাইন-আপের ঝামেলা নেই। শুধুমাত্র নাম ও ফোন নম্বর দিয়ে নিমেষেই অর্ডার কনফার্ম করুন।'
-                : 'No login walls or password hurdles. Place orders instantly with your name and phone number.'}
+                ? 'পাসওয়ার্ড বা অ্যাকাউন্ট খোলার ঝামেলা নেই। শুধুমাত্র নাম ও ফোন নম্বর দিয়ে সরাসরি অর্ডার কনফার্ম করুন।'
+                : 'Zero friction ordering. Place orders instantly with just your name, phone, and delivery address.'}
             </p>
           </div>
 
           {/* Feature 2 */}
           <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 hover:border-emerald-500/40 shadow-sm backdrop-blur-xl transition-all space-y-3 group">
             <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <CreditCard className="w-6 h-6" />
+              <Truck className="w-6 h-6" />
             </div>
             <h3 className="text-base font-bold text-slate-900 dark:text-white">
-              {mounted && language === 'bn' ? 'বিকাশ, নগদ ও ক্যাশ অন ডেলিভারি' : 'Instant bKash, Nagad & COD'}
+              {mounted && language === 'bn' ? '২৪-৪৮ ঘণ্টা এক্সপ্রেস ডেলিভারি' : '24-48h Express Courier Dispatch'}
             </h3>
             <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
               {mounted && language === 'bn'
-                ? 'বাংলাদেশের সকল জনপ্রিয় MFS মাধ্যম ও সরাসরি পণ্য হাতে পেয়ে মূল্য পরিশোধের নির্ভরযোগ্য সুবিধা।'
-                : 'Instant digital wallet payments via bKash & Nagad alongside trusted Cash on Delivery (COD).'}
+                ? 'ঢাকায় মাত্র ৳৬০ এবং সারা দেশে ৳১২০ ডেলিভারি চার্জে পাঠাও ও স্টিডফাস্টের মাধ্যমে দ্রুততম পৌঁছানো।'
+                : 'Flat ৳60 inside Dhaka and ৳120 countrywide via Pathao Courier Express and Steadfast.'}
             </p>
           </div>
 
           {/* Feature 3 */}
           <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 hover:border-blue-500/40 shadow-sm backdrop-blur-xl transition-all space-y-3 group">
             <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Truck className="w-6 h-6" />
+              <Lock className="w-6 h-6" />
             </div>
             <h3 className="text-base font-bold text-slate-900 dark:text-white">
-              {mounted && language === 'bn' ? 'লাইভ পার্সেল ট্র্যাকিং & SMS' : 'Live Parcel Tracking & SMS'}
+              {mounted && language === 'bn' ? 'নিরাপদ পেমেন্ট গেটওয়ে' : 'Bank-Grade Secure Checkout'}
             </h3>
             <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
               {mounted && language === 'bn'
-                ? 'অর্ডার পিকআপ থেকে হোম ডেলিভারি পর্যন্ত স্টেপ-বাই-স্টেপ লাইভ স্ট্যাটাস ও ইনস্ট্যান্ট SMS নোটিফিকেশন।'
-                : 'Priority parcel dispatch with real-time SMS tracking updates from dispatch to doorstep.'}
+                ? 'ক্যাশ অন ডেলিভারি, বিকাশ ও নগদ তাৎক্ষণিক গেটওয়ে এবং ভিসা/মাস্টারকার্ডের সুরক্ষিত পেমেন্ট সাপোর্ট।'
+                : '100% PCI-DSS compliant checkout supporting COD, bKash, Nagad, and global credit/debit cards.'}
             </p>
           </div>
 
           {/* Feature 4 */}
-          <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 hover:border-amber-500/40 shadow-sm backdrop-blur-xl transition-all space-y-3 group">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Gift className="w-6 h-6" />
+          <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 hover:border-purple-500/40 shadow-sm backdrop-blur-xl transition-all space-y-3 group">
+            <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Sparkles className="w-6 h-6" />
             </div>
             <h3 className="text-base font-bold text-slate-900 dark:text-white">
-              {mounted && language === 'bn' ? 'স্মার্ট বান্ডেল (১৫% অতিরিক্ত ছাড়)' : 'Smart Bundles (15% Flat Savings)'}
+              {mounted && language === 'bn' ? 'স্মার্ট এআই বান্ডেল ছাড় (১৫% ডিসকাউন্ট)' : 'Smart AI Bundle Savings (15% Off)'}
             </h3>
             <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
               {mounted && language === 'bn'
-                ? 'সম্পর্কিত অ্যাকসেসরিজ একসাথে কিনলে স্বয়ংক্রিয়ভাবে ১৫% ফ্ল্যাট বান্ডেল সেভিংস যুক্ত হয়।'
-                : 'Frequently bought together hardware kits bundled with automated 15% discount.'}
+                ? 'প্রয়োজনীয় এক্সেসরিজ একসাথে বান্ডেল হিসেবে কিনলে স্বয়ংক্রিয়ভাবে অতিরিক্ত ১৫% ডিসকাউন্ট উপভোগ করুন।'
+                : 'Frequently Bought Together smart bundles with automated flat 15% discount in one single click.'}
             </p>
           </div>
 
           {/* Feature 5 */}
-          <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 hover:border-purple-500/40 shadow-sm backdrop-blur-xl transition-all space-y-3 group">
-            <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <MessageSquare className="w-6 h-6" />
+          <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 hover:border-amber-500/40 shadow-sm backdrop-blur-xl transition-all space-y-3 group">
+            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Headphones className="w-6 h-6" />
             </div>
             <h3 className="text-base font-bold text-slate-900 dark:text-white">
-              {mounted && language === 'bn' ? 'ভেরিফাইড কাস্টমার ফটো রিভিউ' : 'Verified Customer Photo Reviews'}
+              {mounted && language === 'bn' ? '২৪/৭ সার্বক্ষণিক কাস্টমার সাপোর্ট' : '24/7 Dedicated Support Desk'}
             </h3>
             <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
               {mounted && language === 'bn'
-                ? 'প্রকৃত ক্রেতাদের ব্যবহার করা ছবির রিভিউ এবং অ্যাডমিন টিম দ্বারা ভেরিফিকেশন মডারেশন।'
-                : 'Real photos and verified buyer feedback for complete transparent purchasing confidence.'}
+                ? 'যেকোনো জিজ্ঞাসা বা সহায়তার জন্য আমাদের অফিসিয়াল হোয়াটসঅ্যাপ ও লাইভ হেল্পডেস্ক সর্বদা প্রস্তুত।'
+                : 'Direct human support via WhatsApp and live chat for order queries and warranty assistance.'}
             </p>
           </div>
 
@@ -296,80 +269,30 @@ export default function AboutAndFAQPage() {
         </div>
       </section>
 
-      {/* 🌟 3. GUEST ORDER LIVE TRACKING SEARCH WIDGET */}
-      <section className="py-12 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
-        <div className="p-8 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-xl space-y-6">
-          <div className="text-center space-y-2">
-            <span className="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider flex items-center justify-center gap-1">
-              <Truck className="w-4 h-4" /> Guest Live Tracking
+      {/* 🌟 3. TRACKING QUICK BANNER */}
+      <section className="py-8 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+        <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-orange-500/10 via-amber-500/5 to-transparent border border-orange-500/20 backdrop-blur-xl flex flex-col sm:flex-row items-center justify-between gap-6 shadow-lg">
+          <div className="space-y-1.5 text-center sm:text-left">
+            <span className="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider flex items-center justify-center sm:justify-start gap-1.5">
+              <Truck className="w-4 h-4" /> {mounted && language === 'bn' ? 'পার্সেল ট্র্যাকিং পোর্টাল' : 'Live Tracking Portal'}
             </span>
-            <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
-              {mounted && language === 'bn' ? 'লগইন ছাড়া সরাসরি পার্সেল ট্র্যাকিং' : 'Direct Parcel Live Tracking (No Login Required)'}
+            <h3 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">
+              {mounted && language === 'bn' ? 'অর্ডারের ডেলিভারি স্ট্যাটাস ট্র্যাক করতে চান?' : 'Looking to Track Your Existing Parcel?'}
             </h3>
             <p className="text-xs text-slate-600 dark:text-slate-400">
               {mounted && language === 'bn'
-                ? 'আপনার অর্ডার নম্বর (যেমন: NX-ORD-9021) বা ট্র্যাকিং কোড (যেমন: TRK-NX-88219) দিয়ে খুঁজুন:'
-                : 'Enter your Order ID (e.g. NX-ORD-9021) or Tracking Code (e.g. TRK-NX-88219):'}
+                ? 'লগইন ছাড়াই সরাসরি আপনার অর্ডার নম্বর দিয়ে লাইভ কুরিয়ার স্ট্যাটাস দেখুন।'
+                : 'Check real-time courier movement and 24h dispatch milestone without logging in.'}
             </p>
           </div>
-
-          <form onSubmit={handleTrackSearch} className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
-              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
-              <input
-                type="text"
-                placeholder={mounted && language === 'bn' ? 'অর্ডার আইডি বা ট্র্যাকিং কোড লিখুন...' : 'Enter Order ID / Tracking Code...'}
-                value={trackingQuery}
-                onChange={(e) => setTrackingQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-orange-500 font-mono"
-              />
-            </div>
-            <button
-              type="submit"
-              className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/25 transition-all cursor-pointer flex items-center justify-center gap-2"
-            >
-              <Search className="w-4 h-4" /> {mounted && language === 'bn' ? 'ট্র্যাক করুন' : 'Track Order'}
-            </button>
-          </form>
-
-          {/* Searched Order Result */}
-          {searchedOrder && (
-            <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-emerald-500/30 space-y-3 animate-fadeIn">
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-500">Order ID</span>
-                  <p className="font-mono text-sm font-bold text-orange-600 dark:text-orange-400">{searchedOrder.orderNumber}</p>
-                </div>
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
-                  {searchedOrder.status}
-                </span>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs pt-2 border-t border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300">
-                <div>
-                  <span className="text-[10px] text-slate-500 block">{mounted && language === 'bn' ? 'কুরিয়ার পার্টনার:' : 'Courier Carrier:'}</span>
-                  <span className="font-bold text-slate-900 dark:text-white">{searchedOrder.carrier}</span>
-                </div>
-                <div>
-                  <span className="text-[10px] text-slate-500 block">{mounted && language === 'bn' ? 'ট্র্যাকিং কোড:' : 'Tracking Code:'}</span>
-                  <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">{searchedOrder.trackingNumber}</span>
-                </div>
-                <div>
-                  <span className="text-[10px] text-slate-500 block">{mounted && language === 'bn' ? 'সর্বমোট টাকা:' : 'Total Amount:'}</span>
-                  <span className="font-mono font-bold text-slate-900 dark:text-white">
-                    {mounted ? formatCurrency(searchedOrder.total, language) : `৳${searchedOrder.total.toLocaleString()}`}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {searchNotFound && (
-            <p className="text-xs text-rose-500 dark:text-rose-400 text-center font-semibold">
-              {mounted && language === 'bn'
-                ? 'কোনো অর্ডার পাওয়া যায়নি। সঠিক অর্ডার আইডি বা ট্র্যাকিং কোড দিয়ে পুনরায় চেষ্টা করুন।'
-                : 'No order found with that ID or Tracking Code. Please verify and retry.'}
-            </p>
-          )}
+          <Link
+            href="/track"
+            className="shrink-0 px-6 py-3 rounded-2xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/25 transition-all cursor-pointer flex items-center gap-2"
+          >
+            <Truck className="w-4 h-4" />
+            <span>{mounted && language === 'bn' ? 'লাইভ ট্র্যাক করুন' : 'Track Order Now'}</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
         </div>
       </section>
 

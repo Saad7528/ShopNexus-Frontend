@@ -134,7 +134,7 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
-                <Link href="/profile?tab=orders" className="hover:text-orange-500 dark:hover:text-orange-400 transition-colors">
+                <Link href="/track" className="hover:text-orange-500 dark:hover:text-orange-400 transition-colors">
                   {mounted ? (language === 'bn' ? 'লাইভ অর্ডার ট্র্যাকিং' : 'Live Order Tracking') : 'Live Order Tracking'}
                 </Link>
               </li>
