@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useCartStore } from '@/store/useCartStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
-import { useBundleStore } from '@/store/useBundleStore';
+import { useBundleStore, convertBundleToProduct } from '@/store/useBundleStore';
 import { ProductGallery } from '@/components/products/ProductGallery';
 import { ProductReviewsSection } from '@/components/products/ProductReviewsSection';
 import { FrequentlyBoughtTogether } from '@/components/products/FrequentlyBoughtTogether';
@@ -23,19 +23,21 @@ import {
   ShieldCheck,
   Truck,
   RotateCcw,
-  ArrowLeft,
-  Check,
-  Store,
-  Zap,
-  Clock,
-  Sparkles,
-  ArrowRight,
-  Coins,
-  Package,
-  Plus,
   Tag,
-  Gift,
+  Zap,
   CheckCircle2,
+  Share2,
+  ChevronRight,
+  Package,
+  ArrowRight,
+  ArrowLeft,
+  Sparkles,
+  Award,
+  Layers,
+  Check,
+  Flame,
+  Coins,
+  Gift,
 } from 'lucide-react';
 
 export interface IProductReview {
@@ -47,27 +49,29 @@ export interface IProductReview {
   images?: string[];
 }
 
-interface ProductDetailPageProps {
-  params: Promise<{ id: string }>;
-}
-
-export default function ProductDetailPage({ params }: ProductDetailPageProps) {
-  const resolvedParams = React.use(params);
-  const productId = resolvedParams.id;
+export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
+  const [unwrappedParams, setUnwrappedParams] = useState<{ id: string } | null>(null);
+  const [mounted, setMounted] = useState(false);
+  const { language } = useLanguageStore();
+
+  useEffect(() => {
+    setMounted(true);
+    params.then(setUnwrappedParams);
+  }, [params]);
+
+  const rawBundles = useBundleStore((state) => state.bundles);
+  const productId = unwrappedParams?.id ? decodeURIComponent(unwrappedParams.id) : '';
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, []);
 
   const addItem = useCartStore((state) => state.addItem);
   const openDrawer = useCartStore((state) => state.openDrawer);
   const { isInWishlist, toggleWishlist } = useWishlistStore();
-  const { t, language } = useLanguageStore();
-  const [mounted, setMounted] = useState(false);
+  const { t } = useLanguageStore();
   const [addedSuccess, setAddedSuccess] = useState(false);
-
-  const rawBundles = useBundleStore((state) => state.bundles);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Check if this page matches a Combo Bundle
   const matchedBundle = useMemo<IBundleDeal | null>(() => {
@@ -87,9 +91,12 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
     return b || null;
   }, [productId, rawBundles]);
 
+  const staticProduct = useMemo(() => getProductByIdOrSlug(productId), [productId]);
   const [apiProduct, setApiProduct] = useState<any | null>(null);
+  const [isLoadingApi, setIsLoadingApi] = useState(!staticProduct && !matchedBundle);
 
   useEffect(() => {
+    let isCancelled = false;
     const fetchLiveProduct = async () => {
       try {
         let res = await fetch(`/api/products/${productId}`).catch(() => null);
@@ -97,24 +104,36 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
           const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
           res = await fetch(`${API_URL}/products/${productId}`).catch(() => null);
         }
-        if (!res || !res.ok) return;
-        const data = await res.json().catch(() => null);
-        if (data?.data?.product) {
-          setApiProduct(data.data.product);
-        } else if (data?.data) {
-          setApiProduct(data.data);
+        if (!res || !res.ok) {
+          if (!isCancelled) setIsLoadingApi(false);
+          return;
         }
-      } catch (_e) {}
+        const data = await res.json().catch(() => null);
+        if (!isCancelled) {
+          if (data?.data?.product) {
+            setApiProduct(data.data.product);
+          } else if (data?.data) {
+            setApiProduct(data.data);
+          }
+          setIsLoadingApi(false);
+        }
+      } catch (_e) {
+        if (!isCancelled) setIsLoadingApi(false);
+      }
     };
     fetchLiveProduct();
+    return () => {
+      isCancelled = true;
+    };
   }, [productId]);
 
   // Standard Product resolution
-  const rawProduct = apiProduct
-    ? {
-        _id: apiProduct._id,
+  const rawProduct = useMemo(() => {
+    if (apiProduct) {
+      return {
+        _id: apiProduct._id || productId,
         title: apiProduct.title || apiProduct.name,
-        slug: apiProduct.slug,
+        slug: apiProduct.slug || productId,
         brand: apiProduct.brand || 'ShopNexus Official',
         vendorName: apiProduct.vendorName || 'ShopNexus Official Store',
         price: apiProduct.price || 0,
@@ -124,7 +143,10 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
         stock: apiProduct.stock ?? 12,
         category: apiProduct.category || 'Hardware & Acoustics',
         description: apiProduct.description || '',
-        images: apiProduct.images?.length > 0 ? apiProduct.images : ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80'],
+        images:
+          apiProduct.images && apiProduct.images.length > 0
+            ? apiProduct.images
+            : ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80'],
         isFlashSale: !!apiProduct.isFlashSale,
         flashSaleDiscountPercent: apiProduct.flashSaleDiscountPercent || 0,
         tags: apiProduct.tags || ['official', 'authentic'],
@@ -135,14 +157,18 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
           hasReturnPolicy: true,
           isOfficialGenuine: true,
         },
-      }
-    : getProductByIdOrSlug(productId);
+      };
+    }
+    if (staticProduct) return staticProduct;
+    if (matchedBundle) return convertBundleToProduct(matchedBundle);
+    return null;
+  }, [apiProduct, staticProduct, matchedBundle, productId]);
 
   const localized = rawProduct && mounted ? getLocalizedProduct(rawProduct as any, language) : null;
 
   const product = {
     id: rawProduct?._id || productId,
-    name: localized?.title || rawProduct?.title || (matchedBundle ? matchedBundle.title : 'Nexus Pro Precision Device'),
+    name: localized?.title || rawProduct?.title || 'Nexus Pro Precision Device',
     brand: rawProduct?.brand || 'ShopNexus Official',
     vendorId: 'vendor_001',
     vendorName: rawProduct?.vendorName || 'ShopNexus Official Store',
@@ -150,17 +176,18 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
     originalPrice: rawProduct?.price || 28000,
     rating: rawProduct?.averageRating || 5.0,
     reviewCount: rawProduct?.totalReviews || 86,
-    inStock: (rawProduct?.stock || 10) > 0,
-    stockCount: rawProduct?.stock || 12,
+    inStock: (rawProduct?.stock ?? 10) > 0,
+    stockCount: rawProduct?.stock ?? 12,
     category: localized ? localized.category : (rawProduct?.category || 'Hardware & Acoustics'),
     description:
       localized?.description ||
       rawProduct?.description ||
       'Engineered with industry-leading materials, rigorous laboratory testing, and seamless ecosystem connectivity for true enthusiasts.',
-    images: rawProduct?.images && rawProduct.images.length > 0 ? rawProduct.images : [
-      'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80',
-    ],
-    isFlashSale: rawProduct?.isFlashSale || false,
+    images:
+      rawProduct?.images && rawProduct.images.length > 0
+        ? rawProduct.images
+        : ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80'],
+    isFlashSale: !!rawProduct?.isFlashSale,
     flashSaleDiscountPercent: rawProduct?.flashSaleDiscountPercent || 0,
     colors: ['Midnight Black', 'Platinum Silver', 'Deep Navy'],
     sizes: ['Standard Unit', 'Creator Edition'],

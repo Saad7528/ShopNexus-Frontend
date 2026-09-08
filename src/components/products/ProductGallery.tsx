@@ -18,6 +18,11 @@ export const ProductGallery: React.FC<ProductGalleryProps> = ({ images, productN
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [copiedShare, setCopiedShare] = useState(false);
 
+  // Sync selected index whenever images change to avoid stale image flicker
+  React.useEffect(() => {
+    setSelectedIndex(0);
+  }, [images?.[0], productId]);
+
   const { isInWishlist, toggleWishlist } = useWishlistStore();
   const isFavorite = productId ? isInWishlist(productId) : false;
 
