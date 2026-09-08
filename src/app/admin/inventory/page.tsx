@@ -178,10 +178,11 @@ const CATEGORIES = [
 ];
 
 import { Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 
 function InventoryContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const { token } = useAuthStore();
   const [inventory, setInventory] = useState<IInventoryItem[]>(INITIAL_INVENTORY);
@@ -522,25 +523,27 @@ function InventoryContent() {
             {lowStockCount > 0 && (
               <button
                 type="button"
-                onClick={() => setActiveFilter('low-stock')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                onClick={() => setActiveFilter((prev) => (prev === 'low-stock' ? 'all' : 'low-stock'))}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
                   activeFilter === 'low-stock'
                     ? 'bg-rose-500 text-white border-rose-500 shadow-md shadow-rose-500/20'
                     : 'bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20'
                 }`}
+                title="Toggle Low Stock Filter"
               >
                 <AlertTriangle className="w-3.5 h-3.5" />
                 {lowStockCount} Low Stock Alerts
               </button>
             )}
 
-            <Link
-              href="/admin/inventory/new"
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/25 transition-all cursor-pointer hover:scale-105"
+            <button
+              type="button"
+              onClick={() => router.push('/admin/inventory/new')}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/25 transition-all cursor-pointer hover:scale-105 active:scale-95"
             >
               <Plus className="w-4 h-4" />
-              Add Product (৳ BDT)
-            </Link>
+              <span>Add Product (৳ BDT)</span>
+            </button>
           </div>
         </div>
 
