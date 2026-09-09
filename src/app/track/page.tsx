@@ -402,7 +402,7 @@ function TrackingContent() {
           </div>
         )}
 
-        {/* 🌟 Not Found State */}
+        {/*  Not Found State */}
         {hasSearched && !searchedOrder && (
           <div className="rounded-3xl bg-rose-500/5 dark:bg-rose-500/10 border border-rose-500/25 p-8 text-center space-y-3 animate-fadeIn">
             <AlertCircle className="w-10 h-10 text-rose-500 mx-auto" />
