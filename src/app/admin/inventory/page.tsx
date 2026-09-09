@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { RoleGuard } from '@/components/auth/RoleGuard';
+import { showConfirmDialog, showAlertDialog } from '@/store/useDialogStore';
 import {
   Boxes,
   Search,
@@ -30,141 +31,7 @@ import {
   Check,
 } from 'lucide-react';
 
-interface IInventoryItem {
-  id: string;
-  sku: string;
-  barcode: string;
-  name: string;
-  category: string;
-  brand: string;
-  costPrice: number;
-  price: number;
-  discountPrice?: number;
-  vatTaxPercent: number;
-  stock: number;
-  threshold: number;
-  image: string;
-  isFlashSale?: boolean;
-  variantColor?: string;
-  slug: string;
-  // Trust Badges & Policy Options
-  hasFastDelivery?: boolean;
-  hasWarranty?: boolean;
-  warrantyText?: string;
-  hasReturnPolicy?: boolean;
-  isOfficialGenuine?: boolean;
-}
-
-const INITIAL_INVENTORY: IInventoryItem[] = [
-  {
-    id: 'inv-1',
-    sku: 'SKU-AUD-001',
-    barcode: 'BC-880192',
-    name: 'Sony WH-1000XM5 Wireless ANC Headphones',
-    category: 'Audio',
-    brand: 'Sony',
-    costPrice: 28000,
-    price: 38500,
-    discountPrice: 32500,
-    vatTaxPercent: 7.5,
-    stock: 45,
-    threshold: 10,
-    image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&q=80',
-    isFlashSale: true,
-    variantColor: 'Silver & Black',
-    slug: 'sony-wh-1000xm5-wireless-anc',
-  },
-  {
-    id: 'inv-2',
-    sku: 'SKU-WR-002',
-    barcode: 'BC-880193',
-    name: 'Apple Watch Ultra 2 Aerospace Titanium Smartwatch',
-    category: 'Wearables',
-    brand: 'Apple',
-    costPrice: 65000,
-    price: 88900,
-    discountPrice: 79900,
-    vatTaxPercent: 7.5,
-    stock: 4, // Low stock
-    threshold: 10,
-    image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80',
-    isFlashSale: true,
-    variantColor: 'Titanium Loop',
-    slug: 'apple-watch-ultra-2-titanium',
-  },
-  {
-    id: 'inv-3',
-    sku: 'SKU-KEY-003',
-    barcode: 'BC-880194',
-    name: 'Keychron Q1 Pro Wireless Custom Mechanical Keyboard',
-    category: 'Peripherals',
-    brand: 'Keychron',
-    costPrice: 14000,
-    price: 21500,
-    discountPrice: 17900,
-    vatTaxPercent: 5,
-    stock: 3, // Low stock
-    threshold: 8,
-    image: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=600&q=80',
-    isFlashSale: true,
-    variantColor: 'Carbon Gray',
-    slug: 'keychron-q1-pro-wireless-custom',
-  },
-  {
-    id: 'inv-4',
-    sku: 'SKU-AUD-004',
-    barcode: 'BC-880195',
-    name: 'Bose QuietComfort Ultra Spatial Audio Headphones',
-    category: 'Audio',
-    brand: 'Bose',
-    costPrice: 32000,
-    price: 44500,
-    discountPrice: 38900,
-    vatTaxPercent: 7.5,
-    stock: 28,
-    threshold: 10,
-    image: 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=600&q=80',
-    isFlashSale: false,
-    variantColor: 'White Smoke',
-    slug: 'bose-qc-ultra-spatial-headphones',
-  },
-  {
-    id: 'inv-5',
-    sku: 'SKU-GAM-005',
-    barcode: 'BC-880196',
-    name: 'Razer Viper V2 Pro Ultra-Lightweight Wireless Mouse',
-    category: 'Gaming',
-    brand: 'Razer',
-    costPrice: 9500,
-    price: 15500,
-    discountPrice: 11900,
-    vatTaxPercent: 5,
-    stock: 15,
-    threshold: 5,
-    image: 'https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=600&q=80',
-    isFlashSale: true,
-    variantColor: 'Matte Black',
-    slug: 'razer-viper-v2-pro-wireless',
-  },
-  {
-    id: 'inv-6',
-    sku: 'SKU-CR-006',
-    barcode: 'BC-880197',
-    name: 'Shure SM7B Cardioid Dynamic Vocal Studio Microphone',
-    category: 'Creator Gear',
-    brand: 'Shure',
-    costPrice: 29000,
-    price: 42000,
-    discountPrice: 36500,
-    vatTaxPercent: 7.5,
-    stock: 12,
-    threshold: 5,
-    image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&q=80',
-    isFlashSale: true,
-    variantColor: 'Studio Black',
-    slug: 'shure-sm7b-dynamic-microphone',
-  },
-];
+import { IInventoryItem, INITIAL_INVENTORY } from '@/data/inventory';
 
 const CATEGORIES = [
   'Audio',
@@ -180,11 +47,15 @@ const CATEGORIES = [
 import { Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useLanguageStore } from '@/store/useLanguageStore';
+import { toBengaliNumber } from '@/lib/translations';
 
 function InventoryContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { token } = useAuthStore();
+  const { language } = useLanguageStore();
+  const isBn = language === 'bn';
   const [inventory, setInventory] = useState<IInventoryItem[]>(INITIAL_INVENTORY);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'low-stock' | 'flash'>(
@@ -299,7 +170,7 @@ function InventoryContent() {
       prev.map((item) => (item.id === id ? { ...item, stock: editStockValue } : item))
     );
     setEditingId(null);
-    showFeedback('Stock quantity updated in real-time!', 'success');
+    showFeedback(isBn ? 'স্টক সংখ্যা তাৎক্ষণিকভাবে আপডেট করা হয়েছে!' : 'Stock quantity updated in real-time!', 'success');
 
     // Async DB update
     try {
@@ -317,9 +188,19 @@ function InventoryContent() {
   };
 
   const handleDeleteProduct = async (id: string, name: string) => {
-    if (confirm(`Are you sure you want to remove "${name}" from the live catalog?`)) {
+    const isConfirmed = await showConfirmDialog({
+      title: isBn ? 'ক্যাটালগ থেকে মুছে ফেলতে চান?' : 'Remove from Catalog?',
+      message: isBn
+        ? `আপনি কি নিশ্চিত যে ক্যাটালগ থেকে "${name}" স্থায়ীভাবে মুছে ফেলতে চান?`
+        : `Are you sure you want to remove "${name}" from the live catalog?`,
+      type: 'danger',
+      confirmText: isBn ? 'হ্যাঁ, মুছুন' : 'Delete',
+      cancelText: isBn ? 'বাতিল' : 'Cancel',
+    });
+
+    if (isConfirmed) {
       setInventory((prev) => prev.filter((item) => item.id !== id));
-      showFeedback(`Removed "${name}" from catalog.`, 'delete');
+      showFeedback(isBn ? `ক্যাটালগ থেকে "${name}" মুছে ফেলা হয়েছে।` : `Removed "${name}" from catalog.`, 'delete');
 
       // Async DB deletion
       try {
@@ -340,7 +221,7 @@ function InventoryContent() {
       ...item,
       hasFastDelivery: item.hasFastDelivery ?? true,
       hasWarranty: item.hasWarranty ?? true,
-      warrantyText: item.warrantyText || '১ বছরের অফিসিয়াল ওয়ারেন্টি',
+      warrantyText: item.warrantyText || (isBn ? '১ বছরের অফিসিয়াল ওয়ারেন্টি' : '1 Year Official Warranty'),
       hasReturnPolicy: item.hasReturnPolicy ?? true,
       isOfficialGenuine: item.isOfficialGenuine ?? true,
     });
@@ -354,7 +235,7 @@ function InventoryContent() {
     setInventory((prev) =>
       prev.map((item) => (item.id === updated.id ? updated : item))
     );
-    showFeedback(`Product "${updated.name}" updated successfully!`, 'success');
+    showFeedback(isBn ? `পণ্য "${updated.name}" সফলভাবে আপডেট করা হয়েছে!` : `Product "${updated.name}" updated successfully!`, 'success');
     setEditingProductModal(null);
 
     // Async DB update
@@ -383,7 +264,12 @@ function InventoryContent() {
   const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newProduct.name || !newProduct.price) {
-      alert('Please provide product title and sales price.');
+      await showAlertDialog({
+        title: isBn ? 'অসম্পূর্ণ তথ্য' : 'Incomplete Details',
+        message: isBn ? 'অনুগ্রহ করে পণ্যের নাম এবং বিক্রয়মূল্য প্রদান করুন।' : 'Please provide product title and sales price.',
+        type: 'warning',
+        confirmText: isBn ? 'ঠিক আছে' : 'OK',
+      });
       return;
     }
 
@@ -512,10 +398,14 @@ function InventoryContent() {
               >
                 <ArrowLeft className="w-4 h-4" />
               </Link>
-              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">Products & Inventory Manager</h1>
+              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+                {isBn ? 'পণ্য ও ইনভেন্টরি ম্যানেজার' : 'Products & Inventory Manager'}
+              </h1>
             </div>
             <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm mt-1">
-              Add and edit catalog products with Bangladeshi Taka (৳ BDT) pricing, cost margins, variants, and barcodes.
+              {isBn
+                ? 'বাংলাদেশি টাকায় (৳ BDT) পণ্যের ক্যাটালগ, লাভ মার্জিন, ভ্যারিয়েন্ট ও বারকোড যোগ ও পরিবর্তন করুন।'
+                : 'Add and edit catalog products with Bangladeshi Taka (৳ BDT) pricing, cost margins, variants, and barcodes.'}
             </p>
           </div>
 
@@ -529,10 +419,10 @@ function InventoryContent() {
                     ? 'bg-rose-500 text-white border-rose-500 shadow-md shadow-rose-500/20'
                     : 'bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20'
                 }`}
-                title="Toggle Low Stock Filter"
+                title={isBn ? 'কম স্টক ফিল্টার টগল করুন' : 'Toggle Low Stock Filter'}
               >
                 <AlertTriangle className="w-3.5 h-3.5" />
-                {lowStockCount} Low Stock Alerts
+                {lowStockCount} {isBn ? 'কম স্টক সতর্কতা' : 'Low Stock Alerts'}
               </button>
             )}
 
@@ -542,7 +432,7 @@ function InventoryContent() {
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/25 transition-all cursor-pointer hover:scale-105 active:scale-95"
             >
               <Plus className="w-4 h-4" />
-              <span>Add Product (৳ BDT)</span>
+              <span>{isBn ? 'নতুন পণ্য যোগ করুন (৳)' : 'Add Product (৳ BDT)'}</span>
             </button>
           </div>
         </div>
@@ -568,10 +458,14 @@ function InventoryContent() {
               <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
               <div>
                 <span className="text-xs font-bold text-slate-900 dark:text-white">
-                  Filtering {filteredInventory.length} Low Stock Item(s)
+                  {isBn
+                    ? `${toBengaliNumber(filteredInventory.length)}টি কম স্টকের পণ্য ফিল্টার করা হয়েছে`
+                    : `Filtering ${filteredInventory.length} Low Stock Item(s)`}
                 </span>
                 <p className="text-[11px] text-amber-600 dark:text-amber-400">
-                  Stock is at or below threshold level. You can quickly replenish quantities below.
+                  {isBn
+                    ? 'স্টক থ্রেশহোল্ডের নিচে বা সমান। নিচে দ্রুত স্টক সংখ্যা বৃদ্ধি করতে পারবেন।'
+                    : 'Stock is at or below threshold level. You can quickly replenish quantities below.'}
                 </p>
               </div>
             </div>
@@ -580,7 +474,7 @@ function InventoryContent() {
               onClick={() => setActiveFilter('all')}
               className="px-3 py-1 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer shrink-0"
             >
-              Show All Products
+              {isBn ? 'সব পণ্য প্রদর্শন' : 'Show All Products'}
             </button>
           </div>
         )}
@@ -598,7 +492,7 @@ function InventoryContent() {
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
-              All Products ({inventory.length})
+              {isBn ? `সব পণ্য (${toBengaliNumber(inventory.length)})` : `All Products (${inventory.length})`}
             </button>
 
             <button
@@ -611,7 +505,7 @@ function InventoryContent() {
               }`}
             >
               <AlertTriangle className="w-3.5 h-3.5" />
-              Low Stock ({lowStockCount})
+              {isBn ? `কম স্টক (${toBengaliNumber(lowStockCount)})` : `Low Stock (${lowStockCount})`}
             </button>
 
             <button
@@ -623,7 +517,7 @@ function InventoryContent() {
                   : 'text-slate-600 dark:text-slate-400 hover:text-orange-500'
               }`}
             >
-              Flash Sales ({flashSaleCount})
+              {isBn ? `ফ্ল্যাশ সেল (${toBengaliNumber(flashSaleCount)})` : `Flash Sales (${flashSaleCount})`}
             </button>
           </div>
 
@@ -632,7 +526,11 @@ function InventoryContent() {
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
             <input
               type="text"
-              placeholder="Search by SKU, Barcode, Product name, Brand, or Category..."
+              placeholder={
+                isBn
+                  ? 'SKU, বারকোড, পণ্যের নাম, ব্র্যান্ড বা ক্যাটাগরি দিয়ে খুঁজুন...'
+                  : 'Search by SKU, Barcode, Product name, Brand, or Category...'
+              }
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none shadow-sm"
@@ -646,13 +544,13 @@ function InventoryContent() {
             <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300">
               <thead className="bg-slate-50 dark:bg-slate-950/80 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
                 <tr>
-                  <th className="px-5 py-3.5">Product & Variant</th>
-                  <th className="px-5 py-3.5">SKU / Barcode</th>
-                  <th className="px-5 py-3.5">Category</th>
-                  <th className="px-5 py-3.5">Sales Price (৳)</th>
-                  <th className="px-5 py-3.5">Stock</th>
-                  <th className="px-5 py-3.5">Status</th>
-                  <th className="px-5 py-3.5 text-right min-w-[210px]">Actions</th>
+                  <th className="px-5 py-3.5">{isBn ? 'পণ্য ও ভ্যারিয়েন্ট' : 'Product & Variant'}</th>
+                  <th className="px-5 py-3.5">{isBn ? 'SKU / বারকোড' : 'SKU / Barcode'}</th>
+                  <th className="px-5 py-3.5">{isBn ? 'ক্যাটাগরি' : 'Category'}</th>
+                  <th className="px-5 py-3.5 whitespace-nowrap">{isBn ? 'বিক্রয়মূল্য (৳)' : 'Sales Price (৳)'}</th>
+                  <th className="px-5 py-3.5 whitespace-nowrap">{isBn ? 'স্টক' : 'Stock'}</th>
+                  <th className="px-5 py-3.5 whitespace-nowrap">{isBn ? 'স্ট্যাটাস' : 'Status'}</th>
+                  <th className="px-5 py-3.5 text-right min-w-[210px] whitespace-nowrap">{isBn ? 'অ্যাকশন' : 'Actions'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
@@ -668,27 +566,27 @@ function InventoryContent() {
                         </div>
                         <div>
                           <div className="font-bold text-slate-900 dark:text-white line-clamp-1">{item.name}</div>
-                          <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">{item.brand} • {item.variantColor || 'Standard'}</span>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">{item.brand} • {item.variantColor || (isBn ? 'স্ট্যান্ডার্ড' : 'Standard')}</span>
                         </div>
                       </td>
-                      <td className="px-5 py-3.5 font-mono text-[11px]">
+                      <td className="px-5 py-3.5 font-mono text-[11px] whitespace-nowrap">
                         <span className="text-orange-600 dark:text-orange-400 font-semibold block">{item.sku}</span>
                         <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">{item.barcode}</span>
                       </td>
-                      <td className="px-5 py-3.5">
+                      <td className="px-5 py-3.5 whitespace-nowrap">
                         <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-semibold border border-slate-200 dark:border-slate-700">
                           {item.category}
                         </span>
                       </td>
-                      <td className="px-5 py-3.5 font-mono font-bold text-slate-900 dark:text-white">
-                        ৳{item.price.toLocaleString()}
+                      <td className="px-5 py-3.5 font-mono font-bold text-slate-900 dark:text-white whitespace-nowrap">
+                        {isBn ? `৳${toBengaliNumber(item.price.toLocaleString('en-US'))}` : `৳${item.price.toLocaleString()}`}
                         {item.discountPrice && (
                           <span className="block text-[10px] text-amber-600 dark:text-amber-400 font-semibold">
-                            Sale: ৳{item.discountPrice.toLocaleString()}
+                            {isBn ? 'অফার:' : 'Sale:'} {isBn ? `৳${toBengaliNumber(item.discountPrice.toLocaleString('en-US'))}` : `৳${item.discountPrice.toLocaleString()}`}
                           </span>
                         )}
                       </td>
-                      <td className="px-5 py-3.5">
+                      <td className="px-5 py-3.5 whitespace-nowrap">
                         {isQuickStock ? (
                           <input
                             type="number"
@@ -697,17 +595,19 @@ function InventoryContent() {
                             className="w-20 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-950 border-2 border-orange-500 text-slate-900 dark:text-white font-mono text-xs focus:outline-none shadow-xs"
                           />
                         ) : (
-                          <span className="font-mono font-bold text-slate-800 dark:text-slate-100">{item.stock} pcs</span>
+                          <span className="font-mono font-bold text-slate-800 dark:text-slate-100 whitespace-nowrap">
+                            {isBn ? toBengaliNumber(item.stock) : item.stock} {isBn ? 'টি' : 'pcs'}
+                          </span>
                         )}
                       </td>
-                      <td className="px-5 py-3.5">
+                      <td className="px-5 py-3.5 whitespace-nowrap">
                         {isLow ? (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-600 dark:text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-full border border-rose-500/20">
-                            <AlertTriangle className="w-3 h-3" /> Low Stock
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-600 dark:text-rose-400 bg-rose-500/10 px-2.5 py-0.5 rounded-full border border-rose-500/20 whitespace-nowrap">
+                            <AlertTriangle className="w-3 h-3 shrink-0" /> {isBn ? 'কম স্টক' : 'Low Stock'}
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                            <CheckCircle2 className="w-3 h-3" /> In Stock
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 whitespace-nowrap">
+                            <CheckCircle2 className="w-3 h-3 shrink-0" /> {isBn ? 'স্টকে আছে' : 'In Stock'}
                           </span>
                         )}
                       </td>
@@ -720,16 +620,16 @@ function InventoryContent() {
                               onClick={() => saveQuickStock(item.id)}
                               className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-sm transition-all cursor-pointer"
                             >
-                              <Save className="w-3.5 h-3.5" /> Save
+                              <Save className="w-3.5 h-3.5" /> {isBn ? 'সংরক্ষণ' : 'Save'}
                             </button>
                           ) : (
                             <button
                               type="button"
                               onClick={() => startQuickStock(item)}
                               className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all cursor-pointer border border-slate-200 dark:border-slate-700 shadow-2xs"
-                              title="Quick Stock Update"
+                              title={isBn ? 'দ্রুত স্টক আপডেট' : 'Quick Stock Update'}
                             >
-                              <Edit2 className="w-3.5 h-3.5" /> Stock
+                              <Edit2 className="w-3.5 h-3.5" /> {isBn ? 'স্টক' : 'Stock'}
                             </button>
                           )}
 
@@ -737,9 +637,9 @@ function InventoryContent() {
                           <Link
                             href={`/admin/inventory/edit/${item.id}`}
                             className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-orange-500/10 dark:bg-orange-500/15 hover:bg-orange-500/20 dark:hover:bg-orange-500/25 text-orange-600 dark:text-orange-400 border border-orange-500/30 text-xs font-bold shadow-2xs transition-all cursor-pointer"
-                            title="Edit All Product Details"
+                            title={isBn ? 'সব তথ্যাবলী এডিট করুন' : 'Edit All Product Details'}
                           >
-                            <Sliders className="w-3.5 h-3.5" /> Edit
+                            <Sliders className="w-3.5 h-3.5" /> {isBn ? 'এডিট' : 'Edit'}
                           </Link>
 
                           {/* Delete Product */}
@@ -747,7 +647,7 @@ function InventoryContent() {
                             type="button"
                             onClick={() => handleDeleteProduct(item.id, item.name)}
                             className="p-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-semibold border border-rose-500/30 transition-all cursor-pointer"
-                            title="Delete Product"
+                            title={isBn ? 'পণ্য ডিলিট করুন' : 'Delete Product'}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -766,12 +666,14 @@ function InventoryContent() {
 }
 
 export default function AdminInventoryPage() {
+  const { language } = useLanguageStore();
+  const isBn = language === 'bn';
   return (
     <Suspense
       fallback={
         <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-400 gap-3">
           <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
-          <p className="text-xs font-semibold">Loading Inventory Data...</p>
+          <p className="text-xs font-semibold">{isBn ? 'ইনভেন্টরি লোড হচ্ছে...' : 'Loading Inventory Data...'}</p>
         </div>
       }
     >

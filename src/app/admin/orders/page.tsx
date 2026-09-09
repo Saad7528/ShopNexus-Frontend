@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { RoleGuard } from '@/components/auth/RoleGuard';
+import { showAlertDialog } from '@/store/useDialogStore';
 import {
   ShoppingCart,
   Search,
@@ -35,6 +36,7 @@ import {
   Sparkles,
   RefreshCw,
   Copy,
+  CreditCard,
 } from 'lucide-react';
 
 interface IOrderItem {
@@ -206,8 +208,12 @@ const INITIAL_ORDERS: IOrder[] = [
 ];
 
 import { useAuthStore } from '@/store/useAuthStore';
+import { useLanguageStore } from '@/store/useLanguageStore';
+import { toBengaliNumber } from '@/lib/translations';
 
 export default function AdminOrdersPage() {
+  const { language } = useLanguageStore();
+  const isBn = language === 'bn';
   const { token } = useAuthStore();
   const [orders, setOrders] = useState<IOrder[]>(INITIAL_ORDERS);
   const [activeFilter, setActiveFilter] = useState<string>('All');
@@ -385,7 +391,7 @@ export default function AdminOrdersPage() {
     setActiveFilter('TodayConfirmed');
   };
 
-  const handleSelectRange = () => {
+  const handleSelectRange = async () => {
     const startNum = parseInt(rangeStart) || 0;
     const endNum = parseInt(rangeEnd) || 999999;
     const min = Math.min(startNum, endNum);
@@ -393,7 +399,14 @@ export default function AdminOrdersPage() {
 
     const matched = orders.filter((o) => o.numericId >= min && o.numericId <= max);
     if (matched.length === 0) {
-      alert(`No orders found in range #${min} to #${max}`);
+      await showAlertDialog({
+        title: isBn ? 'কোনো অর্ডার পাওয়া যায়নি' : 'No Orders Found',
+        message: isBn
+          ? `অর্ডার নম্বর #${toBengaliNumber(min)} থেকে #${toBengaliNumber(max)}-এর মধ্যে কোনো অর্ডার পাওয়া যায়নি।`
+          : `No orders found in range #${min} to #${max}.`,
+        type: 'warning',
+        confirmText: isBn ? 'ঠিক আছে' : 'OK',
+      });
       return;
     }
     setSelectedOrderIds(matched.map((o) => o.id));
@@ -453,6 +466,32 @@ export default function AdminOrdersPage() {
 
   const selectedOrdersList = orders.filter((o) => selectedOrderIds.includes(o.id));
 
+  // Payment Badge Helper
+  const renderPaymentBadge = (method: string) => {
+    const m = (method || '').toLowerCase();
+    let badgeStyle =
+      'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700';
+
+    if (m.includes('bkash')) {
+      badgeStyle = 'bg-pink-500/10 border-pink-500/30 text-pink-700 dark:text-pink-300';
+    } else if (m.includes('nagad')) {
+      badgeStyle = 'bg-orange-500/10 border-orange-500/30 text-orange-700 dark:text-orange-300';
+    } else if (m.includes('cash') || m.includes('cod')) {
+      badgeStyle = 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-300';
+    } else if (m.includes('card') || m.includes('visa') || m.includes('master')) {
+      badgeStyle = 'bg-indigo-500/10 border-indigo-500/30 text-indigo-700 dark:text-indigo-300';
+    }
+
+    return (
+      <span
+        className={`px-2.5 py-1 rounded-full text-[10px] font-bold border whitespace-nowrap inline-flex items-center gap-1.5 shadow-2xs ${badgeStyle}`}
+      >
+        <CreditCard className="w-3 h-3 shrink-0 opacity-80" />
+        <span>{method}</span>
+      </span>
+    );
+  };
+
   return (
     <RoleGuard allowedRoles={['admin']}>
       <div className="space-y-6 max-w-7xl mx-auto pb-16">
@@ -460,13 +499,15 @@ export default function AdminOrdersPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider mb-2">
-              <ShoppingCart className="w-3.5 h-3.5" /> Order Fulfillment Pipeline & Invoicing
+              <ShoppingCart className="w-3.5 h-3.5" /> {isBn ? 'অর্ডার ফুলফিলমেন্ট পাইপলাইন ও ইনভয়েসিং' : 'Order Fulfillment Pipeline & Invoicing'}
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-              Orders & Batch Invoicing Management
+              {isBn ? 'অর্ডার ও ব্যাচ ইনভয়েস ম্যানেজমেন্ট' : 'Orders & Batch Invoicing Management'}
             </h1>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
-              ১-ক্লিকে সারাদিনের সকল অর্ডারের ইনভয়েস বের করুন, রেঞ্জ প্রিন্ট করুন এবং কাস্টমারকে সরাসরি প্রবলেম রিপোর্ট করুন।
+              {isBn
+                ? '১-ক্লিকে ব্যাচ ইনভয়েস তৈরি, রেঞ্জ অনুযায়ী বারকোড স্লিপ প্রিন্ট এবং সরাসরি গ্রাহকদের ডেলিভারি আপডেট প্রদান করুন।'
+                : 'Generate 1-click batch invoices, print barcode packing slips by range, and report delivery issues directly to customers.'}
             </p>
           </div>
 
@@ -476,20 +517,19 @@ export default function AdminOrdersPage() {
               type="button"
               onClick={selectTodayConfirmedOrders}
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white text-xs font-bold shadow-md shadow-orange-500/25 transition-all cursor-pointer hover:scale-105"
-              title="Select all today's confirmed and processing orders"
+              title={isBn ? "আজকের নিশ্চিতকৃত ও প্রক্রিয়াধীন সকল অর্ডার বাছাই করুন" : "Select all today's confirmed and processing orders"}
             >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>আজকের কনফার্মড অর্ডার ({orders.filter((o) => o.isToday && (o.status === 'Confirmed' || o.status === 'Processing')).length})</span>
+              <span>{isBn ? `আজকের নিশ্চিতকৃত (${toBengaliNumber(orders.filter((o) => o.isToday && (o.status === 'Confirmed' || o.status === 'Processing')).length)})` : `Today's Confirmed (${orders.filter((o) => o.isToday && (o.status === 'Confirmed' || o.status === 'Processing')).length})`}</span>
             </button>
 
             <button
               type="button"
               onClick={selectTodayAllOrders}
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 text-xs font-bold transition-all cursor-pointer shadow-sm"
-              title="Select all today's orders regardless of status"
+              title={isBn ? "স্ট্যাটাস নির্বিশেষে আজকের সকল অর্ডার বাছাই করুন" : "Select all today's orders regardless of status"}
             >
               <Calendar className="w-3.5 h-3.5 text-orange-500" />
-              <span>আজকের সারাদিনের ইনভয়েস</span>
+              <span>{isBn ? 'আজকের ইনভয়েস' : "Today's Invoices"}</span>
             </button>
           </div>
         </div>
@@ -500,15 +540,15 @@ export default function AdminOrdersPage() {
             {/* Status Filter Tabs */}
             <div className="flex flex-wrap items-center gap-1.5">
               {[
-                { id: 'All', label: 'All Orders' },
-                { id: 'TodayConfirmed', label: '⚡ Today Confirmed' },
-                { id: 'Today', label: '📅 Today All' },
-                { id: 'Confirmed', label: 'Confirmed' },
-                { id: 'Processing', label: 'Processing' },
-                { id: 'Shipped', label: 'Shipped' },
-                { id: 'Delivered', label: 'Delivered' },
-                { id: 'Pending', label: 'Pending' },
-                { id: 'Cancelled', label: 'Cancelled' },
+                { id: 'All', labelEn: 'All Orders', labelBn: 'সকল অর্ডার' },
+                { id: 'TodayConfirmed', labelEn: '⚡ Today Confirmed', labelBn: '⚡ আজকের নিশ্চিতকৃত' },
+                { id: 'Today', labelEn: '📅 Today All', labelBn: '📅 আজকের সকল' },
+                { id: 'Confirmed', labelEn: 'Confirmed', labelBn: 'নিশ্চিতকৃত' },
+                { id: 'Processing', labelEn: 'Processing', labelBn: 'প্রক্রিয়াধীন' },
+                { id: 'Shipped', labelEn: 'Shipped', labelBn: 'শিপমেন্টে আছে' },
+                { id: 'Delivered', labelEn: 'Delivered', labelBn: 'ডেলিভার্ড' },
+                { id: 'Pending', labelEn: 'Pending', labelBn: 'পেন্ডিং' },
+                { id: 'Cancelled', labelEn: 'Cancelled', labelBn: 'বাতিলকৃত' },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -520,7 +560,7 @@ export default function AdminOrdersPage() {
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800/60'
                   }`}
                 >
-                  {tab.label}
+                  {isBn ? tab.labelBn : tab.labelEn}
                 </button>
               ))}
             </div>
@@ -530,7 +570,7 @@ export default function AdminOrdersPage() {
               <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
               <input
                 type="text"
-                placeholder="Search order #, customer, or phone..."
+                placeholder={isBn ? 'অর্ডার #, গ্রাহক বা ফোন নম্বর...' : 'Search order #, customer, or phone...'}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none shadow-xs"
@@ -538,11 +578,11 @@ export default function AdminOrdersPage() {
             </div>
           </div>
 
-          {/* 🔢 Order Range Filter Toolbar (এত নম্বর অর্ডার থেকে এত নম্বর অর্ডার পর্যন্ত সবগুলা ইনভয়েস) */}
+          {/* 🔢 Order Range Filter Toolbar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 text-xs">
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                <Layers className="w-4 h-4 text-orange-500" /> অর্ডার রেঞ্জ ফিল্টার:
+                <Layers className="w-4 h-4 text-orange-500" /> {isBn ? 'অর্ডার রেঞ্জ ফিল্টার:' : 'Order Range Filter:'}
               </span>
               <div className="flex items-center gap-1.5 font-mono">
                 <span className="text-slate-400">NX-ORD-</span>
@@ -553,7 +593,7 @@ export default function AdminOrdersPage() {
                   onChange={(e) => setRangeStart(e.target.value)}
                   className="w-20 px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold text-xs focus:border-orange-500 focus:outline-none"
                 />
-                <span className="text-slate-400 font-sans font-bold">থেকে</span>
+                <span className="text-slate-400 font-sans font-bold">{isBn ? 'থেকে' : 'to'}</span>
                 <span className="text-slate-400">NX-ORD-</span>
                 <input
                   type="number"
@@ -568,19 +608,19 @@ export default function AdminOrdersPage() {
                 onClick={handleSelectRange}
                 className="px-3 py-1 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/30 font-bold text-xs transition-colors cursor-pointer"
               >
-                Select Range (রেঞ্জ সিলেক্ট)
+                {isBn ? 'রেঞ্জ সিলেক্ট করুন' : 'Select Range'}
               </button>
             </div>
 
             <div className="text-slate-500 dark:text-slate-400 text-[11px] flex items-center gap-2">
-              <span>Selected: <strong className="text-orange-600 dark:text-orange-400 font-mono">{selectedOrderIds.length}</strong> / {orders.length}</span>
+              <span>{isBn ? 'নির্বাচিত:' : 'Selected:'} <strong className="text-orange-600 dark:text-orange-400 font-mono">{isBn ? toBengaliNumber(selectedOrderIds.length) : selectedOrderIds.length}</strong> / {isBn ? toBengaliNumber(orders.length) : orders.length}</span>
               {selectedOrderIds.length > 0 && (
                 <button
                   type="button"
                   onClick={() => setSelectedOrderIds([])}
                   className="text-rose-500 hover:underline cursor-pointer font-bold"
                 >
-                  Clear Selection
+                  {isBn ? 'বাছাই বাতিল' : 'Clear Selection'}
                 </button>
               )}
             </div>
@@ -592,14 +632,14 @@ export default function AdminOrdersPage() {
           <div className="sticky top-20 z-30 p-3 sm:p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white border border-orange-500/40 shadow-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 duration-200">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-xl bg-orange-500 text-white flex items-center justify-center font-bold text-sm shadow-md">
-                {selectedOrderIds.length}
+                {isBn ? toBengaliNumber(selectedOrderIds.length) : selectedOrderIds.length}
               </div>
               <div>
                 <h4 className="text-xs font-black uppercase tracking-wider text-orange-400">
-                  Batch Invoicing Ready ({selectedOrderIds.length} Orders Selected)
+                  {isBn ? `ব্যাচ ইনভয়েস প্রস্তুত (${toBengaliNumber(selectedOrderIds.length)}টি অর্ডার নির্বাচিত)` : `Batch Invoicing Ready (${selectedOrderIds.length} Orders Selected)`}
                 </h4>
                 <p className="text-[11px] text-slate-300">
-                  Total Value: <strong className="text-emerald-400 font-mono">৳{selectedOrdersList.reduce((acc, o) => acc + o.total, 0).toLocaleString()} BDT</strong>
+                  {isBn ? 'মোট মূল্য:' : 'Total Value:'} <strong className="text-emerald-400 font-mono">{isBn ? `৳${toBengaliNumber(selectedOrdersList.reduce((acc, o) => acc + o.total, 0).toLocaleString('en-US'))} BDT` : `৳${selectedOrdersList.reduce((acc, o) => acc + o.total, 0).toLocaleString()} BDT`}</strong>
                 </p>
               </div>
             </div>
@@ -611,7 +651,7 @@ export default function AdminOrdersPage() {
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white text-xs font-black shadow-lg shadow-orange-500/30 transition-all cursor-pointer hover:scale-105"
               >
                 <Printer className="w-4 h-4" />
-                <span>সবগুলো ইনভয়েস একসাথে প্রিন্ট ({selectedOrderIds.length})</span>
+                <span>{isBn ? `ইনভয়েস প্রিন্ট করুন (${toBengaliNumber(selectedOrderIds.length)})` : `Print Selected Invoices (${selectedOrderIds.length})`}</span>
               </button>
 
               <button
@@ -620,7 +660,7 @@ export default function AdminOrdersPage() {
                 className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 transition-colors cursor-pointer"
               >
                 <FileText className="w-3.5 h-3.5 text-indigo-400" />
-                <span>Courier Dispatch Manifest</span>
+                <span>{isBn ? 'কুরিয়ার ডিসপ্যাচ ম্যানিফেস্ট' : 'Courier Dispatch Manifest'}</span>
               </button>
             </div>
           </div>
@@ -638,16 +678,16 @@ export default function AdminOrdersPage() {
                       checked={filteredOrders.length > 0 && selectedOrderIds.length === filteredOrders.length}
                       onChange={(e) => handleSelectAll(e.target.checked)}
                       className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
-                      title="Select / Deselect all visible orders"
+                      title={isBn ? "দৃশ্যমান সকল অর্ডার নির্বাচন/বাতিল করুন" : "Select / Deselect all visible orders"}
                     />
                   </th>
-                  <th className="px-4 py-3.5">Order Invoice</th>
-                  <th className="px-4 py-3.5">Customer & Phone</th>
-                  <th className="px-4 py-3.5">Items</th>
-                  <th className="px-4 py-3.5">Total (৳ BDT)</th>
-                  <th className="px-4 py-3.5">Payment</th>
-                  <th className="px-4 py-3.5">Status</th>
-                  <th className="px-4 py-3.5 text-right">Actions & Print</th>
+                  <th className="px-4 py-3.5 whitespace-nowrap min-w-[130px]">{isBn ? 'অর্ডার ইনভয়েস' : 'Order Invoice'}</th>
+                  <th className="px-4 py-3.5 min-w-[170px]">{isBn ? 'গ্রাহক ও ফোন' : 'Customer & Phone'}</th>
+                  <th className="px-4 py-3.5 min-w-[200px]">{isBn ? 'পণ্যসমূহ' : 'Items'}</th>
+                  <th className="px-4 py-3.5 whitespace-nowrap min-w-[120px]">{isBn ? 'মোট মূল্য (৳)' : 'Total (৳ BDT)'}</th>
+                  <th className="px-4 py-3.5 whitespace-nowrap min-w-[140px]">{isBn ? 'পেমেন্ট' : 'Payment'}</th>
+                  <th className="px-4 py-3.5 whitespace-nowrap min-w-[130px]">{isBn ? 'স্ট্যাটাস' : 'Status'}</th>
+                  <th className="px-4 py-3.5 whitespace-nowrap min-w-[150px] text-right">{isBn ? 'অ্যাকশন ও প্রিন্ট' : 'Actions & Print'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
@@ -668,7 +708,7 @@ export default function AdminOrdersPage() {
                           className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
                         />
                       </td>
-                      <td className="px-4 py-3.5">
+                      <td className="px-4 py-3.5 whitespace-nowrap">
                         <span className="font-mono font-black text-orange-600 dark:text-orange-400 block">
                           {ord.orderNumber}
                         </span>
@@ -690,7 +730,7 @@ export default function AdminOrdersPage() {
                         {ord.activeIssue && (
                           <div className="mt-1 px-2 py-0.5 rounded-lg bg-rose-500/15 border border-rose-500/30 text-[9px] font-bold text-rose-700 dark:text-rose-300 inline-flex items-center gap-1">
                             <MessageSquare className="w-3 h-3 text-rose-600 dark:text-rose-400 shrink-0" />
-                            <span>ইস্যু রিপোর্ট: {ord.activeIssue.title}</span>
+                            <span>{isBn ? 'ইস্যু রিপোর্ট:' : 'Issue Reported:'} {ord.activeIssue.title}</span>
                           </div>
                         )}
                       </td>
@@ -698,20 +738,18 @@ export default function AdminOrdersPage() {
                         <div className="space-y-0.5">
                           {ord.items.map((item, idx) => (
                             <div key={idx} className="text-[11px] text-slate-700 dark:text-slate-300">
-                              {item.quantity}x {item.title}
+                              {isBn ? `${toBengaliNumber(item.quantity)}x ` : `${item.quantity}x `}{item.title}
                             </div>
                           ))}
                         </div>
                       </td>
-                      <td className="px-4 py-3.5 font-mono font-black text-slate-900 dark:text-white text-sm">
-                        ৳{ord.total.toLocaleString()}
+                      <td className="px-4 py-3.5 font-mono font-black text-slate-900 dark:text-white text-sm whitespace-nowrap">
+                        {isBn ? `৳${toBengaliNumber(ord.total.toLocaleString('en-US'))}` : `৳${ord.total.toLocaleString()}`}
                       </td>
-                      <td className="px-4 py-3.5">
-                        <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-semibold text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
-                          {ord.paymentMethod}
-                        </span>
+                      <td className="px-4 py-3.5 whitespace-nowrap">
+                        {renderPaymentBadge(ord.paymentMethod)}
                       </td>
-                      <td className="px-4 py-3.5">
+                      <td className="px-4 py-3.5 whitespace-nowrap">
                         <select
                           value={ord.status}
                           onChange={(e) => handleStatusChange(ord.id, e.target.value as any)}
@@ -729,15 +767,15 @@ export default function AdminOrdersPage() {
                               : 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400'
                           }`}
                         >
-                          <option value="Pending">Pending</option>
-                          <option value="Confirmed">Confirmed</option>
-                          <option value="Processing">Processing</option>
-                          <option value="Shipped">Shipped</option>
-                          <option value="Delivered">Delivered</option>
-                          <option value="Cancelled">Cancelled</option>
+                          <option value="Pending">{isBn ? 'পেন্ডিং' : 'Pending'}</option>
+                          <option value="Confirmed">{isBn ? 'নিশ্চিতকৃত' : 'Confirmed'}</option>
+                          <option value="Processing">{isBn ? 'প্রক্রিয়াধীন' : 'Processing'}</option>
+                          <option value="Shipped">{isBn ? 'শিপমেন্টে আছে' : 'Shipped'}</option>
+                          <option value="Delivered">{isBn ? 'ডেলিভার্ড' : 'Delivered'}</option>
+                          <option value="Cancelled">{isBn ? 'বাতিলকৃত' : 'Cancelled'}</option>
                         </select>
                       </td>
-                      <td className="px-4 py-3.5 text-right">
+                      <td className="px-4 py-3.5 text-right whitespace-nowrap">
                         <div className="flex items-center justify-end gap-1.5">
                           {/* 💬 Direct Report Issue to Customer Button */}
                           <button
@@ -751,7 +789,7 @@ export default function AdminOrdersPage() {
                             title="Report issue & message customer directly (WhatsApp/SMS)"
                           >
                             <MessageSquare className="w-3 h-3 text-amber-500" />
-                            <span>রিপোর্ট</span>
+                            <span>Report</span>
                           </button>
 
                           {/* 🖨️ Invoice View & Print Button */}
@@ -849,10 +887,10 @@ export default function AdminOrdersPage() {
                 <table className="w-full text-left text-xs text-slate-700">
                   <thead className="bg-slate-100 text-[10px] uppercase font-bold text-slate-500 border-b border-slate-200">
                     <tr>
-                      <th className="p-3">Product Description</th>
-                      <th className="p-3">SKU</th>
-                      <th className="p-3 text-center">Qty</th>
-                      <th className="p-3 text-right">Price (৳ BDT)</th>
+                      <th className="p-3">{isBn ? 'পণ্যের বিবরণ' : 'Product Description'}</th>
+                      <th className="p-3">{isBn ? 'এসকেইউ' : 'SKU'}</th>
+                      <th className="p-3 text-center">{isBn ? 'পরিমাণ' : 'Qty'}</th>
+                      <th className="p-3 text-right">{isBn ? 'মূল্য (৳ BDT)' : 'Price (৳ BDT)'}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -860,8 +898,8 @@ export default function AdminOrdersPage() {
                       <tr key={idx}>
                         <td className="p-3 font-semibold text-slate-900">{item.title}</td>
                         <td className="p-3 font-mono text-[11px] text-slate-500">{item.sku}</td>
-                        <td className="p-3 text-center font-bold">{item.quantity}</td>
-                        <td className="p-3 text-right font-mono font-bold">৳{item.price.toLocaleString()}</td>
+                        <td className="p-3 text-center font-bold">{isBn ? toBengaliNumber(item.quantity) : item.quantity}</td>
+                        <td className="p-3 text-right font-mono font-bold">{isBn ? `৳${toBengaliNumber(item.price.toLocaleString('en-US'))}` : `৳${item.price.toLocaleString()}`}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -872,20 +910,20 @@ export default function AdminOrdersPage() {
               <div className="flex justify-end text-xs">
                 <div className="w-64 space-y-1.5">
                   <div className="flex justify-between text-slate-600">
-                    <span>Subtotal:</span>
-                    <span className="font-mono font-semibold">৳{selectedInvoice.subtotal.toLocaleString()}</span>
+                    <span>{isBn ? 'সাবটোটাল:' : 'Subtotal:'}</span>
+                    <span className="font-mono font-semibold">{isBn ? `৳${toBengaliNumber(selectedInvoice.subtotal.toLocaleString('en-US'))}` : `৳${selectedInvoice.subtotal.toLocaleString()}`}</span>
                   </div>
                   <div className="flex justify-between text-slate-600">
-                    <span>VAT (7.5%):</span>
-                    <span className="font-mono font-semibold">৳{selectedInvoice.vatTax.toLocaleString()}</span>
+                    <span>{isBn ? `ভ্যাট (${toBengaliNumber('7.5')}%):` : 'VAT (7.5%):'}</span>
+                    <span className="font-mono font-semibold">{isBn ? `৳${toBengaliNumber(selectedInvoice.vatTax.toLocaleString('en-US'))}` : `৳${selectedInvoice.vatTax.toLocaleString()}`}</span>
                   </div>
                   <div className="flex justify-between text-slate-600">
-                    <span>Shipping Fee:</span>
-                    <span className="font-mono font-semibold">৳{selectedInvoice.deliveryFee}</span>
+                    <span>{isBn ? 'ডেলিভারি ফি:' : 'Shipping Fee:'}</span>
+                    <span className="font-mono font-semibold">{isBn ? `৳${toBengaliNumber(selectedInvoice.deliveryFee)}` : `৳${selectedInvoice.deliveryFee}`}</span>
                   </div>
                   <div className="flex justify-between pt-2 border-t border-slate-300 font-bold text-slate-900 text-sm">
-                    <span>Total Amount:</span>
-                    <span className="font-mono font-black text-orange-600">৳{selectedInvoice.total.toLocaleString()} BDT</span>
+                    <span>{isBn ? 'সর্বমোট মূল্য:' : 'Total Amount:'}</span>
+                    <span className="font-mono font-black text-orange-600">{isBn ? `৳${toBengaliNumber(selectedInvoice.total.toLocaleString('en-US'))} BDT` : `৳${selectedInvoice.total.toLocaleString()} BDT`}</span>
                   </div>
                 </div>
               </div>
@@ -894,7 +932,7 @@ export default function AdminOrdersPage() {
               <div className="pt-4 border-t border-slate-200 flex items-center justify-between">
                 <div className="space-y-1">
                   <span className="text-[10px] font-mono uppercase tracking-widest text-slate-500 block">
-                    Parcel Dispatch Barcode
+                    {isBn ? 'পার্সেল ডিসপ্যাচ বারকোড' : 'Parcel Dispatch Barcode'}
                   </span>
                   <div className="h-10 px-4 bg-slate-100 rounded-lg flex items-center font-mono text-sm tracking-widest font-black border border-slate-300">
                     ||||| ||| |||| || ||||| | |||||
@@ -904,7 +942,7 @@ export default function AdminOrdersPage() {
 
                 <div className="text-right">
                   <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">
-                    Scan for Delivery Confirmation
+                    {isBn ? 'ডেলিভারি নিশ্চিতকরণের জন্য স্ক্যান করুন' : 'Scan for Delivery Confirmation'}
                   </span>
                   <div className="inline-flex p-2 rounded-xl bg-slate-100 border border-slate-300 text-slate-800">
                     <QrCode className="w-10 h-10" />
@@ -924,10 +962,10 @@ export default function AdminOrdersPage() {
                 <div>
                   <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
                     <Printer className="w-5 h-5 text-orange-600" />
-                    Batch Printing ({selectedOrdersList.length} Invoices Ready)
+                    {isBn ? `ব্যাচ প্রিন্টিং (${toBengaliNumber(selectedOrdersList.length)}টি ইনভয়েস প্রস্তুত)` : `Batch Printing (${selectedOrdersList.length} Invoices Ready)`}
                   </h2>
                   <p className="text-xs text-slate-500">
-                    Clicking Print will sequentially format each invoice onto an individual packing slip page.
+                    {isBn ? 'প্রিন্ট বাটনে চাপলে প্রতিটি ইনভয়েস আলাদা প্যাকিং স্লিপ হিসেবে প্রিন্ট হবে।' : 'Clicking Print will sequentially format each invoice onto an individual packing slip page.'}
                   </p>
                 </div>
                 <div className="flex items-center gap-2.5">
@@ -936,7 +974,7 @@ export default function AdminOrdersPage() {
                     onClick={handlePrint}
                     className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/30 cursor-pointer"
                   >
-                    <Printer className="w-4 h-4" /> Print All {selectedOrdersList.length} Invoices
+                    <Printer className="w-4 h-4" /> {isBn ? `সব ${toBengaliNumber(selectedOrdersList.length)}টি ইনভয়েস প্রিন্ট করুন` : `Print All ${selectedOrdersList.length} Invoices`}
                   </button>
                   <button
                     type="button"
@@ -969,7 +1007,7 @@ export default function AdminOrdersPage() {
                       </div>
                       <div className="text-right">
                         <span className="font-mono font-black text-sm text-slate-900 block">{ord.orderNumber}</span>
-                        <span className="text-[10px] text-slate-500">Date: {ord.createdAt}</span>
+                        <span className="text-[10px] text-slate-500">{isBn ? 'তারিখ:' : 'Date:'} {ord.createdAt}</span>
                         <div className="mt-1">
                           <span className="px-2 py-0.5 rounded-md bg-orange-50 text-orange-700 text-[10px] font-bold border border-orange-200">
                             {ord.paymentMethod}
@@ -980,16 +1018,16 @@ export default function AdminOrdersPage() {
 
                     <div className="grid grid-cols-2 gap-4 p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs">
                       <div>
-                        <span className="text-[10px] uppercase font-bold text-slate-400 block">Deliver To:</span>
+                        <span className="text-[10px] uppercase font-bold text-slate-400 block">{isBn ? 'প্রাপক:' : 'Deliver To:'}</span>
                         <div className="font-bold text-slate-900">{ord.customerName}</div>
                         <div className="text-slate-600">{ord.customerPhone}</div>
                         <div className="text-slate-600 mt-0.5">{ord.customerAddress}</div>
                       </div>
                       <div>
-                        <span className="text-[10px] uppercase font-bold text-slate-400 block">Dispatch Info:</span>
+                        <span className="text-[10px] uppercase font-bold text-slate-400 block">{isBn ? 'ডিসপ্যাচ তথ্য:' : 'Dispatch Info:'}</span>
                         <div className="font-bold text-slate-900">{ord.courier}</div>
-                        <div className="font-mono text-slate-600">Tracking: {ord.trackingCode}</div>
-                        <div className="text-emerald-600 font-bold mt-0.5">Total: ৳{ord.total.toLocaleString()} BDT</div>
+                        <div className="font-mono text-slate-600">{isBn ? 'ট্র্যাকিং:' : 'Tracking:'} {ord.trackingCode}</div>
+                        <div className="text-emerald-600 font-bold mt-0.5">{isBn ? 'মোট:' : 'Total:'} {isBn ? `৳${toBengaliNumber(ord.total.toLocaleString('en-US'))} BDT` : `৳${ord.total.toLocaleString()} BDT`}</div>
                       </div>
                     </div>
 
@@ -997,10 +1035,10 @@ export default function AdminOrdersPage() {
                       <table className="w-full text-left">
                         <thead className="bg-slate-100 text-[10px] uppercase font-bold text-slate-600 border-b border-slate-200">
                           <tr>
-                            <th className="p-2.5">Item Description</th>
-                            <th className="p-2.5">SKU</th>
-                            <th className="p-2.5 text-center">Qty</th>
-                            <th className="p-2.5 text-right">Price</th>
+                            <th className="p-2.5">{isBn ? 'আইটেম বিবরণ' : 'Item Description'}</th>
+                            <th className="p-2.5">{isBn ? 'এসকেইউ' : 'SKU'}</th>
+                            <th className="p-2.5 text-center">{isBn ? 'পরিমাণ' : 'Qty'}</th>
+                            <th className="p-2.5 text-right">{isBn ? 'মূল্য' : 'Price'}</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -1008,8 +1046,8 @@ export default function AdminOrdersPage() {
                             <tr key={idx}>
                               <td className="p-2.5 font-semibold text-slate-900">{item.title}</td>
                               <td className="p-2.5 font-mono text-[11px] text-slate-500">{item.sku}</td>
-                              <td className="p-2.5 text-center font-bold">{item.quantity}</td>
-                              <td className="p-2.5 text-right font-mono font-bold">৳{item.price.toLocaleString()}</td>
+                              <td className="p-2.5 text-center font-bold">{isBn ? toBengaliNumber(item.quantity) : item.quantity}</td>
+                              <td className="p-2.5 text-right font-mono font-bold">{isBn ? `৳${toBengaliNumber(item.price.toLocaleString('en-US'))}` : `৳${item.price.toLocaleString()}`}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -1024,8 +1062,8 @@ export default function AdminOrdersPage() {
                         <span className="text-[9px] font-mono text-slate-400">{ord.trackingCode}</span>
                       </div>
                       <div className="text-right">
-                        <span className="text-[11px] text-slate-500 block">Slip {index + 1} of {selectedOrdersList.length}</span>
-                        <span className="font-mono font-black text-sm text-orange-600">৳{ord.total.toLocaleString()} BDT</span>
+                        <span className="text-[11px] text-slate-500 block">{isBn ? `স্লিপ ${toBengaliNumber(index + 1)} / ${toBengaliNumber(selectedOrdersList.length)}` : `Slip ${index + 1} of ${selectedOrdersList.length}`}</span>
+                        <span className="font-mono font-black text-sm text-orange-600">{isBn ? `৳${toBengaliNumber(ord.total.toLocaleString('en-US'))} BDT` : `৳${ord.total.toLocaleString()} BDT`}</span>
                       </div>
                     </div>
                   </div>
@@ -1043,10 +1081,10 @@ export default function AdminOrdersPage() {
                 <div>
                   <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
                     <Truck className="w-5 h-5 text-orange-600" />
-                    Courier Logistics Dispatch Manifest
+                    {isBn ? 'কুরিয়ার লজিস্টিকস ডিসপ্যাচ ম্যানিফেস্ট' : 'Courier Logistics Dispatch Manifest'}
                   </h2>
                   <p className="text-xs text-slate-500">
-                    Handover sheet for Pathao, Steadfast, RedX & Paperfly drivers with COD signature confirmation.
+                    {isBn ? 'পাঠাও, স্টিডফাস্ট, রেডএক্স ও পেপারফ্লাই ড্রাইভারদের হ্যান্ডওভার শিট।' : 'Handover sheet for Pathao, Steadfast, RedX & Paperfly drivers with COD signature confirmation.'}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -1055,7 +1093,7 @@ export default function AdminOrdersPage() {
                     onClick={handlePrint}
                     className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md cursor-pointer"
                   >
-                    <Printer className="w-4 h-4" /> Print Manifest
+                    <Printer className="w-4 h-4" /> {isBn ? 'ম্যানিফেস্ট প্রিন্ট করুন' : 'Print Manifest'}
                   </button>
                   <button
                     type="button"
@@ -1070,13 +1108,13 @@ export default function AdminOrdersPage() {
               {/* Manifest Header */}
               <div className="flex justify-between items-center text-xs border-b border-slate-200 pb-3">
                 <div>
-                  <span className="font-bold text-slate-900 text-base">ShopNexus Logistics Dispatch Sheet</span>
-                  <div className="text-slate-500 mt-0.5">Date: {new Date().toLocaleDateString('en-GB')} • Total Parcels: {selectedOrdersList.length}</div>
+                  <span className="font-bold text-slate-900 text-base">{isBn ? 'শপনেক্সাস লজিস্টিকস ডিসপ্যাচ শিট' : 'ShopNexus Logistics Dispatch Sheet'}</span>
+                  <div className="text-slate-500 mt-0.5">{isBn ? `তারিখ: ${toBengaliNumber(new Date().toLocaleDateString('en-GB'))} • মোট পার্সেল: ${toBengaliNumber(selectedOrdersList.length)}টি` : `Date: ${new Date().toLocaleDateString('en-GB')} • Total Parcels: ${selectedOrdersList.length}`}</div>
                 </div>
                 <div className="text-right">
-                  <span className="text-slate-500">Total COD Receivable:</span>
+                  <span className="text-slate-500">{isBn ? 'মোট সিওডি আদায়যোগ্য:' : 'Total COD Receivable:'}</span>
                   <div className="font-mono font-black text-emerald-700 text-base">
-                    ৳{selectedOrdersList.reduce((acc, o) => acc + o.total, 0).toLocaleString()} BDT
+                    {isBn ? `৳${toBengaliNumber(selectedOrdersList.reduce((acc, o) => acc + o.total, 0).toLocaleString('en-US'))} BDT` : `৳${selectedOrdersList.reduce((acc, o) => acc + o.total, 0).toLocaleString()} BDT`}
                   </div>
                 </div>
               </div>
@@ -1087,17 +1125,17 @@ export default function AdminOrdersPage() {
                   <thead className="bg-slate-100 text-[10px] uppercase font-bold text-slate-600 border-b border-slate-200">
                     <tr>
                       <th className="p-3">#</th>
-                      <th className="p-3">Order # & Tracking</th>
-                      <th className="p-3">Recipient & Contact</th>
-                      <th className="p-3">Delivery Area</th>
-                      <th className="p-3 text-right">Collectable COD (৳)</th>
-                      <th className="p-3 text-center w-28">Driver Sign</th>
+                      <th className="p-3">{isBn ? 'অর্ডার # ও ট্র্যাকিং' : 'Order # & Tracking'}</th>
+                      <th className="p-3">{isBn ? 'প্রাপক ও যোগাযোগ' : 'Recipient & Contact'}</th>
+                      <th className="p-3">{isBn ? 'ডেলিভারি এরিয়া' : 'Delivery Area'}</th>
+                      <th className="p-3 text-right">{isBn ? 'আদায়যোগ্য সিওডি (৳)' : 'Collectable COD (৳)'}</th>
+                      <th className="p-3 text-center w-28">{isBn ? 'ড্রাইভার স্বাক্ষর' : 'Driver Sign'}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200 text-slate-700">
                     {selectedOrdersList.map((ord, idx) => (
                       <tr key={ord.id}>
-                        <td className="p-3 font-mono font-bold text-slate-400">{idx + 1}</td>
+                        <td className="p-3 font-mono font-bold text-slate-400">{isBn ? toBengaliNumber(idx + 1) : idx + 1}</td>
                         <td className="p-3">
                           <span className="font-mono font-bold text-slate-900 block">{ord.orderNumber}</span>
                           <span className="font-mono text-[10px] text-orange-600">{ord.trackingCode}</span>
@@ -1108,7 +1146,7 @@ export default function AdminOrdersPage() {
                         </td>
                         <td className="p-3 text-[11px] text-slate-600 max-w-xs truncate">{ord.customerAddress}</td>
                         <td className="p-3 text-right font-mono font-bold text-slate-900">
-                          ৳{ord.total.toLocaleString()}
+                          {isBn ? `৳${toBengaliNumber(ord.total.toLocaleString('en-US'))}` : `৳${ord.total.toLocaleString()}`}
                         </td>
                         <td className="p-3 border-l border-slate-200"></td>
                       </tr>
@@ -1143,7 +1181,7 @@ export default function AdminOrdersPage() {
                       Report Order Issue to Customer
                     </h2>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                      কাস্টমারকে সরাসরি WhatsApp, SMS অথবা Email-এ প্রবলেম রিপোর্ট পাঠান
+                      Send direct issue reports & notifications to customer via WhatsApp or SMS
                     </p>
                   </div>
                 </div>
@@ -1173,15 +1211,15 @@ export default function AdminOrdersPage() {
               {/* Issue Category Radio Selector */}
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider block">
-                  Select Issue Type (সমস্যার ধরন সিলেক্ট করুন):
+                  Select Issue Type:
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                   {[
-                    { id: 'address', label: '🏠 ঠিকানা / ফোন অসম্পূর্ণ (Incomplete Address)' },
-                    { id: 'variant', label: '🎨 ভ্যারিয়েন্ট / কালার পরিবর্তন অনুরোধ' },
-                    { id: 'delay', label: '🚚 কুরিয়ার ডেলিভারি বিলম্ব নোটিশ' },
-                    { id: 'payment', label: '💳 পেমেন্ট ভেরিফিকেশন প্রয়োজন' },
-                    { id: 'custom', label: '📝 কাস্টম মেসেজ / ডিসপুট' },
+                    { id: 'address', label: '🏠 Incomplete Address / Phone' },
+                    { id: 'variant', label: '🎨 Color / Variant Change Request' },
+                    { id: 'delay', label: '🚚 Courier Transit Delay Notice' },
+                    { id: 'payment', label: '💳 Payment Verification Required' },
+                    { id: 'custom', label: '📝 Custom Inquiry / Dispute' },
                   ].map((item) => (
                     <label
                       key={item.id}
@@ -1211,7 +1249,7 @@ export default function AdminOrdersPage() {
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-xs">
                   <label className="font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                    Message Preview / Template (মেসেজ প্রিভিউ):
+                    Message Preview / Template:
                   </label>
                   <button
                     type="button"

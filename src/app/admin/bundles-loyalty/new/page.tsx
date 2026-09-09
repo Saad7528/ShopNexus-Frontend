@@ -8,6 +8,8 @@ import { RoleGuard } from '@/components/auth/RoleGuard';
 import { ALL_PRODUCTS } from '@/data/products';
 import { IBundleItem, IBundleDeal } from '@/data/bundles';
 import { useBundleStore } from '@/store/useBundleStore';
+import { useLanguageStore } from '@/store/useLanguageStore';
+import { toBengaliNumber } from '@/lib/translations';
 import {
   Gift,
   Plus,
@@ -40,6 +42,8 @@ const BADGE_PRESETS = [
 
 export default function NewComboBundlePage() {
   const router = useRouter();
+  const { language } = useLanguageStore();
+  const isBn = language === 'bn';
   const { addBundle } = useBundleStore();
 
   // Basic Details
@@ -145,7 +149,11 @@ export default function NewComboBundlePage() {
   const handleAddItem = (prod: (typeof ALL_PRODUCTS)[0]) => {
     const isAlreadyAdded = selectedItems.some((it) => it.id === prod._id);
     if (isAlreadyAdded) {
-      showToast('⚠️ এই প্রোডাক্টটি ইতোমধ্যে কম্বোতে যুক্ত আছে!');
+      showToast(
+        isBn
+          ? '⚠️ এই প্রোডাক্টটি ইতোমধ্যে কম্বোতে যুক্ত আছে!'
+          : '⚠️ This product is already added to the bundle!'
+      );
       return;
     }
 
@@ -230,12 +238,20 @@ export default function NewComboBundlePage() {
     e.preventDefault();
 
     if (!bundleTitle.trim()) {
-      showToast('❌ অনুগ্রহ করে কম্বো বান্ডেলের নাম প্রদান করুন!');
+      showToast(
+        isBn
+          ? '❌ অনুগ্রহ করে কম্বো বান্ডেলের নাম প্রদান করুন!'
+          : '❌ Please enter a combo bundle title!'
+      );
       return;
     }
 
     if (selectedItems.length === 0) {
-      showToast('❌ বান্ডেলে অন্তত ১টি বা একাধিক প্রোডাক্ট যোগ করুন!');
+      showToast(
+        isBn
+          ? '❌ বান্ডেলে অন্তত ১টি বা একাধিক প্রোডাক্ট যোগ করুন!'
+          : '❌ Please add at least 1 product to the bundle!'
+      );
       return;
     }
 
@@ -261,7 +277,11 @@ export default function NewComboBundlePage() {
 
     addBundle(newBundle);
 
-    showToast('✅ নতুন কম্বো বান্ডেল সফলভাবে তৈরি হয়েছে!');
+    showToast(
+      isBn
+        ? '✅ নতুন কম্বো বান্ডেল সফলভাবে তৈরি হয়েছে!'
+        : '✅ Combo bundle created successfully!'
+    );
     setTimeout(() => {
       router.push('/admin/bundles-loyalty');
     }, 600);
@@ -284,19 +304,21 @@ export default function NewComboBundlePage() {
             <Link
               href="/admin/bundles-loyalty"
               className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors shadow-sm"
-              title="Back to Bundles & Loyalty"
+              title={isBn ? 'বান্ডেল তালিকায় ফিরে যান' : 'Back to Bundles & Loyalty'}
             >
               <ArrowLeft className="w-4 h-4" />
             </Link>
             <div>
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-600 dark:text-orange-400 text-[10px] font-black uppercase tracking-wider mb-1">
-                <Gift className="w-3 h-3" /> Bundle Architect
+                <Gift className="w-3 h-3" /> {isBn ? 'বান্ডেল আর্কিটেক্ট' : 'Bundle Architect'}
               </div>
               <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                Create New Combo Bundle
+                {isBn ? 'নতুন কম্বো বান্ডেল তৈরি করুন' : 'Create New Combo Bundle'}
               </h1>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                প্রোডাক্ট নির্বাচন করুন, আকর্ষনীয় কম্বো ডিসকাউন্ট ও কুপন কোড সেট করে লাইভ করুন।
+                {isBn
+                  ? 'প্রোডাক্ট নির্বাচন করুন, আকর্ষনীয় কম্বো ডিসকাউন্ট ও কুপন কোড সেট করে লাইভ করুন।'
+                  : 'Select products, configure combo discounts, coupon codes, and publish.'}
               </p>
             </div>
           </div>
@@ -307,7 +329,7 @@ export default function NewComboBundlePage() {
               href="/admin/bundles-loyalty"
               className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 font-bold text-xs transition-colors shadow-sm"
             >
-              Cancel
+              {isBn ? 'বাতিল' : 'Cancel'}
             </Link>
             <button
               type="button"
@@ -316,7 +338,15 @@ export default function NewComboBundlePage() {
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/25 transition-all cursor-pointer hover:scale-105 active:scale-95 disabled:opacity-50"
             >
               <Check className="w-4 h-4" />
-              <span>{isSubmitting ? 'Publishing Deal...' : 'Publish Combo Bundle'}</span>
+              <span>
+                {isSubmitting
+                  ? isBn
+                    ? 'প্রকাশিত হচ্ছে...'
+                    : 'Publishing Deal...'
+                  : isBn
+                  ? 'কম্বো বান্ডেল প্রকাশ করুন'
+                  : 'Publish Combo Bundle'}
+              </span>
             </button>
           </div>
         </div>
@@ -329,7 +359,7 @@ export default function NewComboBundlePage() {
             <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-200 flex items-center gap-2">
-                  <Tag className="w-3.5 h-3.5 text-orange-500" /> Combo Bundle Title *
+                  <Tag className="w-3.5 h-3.5 text-orange-500" /> {isBn ? 'কম্বো বান্ডেলের নাম *' : 'Combo Bundle Title *'}
                 </label>
                 <button
                   type="button"
@@ -340,7 +370,7 @@ export default function NewComboBundlePage() {
                   className="inline-flex items-center gap-1.5 text-[11px] font-bold text-orange-600 dark:text-orange-400 hover:underline cursor-pointer"
                 >
                   <Wand2 className="w-3 h-3" />
-                  <span>Auto-Generate from Products</span>
+                  <span>{isBn ? 'প্রোডাক্ট থেকে অটো-নাম তৈরি করুন' : 'Auto-Generate from Products'}</span>
                 </button>
               </div>
 
@@ -352,14 +382,18 @@ export default function NewComboBundlePage() {
                     setBundleTitle(e.target.value);
                     setIsAutoTitleEnabled(false);
                   }}
-                  placeholder="e.g. Ultimate Audiophile Master Combo"
+                  placeholder={isBn ? 'যেমন: আল্টিমেট অডিওফাইল মাস্টার কম্বো' : 'e.g. Ultimate Audiophile Master Combo'}
                   required
                   className="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 transition-all placeholder:text-slate-400"
                 />
               </div>
 
               <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-1">
-                <span>গ্রাহকরা স্টোরফ্রন্টে এবং কম্বো সেকশনে এই নামটি দেখতে পাবেন।</span>
+                <span>
+                  {isBn
+                    ? 'গ্রাহকরা স্টোরফ্রন্টে এবং কম্বো সেকশনে এই নামটি দেখতে পাবেন।'
+                    : 'Customers will see this title on the storefront and bundle offer sections.'}
+                </span>
                 <label className="flex items-center gap-2 cursor-pointer font-medium">
                   <input
                     type="checkbox"
@@ -367,7 +401,7 @@ export default function NewComboBundlePage() {
                     onChange={(e) => setIsAutoTitleEnabled(e.target.checked)}
                     className="rounded text-orange-500 focus:ring-orange-500"
                   />
-                  <span>Sync title when products change</span>
+                  <span>{isBn ? 'প্রোডাক্ট পরিবর্তনে অটো-টাইটেল সিঙ্ক' : 'Sync title when products change'}</span>
                 </label>
               </div>
             </div>
@@ -377,14 +411,19 @@ export default function NewComboBundlePage() {
               <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
                 <div>
                   <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
-                    <Package className="w-4 h-4 text-orange-500" /> Products Included in this Bundle ({selectedItems.length})
+                    <Package className="w-4 h-4 text-orange-500" />{' '}
+                    {isBn
+                      ? `এই বান্ডেলে অন্তর্ভুক্ত প্রোডাক্টসমূহ (${selectedItems.length})`
+                      : `Products Included in this Bundle (${selectedItems.length})`}
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    কম্বোতে অন্তর্ভুক্ত প্রোডাক্টগুলো নির্বাচন করুন ও সাজান।
+                    {isBn
+                      ? 'কম্বোতে অন্তর্ভুক্ত প্রোডাক্টগুলো নির্বাচন করুন ও সাজান।'
+                      : 'Select and organize products included in this bundle.'}
                   </p>
                 </div>
                 <span className="px-2.5 py-1 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-400 font-mono font-black text-xs">
-                  {selectedItems.length} Products Selected
+                  {isBn ? `${selectedItems.length} টি প্রোডাক্ট নির্বাচিত` : `${selectedItems.length} Products Selected`}
                 </span>
               </div>
 
@@ -393,10 +432,12 @@ export default function NewComboBundlePage() {
                 <div className="p-8 text-center rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 space-y-2">
                   <ShoppingBag className="w-8 h-8 text-slate-400 mx-auto" />
                   <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                    কোনো প্রোডাক্ট এখনও যোগ করা হয়নি
+                    {isBn ? 'কোনো প্রোডাক্ট এখনও যোগ করা হয়নি' : 'No products added yet'}
                   </p>
                   <p className="text-[11px] text-slate-500">
-                    নিচের স্টোর ক্যাটালগ থেকে প্রোডাক্টের পাশে থাকা “+ Add” বাটনে ক্লিক করে যুক্ত করুন।
+                    {isBn
+                      ? 'নিচের স্টোর ক্যাটালগ থেকে প্রোডাক্টের পাশে থাকা “+ Add” বাটনে ক্লিক করে যুক্ত করুন।'
+                      : 'Click the "+ Add" button next to any product from the catalog below to add it.'}
                   </p>
                 </div>
               ) : (
@@ -430,8 +471,8 @@ export default function NewComboBundlePage() {
                       </div>
 
                       <div className="flex items-center gap-4 shrink-0 pl-2">
-                        <span className="font-mono font-black text-xs text-slate-900 dark:text-white">
-                          ৳{item.regularPrice.toLocaleString()}
+                        <span className="font-mono font-black text-xs text-slate-900 dark:text-white whitespace-nowrap">
+                          {isBn ? `৳${toBengaliNumber(item.regularPrice.toLocaleString('en-US'))}` : `৳${item.regularPrice.toLocaleString()}`}
                         </span>
                         <button
                           type="button"
@@ -451,10 +492,10 @@ export default function NewComboBundlePage() {
               <div className="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-4">
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
-                    <Layers className="w-3.5 h-3.5 text-orange-500" /> Select Products from Store Catalog
+                    <Layers className="w-3.5 h-3.5 text-orange-500" /> {isBn ? 'স্টোর ক্যাটালগ থেকে প্রোডাক্ট নির্বাচন করুন' : 'Select Products from Store Catalog'}
                   </h4>
-                  <span className="text-[11px] text-slate-500">
-                    {filteredCatalog.length} available products
+                  <span className="text-[11px] text-slate-500 whitespace-nowrap">
+                    {isBn ? `${toBengaliNumber(filteredCatalog.length)} টি প্রোডাক্ট উপলব্ধ` : `${filteredCatalog.length} available products`}
                   </span>
                 </div>
 
@@ -466,7 +507,7 @@ export default function NewComboBundlePage() {
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search products by name or brand..."
+                      placeholder={isBn ? 'নাম বা ব্র্যান্ড দিয়ে সার্চ করুন...' : 'Search products by name or brand...'}
                       className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 transition-all placeholder:text-slate-400 text-slate-900 dark:text-white"
                     />
                   </div>
@@ -511,8 +552,8 @@ export default function NewComboBundlePage() {
                             <h5 className="text-xs font-bold text-slate-900 dark:text-white truncate">
                               {prod.title}
                             </h5>
-                            <span className="text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400">
-                              ৳{(prod.discountPrice || prod.price).toLocaleString()}
+                            <span className="text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                              {isBn ? `৳${toBengaliNumber((prod.discountPrice || prod.price).toLocaleString('en-US'))}` : `৳${(prod.discountPrice || prod.price).toLocaleString()}`}
                             </span>
                           </div>
                         </div>
@@ -589,13 +630,17 @@ export default function NewComboBundlePage() {
 
                 <div>
                   <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 block mb-1.5">
-                    Customer Purchase Instruction
+                    {isBn ? 'গ্রাহক ক্রয়ের নির্দেশিকা' : 'Customer Purchase Instruction'}
                   </label>
                   <input
                     type="text"
                     value={bundlePurchaseInstruction}
                     onChange={(e) => setBundlePurchaseInstruction(e.target.value)}
-                    placeholder="e.g. চেকআউটে অটো ডিসকাউন্ট প্রযোজ্য"
+                    placeholder={
+                      isBn
+                        ? 'যেমন: চেকআউটে অটো ডিসকাউন্ট প্রযোজ্য'
+                        : 'e.g. Auto discount applied at checkout'
+                    }
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 font-medium text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/30 text-slate-900 dark:text-white"
                   />
                 </div>
@@ -608,7 +653,7 @@ export default function NewComboBundlePage() {
             {/* Status & Visibility Card */}
             <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
               <h3 className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">
-                Publishing Status
+                {isBn ? 'প্রকাশনার স্থিতি' : 'Publishing Status'}
               </h3>
 
               <div className="grid grid-cols-3 gap-2">
@@ -627,24 +672,41 @@ export default function NewComboBundlePage() {
                         : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
                     }`}
                   >
-                    {st}
+                    {st === 'Active'
+                      ? isBn
+                        ? 'সক্রিয়'
+                        : 'Active'
+                      : st === 'Draft'
+                      ? isBn
+                        ? 'ড্রাফট'
+                        : 'Draft'
+                      : isBn
+                      ? 'মেয়াদোত্তীর্ণ'
+                      : 'Expired'}
                   </button>
                 ))}
               </div>
 
               <p className="text-[11px] text-slate-500">
                 {bundleStatus === 'Active'
-                  ? '🟢 Active: স্টোরফ্রন্ট এবং কম্বো বান্ডেল অফার পেজে লাইভ থাকবে।'
+                  ? isBn
+                    ? '🟢 Active: স্টোরফ্রন্ট এবং কম্বো বান্ডেল অফার পেজে লাইভ থাকবে।'
+                    : '🟢 Active: Live and visible on storefront & combo pages.'
                   : bundleStatus === 'Draft'
-                  ? '🟡 Draft: সেভ থাকবে কিন্তু কাস্টমারদের কাছে দৃশ্যমান হবে না।'
-                  : '🔴 Expired: অফারের মেয়াদ শেষ বলে প্রদর্শিত হবে।'}
+                  ? isBn
+                    ? '🟡 Draft: সেভ থাকবে কিন্তু কাস্টমারদের কাছে দৃশ্যমান হবে না।'
+                    : '🟡 Draft: Saved internally but hidden from customers.'
+                  : isBn
+                  ? '🔴 Expired: অফারের মেয়াদ শেষ বলে প্রদর্শিত হবে।'
+                  : '🔴 Expired: Displayed as expired or archived.'}
               </p>
             </div>
 
             {/* Promotional Badge Card */}
             <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
               <label className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-200 flex items-center gap-2">
-                <Sparkles className="w-3.5 h-3.5 text-orange-500" /> Promotional Badge
+                <Sparkles className="w-3.5 h-3.5 text-orange-500" />{' '}
+                {isBn ? 'প্রমোশনাল ব্যাজ' : 'Promotional Badge'}
               </label>
 
               {/* Preset Badges */}
@@ -674,7 +736,11 @@ export default function NewComboBundlePage() {
                   type="text"
                   value={customBadge}
                   onChange={(e) => setCustomBadge(e.target.value)}
-                  placeholder="Or type custom badge (e.g. ⚡ MEGA DEAL)..."
+                  placeholder={
+                    isBn
+                      ? 'বা কাস্টম ব্যাজ লিখুন (যেমন: ⚡ মেগা ডিল)...'
+                      : 'Or type custom badge (e.g. ⚡ MEGA DEAL)...'
+                  }
                   className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30"
                 />
               </div>
@@ -683,28 +749,29 @@ export default function NewComboBundlePage() {
             {/* Pricing & Discount Architecture Card */}
             <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-5">
               <h3 className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-200 flex items-center gap-2">
-                <Percent className="w-3.5 h-3.5 text-orange-500" /> Pricing & Discount Breakdown
+                <Percent className="w-3.5 h-3.5 text-orange-500" />{' '}
+                {isBn ? 'মূল্য ও ডিসকাউন্ট হিসাব' : 'Pricing & Discount Breakdown'}
               </h3>
 
               {/* Combined Regular Sum */}
               <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
                 <div>
                   <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                    Combined Regular Total
+                    {isBn ? 'নিয়মিত মোট মূল্য' : 'Combined Regular Total'}
                   </span>
-                  <span className="font-mono font-black text-slate-500 dark:text-slate-400 line-through text-sm">
-                    ৳{combinedRegularPrice.toLocaleString()} BDT
+                  <span className="font-mono font-black text-slate-500 dark:text-slate-400 line-through text-sm whitespace-nowrap">
+                    {isBn ? `৳${toBengaliNumber(combinedRegularPrice.toLocaleString('en-US'))}` : `৳${combinedRegularPrice.toLocaleString()}`} {isBn ? 'টাকা' : 'BDT'}
                   </span>
                 </div>
-                <span className="text-[11px] font-bold text-slate-500">
-                  {selectedItems.length} Products
+                <span className="text-[11px] font-bold text-slate-500 whitespace-nowrap">
+                  {isBn ? toBengaliNumber(selectedItems.length) : selectedItems.length} {isBn ? 'টি প্রোডাক্ট' : 'Products'}
                 </span>
               </div>
 
               {/* Discount Inputs & Quick Presets */}
               <div className="space-y-3">
                 <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 block">
-                  Select or Enter Discount Percentage (%)
+                  {isBn ? 'ডিসকাউন্ট শতাংশ (%) নির্ধারণ করুন' : 'Select or Enter Discount Percentage (%)'}
                 </label>
 
                 {/* Quick Presets */}
@@ -720,7 +787,7 @@ export default function NewComboBundlePage() {
                           : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-orange-500/40'
                       }`}
                     >
-                      {pct}%
+                      {isBn ? `${toBengaliNumber(pct)}%` : `${pct}%`}
                     </button>
                   ))}
                 </div>
@@ -728,7 +795,7 @@ export default function NewComboBundlePage() {
                 {/* Custom % Input */}
                 <div className="relative">
                   <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">
-                    Custom %
+                    {isBn ? 'কাস্টম %' : 'Custom %'}
                   </span>
                   <input
                     type="number"
@@ -746,7 +813,7 @@ export default function NewComboBundlePage() {
               {/* Bundle Offer Price (৳) - Clean controlled string without leading 0 */}
               <div className="space-y-1.5">
                 <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 block">
-                  Bundle Offer Price (৳)
+                  {isBn ? 'বান্ডেল অফার মূল্য (৳)' : 'Bundle Offer Price (৳)'}
                 </label>
                 <div className="relative">
                   <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-mono font-bold text-xs text-orange-500">
@@ -757,7 +824,13 @@ export default function NewComboBundlePage() {
                     min="0"
                     value={bundlePriceInput}
                     onChange={(e) => handleBundlePriceChange(e.target.value)}
-                    placeholder={combinedRegularPrice > 0 ? 'Enter offer price...' : '0'}
+                    placeholder={
+                      combinedRegularPrice > 0
+                        ? isBn
+                          ? 'অফার মূল্য লিখুন...'
+                          : 'Enter offer price...'
+                        : '0'
+                    }
                     className="w-full pl-8 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 font-mono font-black text-base text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500/30"
                   />
                 </div>
@@ -767,7 +840,8 @@ export default function NewComboBundlePage() {
               <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800">
                 <div className="flex items-center justify-between">
                   <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                    <Coins className="w-3.5 h-3.5 text-amber-500" /> Reward Points / Nexus Coins
+                    <Coins className="w-3.5 h-3.5 text-amber-500" />{' '}
+                    {isBn ? 'রিওয়ার্ড পয়েন্টস / নেক্সাস কয়েন' : 'Reward Points / Nexus Coins'}
                   </label>
                   <button
                     type="button"
@@ -777,7 +851,7 @@ export default function NewComboBundlePage() {
                     }}
                     className="text-[10px] font-bold text-orange-600 dark:text-orange-400 hover:underline cursor-pointer flex items-center gap-1"
                   >
-                    <Wand2 className="w-3 h-3" /> Auto (৳100 = 10 pts)
+                    <Wand2 className="w-3 h-3" /> {isBn ? 'অটো (৳১০০ = ১০ পয়েন্ট)' : 'Auto (৳100 = 10 pts)'}
                   </button>
                 </div>
                 <div className="relative">
@@ -787,7 +861,15 @@ export default function NewComboBundlePage() {
                   <input
                     type="number"
                     min="0"
-                    value={isCustomRewardPoints ? rewardPointsInput : (rewardPointsInput !== '' ? rewardPointsInput : (autoRewardPoints > 0 ? autoRewardPoints : ''))}
+                    value={
+                      isCustomRewardPoints
+                        ? rewardPointsInput
+                        : rewardPointsInput !== ''
+                        ? rewardPointsInput
+                        : autoRewardPoints > 0
+                        ? autoRewardPoints
+                        : ''
+                    }
                     onChange={(e) => {
                       setIsCustomRewardPoints(true);
                       setRewardPointsInput(e.target.value);
@@ -798,8 +880,12 @@ export default function NewComboBundlePage() {
                 </div>
                 <p className="text-[10px] text-slate-500">
                   {isCustomRewardPoints
-                    ? '✏️ কাস্টম রিওয়ার্ড পয়েন্ট সেট করা আছে।'
-                    : '⚡ অটো-ক্যালকুলেশন সক্রিয় (মার্জিন কম হলে ইচ্ছেমতো পয়েন্ট বসাতে পারবেন)।'}
+                    ? isBn
+                      ? '✏️ কাস্টম রিওয়ার্ড পয়েন্ট সেট করা আছে।'
+                      : '✏️ Custom reward points set manually.'
+                    : isBn
+                    ? '⚡ অটো-ক্যালকুলেশন সক্রিয় (মার্জিন কম হলে ইচ্ছেমতো পয়েন্ট বসাতে পারবেন)।'
+                    : '⚡ Auto-calculation active (10 pts per ৳100 spent).'}
                 </p>
               </div>
 
@@ -807,19 +893,21 @@ export default function NewComboBundlePage() {
               <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent border border-emerald-500/30 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4" /> Customer Total Savings:
+                    <CheckCircle2 className="w-4 h-4" />{' '}
+                    {isBn ? 'কাস্টমারের মোট সাশ্রয়:' : 'Customer Total Savings:'}
                   </span>
-                  <span className="font-mono font-black text-emerald-600 dark:text-emerald-400 text-sm">
-                    ৳{totalSavings.toLocaleString()} ({actualDiscountPercent}% OFF)
+                  <span className="font-mono font-black text-emerald-600 dark:text-emerald-400 text-sm whitespace-nowrap">
+                    {isBn ? `৳${toBengaliNumber(totalSavings.toLocaleString('en-US'))} (${toBengaliNumber(actualDiscountPercent)}% ছাড়)` : `৳${totalSavings.toLocaleString()} (${actualDiscountPercent}% OFF)`}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between pt-1 border-t border-emerald-500/20 text-xs">
                   <span className="text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
-                    <Coins className="w-3.5 h-3.5 text-amber-500" /> Reward Points Earned:
+                    <Coins className="w-3.5 h-3.5 text-amber-500" />{' '}
+                    {isBn ? 'অর্জিত রিওয়ার্ড পয়েন্টস:' : 'Reward Points Earned:'}
                   </span>
-                  <span className="font-mono font-black text-amber-600 dark:text-amber-400">
-                    +{effectiveRewardPoints} Points
+                  <span className="font-mono font-black text-amber-600 dark:text-amber-400 whitespace-nowrap">
+                    +{isBn ? toBengaliNumber(effectiveRewardPoints) : effectiveRewardPoints} {isBn ? 'পয়েন্ট' : 'Points'}
                   </span>
                 </div>
               </div>
@@ -833,7 +921,15 @@ export default function NewComboBundlePage() {
               className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-black text-xs shadow-xl shadow-orange-500/25 transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <Check className="w-4 h-4" />
-              <span>{isSubmitting ? 'Saving Bundle Deal...' : 'Publish Combo Bundle'}</span>
+              <span>
+                {isSubmitting
+                  ? isBn
+                    ? 'বান্ডেল সেভ হচ্ছে...'
+                    : 'Saving Bundle Deal...'
+                  : isBn
+                  ? 'কম্বো বান্ডেল প্রকাশ করুন'
+                  : 'Publish Combo Bundle'}
+              </span>
             </button>
           </div>
         </form>

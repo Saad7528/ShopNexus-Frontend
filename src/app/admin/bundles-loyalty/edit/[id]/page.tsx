@@ -8,6 +8,8 @@ import { RoleGuard } from '@/components/auth/RoleGuard';
 import { ALL_PRODUCTS } from '@/data/products';
 import { IBundleItem } from '@/data/bundles';
 import { useBundleStore } from '@/store/useBundleStore';
+import { useLanguageStore } from '@/store/useLanguageStore';
+import { toBengaliNumber } from '@/lib/translations';
 import {
   Gift,
   Plus,
@@ -42,6 +44,8 @@ export default function EditComboBundlePage() {
   const router = useRouter();
   const params = useParams();
   const bundleId = (params?.id as string) || '';
+  const { language } = useLanguageStore();
+  const isBn = language === 'bn';
 
   const { bundles, updateBundle } = useBundleStore();
 
@@ -180,7 +184,11 @@ export default function EditComboBundlePage() {
   const handleAddItem = (prod: (typeof ALL_PRODUCTS)[0]) => {
     const isAlreadyAdded = selectedItems.some((it) => it.id === prod._id);
     if (isAlreadyAdded) {
-      showToast('⚠️ এই প্রোডাক্টটি ইতোমধ্যে কম্বোতে যুক্ত আছে!');
+      showToast(
+        isBn
+          ? '⚠️ এই প্রোডাক্টটি ইতোমধ্যে কম্বোতে যুক্ত আছে!'
+          : '⚠️ This product is already added to the bundle!'
+      );
       return;
     }
 
@@ -265,12 +273,20 @@ export default function EditComboBundlePage() {
     e.preventDefault();
 
     if (!bundleTitle.trim()) {
-      showToast('❌ অনুগ্রহ করে কম্বো বান্ডেলের নাম প্রদান করুন!');
+      showToast(
+        isBn
+          ? '❌ অনুগ্রহ করে কম্বো বান্ডেলের নাম প্রদান করুন!'
+          : '❌ Please enter a combo bundle title!'
+      );
       return;
     }
 
     if (selectedItems.length === 0) {
-      showToast('❌ বান্ডেলে অন্তত ১টি বা একাধিক প্রোডাক্ট যোগ করুন!');
+      showToast(
+        isBn
+          ? '❌ বান্ডেলে অন্তত ১টি বা একাধিক প্রোডাক্ট যোগ করুন!'
+          : '❌ Please add at least 1 product to the bundle!'
+      );
       return;
     }
 
@@ -292,7 +308,11 @@ export default function EditComboBundlePage() {
       status: bundleStatus,
     });
 
-    showToast('✅ কম্বো বান্ডেল সফলভাবে আপডেট করা হয়েছে!');
+    showToast(
+      isBn
+        ? '✅ কম্বো বান্ডেল সফলভাবে আপডেট করা হয়েছে!'
+        : '✅ Combo bundle updated successfully!'
+    );
     setTimeout(() => {
       router.push('/admin/bundles-loyalty');
     }, 600);
@@ -303,15 +323,19 @@ export default function EditComboBundlePage() {
       <RoleGuard allowedRoles={['admin']}>
         <div className="max-w-xl mx-auto py-24 text-center space-y-4">
           <AlertCircle className="w-12 h-12 text-orange-500 mx-auto" />
-          <h2 className="text-xl font-black text-slate-900 dark:text-white">কম্বো বান্ডেল পাওয়া যায়নি</h2>
+          <h2 className="text-xl font-black text-slate-900 dark:text-white">
+            {isBn ? 'কম্বো বান্ডেল পাওয়া যায়নি' : 'Combo Bundle Not Found'}
+          </h2>
           <p className="text-xs text-slate-500">
-            এই আইডি ({bundleId})-র কোনো কম্বো বান্ডেল পাওয়া যায়নি অথবা মুছে ফেলা হয়েছে।
+            {isBn
+              ? `এই আইডি (${bundleId})-র কোনো কম্বো বান্ডেল পাওয়া যায়নি অথবা মুছে ফেলা হয়েছে।`
+              : `No combo bundle was found with ID (${bundleId}) or it was deleted.`}
           </p>
           <Link
             href="/admin/bundles-loyalty"
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-500 text-white text-xs font-bold shadow-md hover:bg-orange-600 transition-colors"
           >
-            <ArrowLeft className="w-4 h-4" /> Back to Bundles & Loyalty
+            <ArrowLeft className="w-4 h-4" /> {isBn ? 'বান্ডেল তালিকায় ফিরে যান' : 'Back to Bundles & Loyalty'}
           </Link>
         </div>
       </RoleGuard>
@@ -335,19 +359,21 @@ export default function EditComboBundlePage() {
             <Link
               href="/admin/bundles-loyalty"
               className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors shadow-sm"
-              title="Back to Bundles & Loyalty"
+              title={isBn ? 'বান্ডেল তালিকায় ফিরে যান' : 'Back to Bundles & Loyalty'}
             >
               <ArrowLeft className="w-4 h-4" />
             </Link>
             <div>
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-600 dark:text-orange-400 text-[10px] font-black uppercase tracking-wider mb-1">
-                <Gift className="w-3 h-3" /> Edit Mode • ID: {bundleId}
+                <Gift className="w-3 h-3" /> {isBn ? `এডিট মোড • আইডি: ${bundleId}` : `Edit Mode • ID: ${bundleId}`}
               </div>
               <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                Edit Combo Bundle Deal
+                {isBn ? 'কম্বো বান্ডেল অফার সম্পাদনা' : 'Edit Combo Bundle Deal'}
               </h1>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                বান্ডেল প্যাকেজের তথ্য, প্রোডাক্ট লিস্ট, ডিসকাউন্ট ও কুপন কোড পরিবর্তন করুন।
+                {isBn
+                  ? 'বান্ডেল প্যাকেজের তথ্য, প্রোডাক্ট লিস্ট, ডিসকাউন্ট ও কুপন কোড পরিবর্তন করুন।'
+                  : 'Update bundle offer details, product list, discounts, and promo code.'}
               </p>
             </div>
           </div>
@@ -358,7 +384,7 @@ export default function EditComboBundlePage() {
               href="/admin/bundles-loyalty"
               className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 font-bold text-xs transition-colors shadow-sm"
             >
-              Cancel
+              {isBn ? 'বাতিল' : 'Cancel'}
             </Link>
             <button
               type="button"
@@ -367,7 +393,15 @@ export default function EditComboBundlePage() {
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/25 transition-all cursor-pointer hover:scale-105 active:scale-95 disabled:opacity-50"
             >
               <Check className="w-4 h-4" />
-              <span>{isSubmitting ? 'Saving Changes...' : 'Save Bundle Changes'}</span>
+              <span>
+                {isSubmitting
+                  ? isBn
+                    ? 'পরিবর্তন সেভ হচ্ছে...'
+                    : 'Saving Changes...'
+                  : isBn
+                  ? 'পরিবর্তন সেভ করুন'
+                  : 'Save Bundle Changes'}
+              </span>
             </button>
           </div>
         </div>
@@ -380,7 +414,7 @@ export default function EditComboBundlePage() {
             <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-200 flex items-center gap-2">
-                  <Tag className="w-3.5 h-3.5 text-orange-500" /> Combo Bundle Title *
+                  <Tag className="w-3.5 h-3.5 text-orange-500" /> {isBn ? 'কম্বো বান্ডেলের নাম *' : 'Combo Bundle Title *'}
                 </label>
                 <button
                   type="button"
@@ -391,7 +425,7 @@ export default function EditComboBundlePage() {
                   className="inline-flex items-center gap-1.5 text-[11px] font-bold text-orange-600 dark:text-orange-400 hover:underline cursor-pointer"
                 >
                   <Wand2 className="w-3 h-3" />
-                  <span>Auto-Generate from Products</span>
+                  <span>{isBn ? 'প্রোডাক্ট থেকে অটো-নাম তৈরি করুন' : 'Auto-Generate from Products'}</span>
                 </button>
               </div>
 
@@ -403,14 +437,18 @@ export default function EditComboBundlePage() {
                     setBundleTitle(e.target.value);
                     setIsAutoTitleEnabled(false);
                   }}
-                  placeholder="e.g. Ultimate Audiophile Master Combo"
+                  placeholder={isBn ? 'যেমন: আল্টিমেট অডিওফাইল মাস্টার কম্বো' : 'e.g. Ultimate Audiophile Master Combo'}
                   required
                   className="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 transition-all placeholder:text-slate-400"
                 />
               </div>
 
               <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-1">
-                <span>গ্রাহকরা স্টোরফ্রন্টে এবং কম্বো সেকশনে এই নামটি দেখতে পাবেন।</span>
+                <span>
+                  {isBn
+                    ? 'গ্রাহকরা স্টোরফ্রন্টে এবং কম্বো সেকশনে এই নামটি দেখতে পাবেন।'
+                    : 'Customers will see this title on the storefront and bundle offer sections.'}
+                </span>
                 <label className="flex items-center gap-2 cursor-pointer font-medium">
                   <input
                     type="checkbox"
@@ -418,7 +456,7 @@ export default function EditComboBundlePage() {
                     onChange={(e) => setIsAutoTitleEnabled(e.target.checked)}
                     className="rounded text-orange-500 focus:ring-orange-500"
                   />
-                  <span>Sync title when products change</span>
+                  <span>{isBn ? 'প্রোডাক্ট পরিবর্তনে অটো-টাইটেল সিঙ্ক' : 'Sync title when products change'}</span>
                 </label>
               </div>
             </div>
@@ -428,14 +466,19 @@ export default function EditComboBundlePage() {
               <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
                 <div>
                   <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
-                    <Package className="w-4 h-4 text-orange-500" /> Products Included in this Bundle ({selectedItems.length})
+                    <Package className="w-4 h-4 text-orange-500" />{' '}
+                    {isBn
+                      ? `এই বান্ডেলে অন্তর্ভুক্ত প্রোডাক্টসমূহ (${selectedItems.length})`
+                      : `Products Included in this Bundle (${selectedItems.length})`}
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    কম্বোতে অন্তর্ভুক্ত প্রোডাক্টগুলো নির্বাচন করুন ও সাজান।
+                    {isBn
+                      ? 'কম্বোতে অন্তর্ভুক্ত প্রোডাক্টগুলো নির্বাচন করুন ও সাজান।'
+                      : 'Select and organize products included in this bundle.'}
                   </p>
                 </div>
                 <span className="px-2.5 py-1 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-400 font-mono font-black text-xs">
-                  {selectedItems.length} Products Selected
+                  {isBn ? `${selectedItems.length} টি প্রোডাক্ট নির্বাচিত` : `${selectedItems.length} Products Selected`}
                 </span>
               </div>
 
@@ -444,10 +487,12 @@ export default function EditComboBundlePage() {
                 <div className="p-8 text-center rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 space-y-2">
                   <ShoppingBag className="w-8 h-8 text-slate-400 mx-auto" />
                   <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                    কোনো প্রোডাক্ট এখনও যোগ করা হয়নি
+                    {isBn ? 'কোনো প্রোডাক্ট এখনও যোগ করা হয়নি' : 'No products added yet'}
                   </p>
                   <p className="text-[11px] text-slate-500">
-                    নিচের স্টোর ক্যাটালগ থেকে প্রোডাক্টের পাশে থাকা “+ Add” বাটনে ক্লিক করে যুক্ত করুন।
+                    {isBn
+                      ? 'নিচের স্টোর ক্যাটালগ থেকে প্রোডাক্টের পাশে থাকা “+ Add” বাটনে ক্লিক করে যুক্ত করুন।'
+                      : 'Click the "+ Add" button next to any product from the catalog below to add it.'}
                   </p>
                 </div>
               ) : (
@@ -481,8 +526,8 @@ export default function EditComboBundlePage() {
                       </div>
 
                       <div className="flex items-center gap-4 shrink-0 pl-2">
-                        <span className="font-mono font-black text-xs text-slate-900 dark:text-white">
-                          ৳{item.regularPrice.toLocaleString()}
+                        <span className="font-mono font-black text-xs text-slate-900 dark:text-white whitespace-nowrap">
+                          {isBn ? `৳${toBengaliNumber(item.regularPrice.toLocaleString('en-US'))}` : `৳${item.regularPrice.toLocaleString()}`}
                         </span>
                         <button
                           type="button"
@@ -498,58 +543,54 @@ export default function EditComboBundlePage() {
                 </div>
               )}
 
-              {/* Product Catalog Browser */}
+              {/* Product Catalog Picker Grid */}
               <div className="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
-                    <Layers className="w-3.5 h-3.5 text-orange-500" /> Add More Products from Catalog
-                  </h4>
-                  <span className="text-[11px] text-slate-500">
-                    {filteredCatalog.length} available products
-                  </span>
-                </div>
-
-                {/* Filter & Search Bar */}
-                <div className="flex flex-col sm:flex-row items-center gap-2.5">
-                  <div className="relative flex-1 w-full">
+                <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
+                  <div className="relative w-full sm:w-72">
                     <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <input
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search products by name or brand..."
-                      className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 transition-all placeholder:text-slate-400 text-slate-900 dark:text-white"
+                      placeholder={isBn ? 'ক্যাটালগ থেকে প্রোডাক্ট খুঁজুন...' : 'Search products in catalog...'}
+                      className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/30 text-slate-900 dark:text-white"
                     />
                   </div>
 
-                  <select
-                    value={selectedCategory}
-                    onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="w-full sm:w-44 px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500/30 cursor-pointer"
-                  >
-                    {categories.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
+                  {/* Category Filter Pills */}
+                  <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0 scrollbar-none">
+                    {categories.slice(0, 5).map((cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setSelectedCategory(cat)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                          selectedCategory === cat
+                            ? 'bg-orange-500 text-white shadow-sm'
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                        }`}
+                      >
+                        {cat}
+                      </button>
                     ))}
-                  </select>
+                  </div>
                 </div>
 
-                {/* Scrollable Catalog Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-80 overflow-y-auto pr-1">
+                {/* Catalog Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-72 overflow-y-auto pr-1">
                   {filteredCatalog.map((prod) => {
                     const isAdded = selectedItems.some((it) => it.id === prod._id);
                     return (
                       <div
                         key={prod._id}
-                        className={`flex items-center justify-between p-3 rounded-2xl border transition-all ${
+                        className={`p-3 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
                           isAdded
-                            ? 'bg-orange-500/5 dark:bg-orange-500/10 border-orange-500/40'
-                            : 'bg-slate-50/70 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700'
+                            ? 'bg-orange-500/5 border-orange-500/30 dark:bg-orange-500/10'
+                            : 'bg-slate-50 dark:bg-slate-950/40 border-slate-200 dark:border-slate-800/80 hover:border-slate-300'
                         }`}
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="w-10 h-10 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1 shrink-0 overflow-hidden relative">
+                          <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1 shrink-0 overflow-hidden relative">
                             <Image
                               src={prod.images[0] || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&q=80'}
                               alt={prod.title}
@@ -562,37 +603,32 @@ export default function EditComboBundlePage() {
                             <h5 className="text-xs font-bold text-slate-900 dark:text-white truncate">
                               {prod.title}
                             </h5>
-                            <span className="text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400">
-                              ৳{(prod.discountPrice || prod.price).toLocaleString()}
-                            </span>
+                            <div className="flex items-center gap-2 text-[10px]">
+                              <span className="font-mono font-bold text-orange-600 dark:text-orange-400 whitespace-nowrap">
+                                {isBn ? `৳${toBengaliNumber((prod.discountPrice || prod.price).toLocaleString('en-US'))}` : `৳${(prod.discountPrice || prod.price).toLocaleString()}`}
+                              </span>
+                              <span className="text-slate-400 truncate">{prod.brand}</span>
+                            </div>
                           </div>
                         </div>
 
                         <button
                           type="button"
-                          onClick={() => {
-                            if (isAdded) {
-                              const idx = selectedItems.findIndex((it) => it.id === prod._id);
-                              if (idx !== -1) handleRemoveItem(idx);
-                            } else {
-                              handleAddItem(prod);
-                            }
-                          }}
-                          className={`px-2.5 py-1.5 rounded-xl font-bold text-[11px] transition-all cursor-pointer flex items-center gap-1 shrink-0 ${
+                          onClick={() => handleAddItem(prod)}
+                          disabled={isAdded}
+                          className={`px-3 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
                             isAdded
-                              ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20'
-                              : 'bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/20'
+                              ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 cursor-default border border-emerald-500/20'
+                              : 'bg-orange-500 text-white hover:bg-orange-600 shadow-sm'
                           }`}
                         >
                           {isAdded ? (
                             <>
-                              <Trash2 className="w-3 h-3" />
-                              <span>Remove</span>
+                              <Check className="w-3.5 h-3.5" /> Added
                             </>
                           ) : (
                             <>
-                              <Plus className="w-3 h-3" />
-                              <span>Add</span>
+                              <Plus className="w-3.5 h-3.5" /> Add
                             </>
                           )}
                         </button>
@@ -604,16 +640,21 @@ export default function EditComboBundlePage() {
             </div>
 
             {/* 3. Description & Marketing Copy */}
-            <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+            <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
               <label className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-200 flex items-center gap-2">
-                <Info className="w-3.5 h-3.5 text-orange-500" /> Combo Description & Value Pitch
+                <Layers className="w-3.5 h-3.5 text-orange-500" />{' '}
+                {isBn ? 'বান্ডেল বিবরণ ও অফার হাইলাইটস' : 'Bundle Description & Offer Highlights'}
               </label>
 
               <textarea
                 value={bundleDescription}
                 onChange={(e) => setBundleDescription(e.target.value)}
                 rows={3}
-                placeholder="Describe why buying these products together is the best choice..."
+                placeholder={
+                  isBn
+                    ? 'গ্রাহকদের জন্য এই প্যাকেজ অফারের বিশেষ সুবিধা বর্ণনা করুন...'
+                    : 'Describe why buying these products together is the best choice...'
+                }
                 className="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-medium text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 transition-all placeholder:text-slate-400"
               />
             </div>
@@ -621,13 +662,14 @@ export default function EditComboBundlePage() {
             {/* 4. Checkout & Promo Settings */}
             <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
               <h3 className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-200 flex items-center gap-2">
-                <Tag className="w-3.5 h-3.5 text-orange-500" /> Promo Code & Purchase Instructions
+                <Tag className="w-3.5 h-3.5 text-orange-500" />{' '}
+                {isBn ? 'প্রমো কোড ও ক্রয়ের নির্দেশিকা' : 'Promo Code & Purchase Instructions'}
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 block mb-1.5">
-                    Promotional Voucher Code (Optional)
+                    {isBn ? 'প্রমোশনাল ভাউচার কোড (ঐচ্ছিক)' : 'Promotional Voucher Code (Optional)'}
                   </label>
                   <input
                     type="text"
@@ -640,13 +682,17 @@ export default function EditComboBundlePage() {
 
                 <div>
                   <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 block mb-1.5">
-                    Customer Purchase Instruction
+                    {isBn ? 'গ্রাহক ক্রয়ের নির্দেশিকা' : 'Customer Purchase Instruction'}
                   </label>
                   <input
                     type="text"
                     value={bundlePurchaseInstruction}
                     onChange={(e) => setBundlePurchaseInstruction(e.target.value)}
-                    placeholder="e.g. চেকআউটে অটো ডিসকাউন্ট প্রযোজ্য"
+                    placeholder={
+                      isBn
+                        ? 'যেমন: চেকআউটে অটো ডিসকাউন্ট প্রযোজ্য'
+                        : 'e.g. Auto discount applied at checkout'
+                    }
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 font-medium text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/30 text-slate-900 dark:text-white"
                   />
                 </div>
@@ -659,7 +705,7 @@ export default function EditComboBundlePage() {
             {/* Status & Visibility Card */}
             <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
               <h3 className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">
-                Publishing Status
+                {isBn ? 'প্রকাশনার স্থিতি' : 'Publishing Status'}
               </h3>
 
               <div className="grid grid-cols-3 gap-2">
@@ -678,24 +724,41 @@ export default function EditComboBundlePage() {
                         : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
                     }`}
                   >
-                    {st}
+                    {st === 'Active'
+                      ? isBn
+                        ? 'সক্রিয়'
+                        : 'Active'
+                      : st === 'Draft'
+                      ? isBn
+                        ? 'ড্রাফট'
+                        : 'Draft'
+                      : isBn
+                      ? 'মেয়াদোত্তীর্ণ'
+                      : 'Expired'}
                   </button>
                 ))}
               </div>
 
               <p className="text-[11px] text-slate-500">
                 {bundleStatus === 'Active'
-                  ? '🟢 Active: স্টোরফ্রন্ট এবং কম্বো বান্ডেল অফার পেজে লাইভ থাকবে।'
+                  ? isBn
+                    ? '🟢 Active: স্টোরফ্রন্ট এবং কম্বো বান্ডেল অফার পেজে লাইভ থাকবে।'
+                    : '🟢 Active: Live and visible on storefront & combo pages.'
                   : bundleStatus === 'Draft'
-                  ? '🟡 Draft: সেভ থাকবে কিন্তু কাস্টমারদের কাছে দৃশ্যমান হবে না।'
-                  : '🔴 Expired: অফারের মেয়াদ শেষ বলে প্রদর্শিত হবে।'}
+                  ? isBn
+                    ? '🟡 Draft: সেভ থাকবে কিন্তু কাস্টমারদের কাছে দৃশ্যমান হবে না।'
+                    : '🟡 Draft: Saved internally but hidden from customers.'
+                  : isBn
+                  ? '🔴 Expired: অফারের মেয়াদ শেষ বলে প্রদর্শিত হবে।'
+                  : '🔴 Expired: Displayed as expired or archived.'}
               </p>
             </div>
 
             {/* Promotional Badge Card */}
             <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
               <label className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-200 flex items-center gap-2">
-                <Sparkles className="w-3.5 h-3.5 text-orange-500" /> Promotional Badge
+                <Sparkles className="w-3.5 h-3.5 text-orange-500" />{' '}
+                {isBn ? 'প্রমোশনাল ব্যাজ' : 'Promotional Badge'}
               </label>
 
               {/* Preset Badges */}
@@ -725,7 +788,11 @@ export default function EditComboBundlePage() {
                   type="text"
                   value={customBadge}
                   onChange={(e) => setCustomBadge(e.target.value)}
-                  placeholder="Or type custom badge (e.g. ⚡ MEGA DEAL)..."
+                  placeholder={
+                    isBn
+                      ? 'বা কাস্টম ব্যাজ লিখুন (যেমন: ⚡ মেগা ডিল)...'
+                      : 'Or type custom badge (e.g. ⚡ MEGA DEAL)...'
+                  }
                   className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30"
                 />
               </div>
@@ -734,28 +801,29 @@ export default function EditComboBundlePage() {
             {/* Pricing & Discount Architecture Card */}
             <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-5">
               <h3 className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-200 flex items-center gap-2">
-                <Percent className="w-3.5 h-3.5 text-orange-500" /> Pricing & Discount Breakdown
+                <Percent className="w-3.5 h-3.5 text-orange-500" />{' '}
+                {isBn ? 'মূল্য ও ডিসকাউন্ট হিসাব' : 'Pricing & Discount Breakdown'}
               </h3>
 
               {/* Combined Regular Sum */}
               <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
                 <div>
                   <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                    Combined Regular Total
+                    {isBn ? 'নিয়মিত মোট মূল্য' : 'Combined Regular Total'}
                   </span>
-                  <span className="font-mono font-black text-slate-500 dark:text-slate-400 line-through text-sm">
-                    ৳{combinedRegularPrice.toLocaleString()} BDT
+                  <span className="font-mono font-black text-slate-500 dark:text-slate-400 line-through text-sm whitespace-nowrap">
+                    {isBn ? `৳${toBengaliNumber(combinedRegularPrice.toLocaleString('en-US'))}` : `৳${combinedRegularPrice.toLocaleString()}`} {isBn ? 'টাকা' : 'BDT'}
                   </span>
                 </div>
-                <span className="text-[11px] font-bold text-slate-500">
-                  {selectedItems.length} Products
+                <span className="text-[11px] font-bold text-slate-500 whitespace-nowrap">
+                  {isBn ? toBengaliNumber(selectedItems.length) : selectedItems.length} {isBn ? 'টি প্রোডাক্ট' : 'Products'}
                 </span>
               </div>
 
               {/* Discount Inputs & Quick Presets */}
               <div className="space-y-3">
                 <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 block">
-                  Select or Enter Discount Percentage (%)
+                  {isBn ? 'ডিসকাউন্ট শতাংশ (%) নির্ধারণ করুন' : 'Select or Enter Discount Percentage (%)'}
                 </label>
 
                 {/* Quick Presets */}
@@ -771,7 +839,7 @@ export default function EditComboBundlePage() {
                           : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-orange-500/40'
                       }`}
                     >
-                      {pct}%
+                      {isBn ? `${toBengaliNumber(pct)}%` : `${pct}%`}
                     </button>
                   ))}
                 </div>
@@ -779,7 +847,7 @@ export default function EditComboBundlePage() {
                 {/* Custom % Input */}
                 <div className="relative">
                   <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">
-                    Custom %
+                    {isBn ? 'কাস্টম %' : 'Custom %'}
                   </span>
                   <input
                     type="number"
@@ -797,7 +865,7 @@ export default function EditComboBundlePage() {
               {/* Bundle Offer Price (৳) - Clean controlled string without leading 0 */}
               <div className="space-y-1.5">
                 <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 block">
-                  Bundle Offer Price (৳)
+                  {isBn ? 'বান্ডেল অফার মূল্য (৳)' : 'Bundle Offer Price (৳)'}
                 </label>
                 <div className="relative">
                   <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-mono font-bold text-xs text-orange-500">
@@ -808,7 +876,13 @@ export default function EditComboBundlePage() {
                     min="0"
                     value={bundlePriceInput}
                     onChange={(e) => handleBundlePriceChange(e.target.value)}
-                    placeholder={combinedRegularPrice > 0 ? 'Enter offer price...' : '0'}
+                    placeholder={
+                      combinedRegularPrice > 0
+                        ? isBn
+                          ? 'অফার মূল্য লিখুন...'
+                          : 'Enter offer price...'
+                        : '0'
+                    }
                     className="w-full pl-8 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 font-mono font-black text-base text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500/30"
                   />
                 </div>
@@ -818,7 +892,8 @@ export default function EditComboBundlePage() {
               <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800">
                 <div className="flex items-center justify-between">
                   <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                    <Coins className="w-3.5 h-3.5 text-amber-500" /> Reward Points / Nexus Coins
+                    <Coins className="w-3.5 h-3.5 text-amber-500" />{' '}
+                    {isBn ? 'রিওয়ার্ড পয়েন্টস / নেক্সাস কয়েন' : 'Reward Points / Nexus Coins'}
                   </label>
                   <button
                     type="button"
@@ -828,7 +903,7 @@ export default function EditComboBundlePage() {
                     }}
                     className="text-[10px] font-bold text-orange-600 dark:text-orange-400 hover:underline cursor-pointer flex items-center gap-1"
                   >
-                    <Wand2 className="w-3 h-3" /> Auto (৳100 = 10 pts)
+                    <Wand2 className="w-3 h-3" /> {isBn ? 'অটো (৳১০০ = ১০ পয়েন্ট)' : 'Auto (৳100 = 10 pts)'}
                   </button>
                 </div>
                 <div className="relative">
@@ -838,7 +913,15 @@ export default function EditComboBundlePage() {
                   <input
                     type="number"
                     min="0"
-                    value={isCustomRewardPoints ? rewardPointsInput : (rewardPointsInput !== '' ? rewardPointsInput : (autoRewardPoints > 0 ? autoRewardPoints : ''))}
+                    value={
+                      isCustomRewardPoints
+                        ? rewardPointsInput
+                        : rewardPointsInput !== ''
+                        ? rewardPointsInput
+                        : autoRewardPoints > 0
+                        ? autoRewardPoints
+                        : ''
+                    }
                     onChange={(e) => {
                       setIsCustomRewardPoints(true);
                       setRewardPointsInput(e.target.value);
@@ -849,8 +932,12 @@ export default function EditComboBundlePage() {
                 </div>
                 <p className="text-[10px] text-slate-500">
                   {isCustomRewardPoints
-                    ? '✏️ কাস্টম রিওয়ার্ড পয়েন্ট সেট করা আছে।'
-                    : '⚡ অটো-ক্যালকুলেশন সক্রিয় (মার্জিন কম হলে ইচ্ছেমতো পয়েন্ট বসাতে পারবেন)।'}
+                    ? isBn
+                      ? '✏️ কাস্টম রিওয়ার্ড পয়েন্ট সেট করা আছে।'
+                      : '✏️ Custom reward points set manually.'
+                    : isBn
+                    ? '⚡ অটো-ক্যালকুলেশন সক্রিয় (মার্জিন কম হলে ইচ্ছেমতো পয়েন্ট বসাতে পারবেন)।'
+                    : '⚡ Auto-calculation active (10 pts per ৳100 spent).'}
                 </p>
               </div>
 
@@ -858,19 +945,21 @@ export default function EditComboBundlePage() {
               <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent border border-emerald-500/30 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4" /> Customer Total Savings:
+                    <CheckCircle2 className="w-4 h-4" />{' '}
+                    {isBn ? 'কাস্টমারের মোট সাশ্রয়:' : 'Customer Total Savings:'}
                   </span>
-                  <span className="font-mono font-black text-emerald-600 dark:text-emerald-400 text-sm">
-                    ৳{totalSavings.toLocaleString()} ({actualDiscountPercent}% OFF)
+                  <span className="font-mono font-black text-emerald-600 dark:text-emerald-400 text-sm whitespace-nowrap">
+                    {isBn ? `৳${toBengaliNumber(totalSavings.toLocaleString('en-US'))} (${toBengaliNumber(actualDiscountPercent)}% ছাড়)` : `৳${totalSavings.toLocaleString()} (${actualDiscountPercent}% OFF)`}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between pt-1 border-t border-emerald-500/20 text-xs">
                   <span className="text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
-                    <Coins className="w-3.5 h-3.5 text-amber-500" /> Reward Points Earned:
+                    <Coins className="w-3.5 h-3.5 text-amber-500" />{' '}
+                    {isBn ? 'অর্জিত রিওয়ার্ড পয়েন্টস:' : 'Reward Points Earned:'}
                   </span>
-                  <span className="font-mono font-black text-amber-600 dark:text-amber-400">
-                    +{effectiveRewardPoints} Points
+                  <span className="font-mono font-black text-amber-600 dark:text-amber-400 whitespace-nowrap">
+                    +{isBn ? toBengaliNumber(effectiveRewardPoints) : effectiveRewardPoints} {isBn ? 'পয়েন্ট' : 'Points'}
                   </span>
                 </div>
               </div>
@@ -884,7 +973,15 @@ export default function EditComboBundlePage() {
               className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-black text-xs shadow-xl shadow-orange-500/25 transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <Check className="w-4 h-4" />
-              <span>{isSubmitting ? 'Saving Changes...' : 'Save Bundle Changes'}</span>
+              <span>
+                {isSubmitting
+                  ? isBn
+                    ? 'পরিবর্তন সেভ হচ্ছে...'
+                    : 'Saving Changes...'
+                  : isBn
+                  ? 'পরিবর্তন সেভ করুন'
+                  : 'Save Bundle Changes'}
+              </span>
             </button>
           </div>
         </form>
