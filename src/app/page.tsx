@@ -130,7 +130,7 @@ export default function HomePage() {
 
       {/* ⚡ 2. MEGA FLASH DEALS (2-Column Mobile Grid) */}
       <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-        <div className="p-3.5 sm:p-6 rounded-3xl bg-gradient-to-r from-orange-50/80 via-white to-amber-50/60 dark:from-amber-500/10 dark:via-orange-500/10 dark:to-rose-500/10 border border-orange-200 dark:border-orange-500/20 shadow-sm backdrop-blur-xl">
+        <div className="p-3.5 sm:p-6 rounded-3xl bg-linear-to-r from-orange-50/80 via-white to-amber-50/60 dark:from-amber-500/10 dark:via-orange-500/10 dark:to-rose-500/10 border border-orange-200 dark:border-orange-500/20 shadow-sm backdrop-blur-xl">
           <div className="flex items-center justify-between gap-2 mb-3.5 sm:mb-5">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl bg-orange-500/15 border border-orange-500/30 flex items-center justify-center text-orange-600 dark:text-orange-400 shrink-0">
