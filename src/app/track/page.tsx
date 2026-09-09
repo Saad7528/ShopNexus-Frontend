@@ -128,7 +128,7 @@ function TrackingContent() {
           </p>
         </div>
 
-        {/* 🌟 Search Box */}
+        {/* Search Box */}
         <div className="rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-4 sm:p-6 shadow-xl backdrop-blur-xl space-y-4">
           <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
