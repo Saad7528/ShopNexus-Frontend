@@ -90,12 +90,12 @@ STRICT RULES & GUIDELINES:
    }
 3. LIVE CATALOG ANALYSIS & BRAND SPECIFICITY (CRITICAL):
    - You MUST analyze the catalog carefully for specific brands and products requested by the user.
-   - Example 1 (Brand/Product Inquiry): If the customer asks "স্যামসাং গ্যালাক্সি ওয়াচ আছে" (Do you have Samsung Galaxy Watch?), check the catalog: We have "Samsung Galaxy Watch 6 Classic 47mm Bluetooth (ID: p9)" for ৳36,000 BDT! State clearly: "হ্যাঁ, আমাদের শপনেক্সাস স্টোরে অফিসিয়াল Samsung Galaxy Watch 6 Classic 47mm রয়েছে (মূল্য ৳৩৬,০০০ টাকা)..." and recommend ID: p9.
+   - Example 1 (Brand/Product Inquiry): If the customer asks "স্যামসাং এর ঘড়ি দেখাও" (Show me Samsung watches) or asks about Samsung products, check the catalog: We have "Samsung Galaxy Watch Ultra 47mm Titanium Gray (ID: p8)" for ৳56,000 BDT! State clearly all Samsung details accurately and recommend ID: p8.
    - Example 2 (Budget Realism): If the customer asks for a product type (e.g. speaker) within a specific budget (e.g. 3000 BDT), and our store does not have speakers under 3000 BDT, state clearly that we don't have speakers under 3000 BDT and mention our Marshall Stanmore starts at ৳31,900 BDT. DO NOT recommend expensive headphones/speakers as budget items! Write [RECOMMENDED_IDS: none].
    - Example 3 (Available Budget Matches): If the customer asks for items within a budget that exists in catalog (e.g. "১৫,০০০ টাকার মধ্যে কিবোর্ড"), recommend Keychron Q1 Pro or NuPhy Air75 V2 or HyperX mouse.
 4. STRUCTURED RECOMMENDATION TAG:
    - At the VERY END of your response, on a new line, list the IDs of the products you specifically recommended for this customer in this exact format:
-     [RECOMMENDED_IDS: p9]
+     [RECOMMENDED_IDS: p8]
    - If no products in the catalog fit the customer's budget/request, write:
      [RECOMMENDED_IDS: none]
    - Maximum 4 product IDs.
@@ -124,20 +124,20 @@ ${catalogContext}`;
                   {
                     role: 'user',
                     parts: [
-                      {
-                        text: `${systemPrompt}\n\nCustomer Question: "${query}"\nDetected Budget: ${extractedBudget ? `৳${extractedBudget} BDT` : 'Flexible'}\nCategory Filter: ${category || 'All'}`,
-                      },
-                    ],
+                  {
+                    text: `${systemPrompt}\n\nCustomer Question: "${query}"\nDetected Budget: ${extractedBudget ? `৳${extractedBudget} BDT` : 'Flexible'}\nCategory Filter: ${category || 'All'}`,
                   },
                 ],
-                generationConfig: {
-                  temperature: 0.2,
-                  maxOutputTokens: 2048,
-                },
-              }),
-              signal: AbortSignal.timeout(15000),
-            }
-          );
+              },
+            ],
+            generationConfig: {
+              temperature: 0.2,
+              maxOutputTokens: 2048,
+            },
+          }),
+          signal: AbortSignal.timeout(15000),
+        }
+      );
 
           if (geminiRes.ok) {
             const geminiData = await geminiRes.json();
@@ -196,9 +196,9 @@ ${catalogContext}`;
 
       if (isSamsung) {
         aiReply = isEnglish
-          ? `Yes! We carry the official **Samsung Galaxy Watch 6 Classic 47mm Bluetooth** smartwatch (priced at ৳36,000 BDT) with physical rotating bezel, sapphire crystal glass, and advanced health tracking.`
-          : `হ্যাঁ, আমাদের শপনেক্সাস স্টোরে অফিসিয়াল **Samsung Galaxy Watch 6 Classic 47mm Bluetooth** স্মার্টওয়াচ রয়েছে (মূল্য ৳৩৬,০০০ টাকা)। এতে রয়েছে সিগনেচার রোটেটিং বেজেল, স্যাফায়ার ক্রিস্টাল গ্লাস এবং অ্যাডভান্সড হেলথ সেন্সর। নিচে প্রোডাক্টটি দেখতে পারেন:`;
-        recommendedIds = ['p9'];
+          ? `Yes! We carry the official **Samsung Galaxy Watch Ultra 47mm Titanium Gray** smartwatch (priced at ৳56,000 BDT) with Grade 4 titanium frame, dual-frequency GPS, and 10ATM water resistance.`
+          : `হ্যাঁ, আমাদের শপনেক্সাস স্টোরে অফিসিয়াল **Samsung Galaxy Watch Ultra 47mm Titanium Gray** স্মার্টওয়াচ রয়েছে (মূল্য ৳৫৬,০০০ টাকা)। এতে রয়েছে গ্রেড ৪ টাইটানিয়াম ফ্রেম, ডুয়েল-ফ্রিকোয়েন্সি জিপিএস এবং ১০এটিএম ওয়াটার রেজিস্ট্যান্স। নিচে প্রোডাক্টটি দেখতে পারেন:`;
+        recommendedIds = ['p8'];
       } else if (isApple) {
         aiReply = isEnglish
           ? `Yes! We stock the official **Apple Watch Ultra 2 Titanium** (৳79,900 BDT) and **Apple AirPods Max Space Gray** (৳65,000 BDT). Explore them below:`
@@ -231,9 +231,9 @@ ${catalogContext}`;
         recommendedIds = ['p12'];
       } else if (isGarmin) {
         aiReply = isEnglish
-          ? `Yes! We stock the **Garmin Fenix 7 Pro Solar GPS Smartwatch** (৳85,000 BDT) for multisport and endurance athletes.`
-          : `হ্যাঁ, আমাদের স্টোরে রয়েছে **Garmin Fenix 7 Pro সোলার জিপিএস স্মার্টওয়াচ** (৳৮৫,০০০ টাকা), যা স্পোর্টস ও আউটডোর অ্যাডভেঞ্চারের জন্য সেরা।`;
-        recommendedIds = ['p8'];
+          ? `Yes! We stock the **Garmin Fenix 7X Pro Solar Sapphire Edition** (৳88,000 BDT) for multisport and endurance athletes.`
+          : `হ্যাঁ, আমাদের স্টোরে রয়েছে **Garmin Fenix 7X Pro সোলার স্যাফায়ার এডিশন** (৳৮৮,০০০ টাকা), যা স্পোর্টস ও আউটডোর অ্যাডভেঞ্চারের জন্য সেরা।`;
+        recommendedIds = ['p9'];
       } else if (isHuawei) {
         aiReply = isEnglish
           ? `We have the **Huawei Watch GT 4 Brown Leather Edition** (৳22,500 BDT) featuring 14-day battery life and classic octagonal design.`
@@ -262,8 +262,8 @@ ${catalogContext}`;
           recommendedIds = [];
         } else if (isWatchQuery) {
           aiReply = isEnglish
-            ? `We currently do not stock smartwatches under ৳${extractedBudget.toLocaleString()} BDT. Our official smartwatch collection begins with the **Huawei Watch GT 4** (৳22,500 BDT) and **Samsung Galaxy Watch 6 Classic** (৳36,000 BDT).`
-            : `বর্তমানে ৳${extractedBudget.toLocaleString()} টাকার বাজেটে আমাদের স্টোরে কোনো স্মার্টওয়াচ নেই। আমাদের স্মার্টওয়াচ কালেকশনে **Huawei Watch GT 4** (৳২২,৫০০) এবং **Samsung Galaxy Watch 6 Classic** (৳৩৬,০০০) রয়েছে।`;
+            ? `We currently do not stock smartwatches under ৳${extractedBudget.toLocaleString()} BDT. Our official smartwatch collection begins with the **Huawei Watch GT 4** (৳22,500 BDT) and **Samsung Galaxy Watch Ultra** (৳56,000 BDT).`
+            : `বর্তমানে ৳${extractedBudget.toLocaleString()} টাকার বাজেটে আমাদের স্টোরে কোনো স্মার্টওয়াচ নেই। আমাদের স্মার্টওয়াচ কালেকশনে **Huawei Watch GT 4** (৳২২,৫০০) এবং **Samsung Galaxy Watch Ultra** (৳৫৬,০০০) রয়েছে।`;
           recommendedIds = [];
         } else {
           aiReply = isEnglish
@@ -273,9 +273,9 @@ ${catalogContext}`;
         }
       } else if (isWatchQuery) {
         aiReply = isEnglish
-          ? `Our official smartwatch collection features the **Apple Watch Ultra 2 Titanium** (৳79,900 BDT), **Garmin Fenix 7 Pro** (৳85,000 BDT), and **Samsung Galaxy Watch 6 Classic** (৳36,000 BDT).`
-          : `আমাদের অফিসিয়াল স্মার্টওয়াচ কালেকশনে রয়েছে **Samsung Galaxy Watch 6 Classic** (৳৩৬,০০০ টাকা), **Huawei Watch GT 4** (৳২২,৫০০ টাকা), এবং **Apple Watch Ultra 2** (৳৭৯,৯০০ টাকা)।`;
-        recommendedIds = ['p9', 'p10', 'p7'];
+          ? `Our official smartwatch collection features the **Apple Watch Ultra 2 Titanium** (৳79,900 BDT), **Garmin Fenix 7X Pro** (৳88,000 BDT), and **Samsung Galaxy Watch Ultra** (৳56,000 BDT).`
+          : `আমাদের অফিসিয়াল স্মার্টওয়াচ কালেকশনে রয়েছে **Samsung Galaxy Watch Ultra** (৳৫৬,০০০ টাকা), **Huawei Watch GT 4** (৳২২,৫০০ টাকা), এবং **Apple Watch Ultra 2** (৳৭৯,৯০০ টাকা)।`;
+        recommendedIds = ['p8', 'p10', 'p7'];
       } else if (isKeyboardQuery || isMouseQuery) {
         aiReply = isEnglish
           ? `For keyboards and mice, we recommend the **Keychron Q1 Pro** (৳17,900 BDT), **Logitech MX Master 3S** (৳11,500 BDT), and **NuPhy Air75 V2** (৳13,500 BDT).`
