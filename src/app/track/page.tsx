@@ -417,7 +417,7 @@ function TrackingContent() {
           </div>
         )}
 
-        {/* 🌟 Trust Features / How It Works (Shown when idle or below result) */}
+        {/* Trust Features / How It Works (Shown when idle or below result) */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
           <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 space-y-2">
             <div className="w-8 h-8 rounded-xl bg-orange-500/10 text-orange-500 flex items-center justify-center font-bold text-xs">
