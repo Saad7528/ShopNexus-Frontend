@@ -11,8 +11,12 @@ export interface ProductTrustBadges {
 export interface Product {
   _id: string;
   title: string;
+  title_en?: string;
+  title_bn?: string;
   slug: string;
   description: string;
+  description_en?: string;
+  description_bn?: string;
   category: string;
   brand: string;
   price: number;
