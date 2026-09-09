@@ -182,7 +182,7 @@ function TrackingContent() {
           </div>
         </div>
 
-        {/* 🌟 Result Section */}
+        {/* Result Section */}
         {hasSearched && searchedOrder && (
           <div className="rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-2xl backdrop-blur-2xl space-y-8 animate-fadeIn">
             
