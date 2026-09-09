@@ -347,7 +347,7 @@ function TrackingContent() {
               </div>
             )}
 
-            {/* 🌟 Items in this Order */}
+            {/* Items in this Order */}
             {searchedOrder.items && searchedOrder.items.length > 0 && (
               <div className="space-y-3">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
