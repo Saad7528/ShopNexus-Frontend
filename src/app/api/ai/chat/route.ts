@@ -1,6 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
 import mongoose from 'mongoose';
+import { ALL_PRODUCTS } from '@/data/products';
+
+// Helper to convert Bengali numbers to English numbers
+function parseBengaliOrEnglishNumber(text: string): number | null {
+  if (!text) return null;
+  const bengaliDigits: Record<string, string> = {
+    '০': '0', '১': '1', '২': '2', '৩': '3', '৪': '4',
+    '৫': '5', '৬': '6', '৭': '7', '৮': '8', '৯': '9'
+  };
+  const normalized = text.replace(/[০-৯]/g, (d) => bengaliDigits[d] || d).toLowerCase();
+
+  // Match patterns like "3000", "3k", "3 thousand", "৩ হাজার", "৩০০০ টাকা"
+  const kMatch = normalized.match(/(\d+(?:\.\d+)?)\s*(?:k|হাজার|thousand)/i);
+  if (kMatch) {
+    return Math.round(parseFloat(kMatch[1]) * 1000);
+  }
+
+  const numMatch = normalized.match(/(\d{3,7})/);
+  if (numMatch) {
+    return parseInt(numMatch[1], 10);
+  }
+
+  return null;
+}
 
 export async function POST(req: NextRequest) {
   const startTime = Date.now();
@@ -17,218 +41,214 @@ export async function POST(req: NextRequest) {
     const query = message.trim();
     const queryLower = query.toLowerCase();
 
-    // 🗄️ 1. Connect to Live MongoDB Atlas Database & Fetch Catalog
-    await connectToDatabase();
-    const db = mongoose.connection.db;
-    if (!db) {
-      throw new Error('Database connection failed');
+    // 🗄️ 1. Fetch live products from MongoDB Atlas (with fallback to ALL_PRODUCTS)
+    let catalogProducts: any[] = [...ALL_PRODUCTS];
+    try {
+      await connectToDatabase();
+      const db = mongoose.connection.db;
+      if (db) {
+        const dbItems = await db.collection('products').find({ isActive: { $ne: false } }).toArray();
+        if (dbItems && dbItems.length > 0) {
+          // Merge with static products so IDs like p1..p29 are preserved
+          const dbMap = new Map();
+          dbItems.forEach((item) => {
+            const key = item.slug || item._id?.toString() || item.title;
+            dbMap.set(key, item);
+          });
+          catalogProducts = catalogProducts.map((p) => {
+            const matched = dbMap.get(p.slug) || dbMap.get(p._id);
+            return matched ? { ...p, ...matched } : p;
+          });
+        }
+      }
+    } catch (dbErr) {
+      console.warn('MongoDB connection note, using cached static catalog:', dbErr);
     }
 
-    const productsCollection = db.collection('products');
-    const allProducts = await productsCollection.find({ isActive: { $ne: false } }).toArray();
-
-    // Build rich, formatted catalog context in Bangladeshi Taka (৳ BDT) for Gemini
-    const catalogContext = allProducts
+    // Build catalog grounding for Gemini
+    const catalogContext = catalogProducts
       .map(
         (p) =>
-          `- ${p.title} | Category: ${p.category} | Brand: ${p.brand} | Price: ৳${(p.discountPrice || p.price).toLocaleString()} BDT | Rating: ${p.averageRating || 4.8}★ | Tags: ${p.tags?.join(', ') || ''} | Description: ${p.description || ''}`
+          `ID: ${p._id} | Title: ${p.title} | Category: ${p.category} | Brand: ${p.brand} | Price: ৳${(p.discountPrice || p.price).toLocaleString()} BDT | Rating: ${p.averageRating || 4.9}★ | Description: ${p.description || ''}`
       )
       .join('\n');
 
-    // 🤖 2. Construct Master System Prompt for Google Gemini 3.6 Flash
+    // Parse budget from message or dropdown
+    const extractedBudget = parseBengaliOrEnglishNumber(query) || maxBudget || null;
+
+    // 🤖 2. Construct Master System Prompt for Google Gemini
     const systemPrompt = `You are "Nexus AI Assistant", the hyper-intelligent, official shopping consultant for ShopNexus (Bangladesh's premier official hardware, audiophile audio & workspace gear store).
 
-STRICT CORE GUIDELINES:
-1. ALWAYS quote exact prices in Bangladeshi Taka (৳ BDT). NEVER quote in USD ($) or any other currency.
-2. CRITICAL LANGUAGE REQUIREMENT:
-   - Current Selected Website Language Mode: ${isEnglish ? 'ENGLISH' : 'BANGLA (বাংলা)'}.
+STRICT RULES & GUIDELINES:
+1. PRICING & CURRENCY:
+   - Quote exact prices in Bangladeshi Taka (৳ BDT) based strictly on our catalog. NEVER use USD ($).
+2. LANGUAGE REQUIREMENT:
+   - Selected Website Mode: ${isEnglish ? 'ENGLISH' : 'BANGLA (বাংলা)'}.
    ${
      isEnglish
-       ? "- The customer's website is currently in ENGLISH. You MUST formulate your entire response in 100% natural, fluent, professional English. Do NOT use Bangla script or words."
-       : "- The customer's website is currently in BANGLA (বাংলা). You MUST formulate your entire response in 100% natural, polite Bangla (বাংলা). Do NOT respond in English."
+       ? '- Respond in 100% natural, polite, fluent English. No Bangla script.'
+       : '- Respond in 100% natural, warm, polite Bengali (বাংলা). Use natural conversational Bengali.'
    }
-3. LIVE CATALOG GROUNDING:
-   - Our store officially stocks the items listed in the OFFICIAL CATALOG below.
-   - If the customer asks "What do you have?" or "Who are you?" or greets you (e.g. hi, hello, সালাম, কেমন আছেন):
-     ${
-       isEnglish
-         ? 'Warmly introduce yourself as Nexus AI Assistant, highlight our flagship categories (Apple Watch Ultra 2 smartwatch, Sony WH-1000XM5 & Bose ANC audio, Keychron Q1 Pro custom keyboards, Logitech MX Master mouse, DJI Pocket 3 4K gimbal, and Anker GaN chargers), and ask how you can help.'
-         : 'শপনেক্সাস এআই শপিং সহকারী হিসেবে স্বাগতম জানান, আমাদের প্রধান অফিসিয়াল ক্যাটাগরিগুলো (স্মার্টওয়াচ, সনি ও বোস এএনসি হেডফোন, কাস্টম মেকানিক্যাল কিবোর্ড, মারশাল স্পিকার, ডিজেআই ৪কে ক্যামেরা ইত্যাদি) সংক্ষেপে উল্লেখ করুন এবং কীভাবে সাহায্য করতে পারেন জানতে চান।'
-     }
-   - If the customer asks for a product NOT in our catalog (e.g. Laptop, Smartphones / iPhone, Clothes, TV), politely explain: ${
-     isEnglish
-       ? '"This item is currently not available in our store, but we are working on adding it soon!"'
-       : '"এই প্রোডাক্টটি বর্তমানে আমাদের শপনেক্সাস স্টোরে সরাসরি অ্যাভেইলেবল নেই, তবে শীঘ্রই এটি যুক্ত করার কাজ চলছে!"'
-   } Then suggest relevant available peripherals from our catalog.
-   - If the customer asks for a budget (e.g. "under 15000", "20k budget", "১৫ হাজার টাকার মধ্যে"), identify the exact budget in BDT and recommend the best matching products strictly within or near that budget from our catalog!
-4. Keep the response concise, clear, and engaging (2 to 4 sentences).
+3. LIVE CATALOG ANALYSIS & BUDGET HONESTY (CRITICAL):
+   - You MUST analyze the catalog carefully.
+   - If the customer asks for a product type (e.g. speaker, headphone, watch, keyboard) within a specific budget (e.g., 3000 BDT, 5000 BDT, 10000 BDT), and our store DOES NOT have that product type within that budget:
+     - Clearly and politely explain that we currently do not carry that item within that budget.
+     - State the starting price of that category in our store (e.g. our Marshall Stanmore speaker starts at ৳31,900 BDT).
+     - If there are other gadget accessories near their budget (e.g. HyperX mouse at ৳7,500 BDT or Logitech MX Master at ৳11,500 BDT), mention them as alternatives, or explain our store's focus on authentic premium hardware.
+     - In this scenario, DO NOT falsely claim that expensive items fit their low budget!
+   - If products DO exist within their budget or match their query, recommend the best matching products from the catalog with their exact prices and key features.
+   - If the customer asks for items we do not sell (like iPhone, Laptops, Clothes, TV), politely inform them that we specialize in Audiophile Audio, Smartwatches, Mechanical Keyboards, Studio/Creator Gear, and Desk Peripherals.
+4. STRUCTURED RECOMMENDATION TAG:
+   - At the VERY END of your response, on a new line, list the IDs of the products you specifically recommended for this customer in this exact format:
+     [RECOMMENDED_IDS: p1, p4]
+   - If no products in the catalog fit the customer's budget/request, write:
+     [RECOMMENDED_IDS: none]
+   - Maximum 4 product IDs.
 
-OFFICIAL SHOPNEXUS CATALOG (LIVE MONGODB):
+OFFICIAL SHOPNEXUS CATALOG:
 ${catalogContext}`;
 
-    // ⚡ 3. Call Google Gemini 3.6 Flash API
+    // ⚡ 3. Call Google Gemini API (with multiple model fallbacks)
     let aiReply: string | null = null;
-    let provider = 'gemini-3.6-flash';
+    let provider = 'gemini-1.5-flash';
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
     if (GEMINI_API_KEY) {
-      try {
-        const geminiRes = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${GEMINI_API_KEY}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [
-                {
-                  role: 'user',
-                  parts: [
-                    {
-                      text: `${systemPrompt}\n\nLanguage Mode: ${isEnglish ? 'English' : 'Bangla'}\nCustomer Question: "${query}"\nSelected Category: ${category || 'Any'}\nMax Budget Filter: ${maxBudget ? `৳${maxBudget}` : 'Flexible'}`,
-                    },
-                  ],
+      const modelsToTry = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro'];
+
+      for (const model of modelsToTry) {
+        if (aiReply) break;
+        try {
+          const geminiRes = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [
+                  {
+                    role: 'user',
+                    parts: [
+                      {
+                        text: `${systemPrompt}\n\nCustomer Question: "${query}"\nDetected Budget: ${extractedBudget ? `৳${extractedBudget} BDT` : 'Flexible'}\nCategory Filter: ${category || 'All'}`,
+                      },
+                    ],
+                  },
+                ],
+                generationConfig: {
+                  temperature: 0.3,
+                  maxOutputTokens: 500,
                 },
-              ],
-              generationConfig: {
-                temperature: 0.35,
-                maxOutputTokens: 380,
-              },
-            }),
-            signal: AbortSignal.timeout(4000),
+              }),
+              signal: AbortSignal.timeout(6000),
+            }
+          );
+
+          if (geminiRes.ok) {
+            const geminiData = await geminiRes.json();
+            const candidateText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (candidateText) {
+              aiReply = candidateText.trim();
+              provider = model;
+              break;
+            }
+          } else {
+            console.warn(`Gemini model ${model} responded with status ${geminiRes.status}`);
           }
-        );
-
-        if (geminiRes.ok) {
-          const geminiData = await geminiRes.json();
-          aiReply = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || null;
-        } else {
-          console.warn('Gemini 3.6 API returned error status:', geminiRes.status);
+        } catch (err: any) {
+          console.warn(`Gemini model ${model} error:`, err?.message);
         }
-      } catch (err: any) {
-        console.warn('Gemini 3.6 API call error, activating neural fallback:', err?.message);
       }
     }
 
-    // 🎯 4. Intelligent MongoDB Product Matching for Display Cards
-    let matchedProducts: any[] = [];
-
-    // Check if query is about Smartwatches / Wearables
-    const isSmartwatch =
-      queryLower.includes('smartwatch') ||
-      queryLower.includes('watch') ||
-      queryLower.includes('apple watch') ||
-      queryLower.includes('garmin') ||
-      queryLower.includes('স্মার্টওয়াচ') ||
-      queryLower.includes('স্মার্টওয়াচ') ||
-      queryLower.includes('ঘড়ি') ||
-      queryLower.includes('ঘড়ি');
-
-    const isAudio =
-      queryLower.includes('audio') ||
-      queryLower.includes('headphone') ||
-      queryLower.includes('speaker') ||
-      queryLower.includes('sound') ||
-      queryLower.includes('earphone') ||
-      queryLower.includes('হেডফোন') ||
-      queryLower.includes('স্পিকার') ||
-      queryLower.includes('সাউন্ড') ||
-      queryLower.includes('গান');
-
-    const isKeyboard =
-      queryLower.includes('keyboard') ||
-      queryLower.includes('mouse') ||
-      queryLower.includes('mechanical') ||
-      queryLower.includes('কিবোর্ড') ||
-      queryLower.includes('মাউস');
-
-    // Parse Bengali/English numbers for budget
-    let parsedBudget: number | undefined = maxBudget;
-    if (!parsedBudget) {
-      if (queryLower.includes('১৫ হাজার') || queryLower.includes('১৫০০০') || queryLower.includes('15000') || queryLower.includes('15k')) {
-        parsedBudget = 15000;
-      } else if (queryLower.includes('২০ হাজার') || queryLower.includes('২০০০') || queryLower.includes('20000') || queryLower.includes('20k')) {
-        parsedBudget = 20000;
-      } else if (queryLower.includes('৩০ হাজার') || queryLower.includes('৩০০০') || queryLower.includes('30000') || queryLower.includes('30k')) {
-        parsedBudget = 30000;
-      } else if (queryLower.includes('৫০ হাজার') || queryLower.includes('৫০০০০') || queryLower.includes('50000') || queryLower.includes('50k')) {
-        parsedBudget = 50000;
+    // 🎯 4. Parse Recommended IDs from AI Output
+    let recommendedIds: string[] = [];
+    if (aiReply) {
+      const tagMatch = aiReply.match(/\[RECOMMENDED_IDS:\s*([^\]]+)\]/i);
+      if (tagMatch) {
+        const rawIds = tagMatch[1].trim();
+        if (rawIds.toLowerCase() !== 'none') {
+          recommendedIds = rawIds
+            .split(',')
+            .map((id) => id.trim())
+            .filter((id) => id.length > 0 && id.toLowerCase() !== 'none');
+        }
+        // Remove the technical tag from the user-facing text
+        aiReply = aiReply.replace(/\[RECOMMENDED_IDS:\s*[^\]]+\]/i, '').trim();
       }
     }
 
-    if (isSmartwatch) {
-      matchedProducts = allProducts.filter(
-        (p) => p.category?.toLowerCase().includes('wearable') || p.tags?.includes('smartwatch') || p.title?.toLowerCase().includes('watch')
-      );
-    } else if (isAudio) {
-      matchedProducts = allProducts.filter((p) => p.category?.toLowerCase().includes('audio'));
-    } else if (isKeyboard) {
-      matchedProducts = allProducts.filter(
-        (p) =>
-          p.category?.toLowerCase().includes('keyboard') ||
-          p.category?.toLowerCase().includes('workspace') ||
-          p.tags?.includes('keyboard') ||
-          p.tags?.includes('mouse')
-      );
-    } else {
-      // General match across title, tags, description
-      matchedProducts = allProducts.filter((p) => {
-        const textMatch =
-          p.title?.toLowerCase().includes(queryLower) ||
-          p.brand?.toLowerCase().includes(queryLower) ||
-          p.tags?.some((t: string) => queryLower.includes(t.toLowerCase()));
-        return textMatch;
-      });
-
-      if (matchedProducts.length === 0) {
-        matchedProducts = [...allProducts].sort((a, b) => (b.averageRating || 5) - (a.averageRating || 5));
-      }
-    }
-
-    // Filter and sort by budget
-    if (parsedBudget && parsedBudget > 0) {
-      const budgetMatches = matchedProducts.filter((p) => (p.discountPrice || p.price) <= parsedBudget!);
-      if (budgetMatches.length > 0) {
-        matchedProducts = budgetMatches.sort((a, b) => (a.discountPrice || a.price) - (b.discountPrice || b.price));
-      }
-    }
-
-    // ⚡ 5. Fallback Response
+    // ⚡ 5. Intelligent Fallback Engine if API is unavailable or offline
     if (!aiReply) {
-      provider = 'nexus-neural-engine';
-      if (isEnglish) {
-        if (isSmartwatch) {
-          const topWatch = matchedProducts[0] || { title: 'Apple Watch Ultra 2 Aerospace Titanium', price: 79900 };
-          aiReply = `Yes! We have official top-tier **Smartwatches** available. For the best experience, the **${topWatch.title}** (৳${(topWatch.discountPrice || topWatch.price).toLocaleString()} BDT) is our top recommendation. Explore our curated selection below:`;
-        } else if (isAudio) {
-          aiReply = `Here are the best official audiophile headphones, spatial audio gear, and studio speakers available at ShopNexus:`;
-        } else if (isKeyboard) {
-          aiReply = `Here are our top-rated custom mechanical keyboards and precision ergonomic mice:`;
-        } else if (parsedBudget) {
-          aiReply = `Here are the best official hardware gadgets matching your budget of ৳${parsedBudget.toLocaleString()} BDT. You can add any item to cart with 1-click:`;
-        } else if (queryLower.includes('what do you have') || queryLower.includes('best') || queryLower.includes('hello') || queryLower.includes('hi')) {
-          aiReply = `Welcome to ShopNexus! We feature an exclusive collection of official gear—including **Apple Watch Ultra 2 (Smartwatches)**, **Sony WH-1000XM5 & Bose (ANC Audio)**, **Keychron Q1 Pro (Mechanical Keyboards)**, **Logitech MX Master 3S (Mice)**, and **DJI Pocket 3 (4K Cameras)**. What would you like to explore?`;
+      provider = 'nexus-intelligent-engine';
+      const isSpeakerQuery = queryLower.includes('speaker') || queryLower.includes('স্পিকার');
+      const isHeadphoneQuery = queryLower.includes('headphone') || queryLower.includes('হেডফোন');
+      const isWatchQuery = queryLower.includes('watch') || queryLower.includes('ঘড়ি') || queryLower.includes('স্মার্টওয়াচ');
+      const isKeyboardQuery = queryLower.includes('keyboard') || queryLower.includes('কিবোর্ড');
+      const isMouseQuery = queryLower.includes('mouse') || queryLower.includes('মাউস');
+
+      if (extractedBudget && extractedBudget <= 5000) {
+        if (isSpeakerQuery) {
+          if (isEnglish) {
+            aiReply = `Currently, ShopNexus does not have speakers available under ৳${extractedBudget.toLocaleString()} BDT. Our premium **Marshall Stanmore III** speaker starts at ৳31,900 BDT. We specialize in official high-end audiophile audio equipment.`;
+          } else {
+            aiReply = `বর্তমানে আমাদের শপনেক্সাস স্টোরে ৳${extractedBudget.toLocaleString()} টাকার মধ্যে কোনো স্পিকার অ্যাভেইলেবল নেই। আমাদের স্টোরে প্রিমিয়াম **Marshall Stanmore III** স্পিকারের মূল্য ৳৩১,৯০০ টাকা থেকে শুরু। আমরা মূলত অফিসিয়াল হাই-এন্ড প্রিমিয়াম অডিও গ্যাজেট সরবরাহ করে থাকি।`;
+          }
+          recommendedIds = [];
+        } else if (isWatchQuery) {
+          if (isEnglish) {
+            aiReply = `We currently do not stock smartwatches under ৳${extractedBudget.toLocaleString()} BDT. Our official smartwatch collection begins with the **Huawei Watch GT 4** (৳22,500 BDT) and **Apple Watch Ultra 2** (৳79,900 BDT).`;
+          } else {
+            aiReply = `বর্তমানে ৳${extractedBudget.toLocaleString()} টাকার বাজেটে আমাদের স্টোরে কোনো স্মার্টওয়াচ নেই। আমাদের স্মার্টওয়াচ কালেকশনে **Huawei Watch GT 4** (৳২২,৫০০) এবং **Apple Watch Ultra 2** (৳৭৯,৯০০) রয়েছে।`;
+          }
+          recommendedIds = [];
         } else {
-          aiReply = `Here are the verified official hardware products matching your search at ShopNexus:`;
+          if (isEnglish) {
+            aiReply = `At ৳${extractedBudget.toLocaleString()} BDT budget, our closest premium peripheral is the **HyperX Pulsefire Haste 2 Wireless Mouse** (৳7,500 BDT). Explore our verified collection below:`;
+          } else {
+            aiReply = `৳${extractedBudget.toLocaleString()} বাজেটের কাছাকাছি আমাদের প্রিমিয়াম পেরিফেরাল হলো **HyperX Pulsefire Haste 2 ওয়্যারলেস মাউস** (৳৭,৫০০ টাকা)। আমাদের অফিসিয়াল গ্যাজেটগুলো নিচে দেখতে পারেন:`;
+          }
+          recommendedIds = ['p14'];
         }
+      } else if (isSpeakerQuery) {
+        aiReply = isEnglish
+          ? `For home and studio audio, we highly recommend the **Marshall Stanmore III Bluetooth Speaker** (৳31,900 BDT) for its iconic room-filling acoustic soundstage.`
+          : `হোম ও স্টুডিও অডিওর জন্য আমরা **Marshall Stanmore III ব্লুটুথ স্পিকার** (৳৩১,৯০০ টাকা) রিকমেন্ড করছি, যা রুম-ভরা ক্লাসিক সাউন্ডস্টেজ প্রদান করে।`;
+        recommendedIds = ['p4'];
+      } else if (isKeyboardQuery) {
+        aiReply = isEnglish
+          ? `For the ultimate typing and gaming experience, the **Keychron Q1 Pro CNC Custom Keyboard** (৳17,900 BDT) and **NuPhy Air75 V2** (৳13,500 BDT) are our top choices.`
+          : `টাইপিং ও প্রোডাক্টিভিটির জন্য আমাদের সেরা কাস্টম মেকানিক্যাল কিবোর্ড হলো **Keychron Q1 Pro** (৳১৭,৯০০ টাকা) এবং **NuPhy Air75 V2** (৳১৩,৫০০ টাকা)।`;
+        recommendedIds = ['p11', 'p15'];
+      } else if (isWatchQuery) {
+        aiReply = isEnglish
+          ? `Our flagship smartwatch collection features the **Apple Watch Ultra 2 Titanium** (৳79,900 BDT) and **Garmin Fenix 7 Pro Solar** (৳85,000 BDT).`
+          : `আমাদের ফ্ল্যাগশিপ স্মার্টওয়াচ কালেকশনে রয়েছে **Apple Watch Ultra 2 টাইটানিয়াম** (৳৭৯,৯০০ টাকা) এবং **Garmin Fenix 7 Pro সোলার** (৳৮৫,০০০ টাকা)।`;
+        recommendedIds = ['p7', 'p8'];
       } else {
-        if (isSmartwatch) {
-          const topWatch = matchedProducts[0] || { title: 'Apple Watch Ultra 2 Aerospace Titanium', price: 79900 };
-          aiReply = `হ্যাঁ, আমাদের শপনেক্সাস স্টোরে **অফিসিয়াল স্মার্টওয়াচ** রয়েছে! সেরা অভিজ্ঞতার জন্য **${topWatch.title}** (৳${(topWatch.discountPrice || topWatch.price).toLocaleString()} BDT) আমাদের টপ-রেটেড চয়েস। নিচে আমাদের স্মার্টওয়াচ কালেকশন দেওয়া হলো:`;
-        } else if (isAudio) {
-          aiReply = `শপনেক্সাসের সেরা অফিসিয়াল অডিও, স্টুডিও হেডফোন ও স্পিকারের কালেকশন নিচে দেওয়া হলো:`;
-        } else if (isKeyboard) {
-          aiReply = `শপনেক্সাসের টপ-রেটেড কাস্টম মেকানিক্যাল কিবোর্ড ও প্রিসিশন মাউস নিচে সাজিয়ে দেওয়া হলো:`;
-        } else if (parsedBudget) {
-          aiReply = `৳${parsedBudget.toLocaleString()} বাজেটের মধ্যে শপনেক্সাসের সেরা অফিসিয়াল গ্যাজেটগুলো নিচে সাজিয়ে দেওয়া হলো। ১-ক্লিকেই পছন্দের পণ্য কার্টে যোগ করতে পারেন:`;
-        } else if (queryLower.includes('তোমার কাছে কি আছে') || queryLower.includes('দেখার মতো') || queryLower.includes('কি কি আছে') || queryLower.includes('সালাম') || queryLower.includes('হ্যালো') || queryLower.includes('হাই')) {
-          aiReply = `স্বাগতম! শপনেক্সাসে রয়েছে প্রিমিয়াম অফিসিয়াল গ্যাজেটের এক্সক্লুসিভ কালেকশন—যেমন **Apple Watch Ultra 2 (স্মার্টওয়াচ)**, **Sony WH-1000XM5 ও Marshall (অডিও)**, **Keychron Q1 Pro (কাস্টম কিবোর্ড)**, **Logitech MX Master 3S (মাউস)**, এবং **DJI Pocket 3 (4K ক্যামেরা)**। আপনার পছন্দের গ্যাজেটটি বেছে নিতে পারেন!`;
-        } else {
-          aiReply = `আপনার অনুসন্ধানের ভিত্তিতে শপনেক্সাসের ভেরিফায়েড অফিসিয়াল গ্যাজেটগুলো নিচে দেওয়া হলো:`;
-        }
+        aiReply = isEnglish
+          ? `Welcome to ShopNexus! We feature official hardware gear from Sony, Apple, Bose, Marshall, Keychron, and Logitech. How may I assist your shopping today?`
+          : `স্বাগতম! শপনেক্সাসে রয়েছে Sony, Apple, Bose, Marshall, Keychron এবং Logitech-এর মতো সেরা ব্র্যান্ডের অফিসিয়াল গ্যাজেট। আপনার বাজেটের সেরা গ্যাজেটটি খুঁজে পেতে কীভাবে সাহায্য করতে পারি?`;
+        recommendedIds = ['p1', 'p11', 'p7'];
       }
     }
 
-    const finalProducts = matchedProducts.slice(0, 4);
+    // 🎯 6. Fetch Matching Product Objects for UI Cards
+    let suggestedProducts: any[] = [];
+    if (recommendedIds.length > 0) {
+      suggestedProducts = recommendedIds
+        .map((recId) => {
+          return catalogProducts.find(
+            (p) =>
+              p._id?.toString() === recId ||
+              p.slug === recId ||
+              p.title?.toLowerCase().includes(recId.toLowerCase())
+          );
+        })
+        .filter(Boolean)
+        .slice(0, 4);
+    }
+
     const responseTimeMs = Date.now() - startTime;
 
     return NextResponse.json({
@@ -237,8 +257,8 @@ ${catalogContext}`;
         reply: aiReply,
         provider,
         responseTimeMs,
-        suggestedProducts: finalProducts.map((p) => ({
-          _id: p._id.toString(),
+        suggestedProducts: suggestedProducts.map((p) => ({
+          _id: (p._id || p.slug || '').toString(),
           title: p.title,
           price: p.price,
           discountPrice: p.discountPrice,
