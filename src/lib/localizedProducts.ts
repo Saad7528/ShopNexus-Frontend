@@ -33,7 +33,13 @@ export interface ProductTranslationItem {
   badge_bn?: string;
 }
 
-// Comprehensive bilingual dictionary for all products and combo bundles
+// Check if a string contains Bengali Unicode characters
+export const hasBengaliChars = (text: string): boolean => {
+  if (!text) return false;
+  return /[\u0980-\u09FF]/.test(text);
+};
+
+// Comprehensive bilingual dictionary for all catalog items and combos
 export const PRODUCT_TRANSLATIONS: Record<string, ProductTranslationItem> = {
   p1: {
     title_en: 'Sony WH-1000XM5 Wireless Noise-Cancelling Headphones',
@@ -239,7 +245,7 @@ export const PRODUCT_TRANSLATIONS: Record<string, ProductTranslationItem> = {
     category_bn: 'স্মার্ট হোম ও লিভিং',
   },
 
-  // --- COMBO PACKAGES & BUNDLES (combo-1, combo-2, combo-3 & b-1, b-2, b-3) ---
+  // --- COMBO PACKAGES & BUNDLES ---
   'combo-1': {
     title_en: 'Ultimate Audiophile Master Combo (Sony XM5 + Bose QC Ultra)',
     title_bn: 'আল্টিমেট অডিওফাইল মাস্টার কম্বো (সোনি XM5 + বোস QC আল্ট্রা)',
@@ -258,14 +264,6 @@ export const PRODUCT_TRANSLATIONS: Record<string, ProductTranslationItem> = {
     badge_en: '🔥 15% OFF BUNDLE',
     badge_bn: '🔥 ১৫% ছাড় বান্ডেল',
   },
-  'ultimate-audiophile-master-combo': {
-    title_en: 'Ultimate Audiophile Master Combo (Sony XM5 + Bose QC Ultra)',
-    title_bn: 'আল্টিমেট অডিওফাইল মাস্টার কম্বো (সোনি XM5 + বোস QC আল্ট্রা)',
-    desc_en: 'The ultimate combination of Hi-Fi acoustics and noise cancellation. Save ৳10,710 + get 600 bonus loyalty points!',
-    desc_bn: 'হাই-ফাই মিউজিক ও নয়েজ ক্যান্সেলেশনের সেরা কম্বিনেশন। একসাথে কিনলে ১০,৭১০ টাকা সাশ্রয় ও ৬০০ লয়্যালটি পয়েন্ট বোনাস!',
-    category_bn: '🎁 কম্বো প্যাকেজ ও বান্ডেল',
-  },
-
   'combo-2': {
     title_en: 'Titanium Creator Pro Suite (Apple Watch Ultra 2 + Keychron Q1 Pro)',
     title_bn: 'টাইটানিয়াম ক্রিয়েটর প্রো স্যুট (অ্যাপল ওয়াচ আল্ট্রা ২ + কিক্রন Q1 প্রো)',
@@ -284,14 +282,6 @@ export const PRODUCT_TRANSLATIONS: Record<string, ProductTranslationItem> = {
     badge_en: '⭐ POPULAR COMBO',
     badge_bn: '⭐ জনপ্রিয় কম্বো',
   },
-  'titanium-creator-pro-suite': {
-    title_en: 'Titanium Creator Pro Suite (Apple Watch Ultra 2 + Keychron Q1 Pro)',
-    title_bn: 'টাইটানিয়াম ক্রিয়েটর প্রো স্যুট (অ্যাপল ওয়াচ আল্ট্রা ২ + কিক্রন Q1 প্রো)',
-    desc_en: 'Premium aerospace smartwatch and CNC mechanical keyboard combo to supercharge productivity and lifestyle.',
-    desc_bn: 'স্মার্ট লাইফস্টাইল ও প্রোডাক্টিভিটি বুস্ট করার জন্য প্রিমিয়াম স্মার্টওয়াচ এবং মেকানিক্যাল কিবোর্ড কম্বো।',
-    category_bn: '🎁 কম্বো প্যাকেজ ও বান্ডেল',
-  },
-
   'combo-3': {
     title_en: 'Esports Competitive Duo (Razer Viper V2 Pro + Keychron Q1 Pro)',
     title_bn: 'ই-স্পোর্টস কম্পিটিটিভ ডুয়ো (রেজার ভাইপার V2 প্রো + কিক্রন Q1 প্রো)',
@@ -310,18 +300,131 @@ export const PRODUCT_TRANSLATIONS: Record<string, ProductTranslationItem> = {
     badge_en: '🎮 GAMER SPECIAL',
     badge_bn: '🎮 গেমার স্পেশাল',
   },
-  'esports-competitive-duo': {
-    title_en: 'Esports Competitive Duo (Razer Viper V2 Pro + Keychron Q1 Pro)',
-    title_bn: 'ই-স্পোর্টস কম্পিটিটিভ ডুয়ো (রেজার ভাইপার V2 প্রো + কিক্রন Q1 প্রো)',
-    desc_en: 'Ultra-lightweight wireless esports gaming mouse and custom acoustic mechanical keyboard package.',
-    desc_bn: 'আল্ট্রা-লাইটওয়েট ওয়্যারলেস গেমিং মাউস ও মেকানিক্যাল কাস্টম কিবোর্ড কম্বো।',
+  'watch-combo': {
+    title_en: 'Apple Watch Ultra 2 + Garmin Fenix 7 Pro Combo',
+    title_bn: 'অ্যাপল ওয়াচ আল্ট্রা ২ + গারমিন ফেনিক্স ৭ প্রো স্মার্টওয়াচ কম্বো',
+    desc_en: 'Special curated hardware combo bundle: Get maximum savings on premium smartwatches with bonus loyalty points.',
+    desc_bn: 'বিশেষ প্যাকেজ অফার: প্রিমিয়াম স্মার্টওয়াচ কম্বোতে আকর্ষণীয় সাশ্রয় ও বোনাস লয়্যালটি পয়েন্ট।',
     category_bn: '🎁 কম্বো প্যাকেজ ও বান্ডেল',
+    badge_en: '🔥 15% OFF BUNDLE',
+    badge_bn: '🔥 ১৫% ছাড় বান্ডেল',
   },
 };
 
-// Check if a string contains Bengali Unicode characters
-export const hasBengaliChars = (text: string): boolean => {
-  return /[\u0980-\u09FF]/.test(text);
+/**
+ * Brand & Keyword Dictionary for Smart Universal Transliteration & Auto-Translation
+ */
+const BENGALI_WORD_MAP: Array<[RegExp, string]> = [
+  // Brands
+  [/\bSony\b/gi, 'সোনি'],
+  [/\bBose\b/gi, 'বোস'],
+  [/\bMarshall\b/gi, 'মার্শাল'],
+  [/\bShure\b/gi, 'শুয়ার'],
+  [/\bApple\b/gi, 'অ্যাপল'],
+  [/\bKeychron\b/gi, 'কিক্রন'],
+  [/\bRazer\b/gi, 'রেজার'],
+  [/\bLogitech\b/gi, 'লজিটেক'],
+  [/\bSamsung\b/gi, 'স্যামসাং'],
+  [/\bHuawei\b/gi, 'হুয়াওয়ে'],
+  [/\bDJI\b/gi, 'ডিজেআই'],
+  [/\bElgato\b/gi, 'এলগাতো'],
+  [/\bAnker\b/gi, 'অ্যাঙ্কার'],
+  [/\bPhilips\b/gi, 'ফিলিপস'],
+  [/\bDyson\b/gi, 'ডাইসন'],
+  [/\bNanoleaf\b/gi, 'ন্যানোফ লিফ'],
+  [/\bEcobee\b/gi, 'ইকোবি'],
+  [/\bLevel\b/gi, 'লেভেল'],
+  [/\bHyperX\b/gi, 'হায়পারএক্স'],
+  [/\bNuPhy\b/gi, 'নুফি'],
+  [/\bGarmin\b/gi, 'গারমিন'],
+  [/\bSennheiser\b/gi, 'সেনহাইজার'],
+  [/\bStanmore\b/gi, 'স্ট্যানমোর'],
+  [/\bQuietComfort\b/gi, 'কোয়াইট-কমফোর্ট'],
+  [/\bAirPods\b/gi, 'এয়ারপডস'],
+  [/\bViper\b/gi, 'ভাইপার'],
+  [/\bHuntsman\b/gi, 'হান্টসম্যান'],
+
+  // Categories & Core Terms
+  [/\bCombo Suite\b/gi, 'কম্বো স্যুট'],
+  [/\bCombo\b/gi, 'কম্বো'],
+  [/\bSuite\b/gi, 'স্যুট'],
+  [/\bBundle\b/gi, 'বান্ডেল'],
+  [/\bPackages?\b/gi, 'প্যাকেজ'],
+  [/\bWireless\b/gi, 'ওয়্যারলেস'],
+  [/\bNoise-Cancelling\b/gi, 'নয়েজ-ক্যানসেলিং'],
+  [/\bNoise Cancelling\b/gi, 'নয়েজ ক্যানসেলিং'],
+  [/\bHeadphones?\b/gi, 'হেডফোন'],
+  [/\bEarbuds?\b/gi, 'ইয়ারবাডস'],
+  [/\bEarphones?\b/gi, 'ইয়ারফোন'],
+  [/\bSpeakers?\b/gi, 'স্পিকার'],
+  [/\bMicrophones?\b/gi, 'মাইক্রোফোন'],
+  [/\bSmartwatch\b/gi, 'স্মার্টওয়াচ'],
+  [/\bWatch\b/gi, 'ওয়াচ'],
+  [/\bKeyboards?\b/gi, 'কিবোর্ড'],
+  [/\bMechanical\b/gi, 'মেকানিক্যাল'],
+  [/\bMice\b/gi, 'মাউস'],
+  [/\bMouse\b/gi, 'মাউস'],
+  [/\bCameras?\b/gi, 'ক্যামেরা'],
+  [/\bLightstrips?\b/gi, 'লাইটস্ট্রিপ'],
+  [/\bThermostats?\b/gi, 'থার্মোস্ট্যাট'],
+  [/\bPower Banks?\b/gi, 'পাওয়ার ব্যাংক'],
+  [/\bGimbals?\b/gi, 'জিম্বাল'],
+  [/\bControllers?\b/gi, 'কন্ট্রোলার'],
+  [/\bSpatial Audio\b/gi, 'স্পেশিয়াল অডিও'],
+  [/\bDynamic\b/gi, 'ডায়নামিক'],
+  [/\bAudiophile\b/gi, 'অডিওফাইল'],
+  [/\bMaster\b/gi, 'মাস্টার'],
+  [/\bCreator\b/gi, 'ক্রিয়েটর'],
+  [/\bPro\b/gi, 'প্রো'],
+  [/\bUltra\b/gi, 'আল্ট্রা'],
+  [/\bMax\b/gi, 'ম্যাক্স'],
+  [/\bPlus\b/gi, 'প্লাস'],
+  [/\bClassic\b/gi, 'ক্লাসিক'],
+  [/\bTitanium\b/gi, 'টাইটানিয়াম'],
+  [/\bCompetitive\b/gi, 'কম্পিটিটিভ'],
+  [/\bDuo\b/gi, 'ডুয়ো'],
+  [/\bSpecial\b/gi, 'স্পেশাল'],
+  [/\bEdition\b/gi, 'এডিশন'],
+  [/\bStarter Kit\b/gi, 'স্টার্টার কিট'],
+];
+
+/**
+ * Universal Auto-Translator for English Product / Combo titles into fluent Bengali
+ */
+export const autoTranslateTitleToBengali = (title: string): string => {
+  if (!title) return '';
+  if (hasBengaliChars(title)) return title;
+
+  let translated = title;
+  for (const [pattern, replacement] of BENGALI_WORD_MAP) {
+    translated = translated.replace(pattern, replacement);
+  }
+
+  // Handle common trailing digits or models like "III" -> "৩", "3S" -> "৩এস", "II" -> "২"
+  translated = translated
+    .replace(/\bIII\b/g, '৩')
+    .replace(/\bII\b/g, '২')
+    .replace(/\bIV\b/g, '৪')
+    .replace(/\bV\b/g, '৫');
+
+  return translated;
+};
+
+/**
+ * Universal Auto-Translator for Bengali Titles back into standard English
+ */
+export const autoTranslateTitleToEnglish = (title: string): string => {
+  if (!title) return '';
+  if (!hasBengaliChars(title)) return title;
+
+  // If title is pure Bengali, check reverse lookup in dictionary
+  for (const item of Object.values(PRODUCT_TRANSLATIONS)) {
+    if (item.title_bn === title || title.includes(item.title_bn)) {
+      return item.title_en;
+    }
+  }
+
+  return title;
 };
 
 export interface LocalizedProductData {
@@ -337,7 +440,7 @@ export interface LocalizedProductData {
 
 /**
  * Smart Bilingual Resolver for Products and Combo Packages
- * Seamlessly resolves Bengali or English titles and descriptions with intelligent fallbacks.
+ * Supports direct dictionary lookup, slug matching, semantic title matching, and universal auto-translation.
  */
 export const getLocalizedProduct = (product: Partial<Product> | any, lang: Language = 'bn'): LocalizedProductData => {
   if (!product) {
@@ -351,25 +454,81 @@ export const getLocalizedProduct = (product: Partial<Product> | any, lang: Langu
     };
   }
 
-  // Lookup in dictionary by _id, slug, or id
-  const lookupKey = product._id || product.slug || product.id || '';
-  const trans = PRODUCT_TRANSLATIONS[lookupKey] || 
-    (product.slug ? PRODUCT_TRANSLATIONS[product.slug] : undefined);
+  // 1. Precise lookup by _id, slug, or id
+  const lookupKey = (product._id || product.slug || product.id || '').toString();
+  let trans = PRODUCT_TRANSLATIONS[lookupKey] || (product.slug ? PRODUCT_TRANSLATIONS[product.slug] : undefined);
+
+  // 2. Fallback lookup by normalized title
+  if (!trans && product.title) {
+    const slugified = product.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    trans = PRODUCT_TRANSLATIONS[slugified];
+
+    if (!trans) {
+      for (const item of Object.values(PRODUCT_TRANSLATIONS)) {
+        if (
+          item.title_en.toLowerCase() === product.title.toLowerCase() ||
+          item.title_bn === product.title ||
+          product.title.toLowerCase().includes(item.title_en.toLowerCase())
+        ) {
+          trans = item;
+          break;
+        }
+      }
+    }
+  }
+
+  const isCombo =
+    product.category === 'Combo Packages' ||
+    (product.tags && product.tags.includes('combo')) ||
+    (product.title && /combo|bundle|suite/i.test(product.title));
 
   let title = '';
   let description = '';
   let badge: string | undefined = undefined;
 
   if (lang === 'bn') {
-    // 1. Bengali Mode
-    title = trans?.title_bn || product.title_bn || product.title || '';
-    description = trans?.desc_bn || product.description_bn || product.description || '';
+    // ----------------------------------------------------
+    // BENGALI MODE (বাং)
+    // ----------------------------------------------------
+    if (trans?.title_bn) {
+      title = trans.title_bn;
+    } else if (product.title_bn) {
+      title = product.title_bn;
+    } else if (hasBengaliChars(product.title)) {
+      title = product.title;
+    } else {
+      // Dynamic Auto-Translation from English to Bengali
+      title = autoTranslateTitleToBengali(product.title || '');
+    }
+
+    if (trans?.desc_bn) {
+      description = trans.desc_bn;
+    } else if (product.description_bn) {
+      description = product.description_bn;
+    } else if (hasBengaliChars(product.description)) {
+      description = product.description;
+    } else {
+      // Dynamic Auto-Translation for Description in Bengali mode
+      description = isCombo
+        ? 'বিশেষ প্যাকেজ অফার: একসাথে একাধিক গ্যাজেটে আকর্ষণীয় সাশ্রয় ও বোনাস লয়্যালটি পয়েন্ট।'
+        : `${product.brand ? `${product.brand} ব্র্যান্ডের ` : ''}১০০% অথেনটিক অফিসিয়াল গ্যাজেট, ম্যানুফ্যাকচারার ওয়ারেন্টি ও ফাস্ট হোম ডেলিভারি সুবিধা সহ।`;
+    }
+
     badge = trans?.badge_bn;
   } else {
-    // 2. English Mode
-    title = trans?.title_en || product.title_en || product.title || '';
-    
-    // For description in English: make sure no hardcoded Bengali leaks
+    // ----------------------------------------------------
+    // ENGLISH MODE (EN)
+    // ----------------------------------------------------
+    if (trans?.title_en) {
+      title = trans.title_en;
+    } else if (product.title_en) {
+      title = product.title_en;
+    } else if (!hasBengaliChars(product.title)) {
+      title = product.title || '';
+    } else {
+      title = autoTranslateTitleToEnglish(product.title || '');
+    }
+
     if (trans?.desc_en) {
       description = trans.desc_en;
     } else if (product.description_en) {
@@ -377,12 +536,11 @@ export const getLocalizedProduct = (product: Partial<Product> | any, lang: Langu
     } else if (product.description && !hasBengaliChars(product.description)) {
       description = product.description;
     } else {
-      // Dynamic clean English fallback for items without English description
-      const isCombo = product.category === 'Combo Packages' || (product.tags && product.tags.includes('combo'));
       description = isCombo
-        ? 'Special curated hardware combo bundle: Get maximum savings on verified genuine gadgets.'
+        ? 'Special Curated Bundle: Get extra discount on multiple devices with bonus reward points.'
         : `Authentic ${product.brand || 'premium'} device with manufacturer warranty and fast express delivery.`;
     }
+
     badge = trans?.badge_en;
   }
 
@@ -400,7 +558,12 @@ export const getLocalizedProduct = (product: Partial<Product> | any, lang: Langu
   const formattedOriginalPrice =
     product.isFlashSale && typeof product.discountPrice === 'number' ? formatCurrency(rawPrice, lang) : undefined;
 
-  const avgRating = typeof product.averageRating === 'number' ? product.averageRating : typeof product.rating === 'number' ? product.rating : 4.9;
+  const avgRating =
+    typeof product.averageRating === 'number'
+      ? product.averageRating
+      : typeof product.rating === 'number'
+      ? product.rating
+      : 4.9;
   const ratingFormatted = lang === 'bn' ? toBengaliNumber(avgRating.toFixed(1)) : avgRating.toFixed(1);
 
   const totalReviews = typeof product.totalReviews === 'number' ? product.totalReviews : 0;
@@ -437,29 +600,29 @@ export interface LocalizedBundleData {
 }
 
 /**
- * Smart Bilingual Resolver for Bundles in ComboDealsSection and Store
+ * Smart Bilingual Resolver for Bundles
  */
 export const getLocalizedBundle = (bundle: IBundleDeal, lang: Language = 'bn'): LocalizedBundleData => {
-  const trans = PRODUCT_TRANSLATIONS[bundle.id] || PRODUCT_TRANSLATIONS[bundle.title.toLowerCase().replace(/\s+/g, '-')];
-  
-  const title = lang === 'bn' ? (trans?.title_bn || bundle.title) : (trans?.title_en || bundle.title);
-  
+  const lookupKey = bundle.id || bundle.title.toLowerCase().replace(/\s+/g, '-');
+  const trans = PRODUCT_TRANSLATIONS[lookupKey] || PRODUCT_TRANSLATIONS[bundle.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')];
+
+  let title = '';
   let description = '';
+
   if (lang === 'bn') {
-    description = trans?.desc_bn || bundle.description;
+    title = trans?.title_bn || bundle.title_bn || autoTranslateTitleToBengali(bundle.title);
+    description = trans?.desc_bn || bundle.description_bn || (hasBengaliChars(bundle.description) ? bundle.description : 'বিশেষ প্যাকেজ অফার: একসাথে একাধিক গ্যাজেটে আকর্ষণীয় সাশ্রয় ও বোনাস লয়্যালটি পয়েন্ট।');
   } else {
-    if (trans?.desc_en) {
-      description = trans.desc_en;
-    } else if (!hasBengaliChars(bundle.description)) {
-      description = bundle.description;
-    } else {
-      description = 'Special curated hardware combo bundle: Get maximum savings and bonus loyalty reward points.';
-    }
+    title = trans?.title_en || bundle.title_en || autoTranslateTitleToEnglish(bundle.title);
+    description = trans?.desc_en || bundle.description_en || (!hasBengaliChars(bundle.description) ? bundle.description : 'Special curated hardware combo bundle: Get maximum savings and bonus loyalty reward points.');
   }
 
   let badge = bundle.badge;
   if (trans?.badge_bn && lang === 'bn') badge = trans.badge_bn;
   if (trans?.badge_en && lang === 'en') badge = trans.badge_en;
+  if (lang === 'bn' && !hasBengaliChars(badge)) {
+    badge = badge.replace(/OFF BUNDLE/i, 'ছাড় বান্ডেল').replace(/POPULAR COMBO/i, 'জনপ্রিয় কম্বো').replace(/GAMER SPECIAL/i, 'গেমার স্পেশাল');
+  }
 
   const savingsFormatted = formatCurrency(bundle.savings, lang);
   const bundlePriceFormatted = formatCurrency(bundle.bundlePrice, lang);
@@ -469,9 +632,13 @@ export const getLocalizedBundle = (bundle: IBundleDeal, lang: Language = 'bn'): 
   const cashbackFormatted = formatCurrency(cashbackTaka, lang);
 
   const items = (bundle.items || []).map((it) => {
-    // Check if item has a product translation
     const itemTrans = PRODUCT_TRANSLATIONS[`p${it.id}`] || PRODUCT_TRANSLATIONS[it.id];
-    const itemTitle = lang === 'bn' ? (itemTrans?.title_bn || it.title) : (itemTrans?.title_en || it.title);
+    let itemTitle = it.title;
+    if (lang === 'bn') {
+      itemTitle = itemTrans?.title_bn || autoTranslateTitleToBengali(it.title);
+    } else {
+      itemTitle = itemTrans?.title_en || autoTranslateTitleToEnglish(it.title);
+    }
     return {
       ...it,
       title: itemTitle,
