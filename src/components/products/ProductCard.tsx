@@ -189,8 +189,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             <Zap className="w-2.5 h-2.5 fill-current" />
             <span>
               {product.flashSaleDiscountPercent
-                ? `-${mounted && language === 'bn' ? toBengaliNumber(product.flashSaleDiscountPercent) : product.flashSaleDiscountPercent}%${isCombo ? ' COMBO' : ''}`
-                : (mounted ? (isCombo ? 'কম্বো' : t('badge_sale')) : (isCombo ? 'COMBO' : 'SALE'))}
+                ? `-${mounted && language === 'bn' ? toBengaliNumber(product.flashSaleDiscountPercent) : product.flashSaleDiscountPercent}%${isCombo ? (mounted && language === 'bn' ? ' কম্বো' : ' COMBO') : ''}`
+                : (mounted ? (isCombo ? (language === 'bn' ? 'কম্বো' : 'COMBO') : t('badge_sale')) : (isCombo ? 'COMBO' : 'SALE'))}
             </span>
           </div>
         )}
@@ -199,7 +199,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         {isCombo ? (
           <div className="absolute top-1 right-1 sm:top-2 sm:right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-400 dark:bg-amber-500 text-slate-950 font-black text-[8px] sm:text-[9px] shadow-md z-10">
             <Coins className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-slate-950" />
-            <span>+{mounted && language === 'bn' ? toBengaliNumber(earnedLoyaltyPoints) : earnedLoyaltyPoints} pts</span>
+            <span>+{mounted && language === 'bn' ? toBengaliNumber(earnedLoyaltyPoints) : earnedLoyaltyPoints} {mounted && language === 'bn' ? 'পয়েন্ট' : 'pts'}</span>
           </div>
         ) : (
           /* Low Stock Badge */
@@ -235,9 +235,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           >
             {productTitle}
           </h3>
-          {isCombo && product.description && (
-            <p className="text-[9px] text-orange-600 dark:text-orange-400 font-medium line-clamp-1 mb-0.5">
-              {product.description}
+          {isCombo && (
+            <p 
+              className="text-[9px] text-orange-600 dark:text-orange-400 font-medium line-clamp-1 mb-0.5"
+              title={localized ? localized.description : product.description}
+            >
+              {localized ? localized.description : (language === 'bn' ? product.description : (product.description_en || 'Special curated hardware combo bundle.'))}
             </p>
           )}
 

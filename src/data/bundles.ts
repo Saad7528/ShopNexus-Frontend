@@ -10,8 +10,14 @@ export interface IBundleItem {
 export interface IBundleDeal {
   id: string;
   title: string;
+  title_en?: string;
+  title_bn?: string;
   badge: string;
+  badge_en?: string;
+  badge_bn?: string;
   description: string;
+  description_en?: string;
+  description_bn?: string;
   promoCode?: string;
   purchaseInstruction?: string;
   items: IBundleItem[];
@@ -27,8 +33,14 @@ export const INITIAL_BUNDLES: IBundleDeal[] = [
   {
     id: 'b-1',
     title: 'Ultimate Audiophile Master Combo',
+    title_en: 'Ultimate Audiophile Master Combo',
+    title_bn: 'আল্টিমেট অডিওফাইল মাস্টার কম্বো (সোনি XM5 + বোস QC আল্ট্রা)',
     badge: '🔥 15% OFF BUNDLE',
-    description: 'হাই-ফাই মিউজিক ও নয়েজ ক্যান্সেলেশনের সেরা কম্বিনেশন। একসাথে কিনলে ১০,৭১০ টাকা সাশ্রয় ও ৬০০ লয়্যালটি পয়েন্ট বোনাস!',
+    badge_en: '🔥 15% OFF BUNDLE',
+    badge_bn: '🔥 ১৫% ছাড় বান্ডেল',
+    description: 'The ultimate combination of Hi-Fi acoustics and noise cancellation. Save ৳10,710 + get 600 bonus loyalty points!',
+    description_en: 'The ultimate combination of Hi-Fi acoustics and noise cancellation. Save ৳10,710 + get 600 bonus loyalty points!',
+    description_bn: 'হাই-ফাই মিউজিক ও নয়েজ ক্যান্সেলেশনের সেরা কম্বিনেশন। একসাথে কিনলে ১০,৭১০ টাকা সাশ্রয় ও ৬০০ লয়্যালটি পয়েন্ট বোনাস!',
     promoCode: 'AUDIOPRO15',
     purchaseInstruction: 'চেকআউটে অটো ডিসকাউন্ট প্রযোজ্য অথবা কোড AUDIOPRO15 ব্যবহার করুন',
     items: [
@@ -59,8 +71,14 @@ export const INITIAL_BUNDLES: IBundleDeal[] = [
   {
     id: 'b-2',
     title: 'Titanium Creator Pro Suite',
+    title_en: 'Titanium Creator Pro Suite',
+    title_bn: 'টাইটানিয়াম ক্রিয়েটর প্রো স্যুট (অ্যাপল ওয়াচ আল্ট্রা ২ + কিক্রন Q1 প্রো)',
     badge: '⭐ POPULAR COMBO',
-    description: 'স্মার্ট লাইফস্টাইল ও প্রোডাক্টিভিটি বুস্ট করার জন্য প্রিমিয়াম স্মার্টওয়াচ এবং মেকানিক্যাল কিবোর্ড।',
+    badge_en: '⭐ POPULAR COMBO',
+    badge_bn: '⭐ জনপ্রিয় কম্বো',
+    description: 'Premium aerospace smartwatch and CNC mechanical keyboard combo to supercharge productivity and lifestyle.',
+    description_en: 'Premium aerospace smartwatch and CNC mechanical keyboard combo to supercharge productivity and lifestyle.',
+    description_bn: 'স্মার্ট লাইফস্টাইল ও প্রোডাক্টিভিটি বুস্ট করার জন্য প্রিমিয়াম স্মার্টওয়াচ এবং মেকানিক্যাল কিবোর্ড কম্বো।',
     promoCode: 'CREATORVIP',
     purchaseInstruction: 'এক ক্লিকে কম্বো অর্ডার করুন এবং ফ্রি ডেলিভারি উপভোগ করুন',
     items: [
@@ -91,8 +109,14 @@ export const INITIAL_BUNDLES: IBundleDeal[] = [
   {
     id: 'b-3',
     title: 'Esports Competitive Duo',
+    title_en: 'Esports Competitive Duo',
+    title_bn: 'ই-স্পোর্টস কম্পিটিটিভ ডুয়ো (রেজার ভাইপার V2 প্রো + কিক্রন Q1 প্রো)',
     badge: '🎮 GAMER SPECIAL',
-    description: 'আল্ট্রা-লাইটওয়েট ওয়্যারলেস গেমিং মাউস ও মেকানিক্যাল কাস্টম কিবোর্ড কম্বো।',
+    badge_en: '🎮 GAMER SPECIAL',
+    badge_bn: '🎮 গেমার স্পেশাল',
+    description: 'Ultra-lightweight wireless esports gaming mouse and custom acoustic mechanical keyboard package.',
+    description_en: 'Ultra-lightweight wireless esports gaming mouse and custom acoustic mechanical keyboard package.',
+    description_bn: 'আল্ট্রা-লাইটওয়েট ওয়্যারলেস গেমিং মাউস ও মেকানিক্যাল কাস্টম কিবোর্ড কম্বো।',
     promoCode: 'ESPORTS10',
     purchaseInstruction: 'গেমিং বান্ডেল ডিসকাউন্টের সাথে পাবেন ৩ মাসের রিপ্লেসমেন্ট ওয়ারেন্টি',
     items: [
