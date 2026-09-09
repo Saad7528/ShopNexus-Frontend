@@ -9,6 +9,7 @@ import { ChatbotWidget } from '@/components/ai/ChatbotWidget';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
 import StorefrontTelemetryTracker from '@/components/analytics/StorefrontTelemetryTracker';
 import CrossTabAuthSync from '@/components/auth/CrossTabAuthSync';
+import { GlobalDialogModal } from '@/components/common/GlobalDialogModal';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -74,6 +75,9 @@ export default function RootLayout({
 
           {/* Global Floating AI Shopping Assistant */}
           <ChatbotWidget />
+
+          {/* Global Modal & Confirmation Dialog */}
+          <GlobalDialogModal />
 
           {/* Global Footer */}
           <Footer />
