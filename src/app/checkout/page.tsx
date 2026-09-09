@@ -889,7 +889,7 @@ function CheckoutContent() {
         </div>
       </div>
 
-      {/* 💳 MFS BKASH / NAGAD PAYMENT SIMULATION MODAL */}
+      {/* MFS BKASH / NAGAD PAYMENT MODAL */}
       <MfsPaymentModal
         isOpen={isMfsModalOpen}
         onClose={() => setIsMfsModalOpen(false)}
