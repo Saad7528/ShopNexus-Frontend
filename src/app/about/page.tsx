@@ -310,7 +310,6 @@ export default function AboutAndFAQPage() {
           </p>
         </div>
 
-        {/* Category Tabs */}
         <div className="flex items-center justify-center gap-2 flex-wrap">
           {['All', 'Orders', 'Delivery', 'Payments', 'Tracking'].map((cat) => (
             <button
