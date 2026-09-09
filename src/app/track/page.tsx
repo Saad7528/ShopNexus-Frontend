@@ -215,7 +215,7 @@ function TrackingContent() {
               </div>
             </div>
 
-            {/* 🌟 5-Step Visual Progress Stepper */}
+            {/*  5-Step Visual Progress Stepper */}
             <div className="space-y-4">
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-orange-500" />
