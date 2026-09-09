@@ -35,6 +35,7 @@ import {
   Sparkles,
   RefreshCw,
   Copy,
+  CreditCard,
 } from 'lucide-react';
 
 interface IOrderItem {
@@ -453,6 +454,32 @@ export default function AdminOrdersPage() {
 
   const selectedOrdersList = orders.filter((o) => selectedOrderIds.includes(o.id));
 
+  // Payment Badge Helper
+  const renderPaymentBadge = (method: string) => {
+    const m = (method || '').toLowerCase();
+    let badgeStyle =
+      'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700';
+
+    if (m.includes('bkash')) {
+      badgeStyle = 'bg-pink-500/10 border-pink-500/30 text-pink-700 dark:text-pink-300';
+    } else if (m.includes('nagad')) {
+      badgeStyle = 'bg-orange-500/10 border-orange-500/30 text-orange-700 dark:text-orange-300';
+    } else if (m.includes('cash') || m.includes('cod')) {
+      badgeStyle = 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-300';
+    } else if (m.includes('card') || m.includes('visa') || m.includes('master')) {
+      badgeStyle = 'bg-indigo-500/10 border-indigo-500/30 text-indigo-700 dark:text-indigo-300';
+    }
+
+    return (
+      <span
+        className={`px-2.5 py-1 rounded-full text-[10px] font-bold border whitespace-nowrap inline-flex items-center gap-1.5 shadow-2xs ${badgeStyle}`}
+      >
+        <CreditCard className="w-3 h-3 shrink-0 opacity-80" />
+        <span>{method}</span>
+      </span>
+    );
+  };
+
   return (
     <RoleGuard allowedRoles={['admin']}>
       <div className="space-y-6 max-w-7xl mx-auto pb-16">
@@ -466,7 +493,7 @@ export default function AdminOrdersPage() {
               Orders & Batch Invoicing Management
             </h1>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
-              ১-ক্লিকে সারাদিনের সকল অর্ডারের ইনভয়েস বের করুন, রেঞ্জ প্রিন্ট করুন এবং কাস্টমারকে সরাসরি প্রবলেম রিপোর্ট করুন।
+              Generate 1-click batch invoices, print barcode packing slips by range, and report delivery issues directly to customers.
             </p>
           </div>
 
@@ -479,7 +506,7 @@ export default function AdminOrdersPage() {
               title="Select all today's confirmed and processing orders"
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span>আজকের কনফার্মড অর্ডার ({orders.filter((o) => o.isToday && (o.status === 'Confirmed' || o.status === 'Processing')).length})</span>
+              <span>Today&apos;s Confirmed ({orders.filter((o) => o.isToday && (o.status === 'Confirmed' || o.status === 'Processing')).length})</span>
             </button>
 
             <button
@@ -489,7 +516,7 @@ export default function AdminOrdersPage() {
               title="Select all today's orders regardless of status"
             >
               <Calendar className="w-3.5 h-3.5 text-orange-500" />
-              <span>আজকের সারাদিনের ইনভয়েস</span>
+              <span>Today&apos;s Invoices</span>
             </button>
           </div>
         </div>
@@ -538,11 +565,11 @@ export default function AdminOrdersPage() {
             </div>
           </div>
 
-          {/* 🔢 Order Range Filter Toolbar (এত নম্বর অর্ডার থেকে এত নম্বর অর্ডার পর্যন্ত সবগুলা ইনভয়েস) */}
+          {/* 🔢 Order Range Filter Toolbar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 text-xs">
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                <Layers className="w-4 h-4 text-orange-500" /> অর্ডার রেঞ্জ ফিল্টার:
+                <Layers className="w-4 h-4 text-orange-500" /> Order Range Filter:
               </span>
               <div className="flex items-center gap-1.5 font-mono">
                 <span className="text-slate-400">NX-ORD-</span>
@@ -553,7 +580,7 @@ export default function AdminOrdersPage() {
                   onChange={(e) => setRangeStart(e.target.value)}
                   className="w-20 px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold text-xs focus:border-orange-500 focus:outline-none"
                 />
-                <span className="text-slate-400 font-sans font-bold">থেকে</span>
+                <span className="text-slate-400 font-sans font-bold">to</span>
                 <span className="text-slate-400">NX-ORD-</span>
                 <input
                   type="number"
@@ -568,7 +595,7 @@ export default function AdminOrdersPage() {
                 onClick={handleSelectRange}
                 className="px-3 py-1 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/30 font-bold text-xs transition-colors cursor-pointer"
               >
-                Select Range (রেঞ্জ সিলেক্ট)
+                Select Range
               </button>
             </div>
 
@@ -611,7 +638,7 @@ export default function AdminOrdersPage() {
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white text-xs font-black shadow-lg shadow-orange-500/30 transition-all cursor-pointer hover:scale-105"
               >
                 <Printer className="w-4 h-4" />
-                <span>সবগুলো ইনভয়েস একসাথে প্রিন্ট ({selectedOrderIds.length})</span>
+                <span>Print Selected Invoices ({selectedOrderIds.length})</span>
               </button>
 
               <button
@@ -641,13 +668,13 @@ export default function AdminOrdersPage() {
                       title="Select / Deselect all visible orders"
                     />
                   </th>
-                  <th className="px-4 py-3.5">Order Invoice</th>
-                  <th className="px-4 py-3.5">Customer & Phone</th>
-                  <th className="px-4 py-3.5">Items</th>
-                  <th className="px-4 py-3.5">Total (৳ BDT)</th>
-                  <th className="px-4 py-3.5">Payment</th>
-                  <th className="px-4 py-3.5">Status</th>
-                  <th className="px-4 py-3.5 text-right">Actions & Print</th>
+                  <th className="px-4 py-3.5 whitespace-nowrap min-w-[130px]">Order Invoice</th>
+                  <th className="px-4 py-3.5 min-w-[170px]">Customer & Phone</th>
+                  <th className="px-4 py-3.5 min-w-[200px]">Items</th>
+                  <th className="px-4 py-3.5 whitespace-nowrap min-w-[120px]">Total (৳ BDT)</th>
+                  <th className="px-4 py-3.5 whitespace-nowrap min-w-[140px]">Payment</th>
+                  <th className="px-4 py-3.5 whitespace-nowrap min-w-[130px]">Status</th>
+                  <th className="px-4 py-3.5 whitespace-nowrap min-w-[150px] text-right">Actions & Print</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
@@ -668,7 +695,7 @@ export default function AdminOrdersPage() {
                           className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
                         />
                       </td>
-                      <td className="px-4 py-3.5">
+                      <td className="px-4 py-3.5 whitespace-nowrap">
                         <span className="font-mono font-black text-orange-600 dark:text-orange-400 block">
                           {ord.orderNumber}
                         </span>
@@ -690,7 +717,7 @@ export default function AdminOrdersPage() {
                         {ord.activeIssue && (
                           <div className="mt-1 px-2 py-0.5 rounded-lg bg-rose-500/15 border border-rose-500/30 text-[9px] font-bold text-rose-700 dark:text-rose-300 inline-flex items-center gap-1">
                             <MessageSquare className="w-3 h-3 text-rose-600 dark:text-rose-400 shrink-0" />
-                            <span>ইস্যু রিপোর্ট: {ord.activeIssue.title}</span>
+                            <span>Issue Reported: {ord.activeIssue.title}</span>
                           </div>
                         )}
                       </td>
@@ -703,15 +730,13 @@ export default function AdminOrdersPage() {
                           ))}
                         </div>
                       </td>
-                      <td className="px-4 py-3.5 font-mono font-black text-slate-900 dark:text-white text-sm">
+                      <td className="px-4 py-3.5 font-mono font-black text-slate-900 dark:text-white text-sm whitespace-nowrap">
                         ৳{ord.total.toLocaleString()}
                       </td>
-                      <td className="px-4 py-3.5">
-                        <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-semibold text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
-                          {ord.paymentMethod}
-                        </span>
+                      <td className="px-4 py-3.5 whitespace-nowrap">
+                        {renderPaymentBadge(ord.paymentMethod)}
                       </td>
-                      <td className="px-4 py-3.5">
+                      <td className="px-4 py-3.5 whitespace-nowrap">
                         <select
                           value={ord.status}
                           onChange={(e) => handleStatusChange(ord.id, e.target.value as any)}
@@ -737,7 +762,7 @@ export default function AdminOrdersPage() {
                           <option value="Cancelled">Cancelled</option>
                         </select>
                       </td>
-                      <td className="px-4 py-3.5 text-right">
+                      <td className="px-4 py-3.5 text-right whitespace-nowrap">
                         <div className="flex items-center justify-end gap-1.5">
                           {/* 💬 Direct Report Issue to Customer Button */}
                           <button
@@ -751,7 +776,7 @@ export default function AdminOrdersPage() {
                             title="Report issue & message customer directly (WhatsApp/SMS)"
                           >
                             <MessageSquare className="w-3 h-3 text-amber-500" />
-                            <span>রিপোর্ট</span>
+                            <span>Report</span>
                           </button>
 
                           {/* 🖨️ Invoice View & Print Button */}
@@ -1143,7 +1168,7 @@ export default function AdminOrdersPage() {
                       Report Order Issue to Customer
                     </h2>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                      কাস্টমারকে সরাসরি WhatsApp, SMS অথবা Email-এ প্রবলেম রিপোর্ট পাঠান
+                      Send direct issue reports & notifications to customer via WhatsApp or SMS
                     </p>
                   </div>
                 </div>
@@ -1173,15 +1198,15 @@ export default function AdminOrdersPage() {
               {/* Issue Category Radio Selector */}
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider block">
-                  Select Issue Type (সমস্যার ধরন সিলেক্ট করুন):
+                  Select Issue Type:
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                   {[
-                    { id: 'address', label: '🏠 ঠিকানা / ফোন অসম্পূর্ণ (Incomplete Address)' },
-                    { id: 'variant', label: '🎨 ভ্যারিয়েন্ট / কালার পরিবর্তন অনুরোধ' },
-                    { id: 'delay', label: '🚚 কুরিয়ার ডেলিভারি বিলম্ব নোটিশ' },
-                    { id: 'payment', label: '💳 পেমেন্ট ভেরিফিকেশন প্রয়োজন' },
-                    { id: 'custom', label: '📝 কাস্টম মেসেজ / ডিসপুট' },
+                    { id: 'address', label: '🏠 Incomplete Address / Phone' },
+                    { id: 'variant', label: '🎨 Color / Variant Change Request' },
+                    { id: 'delay', label: '🚚 Courier Transit Delay Notice' },
+                    { id: 'payment', label: '💳 Payment Verification Required' },
+                    { id: 'custom', label: '📝 Custom Inquiry / Dispute' },
                   ].map((item) => (
                     <label
                       key={item.id}
@@ -1211,7 +1236,7 @@ export default function AdminOrdersPage() {
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-xs">
                   <label className="font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                    Message Preview / Template (মেসেজ প্রিভিউ):
+                    Message Preview / Template:
                   </label>
                   <button
                     type="button"

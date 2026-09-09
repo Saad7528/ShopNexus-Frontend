@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
           }));
 
           const dbKeySet = new Set(
-            normalizedDbItems.flatMap((item) => [item.slug, item._id, item.title?.toLowerCase()]).filter(Boolean)
+            normalizedDbItems.flatMap((item: any) => [item.slug, item._id, item.title?.toLowerCase()]).filter(Boolean)
           );
 
           const missingStatic = ALL_PRODUCTS.filter(
