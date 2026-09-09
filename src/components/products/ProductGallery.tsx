@@ -18,10 +18,15 @@ export const ProductGallery: React.FC<ProductGalleryProps> = ({ images, productN
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [copiedShare, setCopiedShare] = useState(false);
 
+  // Sync selected index whenever images change to avoid stale image flicker
+  React.useEffect(() => {
+    setSelectedIndex(0);
+  }, [images?.[0], productId]);
+
   const { isInWishlist, toggleWishlist } = useWishlistStore();
   const isFavorite = productId ? isInWishlist(productId) : false;
 
-  const activeImage = images[selectedIndex] || images[0] || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800';
+  const activeImage = images[selectedIndex] || images[0] || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80';
 
   const handleShare = (e: React.MouseEvent) => {
     e.preventDefault();

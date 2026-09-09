@@ -47,9 +47,9 @@ export const AuthBackground: React.FC<AuthBackgroundProps> = ({ children }) => {
           </video>
         )}
 
-        {/* 2. Soft & Light Overlay to keep the shoppers vibrant & clearly visible */}
-        <div className="absolute inset-0 bg-black/25 backdrop-blur-[1px]" />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-slate-950/20 to-slate-950/40" />
+        {/* 2. Soft & Deep Dark Overlay to give rich contrast and focus to the auth card */}
+        <div className="absolute inset-0 bg-slate-950/65 backdrop-blur-[3px]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/10 to-slate-950/40" />
 
         {/* 3. Subtle Brand Accent Orbs */}
         <div className="absolute -top-24 -left-24 w-80 h-80 bg-orange-500/15 rounded-full blur-3xl pointer-events-none" />

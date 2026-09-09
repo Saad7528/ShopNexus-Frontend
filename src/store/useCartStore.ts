@@ -89,22 +89,37 @@ const syncCartWithServer = (
         }
       } catch (_e) {}
 
-      await fetch(`${apiUrl}/cart/sync`, {
+      const payload = JSON.stringify({
+        guestId,
+        items,
+        appliedCoupon,
+        discount,
+        customerName,
+        customerEmail,
+        customerPhone,
+      });
+
+      // 1. Direct Next.js Serverless Route (Always works on Vercel)
+      fetch('/api/cart/sync', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({
-          guestId,
-          items,
-          appliedCoupon,
-          discount,
-          customerName,
-          customerEmail,
-          customerPhone,
-        }),
-      });
+        body: payload,
+      }).catch(() => {});
+
+      // 2. Also sync to external backend if configured
+      if (apiUrl && !apiUrl.startsWith('/api') && typeof window !== 'undefined') {
+        fetch(`${apiUrl}/cart/sync`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: payload,
+        }).catch(() => {});
+      }
     } catch (_err) {
       // Graceful offline fallback
     }

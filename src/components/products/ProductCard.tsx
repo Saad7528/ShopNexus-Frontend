@@ -73,13 +73,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const earnedLoyaltyPoints = Math.floor(displayPrice / 100) * 10;
 
   const defaultFallbackImage = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80';
-  const [imgSrc, setImgSrc] = React.useState<string>(
-    product.images[0] || defaultFallbackImage
-  );
+  const [imgError, setImgError] = React.useState(false);
+  const [dual1Error, setDual1Error] = React.useState(false);
+  const [dual2Error, setDual2Error] = React.useState(false);
 
-  React.useEffect(() => {
-    setImgSrc(product.images[0] || defaultFallbackImage);
-  }, [product.images]);
+  const mainImageSrc = imgError ? defaultFallbackImage : (product.images?.[0] || defaultFallbackImage);
+  const dual1Src = dual1Error ? defaultFallbackImage : (product.images?.[0] || defaultFallbackImage);
+  const dual2Src = dual2Error ? defaultFallbackImage : (product.images?.[1] || defaultFallbackImage);
 
   // Auto-Cycling Layer Switcher for Mobile & Desktop Ambient Showcase
   const [activeLayer, setActiveLayer] = React.useState<1 | 2>(1);
@@ -129,13 +129,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               }`}
             >
               <Image
-                src={product.images[0] || defaultFallbackImage}
+                src={dual1Src}
                 alt={`${productTitle} - Item 1`}
                 fill
                 sizes="(max-width: 768px) 35vw, 20vw"
                 className="object-contain p-2 transition-transform duration-500"
-                unoptimized={product.images[0]?.startsWith('/')}
-                onError={() => setImgSrc(defaultFallbackImage)}
+                unoptimized={dual1Src.startsWith('/')}
+                onError={() => setDual1Error(true)}
               />
             </div>
 
@@ -150,13 +150,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               }`}
             >
               <Image
-                src={product.images[1] || defaultFallbackImage}
+                src={dual2Src}
                 alt={`${productTitle} - Item 2`}
                 fill
                 sizes="(max-width: 768px) 35vw, 20vw"
                 className="object-contain p-2 transition-transform duration-500"
-                unoptimized={product.images[1]?.startsWith('/')}
-                onError={() => setImgSrc(defaultFallbackImage)}
+                unoptimized={dual2Src.startsWith('/')}
+                onError={() => setDual2Error(true)}
               />
             </div>
 
@@ -173,13 +173,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           </div>
         ) : (
           <Image
-            src={imgSrc}
+            src={mainImageSrc}
             alt={productTitle}
             fill
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
             className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
-            unoptimized={imgSrc.startsWith('/')}
-            onError={() => setImgSrc(defaultFallbackImage)}
+            unoptimized={mainImageSrc.startsWith('/')}
+            onError={() => setImgError(true)}
           />
         )}
 
