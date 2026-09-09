@@ -107,7 +107,7 @@ export default function AboutAndFAQPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f19] text-slate-900 dark:text-white">
-      {/* 🌟 1. HERO SECTION */}
+      {/* 1. HERO SECTION */}
       <section className="relative overflow-hidden pt-12 pb-20 px-4 sm:px-6 lg:px-8 border-b border-slate-200 dark:border-slate-800">
         {/* Ambient background glow */}
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-gradient-to-tr from-orange-500/15 via-amber-500/10 to-transparent blur-3xl rounded-full pointer-events-none" />
@@ -269,7 +269,7 @@ export default function AboutAndFAQPage() {
         </div>
       </section>
 
-      {/* 🌟 3. TRACKING QUICK BANNER */}
+      {/* 3. TRACKING QUICK BANNER */}
       <section className="py-8 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
         <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-orange-500/10 via-amber-500/5 to-transparent border border-orange-500/20 backdrop-blur-xl flex flex-col sm:flex-row items-center justify-between gap-6 shadow-lg">
           <div className="space-y-1.5 text-center sm:text-left">
@@ -310,7 +310,6 @@ export default function AboutAndFAQPage() {
           </p>
         </div>
 
-        {/* Category Tabs */}
         <div className="flex items-center justify-center gap-2 flex-wrap">
           {['All', 'Orders', 'Delivery', 'Payments', 'Tracking'].map((cat) => (
             <button
@@ -331,7 +330,6 @@ export default function AboutAndFAQPage() {
           ))}
         </div>
 
-        {/* Accordions */}
         <div className="space-y-3">
           {filteredFaqs.map((faq, index) => {
             const isOpen = openIndex === index;

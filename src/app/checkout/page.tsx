@@ -867,7 +867,7 @@ function CheckoutContent() {
                   </span>
                 </div>
 
-                {/* 🪙 Loyalty Points Reward Earned on this Order */}
+                {/*  Loyalty Points Reward Earned on this Order */}
                 {earnedLoyaltyPoints > 0 && (
                   <div className="mt-3 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-between text-xs text-amber-800 dark:text-amber-300">
                     <div className="flex items-center gap-2">
@@ -889,7 +889,7 @@ function CheckoutContent() {
         </div>
       </div>
 
-      {/* 💳 MFS BKASH / NAGAD PAYMENT SIMULATION MODAL */}
+      {/* MFS BKASH / NAGAD PAYMENT MODAL */}
       <MfsPaymentModal
         isOpen={isMfsModalOpen}
         onClose={() => setIsMfsModalOpen(false)}
