@@ -233,7 +233,7 @@ export const Footer: React.FC = () => {
           </div>
         </div>
 
-        {/* Bottom Ultra-Slim Copyright Bar */}
+        {/* Bottom Ultra-Slim */}
         <div className="mt-7 pt-3.5 border-t border-slate-200 dark:border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs text-slate-500">
           <p>© {new Date().getFullYear()} ShopNexus Platform. {mounted ? t('footer_rights') : 'All rights reserved.'}</p>
           <div className="flex items-center gap-3">
