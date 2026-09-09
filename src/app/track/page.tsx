@@ -292,7 +292,7 @@ function TrackingContent() {
               </div>
             </div>
 
-            {/* 🌟 Courier & Dispatch Info Card */}
+            {/* Courier & Dispatch Info Card */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80">
               <div className="space-y-1">
                 <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1">
