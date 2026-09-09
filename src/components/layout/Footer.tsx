@@ -174,7 +174,7 @@ export const Footer: React.FC = () => {
             </ul>
           </div>
 
-          {/* 4. Newsletter & Social Media Column */}
+          {/* 4. Newsletter & Social Media */}
           <div className="space-y-3">
             <div className="space-y-1.5">
               <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
