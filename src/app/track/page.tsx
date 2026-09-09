@@ -112,7 +112,7 @@ function TrackingContent() {
     <div className="min-h-screen bg-slate-50 dark:bg-[#070a12] text-slate-900 dark:text-white py-10 sm:py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto space-y-8">
         
-        {/* 🌟 Header Section */}
+        {/* Header Section */}
         <div className="text-center space-y-3">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-500/10 dark:bg-orange-500/15 border border-orange-500/25 text-orange-600 dark:text-orange-400 text-xs font-bold uppercase tracking-wider">
             <Truck className="w-4 h-4" />
