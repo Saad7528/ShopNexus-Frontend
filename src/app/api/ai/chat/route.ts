@@ -49,7 +49,6 @@ export async function POST(req: NextRequest) {
       if (db) {
         const dbItems = await db.collection('products').find({ isActive: { $ne: false } }).toArray();
         if (dbItems && dbItems.length > 0) {
-          // Merge with static products so IDs like p1..p29 are preserved
           const dbMap = new Map();
           dbItems.forEach((item) => {
             const key = item.slug || item._id?.toString() || item.title;
@@ -89,18 +88,14 @@ STRICT RULES & GUIDELINES:
        ? '- Respond in 100% natural, polite, fluent English. No Bangla script.'
        : '- Respond in 100% natural, warm, polite Bengali (বাংলা). Use natural conversational Bengali.'
    }
-3. LIVE CATALOG ANALYSIS & BUDGET HONESTY (CRITICAL):
-   - You MUST analyze the catalog carefully.
-   - If the customer asks for a product type (e.g. speaker, headphone, watch, keyboard) within a specific budget (e.g., 3000 BDT, 5000 BDT, 10000 BDT), and our store DOES NOT have that product type within that budget:
-     - Clearly and politely explain that we currently do not carry that item within that budget.
-     - State the starting price of that category in our store (e.g. our Marshall Stanmore speaker starts at ৳31,900 BDT).
-     - If there are other gadget accessories near their budget (e.g. HyperX mouse at ৳7,500 BDT or Logitech MX Master at ৳11,500 BDT), mention them as alternatives, or explain our store's focus on authentic premium hardware.
-     - In this scenario, DO NOT falsely claim that expensive items fit their low budget!
-   - If products DO exist within their budget or match their query, recommend the best matching products from the catalog with their exact prices and key features.
-   - If the customer asks for items we do not sell (like iPhone, Laptops, Clothes, TV), politely inform them that we specialize in Audiophile Audio, Smartwatches, Mechanical Keyboards, Studio/Creator Gear, and Desk Peripherals.
+3. LIVE CATALOG ANALYSIS & BRAND SPECIFICITY (CRITICAL):
+   - You MUST analyze the catalog carefully for specific brands and products requested by the user.
+   - Example 1 (Brand/Product Inquiry): If the customer asks "স্যামসাং গ্যালাক্সি ওয়াচ আছে" (Do you have Samsung Galaxy Watch?), check the catalog: We have "Samsung Galaxy Watch 6 Classic 47mm Bluetooth (ID: p9)" for ৳36,000 BDT! State clearly: "হ্যাঁ, আমাদের শপনেক্সাস স্টোরে অফিসিয়াল Samsung Galaxy Watch 6 Classic 47mm রয়েছে (মূল্য ৳৩৬,০০০ টাকা)..." and recommend ID: p9.
+   - Example 2 (Budget Realism): If the customer asks for a product type (e.g. speaker) within a specific budget (e.g. 3000 BDT), and our store does not have speakers under 3000 BDT, state clearly that we don't have speakers under 3000 BDT and mention our Marshall Stanmore starts at ৳31,900 BDT. DO NOT recommend expensive headphones/speakers as budget items! Write [RECOMMENDED_IDS: none].
+   - Example 3 (Available Budget Matches): If the customer asks for items within a budget that exists in catalog (e.g. "১৫,০০০ টাকার মধ্যে কিবোর্ড"), recommend Keychron Q1 Pro or NuPhy Air75 V2 or HyperX mouse.
 4. STRUCTURED RECOMMENDATION TAG:
    - At the VERY END of your response, on a new line, list the IDs of the products you specifically recommended for this customer in this exact format:
-     [RECOMMENDED_IDS: p1, p4]
+     [RECOMMENDED_IDS: p9]
    - If no products in the catalog fit the customer's budget/request, write:
      [RECOMMENDED_IDS: none]
    - Maximum 4 product IDs.
@@ -108,13 +103,13 @@ STRICT RULES & GUIDELINES:
 OFFICIAL SHOPNEXUS CATALOG:
 ${catalogContext}`;
 
-    // ⚡ 3. Call Google Gemini API (with multiple model fallbacks)
+    // ⚡ 3. Call Google Gemini API
     let aiReply: string | null = null;
-    let provider = 'gemini-1.5-flash';
+    let provider = 'gemini-3.6-flash';
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
     if (GEMINI_API_KEY) {
-      const modelsToTry = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro'];
+      const modelsToTry = ['gemini-3.6-flash', 'gemini-flash-latest', 'gemini-3.5-flash', 'gemini-3.7-flash'];
 
       for (const model of modelsToTry) {
         if (aiReply) break;
@@ -136,11 +131,11 @@ ${catalogContext}`;
                   },
                 ],
                 generationConfig: {
-                  temperature: 0.3,
-                  maxOutputTokens: 500,
+                  temperature: 0.2,
+                  maxOutputTokens: 2048,
                 },
               }),
-              signal: AbortSignal.timeout(6000),
+              signal: AbortSignal.timeout(15000),
             }
           );
 
@@ -173,63 +168,124 @@ ${catalogContext}`;
             .map((id) => id.trim())
             .filter((id) => id.length > 0 && id.toLowerCase() !== 'none');
         }
-        // Remove the technical tag from the user-facing text
         aiReply = aiReply.replace(/\[RECOMMENDED_IDS:\s*[^\]]+\]/i, '').trim();
       }
     }
 
-    // ⚡ 5. Intelligent Fallback Engine if API is unavailable or offline
+    // ⚡ 5. Intelligent Semantic Fallback Engine
     if (!aiReply) {
       provider = 'nexus-intelligent-engine';
+
+      const isSamsung = queryLower.includes('samsung') || queryLower.includes('স্যামসাং') || queryLower.includes('galaxy') || queryLower.includes('গ্যালাক্সি');
+      const isApple = queryLower.includes('apple') || queryLower.includes('অ্যাপল') || queryLower.includes('airpods') || queryLower.includes('এয়ারপডস');
+      const isBose = queryLower.includes('bose') || queryLower.includes('বোস');
+      const isMarshall = queryLower.includes('marshall') || queryLower.includes('মার্শাল');
+      const isSony = queryLower.includes('sony') || queryLower.includes('সোনি');
+      const isKeychron = queryLower.includes('keychron') || queryLower.includes('কিক্রন');
+      const isLogitech = queryLower.includes('logitech') || queryLower.includes('লজিটেক');
+      const isGarmin = queryLower.includes('garmin') || queryLower.includes('গারমিন');
+      const isHuawei = queryLower.includes('huawei') || queryLower.includes('হুয়াওয়ে');
+      const isDji = queryLower.includes('dji') || queryLower.includes('ডিজেআই');
+      const isShure = queryLower.includes('shure') || queryLower.includes('শুয়ার');
+      const isDyson = queryLower.includes('dyson') || queryLower.includes('ডাইসন');
+
       const isSpeakerQuery = queryLower.includes('speaker') || queryLower.includes('স্পিকার');
-      const isHeadphoneQuery = queryLower.includes('headphone') || queryLower.includes('হেডফোন');
-      const isWatchQuery = queryLower.includes('watch') || queryLower.includes('ঘড়ি') || queryLower.includes('স্মার্টওয়াচ');
+      const isWatchQuery = queryLower.includes('watch') || queryLower.includes('ঘড়ি') || queryLower.includes('ঘড়ি') || queryLower.includes('স্মার্টওয়াচ');
       const isKeyboardQuery = queryLower.includes('keyboard') || queryLower.includes('কিবোর্ড');
       const isMouseQuery = queryLower.includes('mouse') || queryLower.includes('মাউস');
 
-      if (extractedBudget && extractedBudget <= 5000) {
+      if (isSamsung) {
+        aiReply = isEnglish
+          ? `Yes! We carry the official **Samsung Galaxy Watch 6 Classic 47mm Bluetooth** smartwatch (priced at ৳36,000 BDT) with physical rotating bezel, sapphire crystal glass, and advanced health tracking.`
+          : `হ্যাঁ, আমাদের শপনেক্সাস স্টোরে অফিসিয়াল **Samsung Galaxy Watch 6 Classic 47mm Bluetooth** স্মার্টওয়াচ রয়েছে (মূল্য ৳৩৬,০০০ টাকা)। এতে রয়েছে সিগনেচার রোটেটিং বেজেল, স্যাফায়ার ক্রিস্টাল গ্লাস এবং অ্যাডভান্সড হেলথ সেন্সর। নিচে প্রোডাক্টটি দেখতে পারেন:`;
+        recommendedIds = ['p9'];
+      } else if (isApple) {
+        aiReply = isEnglish
+          ? `Yes! We stock the official **Apple Watch Ultra 2 Titanium** (৳79,900 BDT) and **Apple AirPods Max Space Gray** (৳65,000 BDT). Explore them below:`
+          : `হ্যাঁ, আমাদের স্টোরে অফিসিয়াল **Apple Watch Ultra 2 টাইটানিয়াম** (৳৭৯,৯০০ টাকা) এবং **Apple AirPods Max** (৳৬৫,০০০ টাকা) রয়েছে। নিচে কালেকশন দেওয়া হলো:`;
+        recommendedIds = ['p7', 'p3'];
+      } else if (isBose) {
+        aiReply = isEnglish
+          ? `We offer the flagship **Bose QuietComfort Ultra Spatial Audio Headphones** (৳38,900 BDT) with world-class noise cancellation.`
+          : `আমাদের কাছে রয়েছে ফ্ল্যাগশিপ **Bose QuietComfort Ultra স্পেশিয়াল অডিও হেডফোন** (৳৩৮,৯০০ টাকা), যা যুগান্তকারী স্পেশিয়াল অডিও ও কমফোর্ট প্রদান করে।`;
+        recommendedIds = ['p2'];
+      } else if (isMarshall) {
+        aiReply = isEnglish
+          ? `Yes! We have the iconic **Marshall Stanmore III Bluetooth Premium Home Speaker** (৳31,900 BDT) with rich analog controls and room-filling sound.`
+          : `হ্যাঁ, আমাদের কাছে রয়েছে প্রিমিয়াম **Marshall Stanmore III ব্লুটুথ হোম স্পিকার** (৳৩১,৯০০ টাকা), যা ক্লাসিক ভিন্টেজ লুক ও রুম-ভরা সাউন্ড প্রদান করে।`;
+        recommendedIds = ['p4'];
+      } else if (isSony) {
+        aiReply = isEnglish
+          ? `We feature the industry-leading **Sony WH-1000XM5 Wireless Headphones** (৳32,500 BDT) and **Sony ZV-E10 4K Vlog Camera** (৳62,000 BDT).`
+          : `আমাদের কালেকশনে রয়েছে শীর্ষস্থানীয় **Sony WH-1000XM5 ওয়্যারলেস হেডফোন** (৳৩২,৫০০ টাকা) এবং **Sony ZV-E10 ৪কে ভ্লগ ক্যামেরা** (৳৬২,০০০ টাকা)।`;
+        recommendedIds = ['p1', 'p17'];
+      } else if (isKeychron) {
+        aiReply = isEnglish
+          ? `Yes! We carry the **Keychron Q1 Pro Wireless Custom CNC Mechanical Keyboard** (৳17,900 BDT) with hot-swappable switches and gasket mount.`
+          : `হ্যাঁ, আমাদের কাছে রয়েছে **Keychron Q1 Pro সিএনসি কাস্টম মেকানিক্যাল কিবোর্ড** (৳১৭,৯০০ টাকা), যা হট-সোয়াপ ও গ্যাস্কেট মাউন্ট ডিজাইনে তৈরি।`;
+        recommendedIds = ['p11'];
+      } else if (isLogitech) {
+        aiReply = isEnglish
+          ? `We feature the **Logitech MX Master 3S Wireless Performance Mouse** (৳11,500 BDT) with 8K DPI track-on-glass and quiet clicks.`
+          : `আমাদের কাছে রয়েছে প্রফেশনাল **Logitech MX Master 3S ওয়্যারলেস মাউস** (৳১১,৫০০ টাকা), যা ৮কে ডিপিআই ও নিঃশব্দ ক্লিকের সুবিধা দেয়।`;
+        recommendedIds = ['p12'];
+      } else if (isGarmin) {
+        aiReply = isEnglish
+          ? `Yes! We stock the **Garmin Fenix 7 Pro Solar GPS Smartwatch** (৳85,000 BDT) for multisport and endurance athletes.`
+          : `হ্যাঁ, আমাদের স্টোরে রয়েছে **Garmin Fenix 7 Pro সোলার জিপিএস স্মার্টওয়াচ** (৳৮৫,০০০ টাকা), যা স্পোর্টস ও আউটডোর অ্যাডভেঞ্চারের জন্য সেরা।`;
+        recommendedIds = ['p8'];
+      } else if (isHuawei) {
+        aiReply = isEnglish
+          ? `We have the **Huawei Watch GT 4 Brown Leather Edition** (৳22,500 BDT) featuring 14-day battery life and classic octagonal design.`
+          : `আমাদের কাছে রয়েছে **Huawei Watch GT 4 ব্রাউন লেদার এডিশন** (৳২২,৫০০ টাকা), যা ১৪ দিনের দীর্ঘস্থায়ী ব্যাটারি লাইফ দেয়।`;
+        recommendedIds = ['p10'];
+      } else if (isDji) {
+        aiReply = isEnglish
+          ? `Yes! We carry the **DJI Osmo Pocket 3 Creator Combo 4K Handheld Gimbal** (৳55,000 BDT) with 1-inch CMOS sensor and 3-axis stabilization.`
+          : `হ্যাঁ, আমাদের স্টোরে রয়েছে **DJI Osmo Pocket 3 ক্রিয়েটর কম্বো ৪কে জিম্বাল** (৳৫৫,০০০ টাকা), যা কন্টেন্ট ক্রিয়েটরদের জন্য পারফেক্ট।`;
+        recommendedIds = ['p21'];
+      } else if (isShure) {
+        aiReply = isEnglish
+          ? `We offer the broadcast-legendary **Shure SM7B Studio Microphone** (৳42,000 BDT) and **Shure MV7+ Podcast Microphone** (৳25,500 BDT).`
+          : `আমাদের কাছে রয়েছে ব্রডকাস্টের শীর্ষস্থানীয় **Shure SM7B স্টুডিও মাইক্রোফোন** (৳৪২,০০০ টাকা) এবং **Shure MV7+ পডকাস্ট মাইক্রোফোন** (৳২৫,৫০০ টাকা)।`;
+        recommendedIds = ['p6', 'p23'];
+      } else if (isDyson) {
+        aiReply = isEnglish
+          ? `Yes! We carry the **Dyson Purifier Hot+Cool Gen1 Air Purifier** (৳59,000 BDT) with HEPA H13 filtration.`
+          : `হ্যাঁ, আমাদের স্টোরে রয়েছে **Dyson Purifier Hot+Cool জেন১ এয়ার পিউরিফায়ার** (৳৫৯,০০০ টাকা)।`;
+        recommendedIds = ['p26'];
+      } else if (extractedBudget && extractedBudget <= 5000) {
         if (isSpeakerQuery) {
-          if (isEnglish) {
-            aiReply = `Currently, ShopNexus does not have speakers available under ৳${extractedBudget.toLocaleString()} BDT. Our premium **Marshall Stanmore III** speaker starts at ৳31,900 BDT. We specialize in official high-end audiophile audio equipment.`;
-          } else {
-            aiReply = `বর্তমানে আমাদের শপনেক্সাস স্টোরে ৳${extractedBudget.toLocaleString()} টাকার মধ্যে কোনো স্পিকার অ্যাভেইলেবল নেই। আমাদের স্টোরে প্রিমিয়াম **Marshall Stanmore III** স্পিকারের মূল্য ৳৩১,৯০০ টাকা থেকে শুরু। আমরা মূলত অফিসিয়াল হাই-এন্ড প্রিমিয়াম অডিও গ্যাজেট সরবরাহ করে থাকি।`;
-          }
+          aiReply = isEnglish
+            ? `Currently, ShopNexus does not have speakers available under ৳${extractedBudget.toLocaleString()} BDT. Our premium **Marshall Stanmore III** speaker starts at ৳31,900 BDT.`
+            : `বর্তমানে আমাদের শপনেক্সাস স্টোরে ৳${extractedBudget.toLocaleString()} টাকার মধ্যে কোনো স্পিকার অ্যাভেইলেবল নেই। আমাদের স্টোরে প্রিমিয়াম **Marshall Stanmore III** স্পিকারের মূল্য ৳৩১,৯০০ টাকা থেকে শুরু।`;
           recommendedIds = [];
         } else if (isWatchQuery) {
-          if (isEnglish) {
-            aiReply = `We currently do not stock smartwatches under ৳${extractedBudget.toLocaleString()} BDT. Our official smartwatch collection begins with the **Huawei Watch GT 4** (৳22,500 BDT) and **Apple Watch Ultra 2** (৳79,900 BDT).`;
-          } else {
-            aiReply = `বর্তমানে ৳${extractedBudget.toLocaleString()} টাকার বাজেটে আমাদের স্টোরে কোনো স্মার্টওয়াচ নেই। আমাদের স্মার্টওয়াচ কালেকশনে **Huawei Watch GT 4** (৳২২,৫০০) এবং **Apple Watch Ultra 2** (৳৭৯,৯০০) রয়েছে।`;
-          }
+          aiReply = isEnglish
+            ? `We currently do not stock smartwatches under ৳${extractedBudget.toLocaleString()} BDT. Our official smartwatch collection begins with the **Huawei Watch GT 4** (৳22,500 BDT) and **Samsung Galaxy Watch 6 Classic** (৳36,000 BDT).`
+            : `বর্তমানে ৳${extractedBudget.toLocaleString()} টাকার বাজেটে আমাদের স্টোরে কোনো স্মার্টওয়াচ নেই। আমাদের স্মার্টওয়াচ কালেকশনে **Huawei Watch GT 4** (৳২২,৫০০) এবং **Samsung Galaxy Watch 6 Classic** (৳৩৬,০০০) রয়েছে।`;
           recommendedIds = [];
         } else {
-          if (isEnglish) {
-            aiReply = `At ৳${extractedBudget.toLocaleString()} BDT budget, our closest premium peripheral is the **HyperX Pulsefire Haste 2 Wireless Mouse** (৳7,500 BDT). Explore our verified collection below:`;
-          } else {
-            aiReply = `৳${extractedBudget.toLocaleString()} বাজেটের কাছাকাছি আমাদের প্রিমিয়াম পেরিফেরাল হলো **HyperX Pulsefire Haste 2 ওয়্যারলেস মাউস** (৳৭,৫০০ টাকা)। আমাদের অফিসিয়াল গ্যাজেটগুলো নিচে দেখতে পারেন:`;
-          }
+          aiReply = isEnglish
+            ? `At ৳${extractedBudget.toLocaleString()} BDT budget, our closest premium peripheral is the **HyperX Pulsefire Haste 2 Wireless Mouse** (৳7,500 BDT).`
+            : `৳${extractedBudget.toLocaleString()} বাজেটের কাছাকাছি আমাদের প্রিমিয়াম পেরিফেরাল হলো **HyperX Pulsefire Haste 2 ওয়্যারলেস মাউস** (৳৭,৫০০ টাকা)।`;
           recommendedIds = ['p14'];
         }
-      } else if (isSpeakerQuery) {
-        aiReply = isEnglish
-          ? `For home and studio audio, we highly recommend the **Marshall Stanmore III Bluetooth Speaker** (৳31,900 BDT) for its iconic room-filling acoustic soundstage.`
-          : `হোম ও স্টুডিও অডিওর জন্য আমরা **Marshall Stanmore III ব্লুটুথ স্পিকার** (৳৩১,৯০০ টাকা) রিকমেন্ড করছি, যা রুম-ভরা ক্লাসিক সাউন্ডস্টেজ প্রদান করে।`;
-        recommendedIds = ['p4'];
-      } else if (isKeyboardQuery) {
-        aiReply = isEnglish
-          ? `For the ultimate typing and gaming experience, the **Keychron Q1 Pro CNC Custom Keyboard** (৳17,900 BDT) and **NuPhy Air75 V2** (৳13,500 BDT) are our top choices.`
-          : `টাইপিং ও প্রোডাক্টিভিটির জন্য আমাদের সেরা কাস্টম মেকানিক্যাল কিবোর্ড হলো **Keychron Q1 Pro** (৳১৭,৯০০ টাকা) এবং **NuPhy Air75 V2** (৳১৩,৫০০ টাকা)।`;
-        recommendedIds = ['p11', 'p15'];
       } else if (isWatchQuery) {
         aiReply = isEnglish
-          ? `Our flagship smartwatch collection features the **Apple Watch Ultra 2 Titanium** (৳79,900 BDT) and **Garmin Fenix 7 Pro Solar** (৳85,000 BDT).`
-          : `আমাদের ফ্ল্যাগশিপ স্মার্টওয়াচ কালেকশনে রয়েছে **Apple Watch Ultra 2 টাইটানিয়াম** (৳৭৯,৯০০ টাকা) এবং **Garmin Fenix 7 Pro সোলার** (৳৮৫,০০০ টাকা)।`;
-        recommendedIds = ['p7', 'p8'];
+          ? `Our official smartwatch collection features the **Apple Watch Ultra 2 Titanium** (৳79,900 BDT), **Garmin Fenix 7 Pro** (৳85,000 BDT), and **Samsung Galaxy Watch 6 Classic** (৳36,000 BDT).`
+          : `আমাদের অফিসিয়াল স্মার্টওয়াচ কালেকশনে রয়েছে **Samsung Galaxy Watch 6 Classic** (৳৩৬,০০০ টাকা), **Huawei Watch GT 4** (৳২২,৫০০ টাকা), এবং **Apple Watch Ultra 2** (৳৭৯,৯০০ টাকা)।`;
+        recommendedIds = ['p9', 'p10', 'p7'];
+      } else if (isKeyboardQuery || isMouseQuery) {
+        aiReply = isEnglish
+          ? `For keyboards and mice, we recommend the **Keychron Q1 Pro** (৳17,900 BDT), **Logitech MX Master 3S** (৳11,500 BDT), and **NuPhy Air75 V2** (৳13,500 BDT).`
+          : `কিবোর্ড ও মাউসের জন্য আমাদের সেরা চয়েস হলো **Keychron Q1 Pro** (৳১৭,৯০০ টাকা), **Logitech MX Master 3S** (৳১১,৫০০ টাকা), এবং **NuPhy Air75 V2** (৳১৩,৫০০ টাকা)।`;
+        recommendedIds = ['p11', 'p12', 'p15'];
       } else {
         aiReply = isEnglish
-          ? `Welcome to ShopNexus! We feature official hardware gear from Sony, Apple, Bose, Marshall, Keychron, and Logitech. How may I assist your shopping today?`
-          : `স্বাগতম! শপনেক্সাসে রয়েছে Sony, Apple, Bose, Marshall, Keychron এবং Logitech-এর মতো সেরা ব্র্যান্ডের অফিসিয়াল গ্যাজেট। আপনার বাজেটের সেরা গ্যাজেটটি খুঁজে পেতে কীভাবে সাহায্য করতে পারি?`;
-        recommendedIds = ['p1', 'p11', 'p7'];
+          ? `Welcome to ShopNexus! We feature official hardware gear from Samsung, Apple, Sony, Bose, Marshall, Keychron, and Logitech. How may I assist your shopping today?`
+          : `স্বাগতম! শপনেক্সাসে রয়েছে Samsung, Apple, Sony, Bose, Marshall, Keychron এবং Logitech-এর মতো সেরা ব্র্যান্ডের অফিসিয়াল গ্যাজেট। আপনার পছন্দের গ্যাজেটটি খুঁজে পেতে কীভাবে সাহায্য করতে পারি?`;
+        recommendedIds = ['p9', 'p1', 'p11'];
       }
     }
 
