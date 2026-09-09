@@ -659,7 +659,6 @@ export function getProductByIdOrSlug(idOrSlug: string): Product | undefined {
         p.slug.toLowerCase() === decoded ||
         p.title.toLowerCase().replace(/[^a-z0-9]/g, '-') === decoded
     ) ||
-    ALL_PRODUCTS.find((p) => p.slug.toLowerCase().includes(decoded) || decoded.includes(p.slug.toLowerCase())) ||
-    ALL_PRODUCTS[0]
+    ALL_PRODUCTS.find((p) => p.slug.toLowerCase().includes(decoded) || decoded.includes(p.slug.toLowerCase()))
   );
 }

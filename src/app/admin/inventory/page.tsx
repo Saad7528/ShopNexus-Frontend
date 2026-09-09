@@ -178,10 +178,11 @@ const CATEGORIES = [
 ];
 
 import { Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 
 function InventoryContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const { token } = useAuthStore();
   const [inventory, setInventory] = useState<IInventoryItem[]>(INITIAL_INVENTORY);
@@ -198,18 +199,21 @@ function InventoryContent() {
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
-  // Fetch live products from backend MongoDB on mount
+  // Fetch live products from MongoDB on mount (Vercel serverless & local compatible)
   React.useEffect(() => {
     const fetchLiveProducts = async () => {
       try {
-        const res = await fetch(`${API_URL}/products?limit=100`);
-        if (!res.ok) return;
-        const data = await res.json();
+        let res = await fetch('/api/products?limit=100').catch(() => null);
+        if ((!res || !res.ok) && API_URL && !API_URL.startsWith('/api') && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+          res = await fetch(`${API_URL}/products?limit=100`).catch(() => null);
+        }
+        if (!res || !res.ok) return;
+        const data = await res.json().catch(() => null);
         if (data?.data?.products && Array.isArray(data.data.products) && data.data.products.length > 0) {
           const mapped: IInventoryItem[] = data.data.products.map((p: any) => ({
-            id: p._id,
-            sku: p.variants?.[0]?.sku || `SKU-${p._id?.toString().slice(-4)}`,
-            barcode: `BC-${p._id?.toString().slice(-6)}`,
+            id: p._id || p.id,
+            sku: p.variants?.[0]?.sku || `SKU-${p._id?.toString().slice(-4) || '101'}`,
+            barcode: `BC-${p._id?.toString().slice(-6) || '202'}`,
             name: p.title || p.name,
             category: p.category || 'Audio',
             brand: p.brand || 'ShopNexus Official',
@@ -222,7 +226,7 @@ function InventoryContent() {
             image: p.images?.[0] || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&q=80',
             isFlashSale: !!p.isFlashSale,
             variantColor: p.variants?.[0]?.name || 'Standard',
-            slug: p.slug || p._id,
+            slug: p.slug || p._id || p.id,
             hasFastDelivery: true,
             hasWarranty: true,
             warrantyText: '১ বছরের অফিসিয়াল ওয়ারেন্টি',
@@ -237,8 +241,8 @@ function InventoryContent() {
             return [...mapped, ...remainingDefault];
           });
         }
-      } catch (err) {
-        console.error('Could not sync live inventory, fallback active:', err);
+      } catch (_err) {
+        // Fallback gracefully without throwing unhandled exceptions
       }
     };
 
@@ -519,12 +523,13 @@ function InventoryContent() {
             {lowStockCount > 0 && (
               <button
                 type="button"
-                onClick={() => setActiveFilter('low-stock')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                onClick={() => setActiveFilter((prev) => (prev === 'low-stock' ? 'all' : 'low-stock'))}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
                   activeFilter === 'low-stock'
                     ? 'bg-rose-500 text-white border-rose-500 shadow-md shadow-rose-500/20'
                     : 'bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20'
                 }`}
+                title="Toggle Low Stock Filter"
               >
                 <AlertTriangle className="w-3.5 h-3.5" />
                 {lowStockCount} Low Stock Alerts
@@ -533,11 +538,11 @@ function InventoryContent() {
 
             <button
               type="button"
-              onClick={() => setIsAddModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/25 transition-all cursor-pointer hover:scale-105"
+              onClick={() => router.push('/admin/inventory/new')}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/25 transition-all cursor-pointer hover:scale-105 active:scale-95"
             >
               <Plus className="w-4 h-4" />
-              Add Product (৳ BDT)
+              <span>Add Product (৳ BDT)</span>
             </button>
           </div>
         </div>

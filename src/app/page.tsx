@@ -47,34 +47,49 @@ const FLASH_PRODUCTS = ALL_PRODUCTS.filter((p) => p.isFlashSale).slice(0, 5);
 
 const AI_SUPERPOWERS = [
   {
-    title: 'Instant Visual Search',
+    titleEn: 'Instant Visual Search',
+    titleBn: 'ইনস্ট্যান্ট ভিজ্যুয়াল সার্চ',
     icon: Camera,
-    desc: 'Drop any snapshot or camera image to locate visually similar hardware in milliseconds.',
-    tag: 'Computer Vision',
+    descEn: 'Drop any snapshot or camera image to locate visually similar hardware in milliseconds.',
+    descBn: 'যেকোনো ছবি বা ক্যামেরার স্ন্যাপশট আপলোড করে নিমিষেই কাঙ্ক্ষিত গ্যাজেটটি খুঁজে নিন।',
+    tagEn: 'Computer Vision',
+    tagBn: 'কম্পিউটার ভিশন',
   },
   {
-    title: 'Personalized Recommendations',
+    titleEn: 'Personalized Recommendations',
+    titleBn: 'স্মার্ট পার্সোনালাইজড সাজেশন',
     icon: Sparkles,
-    desc: 'Dynamic neural scoring matches catalog items directly to your browsing taste and active cart.',
-    tag: 'Real-Time Vector',
+    descEn: 'Dynamic neural scoring matches catalog items directly to your browsing taste and active cart.',
+    descBn: 'আপনার পছন্দ ও ব্রাউজিং প্যাটার্ন বিশ্লেষণ করে এআই স্বয়ংক্রিয়ভাবে মানানসই পণ্য সাজেস্ট করে।',
+    tagEn: 'Real-Time Vector',
+    tagBn: 'রিয়েল-টাইম ভেক্টর',
   },
   {
-    title: '24/7 AI Shopping Assistant',
+    titleEn: '24/7 AI Shopping Assistant',
+    titleBn: '২৪/৭ এআই শপিং অ্যাসিস্ট্যান্ট',
     icon: Bot,
-    desc: 'Ask questions, filter by budget, or request product comparisons with our multi-model AI.',
-    tag: 'Gemini + Groq',
+    descEn: 'Ask questions, filter by budget, or request product comparisons with our multi-model AI.',
+    descBn: 'বাজেট ফিল্টারিং, স্পেসিফিকেশন তুলনা ও যেকোনো তথ্যে সার্বক্ষণিক এআই বিশেষজ্ঞের সহায়তা।',
+    tagEn: 'Gemini + Groq',
+    tagBn: 'জেমিনি + গ্রক এআই',
   },
   {
-    title: 'Dynamic Demand Pricing',
+    titleEn: 'Dynamic Demand Pricing',
+    titleBn: 'ডায়নামিক ডিমান্ড প্রাইসিং',
     icon: Zap,
-    desc: 'Real-time algorithm evaluates catalog inventory thresholds and schedules flash deal savings.',
-    tag: 'Smart Pricing',
+    descEn: 'Real-time algorithm evaluates catalog inventory thresholds and schedules flash deal savings.',
+    descBn: 'রিয়েল-টাইম অ্যালগরিদমের মাধ্যমে পণ্যের স্টক ও চাহিদার ভিত্তিতে সেরা ডিসকাউন্ট নিশ্চিত করা হয়।',
+    tagEn: 'Smart Pricing',
+    tagBn: 'স্মার্ট প্রাইসিং',
   },
   {
-    title: 'AI Descriptions & SEO Tags',
+    titleEn: 'AI Descriptions & SEO Tags',
+    titleBn: 'এআই ডেসক্রিপশন ও এসইও ট্যাগ',
     icon: Tag,
-    desc: 'Generative AI synthesizes deep specification summaries and discoverability tags.',
-    tag: 'Generative Copy',
+    descEn: 'Generative AI synthesizes deep specification summaries and discoverability tags.',
+    descBn: 'জেনারেটিভ এআই স্বয়ংক্রিয়ভাবে বিস্তারিত টেকনিক্যাল সামারি এবং সার্চ ট্যাগ প্রস্তুত করে।',
+    tagEn: 'Generative Copy',
+    tagBn: 'জেনারেটিভ কপি',
   },
 ];
 
@@ -332,23 +347,29 @@ export default function HomePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-4">
             {AI_SUPERPOWERS.map((ai, i) => {
               const Icon = ai.icon;
+              const isBn = mounted && language === 'bn';
+              const title = isBn ? ai.titleBn : ai.titleEn;
+              const tag = isBn ? ai.tagBn : ai.tagEn;
+              const desc = isBn ? ai.descBn : ai.descEn;
+              const featureLabel = isBn ? `ফিচার ০${toBengaliNumber(i + 1)}` : `Feature 0${i + 1}`;
+
               return (
                 <div
-                  key={ai.title}
-                  className="p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800/80 hover:border-orange-500 dark:hover:border-orange-500 shadow-xs transition-all flex flex-col justify-between"
+                  key={ai.titleEn}
+                  className="p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800/80 hover:border-orange-500 dark:hover:border-orange-500 shadow-xs transition-all flex flex-col justify-between group"
                 >
                   <div>
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-600 dark:text-orange-400 mb-2">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-600 dark:text-orange-400 mb-2 group-hover:scale-110 transition-transform">
                       <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </div>
                     <span className="text-[9px] font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider block mb-0.5">
-                      {ai.tag}
+                      {tag}
                     </span>
-                    <h3 className="font-bold text-slate-900 dark:text-white text-xs mb-1">{ai.title}</h3>
-                    <p className="text-[10px] text-slate-600 dark:text-slate-400 leading-relaxed">{ai.desc}</p>
+                    <h3 className="font-bold text-slate-900 dark:text-white text-xs mb-1">{title}</h3>
+                    <p className="text-[10px] text-slate-600 dark:text-slate-400 leading-relaxed">{desc}</p>
                   </div>
                   <div className="mt-2.5 pt-2 border-t border-slate-200 dark:border-slate-800/60 text-[9px] font-semibold text-slate-400 dark:text-slate-500">
-                    Feature 0{i + 1}
+                    {featureLabel}
                   </div>
                 </div>
               );

@@ -237,13 +237,22 @@ export default function AdminOrdersPage() {
   React.useEffect(() => {
     const fetchLiveOrders = async () => {
       try {
-        const res = await fetch(`${API_URL}/admin/orders`, {
+        let res = await fetch('/api/admin/orders', {
           headers: {
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
-        });
-        if (!res.ok) return;
-        const data = await res.json();
+        }).catch(() => null);
+
+        if ((!res || !res.ok) && API_URL && !API_URL.startsWith('/api') && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+          res = await fetch(`${API_URL}/admin/orders`, {
+            headers: {
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+          }).catch(() => null);
+        }
+
+        if (!res || !res.ok) return;
+        const data = await res.json().catch(() => null);
         if (data?.data && Array.isArray(data.data) && data.data.length > 0) {
           const mapped: IOrder[] = data.data.map((o: any, idx: number) => {
             const rawStatus = (o.orderStatus || 'pending').toLowerCase();

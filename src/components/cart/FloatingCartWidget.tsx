@@ -157,7 +157,7 @@ export const FloatingCartWidget: React.FC = () => {
         } ${
           hasItems
             ? 'bg-gradient-to-tr from-[#ff4400] via-[#ff5500] to-[#ff7700] text-white shadow-xl shadow-orange-500/35 border border-orange-300/40 opacity-100 hover:scale-108 hover:shadow-orange-500/50'
-            : 'bg-slate-900/60 dark:bg-[#090d16]/75 border border-slate-700/50 dark:border-white/10 text-slate-400 opacity-50 hover:opacity-100 hover:scale-105 hover:text-orange-500 hover:border-orange-500/40 shadow-lg shadow-black/20'
+            : 'bg-white/80 dark:bg-[#0c1220]/80 border border-orange-500/40 dark:border-orange-500/40 text-orange-500 dark:text-orange-400 opacity-90 hover:opacity-100 hover:scale-108 hover:border-orange-500 shadow-md shadow-orange-500/10 hover:shadow-lg hover:shadow-orange-500/25'
         }`}
         title={
           language === 'bn'
@@ -174,7 +174,7 @@ export const FloatingCartWidget: React.FC = () => {
         <div className="relative flex items-center justify-center">
           <ShoppingBag
             className={`w-5.5 h-5.5 transition-transform duration-300 group-hover:rotate-6 ${
-              hasItems ? 'text-white drop-shadow-sm' : 'text-slate-400 group-hover:text-orange-500'
+              hasItems ? 'text-white drop-shadow-sm' : 'text-orange-500 dark:text-orange-400 group-hover:scale-110'
             }`}
           />
 

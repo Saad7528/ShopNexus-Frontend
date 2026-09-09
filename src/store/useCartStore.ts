@@ -110,7 +110,7 @@ const syncCartWithServer = (
       }).catch(() => {});
 
       // 2. Also sync to external backend if configured
-      if (apiUrl && !apiUrl.startsWith('/api') && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+      if (apiUrl && !apiUrl.startsWith('/api') && typeof window !== 'undefined') {
         fetch(`${apiUrl}/cart/sync`, {
           method: 'POST',
           headers: {

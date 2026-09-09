@@ -8,6 +8,7 @@ import { FloatingCartWidget } from '@/components/cart/FloatingCartWidget';
 import { ChatbotWidget } from '@/components/ai/ChatbotWidget';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
 import StorefrontTelemetryTracker from '@/components/analytics/StorefrontTelemetryTracker';
+import CrossTabAuthSync from '@/components/auth/CrossTabAuthSync';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -55,6 +56,9 @@ export default function RootLayout({
         <ThemeProvider>
           {/* Real-time Customer Storefront Telemetry Tracker (Excludes Internal Admin Traffic) */}
           <StorefrontTelemetryTracker />
+
+          {/* Cross-Tab Authentication Auto-Synchronization Engine */}
+          <CrossTabAuthSync />
 
           {/* Global Navigation Bar */}
           <Navbar />

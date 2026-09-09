@@ -342,18 +342,27 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
-        const res = await fetch(`${API_URL}/admin/metrics`, {
+        let res = await fetch('/api/admin/metrics', {
           headers: {
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
-        });
-        if (!res.ok) return;
-        const data = await res.json();
+        }).catch(() => null);
+
+        if ((!res || !res.ok) && API_URL && !API_URL.startsWith('/api') && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+          res = await fetch(`${API_URL}/admin/metrics`, {
+            headers: {
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+          }).catch(() => null);
+        }
+
+        if (!res || !res.ok) return;
+        const data = await res.json().catch(() => null);
         if (data?.data?.summary) {
           setLiveMetrics(data.data);
         }
-      } catch (err) {
-        console.error('Could not fetch live dashboard metrics:', err);
+      } catch (_err) {
+        // Safe fallback without throwing unhandled exceptions
       }
     };
 

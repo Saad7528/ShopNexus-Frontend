@@ -206,8 +206,43 @@ export default function VisitorAnalyticsPage() {
     showToast('Visitor audit logs exported as CSV.');
   };
 
-  // Filtered Sessions with KPI Drill-Down
-  const filteredSessions = sessions.filter((sess) => {
+  const [selectedJourneySession, setSelectedJourneySession] = useState<VisitorSession | null>(null);
+
+  // 1. Group & Deduplicate strictly by IP on Client
+  const deduplicatedSessions = React.useMemo(() => {
+    const ipMap = new Map<string, VisitorSession>();
+    for (const sess of sessions) {
+      const key = sess.ip || sess.id;
+      if (!ipMap.has(key)) {
+        ipMap.set(key, { ...sess });
+      } else {
+        const existing = ipMap.get(key)!;
+        existing.pageviews = (existing.pageviews || 1) + (sess.pageviews || 1);
+        existing.durationSeconds = (existing.durationSeconds || 1) + (sess.durationSeconds || 1);
+        if (sess.isCartActive) existing.isCartActive = true;
+        if (sess.status === 'active') existing.status = 'active';
+
+        // Merge route histories
+        const existingRoutes = existing.routeHistory || [];
+        const newRoutes = sess.routeHistory || [];
+        const merged = [...existingRoutes];
+        for (const nr of newRoutes) {
+          const idx = merged.findIndex((r) => r.path === nr.path);
+          if (idx >= 0) {
+            merged[idx].durationSeconds += nr.durationSeconds;
+          } else {
+            merged.push(nr);
+          }
+        }
+        existing.routeHistory = merged;
+        ipMap.set(key, existing);
+      }
+    }
+    return Array.from(ipMap.values());
+  }, [sessions]);
+
+  // 2. Filtered Sessions with Strict Real-time Live Mode & Search
+  const filteredSessions = deduplicatedSessions.filter((sess) => {
     const matchSearch =
       sess.ip.toLowerCase().includes(searchQuery.toLowerCase()) ||
       sess.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -233,22 +268,15 @@ export default function VisitorAnalyticsPage() {
       matchKpi = sess.isCartActive === true;
     }
 
-    return matchSearch && matchStatus && matchDevice && matchKpi;
-  }).map((sess, idx) => {
-    // If live MongoDB user exists, link real user account
-    if (liveDbUsers.length > 0) {
-      const userMatch = liveDbUsers[idx % liveDbUsers.length];
-      return {
-        ...sess,
-        customerName: userMatch.name || userMatch.email?.split('@')[0] || sess.customerName,
-        contactPhone: userMatch.phoneNumber || sess.contactPhone,
-      };
-    }
-    return sess;
+    // When TimeFilter is 'live', strictly show active shoppers
+    const matchTime = timeFilter === 'live' ? sess.status === 'active' : true;
+
+    return matchSearch && matchStatus && matchDevice && matchKpi && matchTime;
   });
 
   const timeFilterLabels: Record<TimeFilter, string> = {
-    live: '⚡ Live (30m)',
+    live: '⚡ Live',
+    '30m': 'Past 30m',
     today: 'Today (24h)',
     week: 'Last 7 Days',
     month: 'Last 30 Days',
@@ -467,7 +495,7 @@ export default function VisitorAnalyticsPage() {
         <div className="flex flex-wrap items-center gap-2.5">
           {/* Time Filter Pills */}
           <div className="flex items-center p-1 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-            {(['live', 'today', 'week', 'month', 'all'] as TimeFilter[]).map((filter) => (
+            {(['live', '30m', 'today', 'week', 'month', 'all'] as TimeFilter[]).map((filter) => (
               <button
                 key={filter}
                 type="button"
@@ -954,19 +982,22 @@ export default function VisitorAnalyticsPage() {
                     ) : (
                       filteredSessions.map((sess) => {
                         const isBlocked = sess.status === 'blocked';
+                        const routeCount = sess.routeHistory?.length || 1;
                         return (
                           <tr
                             key={sess.id}
-                            className={`hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors ${
+                            onClick={() => setSelectedJourneySession(sess)}
+                            className={`hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors cursor-pointer ${
                               sess.isCartActive ? 'bg-orange-500/5 dark:bg-orange-500/5' : ''
                             } ${sess.isBounced ? 'bg-purple-500/5 dark:bg-purple-500/5' : ''}`}
+                            title="Click row to inspect complete Route Journey & Device Specs"
                           >
                             {/* Visitor & Location & Contact Lead */}
                             <td className="py-3.5 px-4">
                               <div className="flex items-center gap-2.5">
                                 <span className="text-xl shrink-0" title={sess.country}>{sess.flag}</span>
                                 <div className="min-w-0">
-                                  <span className="font-bold text-slate-900 dark:text-white block truncate text-xs">
+                                  <span className="font-bold text-slate-900 dark:text-white block truncate text-xs hover:text-orange-600 dark:hover:text-orange-400">
                                     {sess.customerName || sess.city}
                                   </span>
                                   <div className="flex items-center gap-1.5 text-[10px] text-slate-500 truncate mt-0.5">
@@ -1018,7 +1049,7 @@ export default function VisitorAnalyticsPage() {
                               </div>
                             </td>
 
-                            {/* Current Page & Activity with Neat Non-wrapping Badges */}
+                            {/* Current Page & Activity with Route Journey Badge */}
                             <td className="py-3.5 px-4">
                               <div className="flex items-center gap-2 whitespace-nowrap">
                                 <span className="font-bold font-mono text-orange-600 dark:text-orange-400 text-xs">
@@ -1034,15 +1065,13 @@ export default function VisitorAnalyticsPage() {
                                   </span>
                                 )}
                               </div>
-                              <span className="text-[10px] text-slate-500 block truncate max-w-[210px] mt-0.5">
-                                {sess.isBounced && sess.bounceReason ? (
-                                  <span className="text-purple-600 dark:text-purple-400 font-medium">
-                                    {sess.bounceReason}
-                                  </span>
-                                ) : (
-                                  `Via: ${sess.referrer}`
-                                )}
-                              </span>
+                              <div className="flex items-center gap-1.5 text-[10px] text-slate-500 truncate max-w-[210px] mt-0.5">
+                                <span className="px-1.5 py-0.2 rounded-md bg-slate-100 dark:bg-slate-800 font-mono font-semibold text-[9px] text-slate-600 dark:text-slate-400">
+                                  {routeCount} {routeCount > 1 ? 'routes' : 'route'}
+                                </span>
+                                <span>•</span>
+                                <span className="truncate">{sess.referrer}</span>
+                              </div>
                             </td>
 
                             {/* Session Duration & Hits */}
@@ -1079,29 +1108,41 @@ export default function VisitorAnalyticsPage() {
                               )}
                             </td>
 
-                            {/* 1-Click Access Control */}
-                            <td className="py-3.5 px-4 text-right whitespace-nowrap">
-                              {isBlocked ? (
+                            {/* Action Buttons: Journey Inspect + Block */}
+                            <td className="py-3.5 px-4 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                              <div className="flex items-center justify-end gap-1.5">
                                 <button
                                   type="button"
-                                  onClick={() => handleUnblock(sess.ip)}
-                                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 text-[11px] font-bold transition-all cursor-pointer active:scale-95"
-                                  title="Unblock this IP Address"
+                                  onClick={() => setSelectedJourneySession(sess)}
+                                  className="inline-flex items-center gap-1 px-2 py-1 rounded-xl bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/25 text-[11px] font-bold transition-all cursor-pointer active:scale-95"
+                                  title="Inspect Route Navigation Timeline"
                                 >
-                                  <Unlock className="w-3.5 h-3.5" />
-                                  <span>Unblock</span>
+                                  <Layers className="w-3.5 h-3.5" />
+                                  <span>Journey</span>
                                 </button>
-                              ) : (
-                                <button
-                                  type="button"
-                                  onClick={() => setSelectedIPToBlock(sess.ip)}
-                                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/25 text-[11px] font-bold transition-all cursor-pointer active:scale-95"
-                                  title="Block this IP Address"
-                                >
-                                  <Ban className="w-3.5 h-3.5" />
-                                  <span>Block IP</span>
-                                </button>
-                              )}
+
+                                {isBlocked ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleUnblock(sess.ip)}
+                                    className="inline-flex items-center gap-1 px-2 py-1 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 text-[11px] font-bold transition-all cursor-pointer active:scale-95"
+                                    title="Unblock this IP Address"
+                                  >
+                                    <Unlock className="w-3.5 h-3.5" />
+                                    <span>Unblock</span>
+                                  </button>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => setSelectedIPToBlock(sess.ip)}
+                                    className="inline-flex items-center gap-1 px-2 py-1 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/25 text-[11px] font-bold transition-all cursor-pointer active:scale-95"
+                                    title="Block this IP Address"
+                                  >
+                                    <Ban className="w-3.5 h-3.5" />
+                                    <span>Block</span>
+                                  </button>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         );
@@ -1507,6 +1548,219 @@ export default function VisitorAnalyticsPage() {
           </div>
         )}
       </div>
+
+      {/* 🚀 VISITOR ROUTE JOURNEY & HARDWARE DRILLDOWN DRAWER */}
+      {selectedJourneySession && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex justify-end animate-in fade-in duration-200" onClick={() => setSelectedJourneySession(null)}>
+          <div
+            className="w-full max-w-xl bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 h-full overflow-y-auto shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Drawer Header */}
+            <div className="p-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 flex items-center justify-between sticky top-0 z-10 backdrop-blur-md">
+              <div className="flex items-center gap-3">
+                <span className="text-3xl shrink-0" title={selectedJourneySession.country}>
+                  {selectedJourneySession.flag}
+                </span>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-black text-sm text-slate-900 dark:text-white">
+                      {selectedJourneySession.customerName || 'Guest Shopper'}
+                    </h3>
+                    <span
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        selectedJourneySession.status === 'active'
+                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                          : selectedJourneySession.status === 'blocked'
+                          ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
+                          : 'bg-slate-200/60 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                      }`}
+                    >
+                      {selectedJourneySession.status === 'active' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />}
+                      {selectedJourneySession.status.toUpperCase()}
+                    </span>
+                  </div>
+                  <p className="text-[11px] font-mono text-slate-500 mt-0.5">
+                    IP: {selectedJourneySession.ip} • {selectedJourneySession.city}, {selectedJourneySession.country}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setSelectedJourneySession(null)}
+                className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer"
+                title="Close Drawer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Drawer Body Content */}
+            <div className="p-5 space-y-6 flex-1">
+              {/* 4 Summary Metric Badges */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                <div className="p-3 rounded-xl bg-slate-100/70 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Total Hits</span>
+                  <span className="font-mono font-black text-sm text-slate-900 dark:text-white">{selectedJourneySession.pageviews} Views</span>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-100/70 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Total Duration</span>
+                  <span className="font-mono font-black text-sm text-slate-900 dark:text-white">
+                    {Math.floor(selectedJourneySession.durationSeconds / 60)}m {selectedJourneySession.durationSeconds % 60}s
+                  </span>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-100/70 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Device Type</span>
+                  <span className="font-bold text-xs text-orange-600 dark:text-orange-400 truncate block">{selectedJourneySession.device}</span>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-100/70 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Cart Value</span>
+                  <span className="font-mono font-bold text-xs text-emerald-600 dark:text-emerald-400">
+                    {selectedJourneySession.isCartActive ? `৳${selectedJourneySession.cartValueBDT?.toLocaleString() || '0'}` : 'No Cart'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Hardware & Client Environment Specs */}
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 space-y-2.5">
+                <h4 className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                  <Cpu className="w-4 h-4 text-orange-500" />
+                  Hardware & System Environment
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <span className="text-slate-500 text-[11px] block">Exact Hardware Model:</span>
+                    <span className="font-bold text-slate-900 dark:text-white">{selectedJourneySession.deviceModel}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 text-[11px] block">Operating System:</span>
+                    <span className="font-bold text-slate-900 dark:text-white">{selectedJourneySession.os}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 text-[11px] block">Browser & Version:</span>
+                    <span className="font-bold text-slate-900 dark:text-white">{selectedJourneySession.browser}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 text-[11px] block">Internet Service Provider:</span>
+                    <span className="font-bold text-slate-900 dark:text-white truncate">{selectedJourneySession.isp}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 🧭 NAVIGATION ROUTE TIMELINE & ENGAGEMENT DEEP DIVE */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                    <Compass className="w-4 h-4 text-orange-500" />
+                    Complete Route Navigation Journey ({selectedJourneySession.routeHistory?.length || 1} Routes)
+                  </h4>
+                  <span className="text-[10px] text-slate-500">Sorted by entry order</span>
+                </div>
+
+                <div className="space-y-2.5">
+                  {(selectedJourneySession.routeHistory || [
+                    {
+                      path: selectedJourneySession.currentUrl,
+                      durationSeconds: selectedJourneySession.durationSeconds,
+                      lastVisitedAt: selectedJourneySession.startedAt,
+                    }
+                  ]).map((route, rIdx) => {
+                    const pctOfTotal = Math.min(100, Math.round(((route.durationSeconds || 1) / Math.max(1, selectedJourneySession.durationSeconds)) * 100));
+                    const isHighEngagement = (route.durationSeconds || 1) >= 60;
+                    const isCurrent = route.path === selectedJourneySession.currentUrl;
+
+                    return (
+                      <div
+                        key={`${route.path}-${rIdx}`}
+                        className={`p-3.5 rounded-2xl border transition-all ${
+                          isCurrent
+                            ? 'bg-orange-500/5 dark:bg-orange-500/10 border-orange-500/40 shadow-xs ring-1 ring-orange-500/20'
+                            : 'bg-white dark:bg-slate-800/60 border-slate-200 dark:border-slate-800'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center text-[10px] font-mono font-bold shrink-0">
+                              {rIdx + 1}
+                            </span>
+                            <span className="font-mono font-bold text-xs text-orange-600 dark:text-orange-400 truncate">
+                              {route.path}
+                            </span>
+                            {isCurrent && (
+                              <span className="px-2 py-0.2 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] font-bold shrink-0">
+                                Live On Page
+                              </span>
+                            )}
+                            {isHighEngagement && (
+                              <span className="px-2 py-0.2 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[9px] font-bold shrink-0 flex items-center gap-1">
+                                🔥 High Interest
+                              </span>
+                            )}
+                          </div>
+                          <span className="font-mono font-bold text-xs text-slate-800 dark:text-slate-200 shrink-0">
+                            {Math.floor((route.durationSeconds || 1) / 60)}m {(route.durationSeconds || 1) % 60}s
+                          </span>
+                        </div>
+
+                        {/* Progress Bar of Time Spent */}
+                        <div className="mt-2 flex items-center gap-2">
+                          <div className="flex-1 h-1.5 rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-gradient-to-r from-orange-500 to-amber-500"
+                              style={{ width: `${pctOfTotal}%` }}
+                            />
+                          </div>
+                          <span className="text-[10px] font-mono text-slate-500 shrink-0">{pctOfTotal}% of session</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Drawer Footer Actions */}
+            <div className="p-5 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(selectedJourneySession.ip);
+                  showToast(`IP ${selectedJourneySession.ip} copied to clipboard.`);
+                }}
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 transition-colors cursor-pointer"
+              >
+                Copy IP Address
+              </button>
+
+              <div className="flex items-center gap-2">
+                {selectedJourneySession.status === 'blocked' ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleUnblock(selectedJourneySession.ip);
+                      setSelectedJourneySession((prev) => (prev ? { ...prev, status: 'active' } : null));
+                    }}
+                    className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold shadow-md shadow-emerald-500/20 transition-all cursor-pointer"
+                  >
+                    Unblock IP
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedIPToBlock(selectedJourneySession.ip);
+                    }}
+                    className="px-4 py-2 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold shadow-md shadow-rose-500/20 transition-all cursor-pointer"
+                  >
+                    Block IP Address
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Block IP Confirmation Modal */}
       {selectedIPToBlock && (

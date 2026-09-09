@@ -86,9 +86,12 @@ export default function EditProductPage() {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
       try {
-        // Try backend API first
-        const res = await fetch(`${API_URL}/products/${productId}`);
-        if (res.ok) {
+        // Try Next.js serverless API first
+        let res = await fetch(`/api/products/${productId}`).catch(() => null);
+        if ((!res || !res.ok) && API_URL && !API_URL.startsWith('/api') && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+          res = await fetch(`${API_URL}/products/${productId}`).catch(() => null);
+        }
+        if (res && res.ok) {
           const json = await res.json();
           const prod = json?.data;
           if (prod) {
@@ -226,14 +229,25 @@ export default function EditProductPage() {
     };
 
     try {
-      await fetch(`${API_URL}/products/${productId}`, {
-        method: 'PATCH',
+      let res = await fetch(`/api/products/${productId}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify(payload),
-      });
+      }).catch(() => null);
+
+      if ((!res || !res.ok) && API_URL && !API_URL.startsWith('/api') && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+        res = await fetch(`${API_URL}/products/${productId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify(payload),
+        }).catch(() => null);
+      }
 
       // Update local storage cache
       try {
