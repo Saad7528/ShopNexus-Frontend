@@ -42,26 +42,35 @@ export async function POST(req: NextRequest) {
     const queryLower = query.toLowerCase();
 
     // 🗄️ 1. Fetch live products from MongoDB Atlas (with fallback to ALL_PRODUCTS)
-    let catalogProducts: any[] = [...ALL_PRODUCTS];
+    let catalogProducts: any[] = [];
     try {
       await connectToDatabase();
       const db = mongoose.connection.db;
       if (db) {
         const dbItems = await db.collection('products').find({ isActive: { $ne: false } }).toArray();
         if (dbItems && dbItems.length > 0) {
-          const dbMap = new Map();
-          dbItems.forEach((item) => {
-            const key = item.slug || item._id?.toString() || item.title;
-            dbMap.set(key, item);
-          });
-          catalogProducts = catalogProducts.map((p) => {
-            const matched = dbMap.get(p.slug) || dbMap.get(p._id);
-            return matched ? { ...p, ...matched } : p;
-          });
+          const normalizedDbItems = dbItems.map((item) => ({
+            ...item,
+            _id: item._id?.toString() || item.id || item.slug,
+          }));
+
+          const dbKeySet = new Set(
+            normalizedDbItems.flatMap((item) => [item.slug, item._id, item.title?.toLowerCase()]).filter(Boolean)
+          );
+
+          const missingStatic = ALL_PRODUCTS.filter(
+            (p) => !dbKeySet.has(p.slug) && !dbKeySet.has(p._id) && !dbKeySet.has(p.title?.toLowerCase())
+          );
+
+          catalogProducts = [...normalizedDbItems, ...missingStatic];
         }
       }
     } catch (dbErr) {
       console.warn('MongoDB connection note, using cached static catalog:', dbErr);
+    }
+
+    if (catalogProducts.length === 0) {
+      catalogProducts = [...ALL_PRODUCTS];
     }
 
     // Build catalog grounding for Gemini
