@@ -167,12 +167,36 @@ export const useAuthStore = create<AuthState>()(
           lastVisitDate: finalLastVisit,
         });
 
+        // 📡 Broadcast login event to other open browser tabs
+        if (typeof window !== 'undefined') {
+          try {
+            if ('BroadcastChannel' in window) {
+              const channel = new BroadcastChannel('shopnexus_auth_sync_channel');
+              channel.postMessage({ type: 'LOGIN', user: initializedUser, token, timestamp: Date.now() });
+              channel.close();
+            }
+          } catch (_e) {}
+        }
+
         set({ user: initializedUser, token, isAuthenticated: true });
       },
       logout: () => {
         if (typeof document !== 'undefined') {
           document.cookie = 'token=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT';
         }
+
+        // 📡 Broadcast logout event to other open browser tabs
+        if (typeof window !== 'undefined') {
+          try {
+            if ('BroadcastChannel' in window) {
+              const channel = new BroadcastChannel('shopnexus_auth_sync_channel');
+              channel.postMessage({ type: 'LOGOUT', timestamp: Date.now() });
+              channel.close();
+            }
+            localStorage.setItem('shopnexus_auth_sync_event', JSON.stringify({ type: 'LOGOUT', timestamp: Date.now() }));
+          } catch (_e) {}
+        }
+
         // User session clears, but their account coin vault remains permanently saved by email
         set({ user: null, token: null, isAuthenticated: false });
       },

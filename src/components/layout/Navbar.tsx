@@ -83,7 +83,20 @@ export const Navbar: React.FC = () => {
     };
   }, [userDropdownOpen]);
 
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMobileMenuOpen(false);
+        setUserDropdownOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,6 +132,15 @@ export const Navbar: React.FC = () => {
 
   return (
     <>
+      {/* Frosted Page Backdrop Overlay when Mobile Menu is Open */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-slate-950/40 dark:bg-black/60 backdrop-blur-md transition-opacity duration-300 pointer-events-auto lg:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       <header
         className={`sticky top-0 z-50 w-full transition-[padding] duration-300 ease-out pointer-events-none ${
           isScrolled
@@ -190,157 +212,144 @@ export const Navbar: React.FC = () => {
 
             {/* Action Icons Bar */}
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-              {/* 1-Click EN | বাং Language Switcher (Desktop Only - on Mobile/Tablet it is in Hamburger Menu) */}
               <LanguageToggle className="hidden lg:inline-flex" />
 
-              {/* Dynamic Theme Toggle Button:
-                  - Desktop (lg): Always visible
-                  - Mobile / Tablet (< lg): Smoothly merges/slides into Hamburger Menu on scroll, and springs back on top!
-              */}
               <div
-                className={`transition-all duration-300 ease-out origin-right flex items-center ${
+                className={`transition-all duration-300 ease-out ${
                   isScrolled
-                    ? 'opacity-0 scale-0 w-0 -mr-1.5 sm:-mr-2 pointer-events-none lg:opacity-100 lg:scale-100 lg:w-auto lg:mr-0 lg:pointer-events-auto'
-                    : 'opacity-100 scale-100 w-auto mr-0'
+                    ? 'hidden lg:inline-flex opacity-100 scale-100'
+                    : 'inline-flex opacity-100 scale-100'
                 }`}
               >
                 <button
                   type="button"
                   onClick={toggleTheme}
-                  className="inline-flex p-2 sm:p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-orange-500 dark:hover:text-orange-300 transition-all cursor-pointer shadow-xs"
-                  title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+                  className="p-2 rounded-xl text-slate-700 dark:text-slate-300 hover:text-orange-500 dark:hover:text-orange-400 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-orange-500/50 transition-all cursor-pointer shadow-xs shrink-0"
+                  title={isMounted ? (theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode') : 'Toggle Theme'}
                 >
-                  {isMounted && theme === 'light' ? (
-                    <Moon className="w-4 h-4 text-slate-700" />
+                  {isMounted ? (
+                    theme === 'dark' ? (
+                      <Sun className="w-5 h-5 text-orange-400 animate-spin-slow" />
+                    ) : (
+                      <Moon className="w-5 h-5 text-orange-500" />
+                    )
                   ) : (
-                    <Sun className="w-4 h-4 text-orange-400" />
+                    <div className="w-5 h-5" />
                   )}
                 </button>
               </div>
 
-              {/* Notification Bell Button (Tablet & Desktop) */}
-              <button
-                type="button"
-                onClick={openNotificationDrawer}
-                className="hidden sm:inline-flex relative p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-orange-500 dark:hover:text-orange-400 transition-all cursor-pointer group shadow-xs"
-                title={isMounted ? t('nav_notifications') : 'Notifications'}
-              >
-                <Bell className="w-4 h-4 group-hover:rotate-12 transition-transform" />
-                {isMounted && unreadCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-orange-500 text-white text-[9px] font-bold flex items-center justify-center shadow-lg shadow-orange-500/40 animate-pulse">
-                    {language === 'bn' ? toBengaliNumber(unreadCount) : unreadCount}
-                  </span>
-                )}
-              </button>
-
-              {/* Wishlist Button (Mobile, Tablet & Desktop) */}
               <Link
                 href="/wishlist"
-                className="inline-flex relative p-2 sm:p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-rose-500 transition-all group shadow-xs"
+                className="relative p-2 rounded-xl text-slate-700 dark:text-slate-300 hover:text-orange-500 dark:hover:text-orange-400 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-orange-500/50 transition-all shadow-xs shrink-0"
                 title={isMounted ? t('nav_wishlist') : 'Wishlist'}
               >
-                <Heart className="w-4 h-4" />
+                <Heart className="w-5 h-5" />
                 {isMounted && wishlistItems.length > 0 && (
-                  <span className="absolute -top-1 -right-1 sm:-top-1.5 sm:-right-1.5 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-rose-500 text-white text-[9px] sm:text-[10px] font-bold flex items-center justify-center shadow-lg shadow-rose-500/40">
+                  <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
                     {language === 'bn' ? toBengaliNumber(wishlistItems.length) : wishlistItems.length}
                   </span>
                 )}
               </Link>
 
+              <button
+                type="button"
+                onClick={openNotificationDrawer}
+                className="relative p-2 rounded-xl text-slate-700 dark:text-slate-300 hover:text-orange-500 dark:hover:text-orange-400 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-orange-500/50 transition-all cursor-pointer shadow-xs shrink-0"
+                title={isMounted ? t('nav_notifications') : 'Notifications'}
+              >
+                <Bell className="w-5 h-5" />
+                {isMounted && unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-[10px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center animate-pulse shadow-xs">
+                    {language === 'bn' ? toBengaliNumber(unreadCount) : unreadCount}
+                  </span>
+                )}
+              </button>
 
-
-              {/* Desktop / Tablet User Auth Profile / Login Button */}
-              {isMounted && isAuthenticated && user ? (
-                <div ref={dropdownRef} className="relative hidden sm:block">
+              <div className="relative hidden lg:block" ref={dropdownRef}>
+                {isMounted && isAuthenticated && user ? (
                   <button
                     type="button"
                     onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                    className="flex items-center gap-2 p-1.5 pr-2.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-800 dark:text-slate-200 text-xs font-medium transition-all cursor-pointer shadow-xs"
+                    className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors cursor-pointer border border-transparent hover:border-slate-200 dark:hover:border-slate-800"
                   >
-                    {user.avatar || (user as any).image ? (
-                      <div className="w-7 h-7 rounded-lg overflow-hidden border border-orange-500/40 shrink-0 bg-slate-200 dark:bg-slate-800">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={user.avatar || (user as any).image}
-                          alt={user.name || 'User'}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
+                    {user.avatar ? (
+                      <img
+                        src={user.avatar}
+                        alt={user.name || 'User'}
+                        className="w-7 h-7 rounded-lg object-cover border border-orange-500/30"
+                      />
                     ) : (
-                      <div className="w-7 h-7 rounded-lg bg-orange-500/20 border border-orange-500/30 flex items-center justify-center text-orange-600 dark:text-orange-400 font-bold text-xs shrink-0">
+                      <div className="w-7 h-7 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-400 flex items-center justify-center font-bold text-xs">
                         {user.name ? user.name[0].toUpperCase() : 'U'}
                       </div>
                     )}
-                    <span className="hidden sm:inline max-w-20 truncate">{user.name ? user.name.split(' ')[0] : 'User'}</span>
                     <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
                   </button>
+                ) : (
+                  <Link
+                    href="/login"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-linear-to-r from-[#ff4400] to-[#ff7700] text-white text-xs font-bold shadow-md shadow-orange-500/20 hover:shadow-orange-500/40 hover:scale-[1.02] transition-all cursor-pointer"
+                  >
+                    <User className="w-3.5 h-3.5" />
+                    <span>{isMounted ? t('nav_sign_in') : 'Sign In'}</span>
+                  </Link>
+                )}
 
-                  {userDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-52 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-1.5 z-50 animate-in fade-in-50 zoom-in-95">
-                      <div className="flex items-center gap-2.5 px-3 py-2.5 border-b border-slate-100 dark:border-slate-800/80 mb-1">
-                        {user.avatar || (user as any).image ? (
-                          <div className="relative w-8 h-8 rounded-lg overflow-hidden border border-orange-500/30 shrink-0">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={user.avatar || (user as any).image}
-                              alt={user.name || 'User'}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        ) : (
-                          <div className="w-8 h-8 rounded-lg bg-orange-500/20 text-orange-600 dark:text-orange-400 flex items-center justify-center text-xs font-black shrink-0">
-                            {user.name ? user.name[0].toUpperCase() : 'U'}
-                          </div>
-                        )}
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{user.name}</p>
-                          <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
-                        </div>
-                      </div>
+                {userDropdownOpen && user && (
+                  <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-white dark:bg-[#0c1220] border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-900/10 dark:shadow-black/50 py-2 z-50 animate-in fade-in-50 zoom-in-95">
+                    <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800/80">
+                      <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{user.name}</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
+                    </div>
 
-                      {/* 1. If Admin: Place Admin Dashboard on TOP for quick 1-click access */}
+                    <div className="py-1">
+                      <Link
+                        href="/profile"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex items-center gap-2 px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900/50 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+                      >
+                        <User className="w-3.5 h-3.5" />
+                        <span>{isMounted ? t('nav_my_profile') : 'My Profile'}</span>
+                      </Link>
+
                       {user.role === 'admin' && (
                         <Link
                           href="/admin/dashboard"
                           onClick={() => setUserDropdownOpen(false)}
-                          className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 border border-orange-500/20 hover:bg-orange-500/20 transition-all mb-1 shadow-xs"
+                          className="flex items-center gap-2 px-4 py-2 text-xs font-medium text-orange-600 dark:text-orange-400 hover:bg-orange-50/50 dark:hover:bg-orange-500/10 transition-colors"
                         >
-                          <ShieldCheck className="w-3.5 h-3.5 text-orange-500" />
-                          {isMounted ? t('nav_admin_dashboard') : 'Admin Dashboard'}
+                          <ShieldCheck className="w-3.5 h-3.5" />
+                          <span>{isMounted ? t('nav_admin_dashboard') : 'Admin Dashboard'}</span>
                         </Link>
                       )}
 
-                      {/* 2. User Profile & Orders */}
-                      <Link
-                        href="/profile"
-                        onClick={() => setUserDropdownOpen(false)}
-                        className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                      >
-                        <User className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
-                        {isMounted ? t('nav_my_profile') : 'My Profile & Orders'}
-                      </Link>
+                      {user.role === 'vendor' && (
+                        <Link
+                          href="/vendor/dashboard"
+                          onClick={() => setUserDropdownOpen(false)}
+                          className="flex items-center gap-2 px-4 py-2 text-xs font-medium text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50/50 dark:hover:bg-emerald-500/10 transition-colors"
+                        >
+                          <Sparkles className="w-3.5 h-3.5" />
+                          <span>Vendor Portal</span>
+                        </Link>
+                      )}
+                    </div>
+
+                    <div className="pt-1 border-t border-slate-100 dark:border-slate-800/80">
                       <button
                         type="button"
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-rose-500 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors cursor-pointer text-left"
+                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors cursor-pointer"
                       >
                         <LogOut className="w-3.5 h-3.5" />
-                        {isMounted ? t('nav_sign_out') : 'Sign Out'}
+                        <span>{isMounted ? t('nav_sign_out') : 'Sign Out'}</span>
                       </button>
                     </div>
-                  )}
-                </div>
-              ) : (
-                <Link
-                  href="/login"
-                  className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-orange-500/40 text-slate-800 dark:text-slate-200 text-xs font-semibold hover:text-orange-500 dark:hover:text-orange-400 transition-all shadow-xs whitespace-nowrap shrink-0"
-                >
-                  <User className="w-3.5 h-3.5 text-orange-500 dark:text-orange-400 shrink-0" />
-                  <span className="whitespace-nowrap">{isMounted ? t('nav_sign_in') : 'Sign In'}</span>
-                </Link>
-              )}
+                  </div>
+                )}
+              </div>
 
-              {/* Mobile Menu Toggle Button */}
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -353,140 +362,132 @@ export const Navbar: React.FC = () => {
               </button>
             </div>
           </div>
+        </div>
 
-          {/* Mobile & Tablet Navigation Menu */}
-          {mobileMenuOpen && (
-            <div className="lg:hidden py-3 border-t border-slate-200 dark:border-slate-800/80 space-y-3 animate-in fade-in-50">
-              {/* 1. Navigation Page Links (হোম, পণ্যসমূহ, ফ্ল্যাশ ডিল) at TOP */}
-              <div className="flex flex-col gap-1">
-                {navLinks.map((link) => (
+        {/* Floating Mobile & Tablet Glassmorphism Navigation Menu */}
+        {mobileMenuOpen && (
+          <div className="pointer-events-auto lg:hidden fixed sm:absolute top-18 sm:top-full mt-2 inset-x-3 sm:inset-x-5 max-w-sm sm:max-w-md mx-auto z-50 rounded-3xl bg-white/90 dark:bg-[#0c1220]/90 backdrop-blur-2xl border border-white/60 dark:border-slate-800/80 shadow-2xl shadow-slate-950/20 dark:shadow-black/70 p-3.5 sm:p-4 space-y-3 animate-in fade-in-0 zoom-in-95 slide-in-from-top-3 duration-200">
+            <div className="flex flex-col gap-1">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`px-3.5 py-2.5 rounded-2xl text-xs font-bold flex items-center justify-between transition-all ${
+                    pathname === link.href
+                      ? 'text-orange-600 dark:text-orange-400 bg-orange-500/10 border border-orange-500/30 shadow-xs'
+                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100/80 dark:hover:bg-slate-900/80'
+                  }`}
+                >
+                  <span>{link.label}</span>
+                  {link.badge && (
+                    <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-full bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white">
+                      {link.badge}
+                    </span>
+                  )}
+                </Link>
+              ))}
+
+              {isMounted && isAuthenticated && user?.role === 'admin' && (
+                <Link
+                  href="/admin/dashboard"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-3.5 py-2.5 rounded-2xl text-xs font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 border border-orange-500/20 hover:bg-orange-500/20 flex items-center gap-2 transition-all shadow-xs"
+                >
+                  <ShieldCheck className="w-4 h-4 text-orange-500" />
+                  <span>{isMounted ? t('nav_admin_dashboard') : 'Admin Dashboard'}</span>
+                </Link>
+              )}
+            </div>
+
+            <div className="pt-1 border-t border-slate-200/60 dark:border-slate-800/60">
+              {isMounted && isAuthenticated && user ? (
+                <div className="p-2.5 rounded-2xl bg-white/60 dark:bg-slate-900/80 border border-slate-200/70 dark:border-slate-800/70 flex items-center justify-between gap-3 shadow-xs">
                   <Link
-                    key={link.href}
-                    href={link.href}
+                    href="/profile"
                     onClick={() => setMobileMenuOpen(false)}
-                    className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-between transition-all ${
-                      pathname === link.href
-                        ? 'text-orange-600 dark:text-orange-400 bg-orange-500/10 border border-orange-500/30 shadow-xs'
-                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900'
-                    }`}
+                    className="flex items-center gap-2.5 min-w-0 flex-1"
                   >
-                    <span>{link.label}</span>
-                    {link.badge && (
-                      <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-full bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white">
-                        {link.badge}
-                      </span>
-                    )}
-                  </Link>
-                ))}
-
-                {/* If Admin: Quick Link to Admin Dashboard */}
-                {isMounted && isAuthenticated && user?.role === 'admin' && (
-                  <Link
-                    href="/admin/dashboard"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="px-4 py-2.5 rounded-xl text-xs font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 border border-orange-500/20 hover:bg-orange-500/20 flex items-center gap-2 transition-all shadow-xs"
-                  >
-                    <ShieldCheck className="w-4 h-4 text-orange-500" />
-                    <span>{isMounted ? t('nav_admin_dashboard') : 'Admin Dashboard'}</span>
-                  </Link>
-                )}
-              </div>
-
-              {/* 2. User Profile / Sign In Card (Under Navigation Links) */}
-              <div className="pt-1 border-t border-slate-200/80 dark:border-slate-800/80">
-                {isMounted && isAuthenticated && user ? (
-                  <div className="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3">
-                    <Link
-                      href="/profile"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center gap-2.5 min-w-0 flex-1"
-                    >
-                      {user.avatar ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={user.avatar} alt={user.name || 'User'} className="w-8 h-8 rounded-xl object-cover border border-orange-500/40 shrink-0" />
-                      ) : (
-                        <div className="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-600 dark:text-orange-400 flex items-center justify-center font-bold text-xs shrink-0">
-                          {user.name ? user.name[0].toUpperCase() : 'U'}
-                        </div>
-                      )}
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{user.name}</p>
-                        <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
+                    {user.avatar ? (
+                      <img src={user.avatar} alt={user.name || 'User'} className="w-8 h-8 rounded-xl object-cover border border-orange-500/40 shrink-0" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-600 dark:text-orange-400 flex items-center justify-center font-bold text-xs shrink-0">
+                        {user.name ? user.name[0].toUpperCase() : 'U'}
                       </div>
-                    </Link>
-
-                    <button
-                      type="button"
-                      onClick={handleLogout}
-                      className="p-2 rounded-xl text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
-                      title="Sign Out"
-                    >
-                      <LogOut className="w-4 h-4" />
-                    </button>
-                  </div>
-                ) : (
-                  <Link
-                    href="/login"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white text-xs font-bold flex items-center justify-center gap-2 shadow-md shadow-orange-500/20"
-                  >
-                    <User className="w-4 h-4" /> {isMounted ? t('nav_sign_in') : 'Sign In / Create Account'}
+                    )}
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{user.name}</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
+                    </div>
                   </Link>
-                )}
-              </div>
-
-              {/* 3. Mobile Theme (Light/Dark) & Language Switcher at BOTTOM */}
-              <div className="space-y-2 pt-1 border-t border-slate-200/80 dark:border-slate-800/80">
-                {/* Theme Mode Switcher */}
-                <div className="p-2.5 rounded-2xl bg-slate-100 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2">
-                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2 pl-1">
-                    {theme === 'dark' ? <Moon className="w-4 h-4 text-orange-400" /> : <Sun className="w-4 h-4 text-orange-500" />}
-                    <span>{language === 'bn' ? (theme === 'dark' ? 'ডার্ক মোড' : 'লাইট মোড') : (theme === 'dark' ? 'Dark Theme' : 'Light Theme')}</span>
-                  </span>
                   <button
                     type="button"
-                    onClick={toggleTheme}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-800 dark:text-slate-200 hover:text-orange-500 dark:hover:text-orange-400 shadow-xs cursor-pointer transition-all"
+                    onClick={handleLogout}
+                    className="p-2 rounded-xl text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
+                    title="Sign Out"
                   >
-                    <span>{theme === 'dark' ? '☀️ ' + (language === 'bn' ? 'লাইট' : 'Light') : '🌙 ' + (language === 'bn' ? 'ডার্ক' : 'Dark')}</span>
+                    <LogOut className="w-4 h-4" />
                   </button>
                 </div>
+              ) : (
+                <Link
+                  href="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full py-2.5 rounded-2xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white text-xs font-bold flex items-center justify-center gap-2 shadow-md shadow-orange-500/20"
+                >
+                  <User className="w-4 h-4" /> {isMounted ? t('nav_sign_in') : 'Sign In / Create Account'}
+                </Link>
+              )}
+            </div>
 
-                {/* Language Switcher (বাংলা / English) */}
-                <div className="p-2.5 rounded-2xl bg-slate-100 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2">
-                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 pl-1">
-                    <span className="text-sm">🌐</span>
-                    <span>{language === 'bn' ? 'ভাষা / Language' : 'Language / ভাষা'}</span>
-                  </span>
-                  <div className="flex items-center p-1 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-xs">
-                    <button
-                      type="button"
-                      onClick={() => language !== 'en' && useLanguageStore.getState().setLanguage('en')}
-                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                        language === 'en'
-                          ? 'bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white shadow-xs'
-                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                      }`}
-                    >
-                      English
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => language !== 'bn' && useLanguageStore.getState().setLanguage('bn')}
-                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                        language === 'bn'
-                          ? 'bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white shadow-xs'
-                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                      }`}
-                    >
-                      বাংলা
-                    </button>
-                  </div>
+            <div className="space-y-2 pt-1 border-t border-slate-200/60 dark:border-slate-800/60">
+              <div className="p-2 rounded-2xl bg-slate-100/70 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between gap-2">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2 pl-1.5">
+                  {theme === 'dark' ? <Moon className="w-4 h-4 text-orange-400" /> : <Sun className="w-4 h-4 text-orange-500" />}
+                  <span>{language === 'bn' ? (theme === 'dark' ? 'ডার্ক মোড' : 'লাইট মোড') : (theme === 'dark' ? 'Dark Theme' : 'Light Theme')}</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={toggleTheme}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/90 dark:bg-slate-950/90 border border-slate-200/80 dark:border-slate-800/80 text-xs font-bold text-slate-800 dark:text-slate-200 hover:text-orange-500 dark:hover:text-orange-400 shadow-xs cursor-pointer transition-all"
+                >
+                  <span>{theme === 'dark' ? '☀️ ' + (language === 'bn' ? 'লাইট' : 'Light') : '🌙 ' + (language === 'bn' ? 'ডার্ক' : 'Dark')}</span>
+                </button>
+              </div>
+
+              <div className="p-2 rounded-2xl bg-slate-100/70 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between gap-2">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 pl-1.5">
+                  <span className="text-sm">🌐</span>
+                  <span>{language === 'bn' ? 'ভাষা / Language' : 'Language / ভাষা'}</span>
+                </span>
+                <div className="flex items-center p-0.5 rounded-xl bg-white/90 dark:bg-slate-950/90 border border-slate-200/80 dark:border-slate-800/80 shadow-xs">
+                  <button
+                    type="button"
+                    onClick={() => language !== 'en' && useLanguageStore.getState().setLanguage('en')}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      language === 'en'
+                        ? 'bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white shadow-xs'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    English
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => language !== 'bn' && useLanguageStore.getState().setLanguage('bn')}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      language === 'bn'
+                        ? 'bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white shadow-xs'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    বাংলা
+                  </button>
                 </div>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </header>
 
       {/* Global Modals & Drawers */}

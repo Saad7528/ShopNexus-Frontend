@@ -97,7 +97,6 @@ export const Footer: React.FC = () => {
 
   return (
     <footer className="border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 mt-10 sm:mt-12">
-      {/* Main Footer Links */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-7 sm:py-9">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-7 lg:gap-9">
           {/* 1. Brand Column */}
@@ -134,7 +133,7 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
-                <Link href="/profile?tab=orders" className="hover:text-orange-500 dark:hover:text-orange-400 transition-colors">
+                <Link href="/track" className="hover:text-orange-500 dark:hover:text-orange-400 transition-colors">
                   {mounted ? (language === 'bn' ? 'লাইভ অর্ডার ট্র্যাকিং' : 'Live Order Tracking') : 'Live Order Tracking'}
                 </Link>
               </li>
@@ -175,7 +174,7 @@ export const Footer: React.FC = () => {
             </ul>
           </div>
 
-          {/* 4. Newsletter & Social Media Column */}
+          {/* 4. Newsletter & Social Media */}
           <div className="space-y-3">
             <div className="space-y-1.5">
               <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
@@ -234,7 +233,7 @@ export const Footer: React.FC = () => {
           </div>
         </div>
 
-        {/* Bottom Ultra-Slim Copyright Bar */}
+        {/* Bottom Ultra-Slim */}
         <div className="mt-7 pt-3.5 border-t border-slate-200 dark:border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs text-slate-500">
           <p>© {new Date().getFullYear()} ShopNexus Platform. {mounted ? t('footer_rights') : 'All rights reserved.'}</p>
           <div className="flex items-center gap-3">

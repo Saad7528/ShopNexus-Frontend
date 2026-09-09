@@ -211,13 +211,22 @@ export default function AdminCustomersRBACPage() {
   React.useEffect(() => {
     const fetchLiveUsers = async () => {
       try {
-        const res = await fetch(`${API_URL}/admin/users`, {
+        let res = await fetch('/api/admin/users', {
           headers: {
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
-        });
-        if (!res.ok) return;
-        const data = await res.json();
+        }).catch(() => null);
+
+        if ((!res || !res.ok) && API_URL && !API_URL.startsWith('/api') && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+          res = await fetch(`${API_URL}/admin/users`, {
+            headers: {
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+          }).catch(() => null);
+        }
+
+        if (!res || !res.ok) return;
+        const data = await res.json().catch(() => null);
         if (data?.data && Array.isArray(data.data)) {
           const liveUsers = data.data;
 

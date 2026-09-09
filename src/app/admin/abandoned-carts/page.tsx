@@ -29,7 +29,6 @@ import {
   Percent,
   Banknote,
   Truck,
-  Sliders,
 } from 'lucide-react';
 
 interface IAbandonedItem {
@@ -54,8 +53,104 @@ interface IAbandonedCart {
   updatedAt?: string;
 }
 
+import { useVisitorAnalyticsStore } from '@/store/useVisitorAnalyticsStore';
+
+const DEMO_ABANDONED_CARTS: IAbandonedCart[] = [
+  {
+    id: 'demo_cart_1',
+    customerName: 'Tanvir Ahmed (Active Member)',
+    customerPhone: '+880 1712-884910',
+    customerEmail: 'tanvir.ahmed@gmail.com',
+    items: [
+      {
+        id: 'p1',
+        title: 'Sony WH-1000XM5 Wireless Noise-Cancelling Headphones',
+        image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80',
+        price: 32500,
+        quantity: 1,
+      },
+    ],
+    cartTotal: 34125,
+    timeAgo: '12m ago',
+    status: 'Uncontacted',
+    recoveryDiscountCode: '',
+  },
+  {
+    id: 'demo_cart_2',
+    customerName: 'Sadia Rahman (Cart Value ৳84k)',
+    customerPhone: '+880 1819-445566',
+    customerEmail: 'sadia.rahman@yahoo.com',
+    items: [
+      {
+        id: 'p3',
+        title: 'Apple AirPods Max (Space Gray)',
+        image: 'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=800&q=80',
+        price: 52000,
+        quantity: 1,
+      },
+      {
+        id: 'p5',
+        title: 'Sennheiser Momentum 4 Wireless',
+        image: 'https://images.unsplash.com/photo-1484704849700-f032a568e944?w=800&q=80',
+        price: 31000,
+        quantity: 1,
+      },
+    ],
+    cartTotal: 87150,
+    timeAgo: '45m ago',
+    status: 'Uncontacted',
+    recoveryDiscountCode: '',
+  },
+  {
+    id: 'demo_cart_3',
+    customerName: 'Asmual Obaidul Hoque (VIP Bundle)',
+    customerPhone: '01833452232',
+    customerEmail: 'asmual01@gmail.com',
+    items: [
+      {
+        id: 'b-1',
+        title: 'Ultimate Audiophile Master Combo',
+        image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&q=80',
+        price: 60690,
+        quantity: 1,
+      },
+      {
+        id: 'b-2',
+        title: 'Titanium Creator Pro Suite',
+        image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80',
+        price: 85900,
+        quantity: 1,
+      },
+    ],
+    cartTotal: 180850,
+    timeAgo: '2h ago',
+    status: 'WhatsApp Sent',
+    recoveryDiscountCode: 'COMEBACK10',
+  },
+  {
+    id: 'demo_cart_4',
+    customerName: 'Nusrat Jahan',
+    customerPhone: '+880 1622-778899',
+    customerEmail: 'nusrat.jahan@hotmail.com',
+    items: [
+      {
+        id: 'p9',
+        title: 'Samsung Galaxy Watch 6 Classic 47mm',
+        image: 'https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=800&q=80',
+        price: 88000,
+        quantity: 1,
+      },
+    ],
+    cartTotal: 92400,
+    timeAgo: '4h ago',
+    status: 'Recovered',
+    recoveryDiscountCode: 'SAVE500',
+  },
+];
+
 export default function AbandonedCartsPage() {
   const { token } = useAuthStore();
+  const { telemetryMode } = useVisitorAnalyticsStore();
   const [carts, setCarts] = useState<IAbandonedCart[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -64,6 +159,7 @@ export default function AbandonedCartsPage() {
 
   // WhatsApp Recovery Modal State
   const [activeRecoveryCart, setActiveRecoveryCart] = useState<IAbandonedCart | null>(null);
+  const [recipientPhone, setRecipientPhone] = useState('');
   const [discountType, setDiscountType] = useState<string>('flat_200');
   const [customValue, setCustomValue] = useState<string>('200');
   const [promoCode, setPromoCode] = useState<string>('SAVE200');
@@ -72,6 +168,7 @@ export default function AbandonedCartsPage() {
   const [isSending, setIsSending] = useState(false);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+  const VERCEL_LIVE_URL = 'https://shop-nexus-frontend-ten.vercel.app';
 
   // Helper to compute discount offer text and suggested coupon code
   const getOfferDetails = useCallback((type: string, customVal: string) => {
@@ -108,7 +205,17 @@ export default function AbandonedCartsPage() {
   const getRecoveryMessage = (cart: IAbandonedCart, code: string, type: string, customVal: string) => {
     const itemNames = (cart.items || []).map((i) => i.title).join(', ') || 'আপনার পছন্দের পণ্য';
     const { text: offerText } = getOfferDetails(type, customVal);
-    return `আসসালামু আলাইকুম ${cart.customerName || 'Shopper'}! ShopNexus-এ আপনার কার্টে "${itemNames}" রেখে গিয়েছিলেন। আপনার জন্য বিশেষ ${offerText} কুপন কোড: "${code}" তৈরি করা হয়েছে। এখনই চেকআউট সম্পন্ন করে অফিশিয়াল পণ্যটি নিশ্চিত করুন: https://shopnexus.io/checkout?code=${code}`;
+    const recoveryUrl = `${VERCEL_LIVE_URL}/checkout?recoverCart=${cart.id}&code=${code}`;
+    return `আসসালামু আলাইকুম ${cart.customerName || 'Shopper'}! ShopNexus-এ আপনার কার্টে "${itemNames}" রেখে গিয়েছিলেন। আপনার জন্য বিশেষ ${offerText} কুপন কোড: "${code}" তৈরি করা হয়েছে। এখনই চেকআউট সম্পন্ন করে অফিশিয়াল পণ্যটি নিশ্চিত করুন:\n${recoveryUrl}`;
+  };
+
+  const handleOpenRecoveryModal = (cart: IAbandonedCart) => {
+    setActiveRecoveryCart(cart);
+    setRecipientPhone(cart.customerPhone || '');
+    setDiscountType('flat_200');
+    setCustomValue('200');
+    setPromoCode(cart.recoveryDiscountCode || 'SAVE200');
+    setCustomRecoveryText('');
   };
 
   const handleDiscountTypeChange = (newType: string) => {
@@ -125,24 +232,53 @@ export default function AbandonedCartsPage() {
     setCustomRecoveryText('');
   };
 
-  // Fetch live abandoned carts from MongoDB Atlas
+  // Fetch live abandoned carts from MongoDB Atlas / Backend API
   const fetchAbandonedCarts = useCallback(async (isManualRefresh = false) => {
     if (isManualRefresh) setIsRefreshing(true);
     else setIsLoading(true);
 
-    try {
-      const res = await fetch(`${API_URL}/admin/abandoned-carts`, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      });
+    if (telemetryMode === 'demo') {
+      setCarts(DEMO_ABANDONED_CARTS);
+      setIsLoading(false);
+      setIsRefreshing(false);
+      return;
+    }
 
-      if (res.ok) {
-        const json = await res.json();
-        if (json?.data && Array.isArray(json.data)) {
-          setCarts(json.data);
+    try {
+      let fetched: IAbandonedCart[] | null = null;
+
+      // 1. Direct Next.js Atlas Route (works seamlessly across localhost & local network phone connections)
+      try {
+        const nextRes = await fetch('/api/admin/abandoned-carts');
+        if (nextRes.ok) {
+          const json = await nextRes.json();
+          if (json?.data && Array.isArray(json.data)) {
+            fetched = json.data;
+          }
         }
+      } catch (_e) {}
+
+      // 2. Fallback to Express Backend if needed
+      if (!fetched && API_URL) {
+        try {
+          const res = await fetch(`${API_URL}/admin/abandoned-carts`, {
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+          });
+
+          if (res.ok) {
+            const json = await res.json();
+            if (json?.data && Array.isArray(json.data)) {
+              fetched = json.data;
+            }
+          }
+        } catch (_e) {}
+      }
+
+      if (fetched) {
+        setCarts(fetched);
       }
     } catch (err) {
       console.error('Failed to fetch abandoned carts:', err);
@@ -150,14 +286,14 @@ export default function AbandonedCartsPage() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [API_URL, token]);
+  }, [API_URL, token, telemetryMode]);
 
   useEffect(() => {
     fetchAbandonedCarts();
-    // Auto-refresh telemetry every 30 seconds
+    // Auto-refresh telemetry every 15 seconds
     const interval = setInterval(() => {
       fetchAbandonedCarts(false);
-    }, 30000);
+    }, 15000);
     return () => clearInterval(interval);
   }, [fetchAbandonedCarts]);
 
@@ -189,22 +325,43 @@ export default function AbandonedCartsPage() {
 
   const handleSendWhatsAppRecovery = async () => {
     if (!activeRecoveryCart) return;
+    const phoneToUse = (recipientPhone || activeRecoveryCart.customerPhone || '').trim();
+    const cleanPhone = phoneToUse.replace(/[^0-9]/g, '');
+
+    if (!cleanPhone || cleanPhone.length < 8) {
+      alert('অনুগ্রহ করে কাস্টমারের সঠিক WhatsApp ফোন নম্বর ইনপুট দিন।');
+      return;
+    }
+
     setIsSending(true);
 
     const msg = customRecoveryText || getRecoveryMessage(activeRecoveryCart, promoCode, discountType, customValue);
-    const cleanPhone = (activeRecoveryCart.customerPhone || '').replace(/[^0-9]/g, '');
     const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
     window.open(waUrl, '_blank');
 
-    // Async DB update to persist 'WhatsApp Sent' status in MongoDB
+    // Async DB update to persist 'WhatsApp Sent' status and customer phone in MongoDB
     try {
-      await fetch(`${API_URL}/admin/abandoned-carts/${activeRecoveryCart.id}/recover`, {
+      await fetch(`/api/admin/abandoned-carts/${activeRecoveryCart.id}/recover`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ discountCode: promoCode, status: 'WhatsApp Sent' }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          discountCode: promoCode,
+          customerPhone: phoneToUse,
+          status: 'WhatsApp Sent',
+        }),
+      }).catch(async () => {
+        await fetch(`${API_URL}/admin/abandoned-carts/${activeRecoveryCart.id}/recover`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({
+            discountCode: promoCode,
+            customerPhone: phoneToUse,
+            status: 'WhatsApp Sent',
+          }),
+        });
       });
     } catch (_e) {
       console.error('Error recording WhatsApp recovery dispatch:', _e);
@@ -214,7 +371,12 @@ export default function AbandonedCartsPage() {
     setCarts((prev) =>
       prev.map((c) =>
         c.id === activeRecoveryCart.id
-          ? { ...c, status: 'WhatsApp Sent', recoveryDiscountCode: promoCode }
+          ? {
+              ...c,
+              customerPhone: phoneToUse,
+              status: 'WhatsApp Sent',
+              recoveryDiscountCode: promoCode,
+            }
           : c
       )
     );
@@ -224,13 +386,19 @@ export default function AbandonedCartsPage() {
 
   const handleUpdateStatus = async (cartId: string, newStatus: IAbandonedCart['status']) => {
     try {
-      await fetch(`${API_URL}/admin/abandoned-carts/${cartId}/status`, {
+      await fetch(`/api/admin/abandoned-carts/${cartId}/status`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
+      }).catch(async () => {
+        await fetch(`${API_URL}/admin/abandoned-carts/${cartId}/status`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ status: newStatus }),
+        });
       });
 
       setCarts((prev) =>
@@ -409,10 +577,16 @@ export default function AbandonedCartsPage() {
                     <tr key={cart.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                       <td className="px-5 py-3.5">
                         <div className="font-bold text-slate-900 dark:text-white">{cart.customerName || 'Guest Shopper'}</div>
-                        <span className="text-[11px] font-mono text-orange-600 dark:text-orange-400 block flex items-center gap-1">
-                          <Phone className="w-3 h-3 text-orange-500" /> {cart.customerPhone || '+880 1700-000000'}
-                        </span>
-                        <span className="text-[10px] text-slate-400 dark:text-slate-500">{cart.customerEmail || 'shopper@tempmail.io'}</span>
+                        {cart.customerPhone ? (
+                          <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-semibold mt-0.5">
+                            <Phone className="w-3 h-3 text-emerald-500" /> {cart.customerPhone}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-amber-500/90 dark:text-amber-400 flex items-center gap-1 font-bold mt-0.5">
+                            <AlertCircle className="w-3 h-3 text-amber-500" /> No Phone Provided
+                          </span>
+                        )}
+                        <span className="text-[10px] text-slate-400 dark:text-slate-500 block mt-0.5">{cart.customerEmail || 'No email recorded'}</span>
                       </td>
                       <td className="px-5 py-3.5">
                         <div className="space-y-1.5 max-w-xs">
@@ -483,13 +657,7 @@ export default function AbandonedCartsPage() {
                         ) : (
                           <button
                             type="button"
-                            onClick={() => {
-                              setActiveRecoveryCart(cart);
-                              setDiscountType('flat_200');
-                              setCustomValue('200');
-                              setPromoCode(cart.recoveryDiscountCode || 'SAVE200');
-                              setCustomRecoveryText('');
-                            }}
+                            onClick={() => handleOpenRecoveryModal(cart)}
                             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-600/25 transition-all cursor-pointer hover:scale-105"
                           >
                             <MessageCircle className="w-3.5 h-3.5" />
@@ -532,15 +700,15 @@ export default function AbandonedCartsPage() {
                 </button>
               </div>
 
-              {/* Recipient & Cart Breakdown */}
-              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
+              {/* Recipient & Cart Breakdown with Editable Phone */}
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-3">
                 <div className="flex items-center justify-between text-xs">
                   <div>
                     <span className="font-bold text-slate-900 dark:text-white block">
                       {activeRecoveryCart.customerName || 'Guest Shopper'}
                     </span>
-                    <span className="font-mono text-orange-600 dark:text-orange-400">
-                      {activeRecoveryCart.customerPhone || '+880 1700-000000'}
+                    <span className="text-[10px] text-slate-400 block">
+                      {activeRecoveryCart.customerEmail || 'No email provided'}
                     </span>
                   </div>
                   <div className="text-right">
@@ -551,6 +719,24 @@ export default function AbandonedCartsPage() {
                       {(activeRecoveryCart.items || []).length} item(s) in cart
                     </span>
                   </div>
+                </div>
+
+                <div className="pt-2.5 border-t border-slate-200/70 dark:border-slate-800/70">
+                  <label className="block text-[10px] uppercase font-bold text-slate-600 dark:text-slate-300 mb-1 flex items-center justify-between">
+                    <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+                      <Phone className="w-3.5 h-3.5" /> Customer WhatsApp Phone:
+                    </span>
+                    {!recipientPhone.trim() && (
+                      <span className="text-amber-500 text-[10px] font-bold">⚠️ নাম্বার ইনপুট দেওয়া প্রয়োজন</span>
+                    )}
+                  </label>
+                  <input
+                    type="tel"
+                    value={recipientPhone}
+                    onChange={(e) => setRecipientPhone(e.target.value)}
+                    placeholder="e.g. 01712345678 বা +8801712345678"
+                    className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-mono font-bold text-xs text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none shadow-xs"
+                  />
                 </div>
               </div>
 
@@ -622,12 +808,12 @@ export default function AbandonedCartsPage() {
                 )}
               </div>
 
-              {/* Message */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between text-xs">
-                  <label className="font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                    WhatsApp Message Preview:
-                  </label>
+                {/* Message Preview */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <label className="font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                      WhatsApp Message Preview:
+                    </label>
                   <button
                     type="button"
                     onClick={() => {

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useCartStore } from '@/store/useCartStore';
 import { useOrderStore } from '@/store/useOrderStore';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -35,17 +35,15 @@ import {
   Crown,
 } from 'lucide-react';
 
-export default function CheckoutPage() {
+function CheckoutContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { items, clearCart } = useCartStore();
   const { user, isAuthenticated, spendCoins, addCoins, useVipDiscount } = useAuthStore();
   const orders = useOrderStore((state) => state.orders);
   const { t, language } = useLanguageStore();
   const [mounted, setMounted] = useState(false);
-
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
+  const [recoveryNotice, setRecoveryNotice] = useState<string | null>(null);
 
   // Subtotal calculation (Product rate only)
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -87,6 +85,78 @@ export default function CheckoutPage() {
     msg: string;
   } | null>(null);
 
+  // First Order Logic: Has the user placed any orders before?
+  const isFirstOrder = orders.length === 0;
+
+  // Coupon state for returning users
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCouponDiscount, setAppliedCouponDiscount] = useState(0);
+  const [couponError, setCouponError] = useState<string | null>(null);
+
+  const applyDiscountForCode = (codeStr: string, currentSubtotal: number) => {
+    const code = codeStr.trim().toUpperCase();
+    if (!code) return;
+
+    if (code.startsWith('SAVE')) {
+      const amt = parseInt(code.replace('SAVE', ''), 10);
+      if (!isNaN(amt) && amt > 0) {
+        setAppliedCouponDiscount(Math.min(currentSubtotal, amt));
+        return;
+      }
+    } else if (code.startsWith('COMEBACK')) {
+      const pct = parseInt(code.replace('COMEBACK', ''), 10);
+      if (!isNaN(pct) && pct > 0) {
+        setAppliedCouponDiscount(Math.round((currentSubtotal * pct) / 100));
+        return;
+      }
+    } else if (code === 'FREESHIP') {
+      setAppliedCouponDiscount(120);
+      return;
+    } else if (code === 'NEXUS10') {
+      setAppliedCouponDiscount(Math.round(currentSubtotal * 0.10));
+      return;
+    } else if (code === 'SAVE15') {
+      setAppliedCouponDiscount(Math.round(currentSubtotal * 0.15));
+      return;
+    }
+  };
+
+  // 🔄 1-Click WhatsApp Cart Recovery Auto-Restoration Engine
+  React.useEffect(() => {
+    setMounted(true);
+    const recoverId = searchParams.get('recoverCart') || searchParams.get('cartId');
+    const codeParam = searchParams.get('code') || searchParams.get('coupon');
+
+    if (recoverId) {
+      fetch(`/api/cart/recover?id=${recoverId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data?.success && data?.data?.items?.length > 0) {
+            useCartStore.setState({ items: data.data.items });
+            const finalCode = (codeParam || data.data.couponCode || '').toUpperCase();
+            if (finalCode) {
+              setCouponCode(finalCode);
+              const computedSubtotal = data.data.items.reduce(
+                (sum: number, item: any) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 1),
+                0
+              );
+              applyDiscountForCode(finalCode, computedSubtotal);
+            }
+            setRecoveryNotice(
+              `আপনার পূর্ববর্তী কার্টের ${data.data.items.length}টি পণ্য সফলভাবে ফিরিয়ে আনা হয়েছে${
+                finalCode ? ` এবং "${finalCode}" ডিসকাউন্ট ভাউচার যুক্ত করা হয়েছে!` : '!'
+              }`
+            );
+          }
+        })
+        .catch(() => {});
+    } else if (codeParam) {
+      const finalCode = codeParam.toUpperCase();
+      setCouponCode(finalCode);
+      applyDiscountForCode(finalCode, subtotal);
+    }
+  }, [searchParams]);
+
   // Smart Validation function: Name, Mobile, and Address cannot be fake or incomplete
   const validateAddress = (addr: IShippingAddressForm): boolean => {
     const res = validateSmartShippingAddress(addr);
@@ -104,14 +174,6 @@ export default function CheckoutPage() {
       setCurrentStep(2);
     }
   };
-
-  // First Order Logic: Has the user placed any orders before?
-  const isFirstOrder = orders.length === 0;
-
-  // Coupon state for returning users
-  const [couponCode, setCouponCode] = useState('');
-  const [appliedCouponDiscount, setAppliedCouponDiscount] = useState(0);
-  const [couponError, setCouponError] = useState<string | null>(null);
 
   // Dynamic delivery fee calculation: Inside Dhaka ৳60, Outside Dhaka ৳120
   const deliveryFee = deliveryZone === 'inside_dhaka' ? 60 : 120;
@@ -148,12 +210,27 @@ export default function CheckoutPage() {
       // Fall through to local demo coupons
     }
 
-    if (code === 'NEXUS10') {
+    if (code.startsWith('SAVE')) {
+      const amt = parseInt(code.replace('SAVE', ''), 10);
+      if (!isNaN(amt) && amt > 0) {
+        setAppliedCouponDiscount(Math.min(subtotal, amt));
+        return;
+      }
+    } else if (code.startsWith('COMEBACK')) {
+      const pct = parseInt(code.replace('COMEBACK', ''), 10);
+      if (!isNaN(pct) && pct > 0) {
+        setAppliedCouponDiscount(Math.round((subtotal * pct) / 100));
+        return;
+      }
+    } else if (code === 'FREESHIP') {
+      setAppliedCouponDiscount(120);
+      return;
+    } else if (code === 'NEXUS10') {
       setAppliedCouponDiscount(Math.round(subtotal * 0.10));
     } else if (code === 'SAVE15') {
       setAppliedCouponDiscount(Math.round(subtotal * 0.15));
     } else {
-      setCouponError('Invalid coupon code. Try NEXUS10 or SAVE15.');
+      setCouponError('Invalid coupon code. Try NEXUS10, SAVE15, or SAVE200.');
     }
   };
 
@@ -304,6 +381,32 @@ export default function CheckoutPage() {
                 <MessageSquare className="w-3 h-3 text-emerald-400" /> Sent to {smsNotificationToast.phone}
               </div>
             </div>
+          </div>
+        )}
+
+        {/* 🎉 Celebratory 1-Click Cart Recovery Banner */}
+        {recoveryNotice && (
+          <div className="p-4 rounded-3xl bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-orange-500/10 border border-emerald-500/30 text-slate-900 dark:text-white flex items-center justify-between gap-3 shadow-lg shadow-emerald-500/5 animate-in fade-in slide-in-from-top-2">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-500 text-white flex items-center justify-center font-bold text-lg shadow-md shadow-emerald-500/20 shrink-0">
+                🎉
+              </div>
+              <div className="text-xs">
+                <span className="font-extrabold block text-sm text-emerald-600 dark:text-emerald-400">
+                  স্বাগতম! আপনার পরিত্যক্ত কার্ট রিস্টোর করা হয়েছে
+                </span>
+                <span className="text-slate-600 dark:text-slate-300 font-medium">
+                  {recoveryNotice}
+                </span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setRecoveryNotice(null)}
+              className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
+            >
+              <Check className="w-4 h-4 text-emerald-500" />
+            </button>
           </div>
         )}
 
@@ -764,7 +867,7 @@ export default function CheckoutPage() {
                   </span>
                 </div>
 
-                {/* 🪙 Loyalty Points Reward Earned on this Order */}
+                {/*  Loyalty Points Reward Earned on this Order */}
                 {earnedLoyaltyPoints > 0 && (
                   <div className="mt-3 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-between text-xs text-amber-800 dark:text-amber-300">
                     <div className="flex items-center gap-2">
@@ -786,7 +889,7 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      {/* 💳 MFS BKASH / NAGAD PAYMENT SIMULATION MODAL */}
+      {/* MFS BKASH / NAGAD PAYMENT MODAL */}
       <MfsPaymentModal
         isOpen={isMfsModalOpen}
         onClose={() => setIsMfsModalOpen(false)}
@@ -796,5 +899,19 @@ export default function CheckoutPage() {
         customerPhone={shippingAddress.phoneNumber}
       />
     </div>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <React.Suspense
+      fallback={
+        <div className="min-h-[70vh] flex items-center justify-center">
+          <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+        </div>
+      }
+    >
+      <CheckoutContent />
+    </React.Suspense>
   );
 }

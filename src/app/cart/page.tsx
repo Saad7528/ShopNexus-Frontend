@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useCartStore } from '@/store/useCartStore';
 import { useOrderStore } from '@/store/useOrderStore';
 import { useLanguageStore } from '@/store/useLanguageStore';
@@ -17,23 +18,55 @@ import {
   Trash2,
   Sparkles,
   Zap,
+  Check,
 } from 'lucide-react';
 
-export default function CartPage() {
+function CartContent() {
+  const searchParams = useSearchParams();
   const {
     items,
     clearCart,
     shippingMethod,
     setShippingMethod,
     getTotals,
+    applyCoupon,
   } = useCartStore();
 
   const { t, language } = useLanguageStore();
   const [mounted, setMounted] = React.useState(false);
+  const [recoveryNotice, setRecoveryNotice] = React.useState<string | null>(null);
 
+  // 🔄 1-Click WhatsApp Cart Recovery Auto-Restoration Engine
   React.useEffect(() => {
     setMounted(true);
-  }, []);
+    const recoverId = searchParams.get('recoverCart') || searchParams.get('cartId');
+    const codeParam = searchParams.get('code') || searchParams.get('coupon');
+
+    if (recoverId) {
+      fetch(`/api/cart/recover?id=${recoverId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data?.success && data?.data?.items?.length > 0) {
+            useCartStore.setState({ items: data.data.items });
+            const finalCode = (codeParam || data.data.couponCode || '').toUpperCase();
+            if (finalCode) {
+              let discountVal = 200;
+              if (finalCode.startsWith('SAVE')) {
+                const amt = parseInt(finalCode.replace('SAVE', ''), 10);
+                if (!isNaN(amt)) discountVal = amt;
+              }
+              applyCoupon(finalCode, discountVal);
+            }
+            setRecoveryNotice(
+              `আপনার পূর্ববর্তী কার্টের ${data.data.items.length}টি পণ্য ফিরিয়ে আনা হয়েছে${
+                finalCode ? ` এবং "${finalCode}" ভাউচার যোগ করা হয়েছে!` : '!'
+              }`
+            );
+          }
+        })
+        .catch(() => {});
+    }
+  }, [searchParams, applyCoupon]);
 
   const orders = useOrderStore((state) => state.orders);
   const isFirstOrder = orders.length === 0;
@@ -81,7 +114,33 @@ export default function CartPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+      {/* 🎉 Celebratory 1-Click Cart Recovery Banner */}
+      {recoveryNotice && (
+        <div className="p-4 rounded-3xl bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-orange-500/10 border border-emerald-500/30 text-slate-900 dark:text-white flex items-center justify-between gap-3 shadow-lg shadow-emerald-500/5 animate-in fade-in slide-in-from-top-2">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-500 text-white flex items-center justify-center font-bold text-lg shadow-md shadow-emerald-500/20 shrink-0">
+              🎉
+            </div>
+            <div className="text-xs">
+              <span className="font-extrabold block text-sm text-emerald-600 dark:text-emerald-400">
+                স্বাগতম! আপনার পরিত্যক্ত কার্ট রিস্টোর করা হয়েছে
+              </span>
+              <span className="text-slate-600 dark:text-slate-300 font-medium">
+                {recoveryNotice}
+              </span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setRecoveryNotice(null)}
+            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
+          >
+            <Check className="w-4 h-4 text-emerald-500" />
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
@@ -309,5 +368,19 @@ export default function CartPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CartPage() {
+  return (
+    <React.Suspense
+      fallback={
+        <div className="min-h-[70vh] flex items-center justify-center">
+          <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+        </div>
+      }
+    >
+      <CartContent />
+    </React.Suspense>
   );
 }

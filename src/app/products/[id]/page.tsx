@@ -3,10 +3,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useCartStore } from '@/store/useCartStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
-import { useBundleStore } from '@/store/useBundleStore';
+import { useBundleStore, convertBundleToProduct } from '@/store/useBundleStore';
 import { ProductGallery } from '@/components/products/ProductGallery';
 import { ProductReviewsSection } from '@/components/products/ProductReviewsSection';
 import { FrequentlyBoughtTogether } from '@/components/products/FrequentlyBoughtTogether';
@@ -23,19 +23,23 @@ import {
   ShieldCheck,
   Truck,
   RotateCcw,
-  ArrowLeft,
-  Check,
-  Store,
-  Zap,
-  Clock,
-  Sparkles,
-  ArrowRight,
-  Coins,
-  Package,
-  Plus,
   Tag,
-  Gift,
+  Zap,
   CheckCircle2,
+  Share2,
+  ChevronRight,
+  Package,
+  ArrowRight,
+  ArrowLeft,
+  Sparkles,
+  Award,
+  Layers,
+  Check,
+  Flame,
+  Coins,
+  Gift,
+  Loader2,
+  AlertCircle,
 } from 'lucide-react';
 
 export interface IProductReview {
@@ -47,30 +51,33 @@ export interface IProductReview {
   images?: string[];
 }
 
-interface ProductDetailPageProps {
-  params: Promise<{ id: string }>;
-}
-
-export default function ProductDetailPage({ params }: ProductDetailPageProps) {
-  const resolvedParams = React.use(params);
-  const productId = resolvedParams.id;
+export default function ProductDetailPage() {
   const router = useRouter();
-
-  const addItem = useCartStore((state) => state.addItem);
-  const openDrawer = useCartStore((state) => state.openDrawer);
-  const { isInWishlist, toggleWishlist } = useWishlistStore();
-  const { t, language } = useLanguageStore();
+  const routeParams = useParams();
   const [mounted, setMounted] = useState(false);
-  const [addedSuccess, setAddedSuccess] = useState(false);
+  const { language, t } = useLanguageStore();
 
-  const rawBundles = useBundleStore((state) => state.bundles);
+  const rawId = typeof routeParams?.id === 'string' 
+    ? routeParams.id 
+    : Array.isArray(routeParams?.id) 
+    ? routeParams.id[0] 
+    : '';
+  const productId = decodeURIComponent(rawId || '').trim();
 
   useEffect(() => {
     setMounted(true);
+    window.scrollTo({ top: 0, behavior: 'instant' });
   }, []);
 
-  // Check if this page matches a Combo Bundle
+  const rawBundles = useBundleStore((state) => state.bundles);
+  const addItem = useCartStore((state) => state.addItem);
+  const openDrawer = useCartStore((state) => state.openDrawer);
+  const { isInWishlist, toggleWishlist } = useWishlistStore();
+  const [addedSuccess, setAddedSuccess] = useState(false);
+
+  // 1. Check if this page matches a Combo Bundle synchronously
   const matchedBundle = useMemo<IBundleDeal | null>(() => {
+    if (!productId) return null;
     let b = rawBundles.find((deal) => deal.id === productId || deal.id === `b-${productId}`);
     if (b) return b;
     if (productId === 'combo-1') b = rawBundles.find((deal) => deal.id === 'b-1');
@@ -83,34 +90,70 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
         productId.toLowerCase().replace(/[^a-z0-9]+/g, '-')
     );
     if (b) return b;
-    b = INITIAL_BUNDLES.find((deal) => deal.id === productId);
+    b = INITIAL_BUNDLES.find((deal) => deal.id === productId || deal.id === `b-${productId}`);
     return b || null;
   }, [productId, rawBundles]);
 
-  const [apiProduct, setApiProduct] = useState<any | null>(null);
-
-  useEffect(() => {
-    const fetchLiveProduct = async () => {
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/products/${productId}`);
-        if (!res.ok) return;
-        const data = await res.json();
-        if (data?.data?.product) {
-          setApiProduct(data.data.product);
-        }
-      } catch (e) {
-        console.error('Could not fetch product detail from API:', e);
-      }
-    };
-    fetchLiveProduct();
+  // 2. Check Static Catalog synchronously
+  const staticProduct = useMemo(() => {
+    if (!productId) return null;
+    return getProductByIdOrSlug(productId);
   }, [productId]);
 
-  // Standard Product resolution
-  const rawProduct = apiProduct
-    ? {
-        _id: apiProduct._id,
+  const [apiProduct, setApiProduct] = useState<any | null>(null);
+  const [isLoadingApi, setIsLoadingApi] = useState(!staticProduct && !matchedBundle);
+  const [apiFetched, setApiFetched] = useState(false);
+
+  // 3. Fetch from DB if not already available or to refresh real-time stock
+  useEffect(() => {
+    if (!productId) return;
+    let isCancelled = false;
+
+    const fetchLiveProduct = async () => {
+      try {
+        let res = await fetch(`/api/products/${productId}`).catch(() => null);
+        if ((!res || !res.ok) && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+          const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+          res = await fetch(`${API_URL}/products/${productId}`).catch(() => null);
+        }
+        if (!res || !res.ok) {
+          if (!isCancelled) {
+            setIsLoadingApi(false);
+            setApiFetched(true);
+          }
+          return;
+        }
+        const data = await res.json().catch(() => null);
+        if (!isCancelled) {
+          if (data?.data?.product) {
+            setApiProduct(data.data.product);
+          } else if (data?.data) {
+            setApiProduct(data.data);
+          }
+          setIsLoadingApi(false);
+          setApiFetched(true);
+        }
+      } catch (_e) {
+        if (!isCancelled) {
+          setIsLoadingApi(false);
+          setApiFetched(true);
+        }
+      }
+    };
+
+    fetchLiveProduct();
+    return () => {
+      isCancelled = true;
+    };
+  }, [productId]);
+
+  // 4. Authentic Product Resolution - strictly authentic, no dummy Sony fallback
+  const rawProduct = useMemo(() => {
+    if (apiProduct) {
+      return {
+        _id: apiProduct._id || productId,
         title: apiProduct.title || apiProduct.name,
-        slug: apiProduct.slug,
+        slug: apiProduct.slug || productId,
         brand: apiProduct.brand || 'ShopNexus Official',
         vendorName: apiProduct.vendorName || 'ShopNexus Official Store',
         price: apiProduct.price || 0,
@@ -118,157 +161,77 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
         averageRating: apiProduct.averageRating || 5.0,
         totalReviews: apiProduct.totalReviews || 18,
         stock: apiProduct.stock ?? 12,
-        category: apiProduct.category || 'Hardware & Acoustics',
+        category: apiProduct.category || 'Electronics',
         description: apiProduct.description || '',
-        images: apiProduct.images?.length > 0 ? apiProduct.images : ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80'],
+        images:
+          apiProduct.images && apiProduct.images.length > 0
+            ? apiProduct.images
+            : ['https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80'],
         isFlashSale: !!apiProduct.isFlashSale,
         flashSaleDiscountPercent: apiProduct.flashSaleDiscountPercent || 0,
         tags: apiProduct.tags || ['official', 'authentic'],
         trustBadges: apiProduct.trustBadges || {
           hasFastDelivery: true,
           hasWarranty: true,
-          warrantyText: '১ বছরের অফিসিয়াল ওয়ারেন্টি',
+          warrantyText: '১ বছরের অফিসিয়াল ওয়ারেন্টি',
           hasReturnPolicy: true,
           isOfficialGenuine: true,
         },
-      }
-    : getProductByIdOrSlug(productId);
+      };
+    }
+    if (staticProduct) return staticProduct;
+    if (matchedBundle) return convertBundleToProduct(matchedBundle);
+    return null;
+  }, [apiProduct, staticProduct, matchedBundle, productId]);
 
   const localized = rawProduct && mounted ? getLocalizedProduct(rawProduct as any, language) : null;
 
-  const product = {
-    id: rawProduct?._id || productId,
-    name: localized?.title || rawProduct?.title || (matchedBundle ? matchedBundle.title : 'Nexus Pro Precision Device'),
-    brand: rawProduct?.brand || 'ShopNexus Official',
-    vendorId: 'vendor_001',
-    vendorName: rawProduct?.vendorName || 'ShopNexus Official Store',
-    price: rawProduct?.discountPrice || rawProduct?.price || 24500,
-    originalPrice: rawProduct?.price || 28000,
-    rating: rawProduct?.averageRating || 5.0,
-    reviewCount: rawProduct?.totalReviews || 86,
-    inStock: (rawProduct?.stock || 10) > 0,
-    stockCount: rawProduct?.stock || 12,
-    category: localized ? localized.category : (rawProduct?.category || 'Hardware & Acoustics'),
-    description:
-      localized?.description ||
-      rawProduct?.description ||
-      'Engineered with industry-leading materials, rigorous laboratory testing, and seamless ecosystem connectivity for true enthusiasts.',
-    images: rawProduct?.images && rawProduct.images.length > 0 ? rawProduct.images : [
-      'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80',
-    ],
-    isFlashSale: rawProduct?.isFlashSale || false,
-    flashSaleDiscountPercent: rawProduct?.flashSaleDiscountPercent || 0,
-    colors: ['Midnight Black', 'Platinum Silver', 'Deep Navy'],
-    sizes: ['Standard Unit', 'Creator Edition'],
-  };
-
-  const [selectedColor, setSelectedColor] = useState(product.colors[0]);
-  const [selectedSize, setSelectedSize] = useState(product.sizes[0]);
+  // Selected Options
+  const [selectedColor, setSelectedColor] = useState('Midnight Black');
+  const [selectedSize, setSelectedSize] = useState('Standard Unit');
   const [quantity, setQuantity] = useState(1);
   const cartItems = useCartStore((state) => state.items);
 
-  const isInCart = cartItems.some((item) => item.productId === product.id);
-  const isCartAdded = isInCart;
+  const productIdentifier = rawProduct?._id || productId;
+  const isInCart = cartItems.some((item) => item.productId === productIdentifier);
+  const isCartAdded = isInCart || addedSuccess;
+  const isFavorite = isInWishlist(productIdentifier);
 
-  // Combo Bundle Handlers
-  const handleAddBundleToCart = () => {
-    if (!matchedBundle) return;
-    matchedBundle.items.forEach((item, idx) => {
-      const itemPrice = Math.round(item.regularPrice * (matchedBundle.bundlePrice / (matchedBundle.originalTotal || 1)));
-      addItem({
-        productId: item.id || `combo-${matchedBundle.id}-${idx}`,
-        title: `${item.title} [${matchedBundle.title}]`,
-        price: itemPrice,
-        image: item.image,
-        quantity: 1,
-        stock: 20,
-        vendorName: 'ShopNexus Official Store',
-      });
-    });
-    setAddedSuccess(true);
-    openDrawer();
-    setTimeout(() => setAddedSuccess(false), 3000);
-  };
+  // Related products from the same category
+  const relatedProducts = useMemo(() => {
+    if (!rawProduct) return [];
+    return ALL_PRODUCTS.filter(
+      (p) => p.category === rawProduct.category && p._id !== rawProduct._id
+    ).slice(0, 4);
+  }, [rawProduct]);
 
-  const handleBuyBundleNow = () => {
-    if (!matchedBundle) return;
-    matchedBundle.items.forEach((item, idx) => {
-      const itemPrice = Math.round(item.regularPrice * (matchedBundle.bundlePrice / (matchedBundle.originalTotal || 1)));
-      addItem({
-        productId: item.id || `combo-${matchedBundle.id}-${idx}`,
-        title: `${item.title} [${matchedBundle.title}]`,
-        price: itemPrice,
-        image: item.image,
-        quantity: 1,
-        stock: 20,
-        vendorName: 'ShopNexus Official Store',
-      });
-    });
-    router.push('/checkout');
-  };
+  // -------------------------------------------------------------
+  // LOADING SKELETON STATE (For dynamic non-static items while fetching)
+  // -------------------------------------------------------------
+  if (isLoadingApi && !rawProduct) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f19] text-slate-900 dark:text-white p-3 sm:p-6 md:p-10 pt-4 sm:pt-8">
+        <div className="max-w-7xl mx-auto space-y-8 animate-pulse">
+          {/* Breadcrumb Skeleton */}
+          <div className="h-5 w-48 bg-slate-200 dark:bg-slate-800 rounded-lg" />
 
-  // Standard Product Handlers
-  const handleAddToCart = () => {
-    addItem({
-      productId: product.id,
-      title: `${product.name} (${selectedColor}, ${selectedSize})`,
-      price: product.price,
-      image: product.images[0],
-      quantity: quantity,
-      stock: product.stockCount,
-      vendorName: product.vendorName,
-    });
-    setAddedSuccess(true);
-  };
-
-  const handleBuyNow = () => {
-    addItem({
-      productId: product.id,
-      title: `${product.name} (${selectedColor}, ${selectedSize})`,
-      price: product.price,
-      image: product.images[0],
-      quantity: quantity,
-      stock: product.stockCount,
-      vendorName: product.vendorName,
-    });
-    router.push('/checkout');
-  };
-
-  const isFavorite = isInWishlist(product.id);
-
-  // Dynamic Trust Badges
-  const trustConfig = rawProduct?.trustBadges || {
-    hasFastDelivery: true,
-    hasWarranty: true,
-    warrantyText: '১ বছরের অফিসিয়াল ওয়ারেন্টি',
-    hasReturnPolicy: true,
-    isOfficialGenuine: true,
-  };
-
-  const activeTrustBadges = [];
-  if (trustConfig.hasFastDelivery !== false) {
-    activeTrustBadges.push({
-      icon: <Truck className="w-4 h-4 text-orange-500 shrink-0" />,
-      text: mounted ? t('details_fast_shipping') : '২৪ ঘণ্টায় দ্রুত ডেলিভারি (ঢাকা ৳৬০)',
-    });
-  }
-  if (trustConfig.hasWarranty !== false) {
-    activeTrustBadges.push({
-      icon: <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />,
-      text: mounted ? t('details_genuine_warranty') : '১ বছরের অফিসিয়াল ওয়ারেন্টি',
-    });
-  }
-  if (trustConfig.hasReturnPolicy !== false) {
-    activeTrustBadges.push({
-      icon: <RotateCcw className="w-4 h-4 text-indigo-500 shrink-0" />,
-      text: mounted ? t('details_easy_return') : '৭ দিনের সহজ রিটার্ন পলিসি',
-    });
-  }
-  if (trustConfig.isOfficialGenuine !== false) {
-    activeTrustBadges.push({
-      icon: <Check className="w-4 h-4 text-amber-500 shrink-0" />,
-      text: mounted ? (language === 'bn' ? '১০০% জেনুইন অরিজিনাল প্রোডাক্ট' : '100% Genuine Verified Hardware') : '১০০% জেনুইন অরিজিনাল প্রোডাক্ট',
-    });
+          {/* Grid Skeleton */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-10">
+            <div className="lg:col-span-6">
+              <div className="aspect-square w-full rounded-3xl bg-slate-200 dark:bg-slate-800/80" />
+            </div>
+            <div className="lg:col-span-6 space-y-6">
+              <div className="h-6 w-32 bg-slate-200 dark:bg-slate-800 rounded-full" />
+              <div className="h-10 w-3/4 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
+              <div className="h-6 w-48 bg-slate-200 dark:bg-slate-800 rounded-lg" />
+              <div className="h-20 w-full bg-slate-200 dark:bg-slate-800 rounded-2xl" />
+              <div className="h-24 w-full bg-slate-200 dark:bg-slate-800 rounded-2xl" />
+              <div className="h-14 w-full bg-slate-200 dark:bg-slate-800 rounded-2xl" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   // -------------------------------------------------------------
@@ -282,7 +245,39 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
         ? Math.round(((matchedBundle.originalTotal - matchedBundle.bundlePrice) / matchedBundle.originalTotal) * 100)
         : 15;
 
-    const otherBundles = rawBundles.filter((b) => b.id !== matchedBundle.id && b.status === 'Active');
+    const handleAddBundleToCart = () => {
+      matchedBundle.items.forEach((item, idx) => {
+        const itemPrice = Math.round(item.regularPrice * (matchedBundle.bundlePrice / (matchedBundle.originalTotal || 1)));
+        addItem({
+          productId: item.id || `combo-${matchedBundle.id}-${idx}`,
+          title: `${item.title} [${matchedBundle.title}]`,
+          price: itemPrice,
+          image: item.image,
+          quantity: 1,
+          stock: 20,
+          vendorName: 'ShopNexus Official Store',
+        });
+      });
+      setAddedSuccess(true);
+      openDrawer();
+      setTimeout(() => setAddedSuccess(false), 3000);
+    };
+
+    const handleBuyBundleNow = () => {
+      matchedBundle.items.forEach((item, idx) => {
+        const itemPrice = Math.round(item.regularPrice * (matchedBundle.bundlePrice / (matchedBundle.originalTotal || 1)));
+        addItem({
+          productId: item.id || `combo-${matchedBundle.id}-${idx}`,
+          title: `${item.title} [${matchedBundle.title}]`,
+          price: itemPrice,
+          image: item.image,
+          quantity: 1,
+          stock: 20,
+          vendorName: 'ShopNexus Official Store',
+        });
+      });
+      router.push('/checkout');
+    };
 
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f19] text-slate-900 dark:text-white p-3 sm:p-6 md:p-10 pt-4 sm:pt-8">
@@ -322,7 +317,6 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                   {matchedBundle.title}
                 </h1>
 
-                {/* Subtitle listing all included product models */}
                 <p className="text-sm sm:text-base font-semibold text-orange-600 dark:text-orange-400 flex items-center gap-2">
                   <Gift className="w-4 h-4 shrink-0" />
                   <span>
@@ -377,10 +371,9 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                   className="relative rounded-3xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col justify-between overflow-hidden group hover:border-orange-500/50"
                 >
                   <div className="space-y-4">
-                    {/* Item Image */}
                     <div className="relative aspect-[4/3] sm:aspect-video w-full rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-950/80 flex items-center justify-center p-3 border border-slate-100 dark:border-slate-800">
                       <Image
-                        src={item.image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&q=80'}
+                        src={item.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80'}
                         alt={item.title}
                         fill
                         className="object-contain p-2 group-hover:scale-105 transition-transform duration-500"
@@ -391,7 +384,6 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                       </div>
                     </div>
 
-                    {/* Item Title & Details */}
                     <div>
                       <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white group-hover:text-orange-500 transition-colors">
                         {item.title}
@@ -403,7 +395,6 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                     </div>
                   </div>
 
-                  {/* Item Standalone Price */}
                   <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
                     <span className="text-xs text-slate-500">একক রেগুলার বাজারমূল্য:</span>
                     <span className="text-sm sm:text-base font-black text-slate-900 dark:text-white font-mono">
@@ -415,157 +406,173 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
             </div>
           </div>
 
-          {/* Value Perks & Action Checkout Bar */}
+          {/* Action Checkout Bar */}
           <div className="rounded-3xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-xl space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="flex items-center gap-3 p-3 rounded-2xl bg-orange-500/5 dark:bg-orange-500/10 border border-orange-500/20">
-                <Truck className="w-5 h-5 text-orange-500 shrink-0" />
-                <div>
-                  <h4 className="text-xs font-bold text-slate-900 dark:text-white">ফ্রি হোম ডেলিভারি</h4>
-                  <p className="text-[11px] text-slate-500">এক প্যাকেজে একসাথে ডেলিভারি</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-3 rounded-2xl bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/20">
-                <ShieldCheck className="w-5 h-5 text-emerald-500 shrink-0" />
-                <div>
-                  <h4 className="text-xs font-bold text-slate-900 dark:text-white">অফিসিয়াল ওয়ারেন্টি</h4>
-                  <p className="text-[11px] text-slate-500">উভয় পণ্যের ব্র্যান্ড গ্যারান্টি</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-3 rounded-2xl bg-indigo-500/5 dark:bg-indigo-500/10 border border-indigo-500/20">
-                <RotateCcw className="w-5 h-5 text-indigo-500 shrink-0" />
-                <div>
-                  <h4 className="text-xs font-bold text-slate-900 dark:text-white">৭ দিনের রিপ্লেসমেন্ট</h4>
-                  <p className="text-[11px] text-slate-500">হ্যাসেল-ফ্রি রিটার্ন পলিসি</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-3 rounded-2xl bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/20">
-                <Coins className="w-5 h-5 text-amber-500 shrink-0" />
-                <div>
-                  <h4 className="text-xs font-bold text-slate-900 dark:text-white">+{earnedLoyaltyPoints} লয়্যালটি কয়েন</h4>
-                  <p className="text-[11px] text-slate-500">৳{cashbackTaka} ক্যাশব্যাক অর্জিত হবে</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="text-center sm:text-left space-y-0.5">
-                <p className="text-xs text-slate-500">সর্বমোট অফার মূল্য (২টি গ্যাজেট একসাথে):</p>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white font-mono">
-                    {mounted ? formatCurrency(matchedBundle.bundlePrice, language) : `৳${matchedBundle.bundlePrice.toLocaleString()}`}
-                  </span>
-                  <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                    (সাশ্রয় ৳{matchedBundle.savings.toLocaleString()})
-                  </span>
-                </div>
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="space-y-1 text-center sm:text-left">
+                <h3 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">
+                  {mounted && language === 'bn' ? 'এক ক্লিকে সম্পূর্ণ কম্বো অর্ডার করুন' : 'Order Full Combo Set in 1-Click'}
+                </h3>
+                <p className="text-xs text-slate-500">
+                  {mounted && language === 'bn'
+                    ? 'উভয় গ্যাজেট স্বয়ংক্রিয়ভাবে আপনার কার্টে যুক্ত হবে বিশেষ কম্বো প্রাইসে।'
+                    : 'Both devices will be added to your cart with guaranteed instant bundle discount.'}
+                </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+              <div className="flex items-center gap-3 w-full sm:w-auto">
                 <button
                   type="button"
                   onClick={handleAddBundleToCart}
-                  className={`w-full sm:w-auto py-3.5 px-6 rounded-2xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer border ${
-                    addedSuccess
-                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-lg'
-                      : 'bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 border-orange-500/30'
-                  }`}
+                  className="flex-1 sm:flex-none py-3.5 px-6 rounded-2xl bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/30 font-bold text-sm flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95 cursor-pointer"
                 >
-                  {addedSuccess ? (
-                    <>
-                      <Check className="w-4 h-4 stroke-[2.5]" />
-                      <span>{mounted && language === 'bn' ? 'কার্টে যোগ করা হয়েছে!' : 'Added to Cart!'}</span>
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingCart className="w-4 h-4" />
-                      <span>{mounted && language === 'bn' ? 'কম্বো কার্টে যোগ করুন' : 'Add Combo to Cart'}</span>
-                    </>
-                  )}
+                  <ShoppingCart className="w-4 h-4" />
+                  {isCartAdded ? (mounted ? t('btn_added') : 'Added to Cart!') : (mounted ? 'কম্বো কার্টে যোগ করুন' : 'Add Combo to Cart')}
                 </button>
 
                 <button
                   type="button"
                   onClick={handleBuyBundleNow}
-                  className="w-full sm:w-auto py-3.5 px-8 rounded-2xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xl shadow-orange-500/25 bg-gradient-to-r from-[#ff4400] via-[#ff6600] to-[#ff4400] hover:from-[#e63d00] hover:to-[#ff5500] text-white transition-all active:scale-95 cursor-pointer hover:scale-[1.02]"
+                  className="flex-1 sm:flex-none py-3.5 px-8 rounded-2xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-black text-sm flex items-center justify-center gap-2 shadow-xl shadow-orange-500/30 transition-all active:scale-95 cursor-pointer"
                 >
                   <Zap className="w-4 h-4 fill-white" />
-                  <span>{mounted && language === 'bn' ? 'এখনই কম্বো কিনুন' : 'Buy Combo Now'}</span>
+                  {mounted ? 'এখনই কম্বো কিনুন' : 'Buy Combo Now'}
                 </button>
               </div>
             </div>
           </div>
-
-          {/* Other Active Combos */}
-          {otherBundles.length > 0 && (
-            <div className="space-y-4 pt-6 border-t border-slate-200 dark:border-slate-800">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white">
-                    {mounted && language === 'bn' ? 'আরও আকর্ষণীয় কম্বো প্যাকেজ' : 'Other Popular Combo Bundles'}
-                  </h3>
-                  <p className="text-xs text-slate-500">বিশেষ ছাড় ও লয়্যালটি রিওয়ার্ড সহ অন্যান্য গ্যাজেট বান্ডেল</p>
-                </div>
-                <Link
-                  href="/products?category=Combo+Packages"
-                  className="text-xs font-bold text-orange-600 dark:text-orange-400 hover:underline flex items-center gap-1"
-                >
-                  {mounted ? t('btn_view_all') : 'View All'} <ArrowRight className="w-3 h-3" />
-                </Link>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {otherBundles.slice(0, 3).map((bundle) => (
-                  <Link
-                    key={bundle.id}
-                    href={`/products/${bundle.id}`}
-                    className="p-4 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 hover:border-orange-500 transition-all shadow-sm hover:shadow-md group flex flex-col justify-between"
-                  >
-                    <div className="space-y-2">
-                      <span className="px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 text-[10px] font-black uppercase">
-                        {bundle.badge}
-                      </span>
-                      <h4 className="font-bold text-sm text-slate-900 dark:text-white group-hover:text-orange-500 transition-colors">
-                        {bundle.title}
-                      </h4>
-                      <p className="text-xs text-slate-500 line-clamp-1">
-                        {bundle.items.map((it) => it.title).join(' + ')}
-                      </p>
-                    </div>
-
-                    <div className="pt-3 mt-3 border-t border-slate-100 dark:border-slate-800 flex items-baseline justify-between font-mono">
-                      <span className="text-sm font-black text-slate-900 dark:text-white">
-                        {mounted ? formatCurrency(bundle.bundlePrice, language) : `৳${bundle.bundlePrice.toLocaleString()}`}
-                      </span>
-                      <span className="text-xs text-slate-400 line-through">
-                        {mounted ? formatCurrency(bundle.originalTotal, language) : `৳${matchedBundle.originalTotal.toLocaleString()}`}
-                      </span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </div>
     );
   }
 
   // -------------------------------------------------------------
-  // STANDARD SINGLE PRODUCT DETAIL VIEW (FOR ALL REGULAR HARDWARE)
+  // NOT FOUND STATE (If ID does not exist in DB or Catalog)
   // -------------------------------------------------------------
-  const relatedProducts = ALL_PRODUCTS.filter(
-    (p) => p.category === rawProduct?.category && p._id !== product.id
-  ).slice(0, 4);
+  if (!rawProduct) {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center text-center px-4">
+        <div className="w-16 h-16 rounded-3xl bg-orange-500/10 flex items-center justify-center text-orange-500 mb-4">
+          <AlertCircle className="w-8 h-8" />
+        </div>
+        <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mb-2">
+          {mounted && language === 'bn' ? 'প্রোডাক্টটি পাওয়া যায়নি' : 'Product Not Found'}
+        </h2>
+        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md mb-6">
+          {mounted && language === 'bn'
+            ? 'অনুরোধকৃত প্রোডাক্টটির অস্তিত্ব নেই অথবা ক্যাটালগ থেকে সরানো হয়েছে।'
+            : 'The requested product could not be located in our official catalog.'}
+        </p>
+        <Link
+          href="/products"
+          className="px-6 py-3 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm shadow-lg shadow-orange-500/25 transition-all inline-flex items-center gap-2"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          {mounted && language === 'bn' ? 'সকল প্রোডাক্টে ফিরে যান' : 'Back to All Products'}
+        </Link>
+      </div>
+    );
+  }
+
+  // -------------------------------------------------------------
+  // STANDARD AUTHENTIC PRODUCT VIEW
+  // -------------------------------------------------------------
+  const product = {
+    id: rawProduct._id,
+    name: localized?.title || rawProduct.title,
+    brand: rawProduct.brand || 'ShopNexus Official',
+    vendorId: 'vendor_001',
+    vendorName: rawProduct.vendorName || 'ShopNexus Official Store',
+    price: rawProduct.discountPrice || rawProduct.price,
+    originalPrice: rawProduct.price,
+    rating: rawProduct.averageRating || 5.0,
+    reviewCount: rawProduct.totalReviews || 18,
+    inStock: (rawProduct.stock ?? 10) > 0,
+    stockCount: rawProduct.stock ?? 12,
+    category: localized ? localized.category : rawProduct.category,
+    description: localized?.description || rawProduct.description,
+    images: rawProduct.images && rawProduct.images.length > 0
+      ? rawProduct.images
+      : ['https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80'],
+    isFlashSale: !!rawProduct.isFlashSale,
+    flashSaleDiscountPercent: rawProduct.flashSaleDiscountPercent || 0,
+    colors: ['Midnight Black', 'Platinum Silver', 'Deep Navy'],
+    sizes: ['Standard Unit', 'Creator Edition'],
+  };
+
+  const handleAddToCart = () => {
+    addItem({
+      productId: product.id,
+      title: `${product.name} (${selectedColor}, ${selectedSize})`,
+      price: product.price,
+      image: product.images[0],
+      quantity: quantity,
+      stock: product.stockCount,
+      vendorName: product.vendorName,
+    });
+    setAddedSuccess(true);
+    setTimeout(() => setAddedSuccess(false), 2500);
+  };
+
+  const handleBuyNow = () => {
+    addItem({
+      productId: product.id,
+      title: `${product.name} (${selectedColor}, ${selectedSize})`,
+      price: product.price,
+      image: product.images[0],
+      quantity: quantity,
+      stock: product.stockCount,
+      vendorName: product.vendorName,
+    });
+    router.push('/checkout');
+  };
+
+  // Trust Badges
+  const trustConfig = rawProduct.trustBadges || {
+    hasFastDelivery: true,
+    hasWarranty: true,
+    warrantyText: '১ বছরের অফিসিয়াল ওয়ারেন্টি',
+    hasReturnPolicy: true,
+    isOfficialGenuine: true,
+  };
+
+  const activeTrustBadges = [];
+  if (trustConfig.hasFastDelivery !== false) {
+    activeTrustBadges.push({
+      icon: <Truck className="w-4 h-4 text-orange-500 shrink-0" />,
+      text: mounted ? t('details_fast_shipping') : '২৪ ঘণ্টায় দ্রুত ডেলিভারি (ঢাকা ৳৬০)',
+    });
+  }
+  if (trustConfig.hasWarranty !== false) {
+    activeTrustBadges.push({
+      icon: <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />,
+      text: mounted ? (language === 'bn' ? trustConfig.warrantyText || '১ বছরের অফিসিয়াল ওয়ারেন্টি' : '1 Year Official Warranty') : '১ বছরের অফিসিয়াল ওয়ারেন্টি',
+    });
+  }
+  if (trustConfig.hasReturnPolicy !== false) {
+    activeTrustBadges.push({
+      icon: <RotateCcw className="w-4 h-4 text-indigo-500 shrink-0" />,
+      text: mounted ? t('details_easy_return') : '৭ দিনের সহজ রিটার্ন পলিসি',
+    });
+  }
+  if (trustConfig.isOfficialGenuine !== false) {
+    activeTrustBadges.push({
+      icon: <Check className="w-4 h-4 text-amber-500 shrink-0" />,
+      text: mounted ? (language === 'bn' ? '১০০% জেনুইন অরিজিনাল প্রোডাক্ট' : '100% Genuine Verified Hardware') : '১০০% জেনুইন অরিজিনাল প্রোডাক্ট',
+    });
+  }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f19] text-slate-900 dark:text-white p-3 sm:p-6 md:p-10 pt-2 sm:pt-6">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f19] text-slate-900 dark:text-white p-3 sm:p-6 md:p-10 pt-4 sm:pt-8">
       <div className="max-w-7xl mx-auto space-y-8 sm:space-y-12">
-        {/* Desktop Breadcrumb */}
-        <div className="hidden md:flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
-          <Link href="/products" className="hover:text-slate-900 dark:hover:text-white inline-flex items-center gap-1.5 transition-colors font-semibold">
-            <ArrowLeft className="w-4 h-4" /> {mounted ? (language === 'bn' ? 'সকল ক্যাটালগ' : 'All Catalog') : 'All Catalog'}
+        {/* Breadcrumb Navigation */}
+        <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+          <Link href="/" className="hover:text-orange-500 transition-colors">
+            {mounted ? t('nav_home') : 'Home'}
+          </Link>
+          <span>/</span>
+          <Link href="/products" className="hover:text-orange-500 transition-colors">
+            {mounted ? t('nav_products') : 'Products'}
           </Link>
           <span>/</span>
           <span className="text-slate-400 dark:text-slate-500 font-medium">{product.category}</span>
@@ -593,7 +600,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                 </span>
               </div>
 
-              {/* Title & Flash Sale Badge */}
+              {/* Title & Wishlist */}
               <div className="space-y-2">
                 <div className="flex items-start justify-between gap-4">
                   <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
@@ -659,7 +666,6 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                   )}
                 </div>
 
-                {/* Loyalty points chip */}
                 <div className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-amber-400/10 border border-amber-400/20 text-amber-600 dark:text-amber-400 text-xs font-bold">
                   <Coins className="w-3.5 h-3.5" />
                   <span>+{mounted && language === 'bn' ? toBengaliNumber(Math.floor(product.price / 100) * 10) : Math.floor(product.price / 100) * 10} pts</span>
@@ -775,7 +781,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                   {mounted ? (language === 'bn' ? 'আপনার সেটআপের সাথে মানানসই সম্পর্কিত অডিও ও গ্যাজেট' : 'Discover matching audio and workstation gear') : 'Discover matching gear'}
                 </p>
               </div>
-              <Link href={`/products?category=${encodeURIComponent(rawProduct?.category || '')}`} className="text-xs font-bold text-orange-600 dark:text-orange-400 hover:underline flex items-center gap-1">
+              <Link href={`/products?category=${encodeURIComponent(rawProduct.category || '')}`} className="text-xs font-bold text-orange-600 dark:text-orange-400 hover:underline flex items-center gap-1">
                 {mounted ? t('btn_view_all') : 'View All'} <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
