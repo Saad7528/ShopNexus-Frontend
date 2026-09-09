@@ -269,7 +269,7 @@ export default function AboutAndFAQPage() {
         </div>
       </section>
 
-      {/* 🌟 3. TRACKING QUICK BANNER */}
+      {/* 3. TRACKING QUICK BANNER */}
       <section className="py-8 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
         <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-orange-500/10 via-amber-500/5 to-transparent border border-orange-500/20 backdrop-blur-xl flex flex-col sm:flex-row items-center justify-between gap-6 shadow-lg">
           <div className="space-y-1.5 text-center sm:text-left">
