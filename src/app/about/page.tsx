@@ -330,7 +330,6 @@ export default function AboutAndFAQPage() {
           ))}
         </div>
 
-        {/* Accordions */}
         <div className="space-y-3">
           {filteredFaqs.map((faq, index) => {
             const isOpen = openIndex === index;
