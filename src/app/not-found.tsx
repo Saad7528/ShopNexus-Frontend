@@ -45,9 +45,7 @@ export default function NotFound() {
 
       {/* 🌟 1. Top Bar Controls (Logo on left, Language + Theme Toggle on right) */}
       <header className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between z-20">
-        <Link href="/" className="inline-block transform hover:scale-105 transition-transform duration-300">
-          <BrandLogo size="md" />
-        </Link>
+        <BrandLogo size="md" className="transform hover:scale-105 transition-transform duration-300" />
 
         <div className="flex items-center gap-2.5">
           <LanguageToggle className="inline-flex" />
