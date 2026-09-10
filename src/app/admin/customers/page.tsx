@@ -203,7 +203,7 @@ const INITIAL_CUSTOMERS: ICustomer[] = [
     email: 'tanvir.dev@gmail.com',
     phone: '+880 1712-345678',
     ordersCount: 8,
-    totalSpent: 148500, // ৳ 1.48 Lakh
+    totalSpent: 148500,
     returnRate: 0,
     isFlaggedFraud: false,
     joinedDate: '2026-02-12',
