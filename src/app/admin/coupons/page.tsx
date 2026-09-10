@@ -377,7 +377,7 @@ export default function AdminCouponsPage() {
           ))}
         </div>
 
-        {/* 🛒 ABANDONED CART RECOVERY SECTION */}
+        {/* ABANDONED CART RECOVERY SECTION */}
         <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-6 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
             <div>
