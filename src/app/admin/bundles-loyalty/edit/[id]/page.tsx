@@ -941,7 +941,7 @@ export default function EditComboBundlePage() {
                 </p>
               </div>
 
-              {/* Customer Value & Savings Summary Box */}
+              {/* Customer Value & Savings Summary */}
               <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent border border-emerald-500/30 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">

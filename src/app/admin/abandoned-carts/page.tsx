@@ -833,7 +833,6 @@ export default function AbandonedCartsPage() {
                 )}
               </div>
 
-              {/* Message Preview */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-xs">
                   <label className="font-bold text-slate-900 dark:text-white uppercase tracking-wider">
@@ -861,7 +860,6 @@ export default function AbandonedCartsPage() {
                 />
               </div>
 
-              {/* Action Buttons */}
               <div className="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800">
                 <button
                   type="button"

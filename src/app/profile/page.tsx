@@ -555,7 +555,7 @@ function ProfileContent() {
                         </div>
                       </div>
 
-                      {/* Tracking ID & Dispatch info */}
+                      {/* Tracking ID info */}
                       {selectedOrder.trackingNumber && (
                         <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
                           <div>

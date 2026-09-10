@@ -717,7 +717,7 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* 🌟 1. REVENUE INFLOW LEDGER MODAL */}
+        {/* 1. REVENUE INFLOW LEDGER MODAL */}
         {activeModal === 'revenue' && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md overflow-y-auto">
             <div className="relative w-full max-w-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5 my-8 max-h-[90vh] overflow-y-auto">
@@ -815,7 +815,7 @@ export default function AdminDashboardPage() {
           </div>
         )}
 
-        {/* 🌟 2. ORDERS OVERVIEW & GROSS VOLUME MODAL */}
+        {/* 2. ORDERS OVERVIEW & GROSS VOLUME MODAL */}
         {activeModal === 'orders' && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md overflow-y-auto">
             <div className="relative w-full max-w-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5 my-8 max-h-[90vh] overflow-y-auto">
@@ -917,7 +917,7 @@ export default function AdminDashboardPage() {
           </div>
         )}
 
-        {/* 🌟 3. AVERAGE ORDER VALUE (AOV) ANALYTICS MODAL */}
+        {/* 3. AVERAGE ORDER VALUE (AOV) ANALYTICS MODAL */}
         {activeModal === 'aov' && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md overflow-y-auto">
             <div className="relative w-full max-w-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5 my-8 max-h-[90vh] overflow-y-auto">
@@ -1012,7 +1012,7 @@ export default function AdminDashboardPage() {
           </div>
         )}
 
-        {/* 🌟 4. RETURN RATE REGISTRY & CUSTOMER DISPUTE REMINDER MODAL */}
+        {/* 4. RETURN RATE REGISTRY & CUSTOMER DISPUTE REMINDER MODAL */}
         {activeModal === 'returns' && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md overflow-y-auto">
             <div className="relative w-full max-w-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5 my-8 max-h-[90vh] overflow-y-auto">
@@ -1114,7 +1114,7 @@ export default function AdminDashboardPage() {
           </div>
         )}
 
-        {/* 🌟 5. LIVE STAFF AUDIT TRAIL & TIMESHEET MODAL */}
+        {/* 5. LIVE STAFF AUDIT TRAIL & TIMESHEET MODAL */}
         {activeModal === 'staff-logs' && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md overflow-y-auto">
             <div className="relative w-full max-w-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5 my-8 max-h-[90vh] overflow-y-auto">

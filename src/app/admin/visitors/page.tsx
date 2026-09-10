@@ -1572,7 +1572,7 @@ export default function VisitorAnalyticsPage() {
         )}
       </div>
 
-      {/* 🚀 VISITOR ROUTE JOURNEY & HARDWARE DRILLDOWN DRAWER */}
+      {/* VISITOR ROUTE JOURNEY & HARDWARE DRILLDOWN DRAWER */}
       {selectedJourneySession && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex justify-end animate-in fade-in duration-200" onClick={() => setSelectedJourneySession(null)}>
           <div

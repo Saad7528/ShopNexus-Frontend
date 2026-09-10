@@ -1073,7 +1073,7 @@ export default function AdminOrdersPage() {
           </div>
         )}
 
-        {/* 📦 3. COURIER LOGISTICS DISPATCH MANIFEST MODAL */}
+        {/* 3. COURIER LOGISTICS DISPATCH MANIFEST MODAL */}
         {isManifestModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md overflow-y-auto">
             <div className="relative w-full max-w-4xl bg-white text-slate-900 rounded-3xl p-8 shadow-2xl space-y-6 my-8 print:m-0 print:p-4 print:shadow-none">
@@ -1167,7 +1167,7 @@ export default function AdminOrdersPage() {
           </div>
         )}
 
-        {/* 💬 4. CUSTOMER ISSUE REPORTING & NOTIFICATION MODAL */}
+        {/* 4. CUSTOMER ISSUE REPORTING & NOTIFICATION MODAL */}
         {reportingOrder && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
             <div className="relative w-full max-w-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5 my-8 max-h-[90vh] overflow-y-auto">

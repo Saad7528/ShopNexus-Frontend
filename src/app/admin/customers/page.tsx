@@ -203,7 +203,7 @@ const INITIAL_CUSTOMERS: ICustomer[] = [
     email: 'tanvir.dev@gmail.com',
     phone: '+880 1712-345678',
     ordersCount: 8,
-    totalSpent: 148500, // ৳ 1.48 Lakh
+    totalSpent: 148500,
     returnRate: 0,
     isFlaggedFraud: false,
     joinedDate: '2026-02-12',
@@ -458,7 +458,7 @@ export default function AdminCustomersRBACPage() {
           </div>
         )}
 
-        {/* 👥 SECTION 1: STAFF ROLES & PERMISSIONS TABLE */}
+        {/* SECTION 1: STAFF ROLES & PERMISSIONS TABLE */}
         <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-5 shadow-sm">
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
             <div className="flex items-center gap-2">
@@ -499,7 +499,7 @@ export default function AdminCustomersRBACPage() {
                         <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-[10px] border border-slate-200 dark:border-slate-700">
                           {ROLE_DEFINITIONS[st.role as keyof typeof ROLE_DEFINITIONS] ? (isBn ? ROLE_DEFINITIONS[st.role as keyof typeof ROLE_DEFINITIONS].title.bn : ROLE_DEFINITIONS[st.role as keyof typeof ROLE_DEFINITIONS].title.en) : st.role}
                         </span>
-                        {/* ℹ️ Info Button */}
+                        {/* Info Button */}
                         <button
                           type="button"
                           onClick={() => setSelectedRoleInfo(st.role as any)}
@@ -558,7 +558,7 @@ export default function AdminCustomersRBACPage() {
           </div>
         </div>
 
-        {/* 🛡️ SECTION 2: CUSTOMER DATABASE & FRAUD DETECTION */}
+        {/* SECTION 2: CUSTOMER DATABASE & FRAUD DETECTION */}
         <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-5 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
             <div className="flex items-center gap-2">
@@ -629,7 +629,7 @@ export default function AdminCustomersRBACPage() {
           </div>
         </div>
 
-        {/* ℹ️ ROLE PERMISSION BREAKDOWN MODAL (Triggered by i-button) */}
+        {/* ROLE PERMISSION BREAKDOWN MODAL (Triggered by i-button) */}
         {selectedRoleInfo && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
             <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5">
@@ -698,7 +698,7 @@ export default function AdminCustomersRBACPage() {
           </div>
         )}
 
-        {/* ➕ CREATE STAFF ACCOUNT MODAL */}
+        {/* CREATE STAFF ACCOUNT MODAL */}
         {isAddStaffOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
             <div className="relative w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-4">
