@@ -3,6 +3,9 @@ import { connectToDatabase } from '@/lib/db';
 import mongoose from 'mongoose';
 import { ALL_PRODUCTS } from '@/data/products';
 
+export const dynamic = 'force-dynamic';
+export const maxDuration = 30;
+
 // Helper to convert Bengali numbers to English numbers
 function parseBengaliOrEnglishNumber(text: string): number | null {
   if (!text) return null;
