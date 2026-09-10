@@ -833,7 +833,6 @@ export default function AbandonedCartsPage() {
                 )}
               </div>
 
-              {/* Message Preview */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-xs">
                   <label className="font-bold text-slate-900 dark:text-white uppercase tracking-wider">
