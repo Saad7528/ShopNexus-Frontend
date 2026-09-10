@@ -425,7 +425,7 @@ export default function AdminCouponsPage() {
                     <button
                       type="button"
                       onClick={() => handleSendRecovery(cart.id, cart.customerName)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-md shadow-orange-500/20 cursor-pointer"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-linear-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-md shadow-orange-500/20 cursor-pointer"
                     >
                       <Send className="w-3 h-3" /> {isBn ? `${toBengaliNumber('10')}% ভাউচার পাঠান` : 'Send 10% Voucher'}
                     </button>
