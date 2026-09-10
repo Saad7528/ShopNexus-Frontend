@@ -204,7 +204,6 @@ export default function AdminTrackingPage() {
   return (
     <RoleGuard allowedRoles={['admin']}>
       <div className="space-y-8 max-w-7xl mx-auto">
-        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-600 dark:text-orange-400 text-xs font-bold uppercase tracking-wider mb-2">
@@ -303,7 +302,6 @@ export default function AdminTrackingPage() {
           {/* Right: Selected Parcel 5-Stage Live Timeline & Dispatch Control (7 cols) */}
           <div className="lg:col-span-7 space-y-6">
             <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
-              {/* Header Info */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
                 <div>
                   <div className="flex items-center gap-2">
@@ -332,7 +330,6 @@ export default function AdminTrackingPage() {
                 </h3>
 
                 <div className="relative flex items-center justify-between mb-8">
-                  {/* Progress Line */}
                   <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1 bg-slate-200 dark:bg-slate-800 z-0">
                     <div
                       className="h-full bg-gradient-to-r from-orange-500 via-amber-500 to-emerald-500 transition-all duration-500"
