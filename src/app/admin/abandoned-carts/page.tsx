@@ -860,7 +860,6 @@ export default function AbandonedCartsPage() {
                 />
               </div>
 
-              {/* Action Buttons */}
               <div className="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800">
                 <button
                   type="button"
