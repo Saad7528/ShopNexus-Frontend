@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { RoleGuard } from '@/components/auth/RoleGuard';
 import { useAuthStore } from '@/store/useAuthStore';
+import { showAlertDialog } from '@/store/useDialogStore';
 import {
   ShoppingBag,
   Search,
@@ -54,6 +55,8 @@ interface IAbandonedCart {
 }
 
 import { useVisitorAnalyticsStore } from '@/store/useVisitorAnalyticsStore';
+import { useLanguageStore } from '@/store/useLanguageStore';
+import { toBengaliNumber } from '@/lib/translations';
 
 const DEMO_ABANDONED_CARTS: IAbandonedCart[] = [
   {
@@ -151,6 +154,9 @@ const DEMO_ABANDONED_CARTS: IAbandonedCart[] = [
 export default function AbandonedCartsPage() {
   const { token } = useAuthStore();
   const { telemetryMode } = useVisitorAnalyticsStore();
+  const { language } = useLanguageStore();
+  const isBn = language === 'bn';
+
   const [carts, setCarts] = useState<IAbandonedCart[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -174,38 +180,43 @@ export default function AbandonedCartsPage() {
   const getOfferDetails = useCallback((type: string, customVal: string) => {
     switch (type) {
       case 'percent_5':
-        return { text: '৫% এক্সক্লুসিভ ডিসকাউন্ট', defaultCode: 'COMEBACK5' };
+        return { text: isBn ? '৫% এক্সক্লুসিভ ডিসকাউন্ট' : '5% Exclusive Discount', defaultCode: 'COMEBACK5' };
       case 'percent_10':
-        return { text: '১০% মেগা রিকভারি ডিসকাউন্ট', defaultCode: 'COMEBACK10' };
+        return { text: isBn ? '১০% মেগা রিকভারি ডিসকাউন্ট' : '10% Mega Recovery Discount', defaultCode: 'COMEBACK10' };
       case 'percent_15':
-        return { text: '১৫% ভিআইপি রিকভারি ডিসকাউন্ট', defaultCode: 'COMEBACK15' };
+        return { text: isBn ? '১৫% ভিআইপি রিকভারি ডিসকাউন্ট' : '15% VIP Recovery Discount', defaultCode: 'COMEBACK15' };
       case 'flat_100':
-        return { text: '৳১০০ ফ্ল্যাট ছাড়', defaultCode: 'SAVE100' };
+        return { text: isBn ? '৳১০০ ফ্ল্যাট ছাড়' : '৳100 Flat Discount', defaultCode: 'SAVE100' };
       case 'flat_200':
-        return { text: '৳২০০ ফ্ল্যাট ছাড়', defaultCode: 'SAVE200' };
+        return { text: isBn ? '৳২০০ ফ্ল্যাট ছাড়' : '৳200 Flat Discount', defaultCode: 'SAVE200' };
       case 'flat_500':
-        return { text: '৳৫০০ মেগা ফ্ল্যাট ছাড়', defaultCode: 'SAVE500' };
+        return { text: isBn ? '৳৫০০ মেগা ফ্ল্যাট ছাড়' : '৳500 Mega Flat Discount', defaultCode: 'SAVE500' };
       case 'flat_1000':
-        return { text: '৳১,০০০ বিগ সেভার ফ্ল্যাট ছাড়', defaultCode: 'SAVE1000' };
+        return { text: isBn ? '৳১,০০০ বিগ সেভার ফ্ল্যাট ছাড়' : '৳1,000 Big Saver Discount', defaultCode: 'SAVE1000' };
       case 'free_shipping':
-        return { text: 'সম্পূর্ণ ফ্রি ডেলিভারি (৳১২০ ছাড়)', defaultCode: 'FREESHIP' };
+        return { text: isBn ? 'সম্পূর্ণ ফ্রি ডেলিভারি (৳১২০ ছাড়)' : 'Free Express Delivery (৳120 off)', defaultCode: 'FREESHIP' };
       case 'custom_flat': {
         const val = customVal || '200';
-        return { text: `৳${val} ফ্ল্যাট ছাড়`, defaultCode: `SAVE${val}` };
+        return { text: isBn ? `৳${val} ফ্ল্যাট ছাড়` : `৳${val} Flat Discount`, defaultCode: `SAVE${val}` };
       }
       case 'custom_percent': {
         const val = customVal || '10';
-        return { text: `${val}% বিশেষ রিকভারি ডিসকাউন্ট`, defaultCode: `COMEBACK${val}` };
+        return { text: isBn ? `${val}% বিশেষ রিকভারি ডিসকাউন্ট` : `${val}% Special Recovery Discount`, defaultCode: `COMEBACK${val}` };
       }
       default:
-        return { text: 'বিশেষ রিকভারি ডিসকাউন্ট', defaultCode: 'COMEBACK5' };
+        return { text: isBn ? 'বিশেষ রিকভারি ডিসকাউন্ট' : 'Special Recovery Discount', defaultCode: 'COMEBACK5' };
     }
-  }, []);
+  }, [isBn]);
 
   const getRecoveryMessage = (cart: IAbandonedCart, code: string, type: string, customVal: string) => {
-    const itemNames = (cart.items || []).map((i) => i.title).join(', ') || 'আপনার পছন্দের পণ্য';
+    const itemNames = (cart.items || []).map((i) => i.title).join(', ') || (isBn ? 'আপনার পছন্দের পণ্য' : 'your chosen items');
     const { text: offerText } = getOfferDetails(type, customVal);
     const recoveryUrl = `${VERCEL_LIVE_URL}/checkout?recoverCart=${cart.id}&code=${code}`;
+
+    if (!isBn) {
+      return `Hello ${cart.customerName || 'Shopper'}! You left "${itemNames}" in your ShopNexus shopping cart. We have unlocked an exclusive ${offerText} with coupon code: "${code}" for you!\nComplete your checkout now to secure your official items:\n${recoveryUrl}`;
+    }
+
     return `আসসালামু আলাইকুম ${cart.customerName || 'Shopper'}! ShopNexus-এ আপনার কার্টে "${itemNames}" রেখে গিয়েছিলেন। আপনার জন্য বিশেষ ${offerText} কুপন কোড: "${code}" তৈরি করা হয়েছে। এখনই চেকআউট সম্পন্ন করে অফিশিয়াল পণ্যটি নিশ্চিত করুন:\n${recoveryUrl}`;
   };
 
@@ -329,7 +340,14 @@ export default function AbandonedCartsPage() {
     const cleanPhone = phoneToUse.replace(/[^0-9]/g, '');
 
     if (!cleanPhone || cleanPhone.length < 8) {
-      alert('অনুগ্রহ করে কাস্টমারের সঠিক WhatsApp ফোন নম্বর ইনপুট দিন।');
+      await showAlertDialog({
+        title: isBn ? 'সঠিক ফোন নম্বর দিন' : 'Invalid WhatsApp Number',
+        message: isBn
+          ? 'অনুগ্রহ করে কাস্টমারের সঠিক WhatsApp ফোন নম্বর ইনপুট দিন।'
+          : 'Please enter a valid WhatsApp phone number for the customer.',
+        type: 'warning',
+        confirmText: isBn ? 'ঠিক আছে' : 'OK',
+      });
       return;
     }
 
@@ -418,13 +436,15 @@ export default function AbandonedCartsPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-600 dark:text-orange-400 text-xs font-bold uppercase tracking-wider mb-2">
-              <ShoppingBag className="w-3.5 h-3.5" /> Cart Drop-off Telemetry & Recovery
+              <ShoppingBag className="w-3.5 h-3.5" /> {isBn ? 'কার্ট ড্রপ-অফ টেলিমেট্রি ও রিকভারি' : 'Cart Drop-off Telemetry & Recovery'}
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-              Abandoned Cart Recovery Engine
+              {isBn ? 'পরিত্যক্ত কার্ট রিকভারি ইঞ্জিন' : 'Abandoned Cart Recovery Engine'}
             </h1>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
-              কার্ট ফেলে যাওয়া কাস্টমারদের লাইভ ডাটাবেজ পর্যবেক্ষণ করুন এবং ১-ক্লিকে কাস্টম ৳ BDT বা % ডিসকাউন্টসহ WhatsApp/SMS রিমাইন্ডার পাঠিয়ে অর্ডার রিকভার করুন।
+              {isBn
+                ? 'কার্ট ফেলে যাওয়া কাস্টমারদের লাইভ ডাটাবেজ পর্যবেক্ষণ করুন এবং ১-ক্লিকে কাস্টম ৳ BDT বা % ডিসকাউন্টসহ WhatsApp/SMS রিমাইন্ডার পাঠিয়ে অর্ডার রিকভার করুন।'
+                : 'Monitor real-time cart drop-offs and recover sales via 1-click WhatsApp/SMS reminders with custom ৳ BDT or % discount incentives.'}
             </p>
           </div>
 
@@ -436,12 +456,8 @@ export default function AbandonedCartsPage() {
               className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold flex items-center gap-1.5 shadow-xs hover:border-orange-500 hover:text-orange-600 dark:hover:text-orange-400 transition-all cursor-pointer disabled:opacity-50"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-orange-500' : ''}`} />
-              <span>{isRefreshing ? 'সিঙ্ক হচ্ছে...' : 'সিঙ্ক রিফ্রেশ'}</span>
+              <span>{isRefreshing ? (isBn ? 'সিঙ্ক হচ্ছে...' : 'Syncing...') : (isBn ? 'সিঙ্ক রিফ্রেশ' : 'Sync Refresh')}</span>
             </button>
-
-            <span className="px-3.5 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center gap-1.5 shadow-xs">
-              <Sparkles className="w-3.5 h-3.5" /> 1-Click WhatsApp Trigger Active
-            </span>
           </div>
         </div>
 
@@ -450,51 +466,54 @@ export default function AbandonedCartsPage() {
           <div className="p-5 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm backdrop-blur-xl transition-all hover:border-orange-500/30">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                Total Abandoned Value
+                {isBn ? 'মোট পরিত্যক্ত মূল্য' : 'Total Abandoned Value'}
               </span>
               <div className="p-1.5 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-400 font-bold text-xs">
                 ৳ BDT
               </div>
             </div>
             <div className="mt-2 text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-              ৳{totalAbandonedValue.toLocaleString()}
+              {isBn ? `৳${toBengaliNumber(totalAbandonedValue.toLocaleString('en-US'))}` : `৳${totalAbandonedValue.toLocaleString()}`}
             </div>
             <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 block">
-              Across {carts.length} active drop-off sessions in database
+              {isBn ? `ডাটাবেজে মোট ${toBengaliNumber(carts.length)}টি সক্রিয় ড্রপ-অফ সেশন` : `Across ${carts.length} active drop-off sessions in database`}
             </span>
           </div>
 
           <div className="p-5 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm backdrop-blur-xl transition-all hover:border-emerald-500/30">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                Recovered Revenue
+                {isBn ? 'রিকভার হওয়া রেভিনিউ' : 'Recovered Revenue'}
               </span>
               <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
                 ৳ BDT
               </div>
             </div>
             <div className="mt-2 text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400">
-              ৳{recoveredValue.toLocaleString()}
+              {isBn ? `৳${toBengaliNumber(recoveredValue.toLocaleString('en-US'))}` : `৳${recoveredValue.toLocaleString()}`}
             </div>
             <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 mt-1 flex items-center gap-1">
-              +{recoveryRate}% Recovery Rate ({recoveredCount} orders recovered) <ArrowUpRight className="w-3.5 h-3.5" />
+              {isBn
+                ? `+${toBengaliNumber(recoveryRate)}% রিকভারি রেট (${toBengaliNumber(recoveredCount)}টি অর্ডার সফলভাবে রিকভার্ড)`
+                : `+${recoveryRate}% Recovery Rate (${recoveredCount} orders recovered)`}{' '}
+              <ArrowUpRight className="w-3.5 h-3.5" />
             </span>
           </div>
 
           <div className="p-5 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm backdrop-blur-xl transition-all hover:border-amber-500/30">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                Uncontacted Leads
+                {isBn ? 'মেসেজ না পাঠানো লিডস' : 'Uncontacted Leads'}
               </span>
               <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-xs">
-                Pending
+                {isBn ? 'অপেক্ষমাণ' : 'Pending'}
               </div>
             </div>
             <div className="mt-2 text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400">
-              {uncontactedCount} Carts
+              {isBn ? `${toBengaliNumber(uncontactedCount)} টি কার্ট` : `${uncontactedCount} Carts`}
             </div>
             <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 block">
-              Ready for immediate WhatsApp discount ping
+              {isBn ? 'তাৎক্ষণিক WhatsApp অফার পাঠানোর জন্য প্রস্তুত' : 'Ready for immediate WhatsApp discount ping'}
             </span>
           </div>
         </div>
@@ -503,11 +522,11 @@ export default function AbandonedCartsPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex flex-wrap gap-1.5 p-1 bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
             {[
-              { id: 'All', label: `All Abandoned (${carts.length})` },
-              { id: 'Uncontacted', label: `⏳ Uncontacted (${uncontactedCount})` },
-              { id: 'WhatsApp', label: `💬 WhatsApp Sent (${carts.filter((c) => c.status === 'WhatsApp Sent').length})` },
-              { id: 'Recovered', label: `✅ Recovered (${recoveredCount})` },
-              { id: 'HighValue', label: '💎 High Value (>৳50k)' },
+              { id: 'All', label: isBn ? `সব কার্ট (${toBengaliNumber(carts.length)})` : `All Abandoned (${carts.length})` },
+              { id: 'Uncontacted', label: isBn ? `⏳ আনকন্টাক্টেড (${toBengaliNumber(uncontactedCount)})` : `⏳ Uncontacted (${uncontactedCount})` },
+              { id: 'WhatsApp', label: isBn ? `💬 WhatsApp প্রেরিত (${toBengaliNumber(carts.filter((c) => c.status === 'WhatsApp Sent').length)})` : `💬 WhatsApp Sent (${carts.filter((c) => c.status === 'WhatsApp Sent').length})` },
+              { id: 'Recovered', label: isBn ? `✅ রিকভার্ড (${toBengaliNumber(recoveredCount)})` : `✅ Recovered (${recoveredCount})` },
+              { id: 'HighValue', label: isBn ? '💎 হাই ভ্যালু (>৳৫০k)' : '💎 High Value (>৳50k)' },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -528,7 +547,7 @@ export default function AbandonedCartsPage() {
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
             <input
               type="text"
-              placeholder="Search customer, phone, or item..."
+              placeholder={isBn ? 'কাস্টমার, ফোন বা পণ্য সার্চ করুন...' : 'Search customer, phone, or item...'}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none shadow-sm"
@@ -542,7 +561,7 @@ export default function AbandonedCartsPage() {
             <div className="py-20 text-center">
               <RefreshCw className="w-8 h-8 text-orange-500 animate-spin mx-auto mb-3" />
               <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                MongoDB Atlas থেকে লাইভ কার্ট ডাটা লোড হচ্ছে...
+                {isBn ? 'MongoDB Atlas থেকে লাইভ কার্ট ডাটা লোড হচ্ছে...' : 'Loading live drop-off data from database...'}
               </p>
             </div>
           ) : filteredCarts.length === 0 ? (
@@ -551,12 +570,12 @@ export default function AbandonedCartsPage() {
                 <ShoppingBag className="w-7 h-7" />
               </div>
               <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                কোন পরিত্যক্ত কার্ট পাওয়া যায়নি
+                {isBn ? 'কোন পরিত্যক্ত কার্ট পাওয়া যায়নি' : 'No Abandoned Carts Found'}
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-md mx-auto">
                 {searchQuery || activeFilter !== 'All'
-                  ? 'ফিল্টার বা সার্চ কোয়েরির সাথে মেলে এমন কোনো কার্ট পাওয়া যায়নি।'
-                  : 'বর্তমানে কোনো সক্রিয় কাস্টমার কার্ট ফেলে যাননি অথবা সবাই চেকআউট সম্পন্ন করেছেন। কাস্টমার কার্টে পণ্য যোগ করলেই এখানে লাইভ দেখা যাবে।'}
+                  ? (isBn ? 'ফিল্টার বা সার্চ কোয়েরির সাথে মেলে এমন কোনো কার্ট পাওয়া যায়নি।' : 'No drop-off sessions match your filter or search query.')
+                  : (isBn ? 'বর্তমানে কোনো সক্রিয় কাস্টমার কার্ট ফেলে যাননি অথবা সবাই চেকআউট সম্পন্ন করেছেন। কাস্টমার কার্টে পণ্য যোগ করলেই এখানে লাইভ দেখা যাবে।' : 'Currently no active drop-offs recorded. New customer cart items will appear here live.')}
               </p>
             </div>
           ) : (
@@ -564,29 +583,29 @@ export default function AbandonedCartsPage() {
               <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300">
                 <thead className="bg-slate-50 dark:bg-slate-950/80 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
                   <tr>
-                    <th className="px-5 py-3.5">Customer</th>
-                    <th className="px-5 py-3.5">Cart Items</th>
-                    <th className="px-5 py-3.5">Cart Total (৳ BDT)</th>
-                    <th className="px-5 py-3.5">Drop-off Time</th>
-                    <th className="px-5 py-3.5">Recovery Status</th>
-                    <th className="px-5 py-3.5 text-right">Recovery Action</th>
+                    <th className="px-5 py-3.5 whitespace-nowrap min-w-[150px]">{isBn ? 'কাস্টমার ও তথ্য' : 'Customer'}</th>
+                    <th className="px-5 py-3.5 min-w-[200px]">{isBn ? 'পরিত্যক্ত পণ্যসমূহ' : 'Cart Items'}</th>
+                    <th className="px-5 py-3.5 whitespace-nowrap min-w-[120px]">{isBn ? 'কার্ট ভ্যালু (৳)' : 'Cart Total (৳ BDT)'}</th>
+                    <th className="px-5 py-3.5 whitespace-nowrap min-w-[120px]">{isBn ? 'পরিত্যক্ত হওয়ার সময়' : 'Drop-off Time'}</th>
+                    <th className="px-5 py-3.5 whitespace-nowrap min-w-[130px]">{isBn ? 'রিকভারি স্ট্যাটাস' : 'Recovery Status'}</th>
+                    <th className="px-5 py-3.5 whitespace-nowrap min-w-[150px] text-right">{isBn ? 'রিকভারি অ্যাকশন' : 'Recovery Action'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
                   {filteredCarts.map((cart) => (
                     <tr key={cart.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-                      <td className="px-5 py-3.5">
-                        <div className="font-bold text-slate-900 dark:text-white">{cart.customerName || 'Guest Shopper'}</div>
+                      <td className="px-5 py-3.5 whitespace-nowrap">
+                        <div className="font-bold text-slate-900 dark:text-white">{cart.customerName || (isBn ? 'গেস্ট ক্রেতা' : 'Guest Shopper')}</div>
                         {cart.customerPhone ? (
                           <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-semibold mt-0.5">
                             <Phone className="w-3 h-3 text-emerald-500" /> {cart.customerPhone}
                           </span>
                         ) : (
                           <span className="text-[10px] text-amber-500/90 dark:text-amber-400 flex items-center gap-1 font-bold mt-0.5">
-                            <AlertCircle className="w-3 h-3 text-amber-500" /> No Phone Provided
+                            <AlertCircle className="w-3 h-3 text-amber-500" /> {isBn ? 'ফোন নম্বর নেই' : 'No Phone Provided'}
                           </span>
                         )}
-                        <span className="text-[10px] text-slate-400 dark:text-slate-500 block mt-0.5">{cart.customerEmail || 'No email recorded'}</span>
+                        <span className="text-[10px] text-slate-400 dark:text-slate-500 block mt-0.5">{cart.customerEmail || (isBn ? 'কোনো ইমেইল রেকর্ড নেই' : 'No email recorded')}</span>
                       </td>
                       <td className="px-5 py-3.5">
                         <div className="space-y-1.5 max-w-xs">
@@ -601,11 +620,11 @@ export default function AbandonedCartsPage() {
                               </div>
                               <div className="min-w-0">
                                 <div className="text-[11px] font-semibold text-slate-800 dark:text-slate-200 truncate">
-                                  {item.quantity}x {item.title}
+                                  <span className="whitespace-nowrap">{isBn ? toBengaliNumber(item.quantity) : item.quantity}x</span> {item.title}
                                 </div>
                                 {item.variant && (
                                   <span className="text-[10px] text-slate-400 dark:text-slate-500 block truncate">
-                                    Variant: {item.variant}
+                                    {isBn ? 'ভ্যারিয়েন্ট:' : 'Variant:'} {item.variant}
                                   </span>
                                 )}
                               </div>
@@ -613,15 +632,15 @@ export default function AbandonedCartsPage() {
                           ))}
                         </div>
                       </td>
-                      <td className="px-5 py-3.5 font-mono font-black text-slate-900 dark:text-white text-sm">
-                        ৳{(cart.cartTotal || 0).toLocaleString()}
+                      <td className="px-5 py-3.5 font-mono font-black text-slate-900 dark:text-white text-sm whitespace-nowrap">
+                        {isBn ? `৳${toBengaliNumber((cart.cartTotal || 0).toLocaleString('en-US'))}` : `৳${(cart.cartTotal || 0).toLocaleString()}`}
                       </td>
-                      <td className="px-5 py-3.5">
+                      <td className="px-5 py-3.5 whitespace-nowrap">
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-mono text-slate-600 dark:text-slate-400">
-                          <Clock className="w-3 h-3" /> {cart.timeAgo || 'Recently'}
+                          <Clock className="w-3 h-3" /> {cart.timeAgo || (isBn ? 'সম্প্রতি' : 'Recently')}
                         </span>
                       </td>
-                      <td className="px-5 py-3.5">
+                      <td className="px-5 py-3.5 whitespace-nowrap">
                         <div className="space-y-1">
                           <select
                             value={cart.status}
@@ -636,23 +655,23 @@ export default function AbandonedCartsPage() {
                                 : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
                             }`}
                           >
-                            <option value="Uncontacted">⏳ Uncontacted</option>
-                            <option value="WhatsApp Sent">💬 WhatsApp Sent</option>
-                            <option value="Discount Emailed">✉️ Discount Emailed</option>
-                            <option value="Recovered">✅ Recovered</option>
+                            <option value="Uncontacted">{isBn ? '⏳ আনকন্টাক্টেড' : '⏳ Uncontacted'}</option>
+                            <option value="WhatsApp Sent">{isBn ? '💬 WhatsApp প্রেরিত' : '💬 WhatsApp Sent'}</option>
+                            <option value="Discount Emailed">{isBn ? '✉️ ডিসকাউন্ট ইমেইলড' : '✉️ Discount Emailed'}</option>
+                            <option value="Recovered">{isBn ? '✅ রিকভার্ড' : '✅ Recovered'}</option>
                           </select>
 
                           {cart.recoveryDiscountCode && (
                             <span className="block text-[9px] font-mono font-bold text-orange-600 dark:text-orange-400">
-                              Code: {cart.recoveryDiscountCode}
+                              {isBn ? 'কোড:' : 'Code:'} {cart.recoveryDiscountCode}
                             </span>
                           )}
                         </div>
                       </td>
-                      <td className="px-5 py-3.5 text-right">
+                      <td className="px-5 py-3.5 text-right whitespace-nowrap">
                         {cart.status === 'Recovered' ? (
                           <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1">
-                            <CheckCircle2 className="w-3.5 h-3.5" /> Order Converted 🎉
+                            <CheckCircle2 className="w-3.5 h-3.5" /> {isBn ? 'অর্ডার কনভার্টেড 🎉' : 'Order Converted 🎉'}
                           </span>
                         ) : (
                           <button
@@ -661,7 +680,7 @@ export default function AbandonedCartsPage() {
                             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-600/25 transition-all cursor-pointer hover:scale-105"
                           >
                             <MessageCircle className="w-3.5 h-3.5" />
-                            <span>WhatsApp Recovery</span>
+                            <span>{isBn ? 'WhatsApp রিকভারি' : 'WhatsApp Recovery'}</span>
                           </button>
                         )}
                       </td>
@@ -673,7 +692,7 @@ export default function AbandonedCartsPage() {
           )}
         </div>
 
-        {/* 💬 WHATSAPP COMEBACK DISPATCH MODAL WITH FLEXIBLE DISCOUNT TYPES */}
+        {/* 💬 WHATSAPP COMEBACK DISPATCH MODAL */}
         {activeRecoveryCart && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
             <div className="relative w-full max-w-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5 my-8 max-h-[90vh] overflow-y-auto">
@@ -684,10 +703,12 @@ export default function AbandonedCartsPage() {
                   </div>
                   <div>
                     <h2 className="text-lg font-black text-slate-900 dark:text-white">
-                      1-Click WhatsApp Cart Recovery
+                      {isBn ? '১-ক্লিকে WhatsApp কার্ট রিকভারি' : '1-Click WhatsApp Cart Recovery'}
                     </h2>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                      কাস্টমারকে সরাসরি ৳ BDT বা % ডিসকাউন্ট অফারসহ পার্সোনালাইজড মেসেজ পাঠান
+                      {isBn
+                        ? 'কাস্টমারকে সরাসরি ৳ BDT বা % ডিসকাউন্ট অফারসহ পার্সোনালাইজড মেসেজ পাঠান'
+                        : 'Send direct 1-click recovery discount links to customer via WhatsApp'}
                     </p>
                   </div>
                 </div>
@@ -705,18 +726,18 @@ export default function AbandonedCartsPage() {
                 <div className="flex items-center justify-between text-xs">
                   <div>
                     <span className="font-bold text-slate-900 dark:text-white block">
-                      {activeRecoveryCart.customerName || 'Guest Shopper'}
+                      {activeRecoveryCart.customerName || (isBn ? 'গেস্ট ক্রেতা' : 'Guest Shopper')}
                     </span>
                     <span className="text-[10px] text-slate-400 block">
-                      {activeRecoveryCart.customerEmail || 'No email provided'}
+                      {activeRecoveryCart.customerEmail || (isBn ? 'ইমেইল দেওয়া হয়নি' : 'No email provided')}
                     </span>
                   </div>
                   <div className="text-right">
                     <span className="font-mono font-black text-sm text-slate-900 dark:text-white">
-                      ৳{(activeRecoveryCart.cartTotal || 0).toLocaleString()} BDT
+                      {isBn ? `৳${toBengaliNumber((activeRecoveryCart.cartTotal || 0).toLocaleString('en-US'))} BDT` : `৳${(activeRecoveryCart.cartTotal || 0).toLocaleString()} BDT`}
                     </span>
                     <span className="text-[10px] text-slate-400 block">
-                      {(activeRecoveryCart.items || []).length} item(s) in cart
+                      {isBn ? toBengaliNumber((activeRecoveryCart.items || []).length) : (activeRecoveryCart.items || []).length} {isBn ? 'টি পণ্য কার্টে আছে' : 'item(s) in cart'}
                     </span>
                   </div>
                 </div>
@@ -724,17 +745,19 @@ export default function AbandonedCartsPage() {
                 <div className="pt-2.5 border-t border-slate-200/70 dark:border-slate-800/70">
                   <label className="block text-[10px] uppercase font-bold text-slate-600 dark:text-slate-300 mb-1 flex items-center justify-between">
                     <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
-                      <Phone className="w-3.5 h-3.5" /> Customer WhatsApp Phone:
+                      <Phone className="w-3.5 h-3.5" /> {isBn ? 'কাস্টমার WhatsApp ফোন নম্বর:' : 'Customer WhatsApp Phone:'}
                     </span>
                     {!recipientPhone.trim() && (
-                      <span className="text-amber-500 text-[10px] font-bold">⚠️ নাম্বার ইনপুট দেওয়া প্রয়োজন</span>
+                      <span className="text-amber-500 text-[10px] font-bold">
+                        {isBn ? '⚠️ নম্বর ইনপুট দেওয়া প্রয়োজন' : '⚠️ Phone number required'}
+                      </span>
                     )}
                   </label>
                   <input
                     type="tel"
                     value={recipientPhone}
                     onChange={(e) => setRecipientPhone(e.target.value)}
-                    placeholder="e.g. 01712345678 বা +8801712345678"
+                    placeholder={isBn ? 'যেমন: 01712345678 বা +8801712345678' : 'e.g. 01712345678 or +8801712345678'}
                     className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-mono font-bold text-xs text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none shadow-xs"
                   />
                 </div>
@@ -745,35 +768,35 @@ export default function AbandonedCartsPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                   <div>
                     <label className="block text-[10px] uppercase font-bold text-slate-500 mb-1 flex items-center gap-1">
-                      <Tag className="w-3 h-3 text-orange-500" /> Discount Offer Type:
+                      <Tag className="w-3 h-3 text-orange-500" /> {isBn ? 'ডিসকাউন্ট অফারের ধরন:' : 'Discount Offer Type:'}
                     </label>
                     <select
                       value={discountType}
                       onChange={(e) => handleDiscountTypeChange(e.target.value)}
                       className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold text-xs focus:border-orange-500 focus:outline-none cursor-pointer"
                     >
-                      <optgroup label="💵 Flat Amount Discounts (৳ BDT)">
-                        <option value="flat_100">৳100 Flat Cash Discount</option>
-                        <option value="flat_200">৳200 Flat Cash Discount</option>
-                        <option value="flat_500">৳500 Mega Flat Discount</option>
-                        <option value="flat_1000">৳1,000 Big Saver Discount</option>
-                        <option value="custom_flat">✏️ Custom Flat Amount (৳)...</option>
+                      <optgroup label={isBn ? '💵 ফ্ল্যাট টাকার ছাড় (৳ BDT)' : '💵 Flat Amount Discounts (৳ BDT)'}>
+                        <option value="flat_100">{isBn ? '৳১০০ ফ্ল্যাট ছাড়' : '৳100 Flat Cash Discount'}</option>
+                        <option value="flat_200">{isBn ? '৳২০০ ফ্ল্যাট ছাড়' : '৳200 Flat Cash Discount'}</option>
+                        <option value="flat_500">{isBn ? '৳৫০০ মেগা ফ্ল্যাট ছাড়' : '৳500 Mega Flat Discount'}</option>
+                        <option value="flat_1000">{isBn ? '৳১,০০০ বিগ সেভার ছাড়' : '৳1,000 Big Saver Discount'}</option>
+                        <option value="custom_flat">{isBn ? '✏️ কাস্টম টাকার পরিমাণ (৳)...' : '✏️ Custom Flat Amount (৳)...'}</option>
                       </optgroup>
-                      <optgroup label="📊 Percentage Discounts (%)">
-                        <option value="percent_5">5% Exclusive Recovery Discount</option>
-                        <option value="percent_10">10% Mega Comeback Deal</option>
-                        <option value="percent_15">15% VIP Comeback Deal</option>
-                        <option value="custom_percent">✏️ Custom Percentage (%)...</option>
+                      <optgroup label={isBn ? '📊 শতকরা ছাড় (%)' : '📊 Percentage Discounts (%)'}>
+                        <option value="percent_5">{isBn ? '৫% এক্সক্লুসিভ ডিসকাউন্ট' : '5% Exclusive Recovery Discount'}</option>
+                        <option value="percent_10">{isBn ? '১০% মেগা কামব্যাক ডিল' : '10% Mega Comeback Deal'}</option>
+                        <option value="percent_15">{isBn ? '১৫% ভিআইপি কামব্যাক ডিল' : '15% VIP Comeback Deal'}</option>
+                        <option value="custom_percent">{isBn ? '✏️ কাস্টম পার্সেন্টেজ (%)...' : '✏️ Custom Percentage (%)...'}</option>
                       </optgroup>
-                      <optgroup label="🚚 Special Perks">
-                        <option value="free_shipping">Free Delivery Waiver (৳120 off)</option>
+                      <optgroup label={isBn ? '🚚 বিশেষ সুবিধা' : '🚚 Special Perks'}>
+                        <option value="free_shipping">{isBn ? 'ফ্রি ডেলিভারি অফার (৳১২০ ছাড়)' : 'Free Delivery Waiver (৳120 off)'}</option>
                       </optgroup>
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-[10px] uppercase font-bold text-slate-500 mb-1 flex items-center gap-1">
-                      <Sparkles className="w-3 h-3 text-orange-500" /> Recovery Coupon Code:
+                      <Sparkles className="w-3 h-3 text-orange-500" /> {isBn ? 'রিকভারি কুপন কোড:' : 'Recovery Coupon Code:'}
                     </label>
                     <input
                       type="text"
@@ -793,7 +816,9 @@ export default function AbandonedCartsPage() {
                     </div>
                     <div className="flex-1">
                       <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase mb-0.5">
-                        {discountType === 'custom_flat' ? 'কাস্টম টাকার অংক লিখুন (৳ BDT):' : 'কাস্টম পার্সেন্টেজ লিখুন (%):'}
+                        {discountType === 'custom_flat'
+                          ? (isBn ? 'কাস্টম টাকার অংক লিখুন (৳ BDT):' : 'Enter Custom Flat Amount (৳ BDT):')
+                          : (isBn ? 'কাস্টম পার্সেন্টেজ লিখুন (%):' : 'Enter Custom Percentage (%):')}
                       </label>
                       <input
                         type="number"
@@ -808,12 +833,12 @@ export default function AbandonedCartsPage() {
                 )}
               </div>
 
-                {/* Message Preview */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-xs">
-                    <label className="font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                      WhatsApp Message Preview:
-                    </label>
+              {/* Message Preview */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <label className="font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                    {isBn ? 'WhatsApp মেসেজ প্রিভিউ:' : 'WhatsApp Message Preview:'}
+                  </label>
                   <button
                     type="button"
                     onClick={() => {
@@ -825,7 +850,7 @@ export default function AbandonedCartsPage() {
                     className="text-orange-600 dark:text-orange-400 hover:underline flex items-center gap-1 font-semibold text-[11px] cursor-pointer"
                   >
                     {copiedFeedback ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                    <span>{copiedFeedback ? 'Copied!' : 'Copy Text'}</span>
+                    <span>{copiedFeedback ? (isBn ? 'কপি হয়েছে!' : 'Copied!') : (isBn ? 'মেসেজ কপি' : 'Copy Text')}</span>
                   </button>
                 </div>
                 <textarea
@@ -843,7 +868,7 @@ export default function AbandonedCartsPage() {
                   onClick={() => setActiveRecoveryCart(null)}
                   className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition-all cursor-pointer"
                 >
-                  Cancel
+                  {isBn ? 'বাতিল' : 'Cancel'}
                 </button>
                 <button
                   type="button"
@@ -852,7 +877,11 @@ export default function AbandonedCartsPage() {
                   className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/30 transition-all cursor-pointer hover:scale-105 disabled:opacity-50"
                 >
                   <MessageCircle className="w-4 h-4" />
-                  <span>{isSending ? 'Sending...' : 'Launch WhatsApp & Save Status'}</span>
+                  <span>
+                    {isSending
+                      ? (isBn ? 'পাঠানো হচ্ছে...' : 'Sending...')
+                      : (isBn ? 'WhatsApp চালু ও স্ট্যাটাস সংরক্ষণ' : 'Launch WhatsApp & Save Status')}
+                  </span>
                 </button>
               </div>
             </div>
