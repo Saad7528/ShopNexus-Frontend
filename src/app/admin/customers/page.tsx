@@ -499,7 +499,7 @@ export default function AdminCustomersRBACPage() {
                         <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-[10px] border border-slate-200 dark:border-slate-700">
                           {ROLE_DEFINITIONS[st.role as keyof typeof ROLE_DEFINITIONS] ? (isBn ? ROLE_DEFINITIONS[st.role as keyof typeof ROLE_DEFINITIONS].title.bn : ROLE_DEFINITIONS[st.role as keyof typeof ROLE_DEFINITIONS].title.en) : st.role}
                         </span>
-                        {/* ℹ️ Info Button */}
+                        {/* Info Button */}
                         <button
                           type="button"
                           onClick={() => setSelectedRoleInfo(st.role as any)}
