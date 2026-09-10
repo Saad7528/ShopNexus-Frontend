@@ -538,7 +538,7 @@ export default function BundlesAndLoyaltyPage() {
           </div>
         )}
 
-        {/* 🔢 ADJUST CUSTOMER POINTS MODAL */}
+        {/* ADJUST CUSTOMER POINTS MODAL */}
         {adjustingCustomer && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
             <div className="relative w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-3xl p-6 shadow-2xl space-y-4">
