@@ -458,7 +458,7 @@ export default function AdminCustomersRBACPage() {
           </div>
         )}
 
-        {/* 👥 SECTION 1: STAFF ROLES & PERMISSIONS TABLE */}
+        {/* SECTION 1: STAFF ROLES & PERMISSIONS TABLE */}
         <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-5 shadow-sm">
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
             <div className="flex items-center gap-2">
