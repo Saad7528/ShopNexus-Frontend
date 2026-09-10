@@ -6,6 +6,8 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { RoleGuard } from '@/components/auth/RoleGuard';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useLanguageStore } from '@/store/useLanguageStore';
+import { toBengaliNumber } from '@/lib/translations';
 import {
   Package,
   Plus,
@@ -38,16 +40,17 @@ const INITIAL_CATEGORIES = [
   'Wearables',
   'Peripherals',
   'Creator Gear',
-  'Smart Home',
-  'Electronics',
-  'Computing',
+  'Power & Cables',
   'Gaming',
-  'Combo Packages',
+  'Smart Home',
+  'Accessories',
 ];
 
-export default function NewProductPage() {
+export default function AdminNewProductPage() {
   const router = useRouter();
   const { token } = useAuthStore();
+  const { language } = useLanguageStore();
+  const isBn = language === 'bn';
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Categories State (Supports adding custom categories dynamically)
@@ -285,29 +288,49 @@ export default function NewProductPage() {
         }).catch(() => null);
       }
 
-      // Persist to local session cache for instant preview in inventory
+      if (res && res.ok) {
+        const data = await res.json();
+        console.log('Product created successfully on live DB:', data);
+      }
+
+      // Also persist to local custom products store for instant offline UI reactivity
       try {
-        const existingRaw = localStorage.getItem('shopnexus_custom_products');
-        const existing = existingRaw ? JSON.parse(existingRaw) : [];
+        const stored = localStorage.getItem('shopnexus_custom_products');
+        const existing = stored ? JSON.parse(stored) : [];
         const newLocalItem = {
-          ...payload,
-          id: `prod_${Date.now()}`,
-          _id: `prod_${Date.now()}`,
-          name: payload.title,
-          image: payload.images[0],
+          id: `prod-${Date.now()}`,
+          name: formData.name,
+          brand: formData.brand || 'ShopNexus Official',
+          category: formData.category,
+          price: parseFloat(formData.price),
+          discountPrice: formData.discountPrice ? parseFloat(formData.discountPrice) : undefined,
+          costPrice: parseFloat(formData.costPrice) || Math.round(parseFloat(formData.price) * 0.7),
+          stock: parseInt(formData.stock, 10) || 20,
+          image: finalImagesList[0],
+          sku: formData.sku,
+          barcode: formData.barcode,
+          variantColor: formData.variantColor,
+          isFlashSale: formData.isFlashSale,
+          rewardPoints: finalRewardPoints,
+          slug: formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+          hasFastDelivery: formData.hasFastDelivery,
+          hasWarranty: formData.hasWarranty,
+          warrantyText: formData.warrantyText,
+          hasReturnPolicy: formData.hasReturnPolicy,
+          isOfficialGenuine: formData.isOfficialGenuine,
           vatTaxPercent: parseFloat(formData.vatTaxPercent) || 7.5,
           threshold: parseInt(formData.threshold, 10) || 5,
         };
         localStorage.setItem('shopnexus_custom_products', JSON.stringify([newLocalItem, ...existing]));
       } catch (_e) {}
 
-      showToast('🎉 নতুন প্রোডাক্ট সফলভাবে ক্যাটালগে যুক্ত হয়েছে!');
+      showToast(isBn ? '🎉 নতুন প্রোডাক্ট সফলভাবে ক্যাটালগে যুক্ত হয়েছে!' : '🎉 New product published to catalog successfully!');
       setTimeout(() => {
         router.push('/admin/inventory');
       }, 1000);
     } catch (err) {
       console.error('Error creating product:', err);
-      showToast('প্রোডাক্ট সেভ করা হয়েছে এবং লোকাল ইনভেন্টরিতে আপডেট করা হয়েছে।');
+      showToast(isBn ? 'প্রোডাক্ট সেভ করা হয়েছে এবং লোকাল ইনভেন্টরিতে আপডেট করা হয়েছে।' : 'Product saved and updated in local inventory.');
       setTimeout(() => {
         router.push('/admin/inventory');
       }, 1000);
@@ -333,19 +356,23 @@ export default function NewProductPage() {
             <Link
               href="/admin/inventory"
               className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors border border-slate-200 dark:border-slate-700 cursor-pointer"
-              title="Back to Inventory"
+              title={isBn ? 'ইনভেন্টরিতে ফিরে যান' : 'Back to Inventory'}
             >
               <ArrowLeft className="w-4 h-4" />
             </Link>
             <div>
               <div className="flex items-center gap-2 text-xs text-slate-500 font-semibold mb-0.5">
-                <Link href="/admin/inventory" className="hover:text-orange-600 dark:hover:text-orange-400">Inventory</Link>
+                <Link href="/admin/inventory" className="hover:text-orange-600 dark:hover:text-orange-400">
+                  {isBn ? 'ইনভেন্টরি' : 'Inventory'}
+                </Link>
                 <span>/</span>
-                <span className="text-orange-600 dark:text-orange-400 font-bold">New Product</span>
+                <span className="text-orange-600 dark:text-orange-400 font-bold">
+                  {isBn ? 'নতুন পণ্য' : 'New Product'}
+                </span>
               </div>
               <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
                 <Plus className="w-6 h-6 text-orange-600 dark:text-orange-400" />
-                Add New Product (৳ BDT Specification)
+                {isBn ? 'নতুন পণ্য যোগ করুন (৳ বিডিটি)' : 'Add New Product (৳ BDT Specification)'}
               </h1>
             </div>
           </div>
@@ -355,7 +382,7 @@ export default function NewProductPage() {
               href="/admin/inventory"
               className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs border border-slate-200 dark:border-slate-700 transition-all cursor-pointer"
             >
-              Cancel
+              {isBn ? 'বাতিল' : 'Cancel'}
             </Link>
             <button
               type="button"
@@ -364,7 +391,11 @@ export default function NewProductPage() {
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/25 transition-all cursor-pointer hover:scale-105 active:scale-95 disabled:opacity-50"
             >
               <Check className="w-4 h-4" />
-              <span>{isSubmitting ? 'Publishing...' : 'Publish to Catalog (৳ BDT)'}</span>
+              <span>
+                {isSubmitting
+                  ? (isBn ? 'পাবলিশ হচ্ছে...' : 'Publishing...')
+                  : (isBn ? 'ক্যাটালগে পাবলিশ করুন (৳)' : 'Publish to Catalog (৳ BDT)')}
+              </span>
             </button>
           </div>
         </div>
@@ -731,10 +762,12 @@ export default function NewProductPage() {
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4 text-emerald-500" />
                   <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
-                    5. Trust Badges & Store Guarantees
+                    {isBn ? '৫. ট্রাস্ট ব্যাজ ও স্টোর গ্যারান্টি' : '5. Trust Badges & Store Guarantees'}
                   </h2>
                 </div>
-                <span className="text-[10px] text-slate-400">প্রোডাক্ট পেইজে সরাসরি প্রদর্শিত হবে</span>
+                <span className="text-[10px] text-slate-400">
+                  {isBn ? 'প্রোডাক্ট পেইজে সরাসরি প্রদর্শিত হবে' : 'Displayed directly on product page'}
+                </span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -748,7 +781,7 @@ export default function NewProductPage() {
                   />
                   <div className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200">
                     <Truck className="w-4 h-4 text-orange-500" />
-                    <span>২৪ ঘণ্টায় দ্রুত হোম ডেলিভারি</span>
+                    <span>{isBn ? '২৪ ঘণ্টায় দ্রুত হোম ডেলিভারি' : '24h Fast Home Delivery'}</span>
                   </div>
                 </label>
 
@@ -762,7 +795,7 @@ export default function NewProductPage() {
                   />
                   <div className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200">
                     <RotateCcw className="w-4 h-4 text-indigo-500" />
-                    <span>৭ দিনের সহজ রিটার্ন পলিসি</span>
+                    <span>{isBn ? '৭ দিনের সহজ রিটার্ন পলিসি' : '7 Days Easy Return Policy'}</span>
                   </div>
                 </label>
 
@@ -776,7 +809,7 @@ export default function NewProductPage() {
                   />
                   <div className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200">
                     <Check className="w-4 h-4 text-amber-500" />
-                    <span>১০০% জেনুইন অরিজিনাল গ্যাজেট</span>
+                    <span>{isBn ? '১০০% জেনুইন অরিজিনাল গ্যাজেট' : '100% Genuine Original Gadget'}</span>
                   </div>
                 </label>
 
@@ -791,13 +824,13 @@ export default function NewProductPage() {
                     />
                     <div className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200">
                       <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                      <span>অফিসিয়াল ওয়ারেন্টি প্রযোজ্য</span>
+                      <span>{isBn ? 'অফিসিয়াল ওয়ারেন্টি প্রযোজ্য' : 'Official Warranty Applicable'}</span>
                     </div>
                   </label>
                   {formData.hasWarranty && (
                     <input
                       type="text"
-                      placeholder="e.g. ১ বছরের অফিসিয়াল ওয়ারেন্টি"
+                      placeholder={isBn ? 'e.g. ১ বছরের অফিসিয়াল ওয়ারেন্টি' : 'e.g. 1 Year Official Brand Warranty'}
                       value={formData.warrantyText}
                       onChange={(e) => setFormData({ ...formData, warrantyText: e.target.value })}
                       className="w-full px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-orange-500"
@@ -815,14 +848,14 @@ export default function NewProductPage() {
               <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800/80 pb-3">
                 <DollarSign className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
-                  Pricing & Profit (৳ BDT)
+                  {isBn ? 'মূল্য নির্ধারণ ও লাভ (৳ BDT)' : 'Pricing & Profit (৳ BDT)'}
                 </h2>
               </div>
 
               {/* Selling Price */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  Sales Price (বিক্রয়মূল্য ৳) <span className="text-rose-500">*</span>
+                  {isBn ? 'বিক্রয়মূল্য (৳)' : 'Sales Price (৳)'} <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
                   <span className="absolute left-3.5 top-2.5 text-slate-400 font-mono font-bold">৳</span>
@@ -840,7 +873,7 @@ export default function NewProductPage() {
               {/* Cost Price */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  Cost per Item (কেনা দাম ৳)
+                  {isBn ? 'কেনা দাম / কস্ট (৳)' : 'Cost per Item (৳)'}
                 </label>
                 <div className="relative">
                   <span className="absolute left-3.5 top-2.5 text-slate-400 font-mono font-bold">৳</span>
@@ -857,7 +890,7 @@ export default function NewProductPage() {
               {/* Discount / Flash Price & Custom % Inputs */}
               <div className="space-y-2 pt-1 border-t border-slate-100 dark:border-slate-800/60">
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                  Discount Price (বিশেষ ছাড় মূল্য ৳)
+                  {isBn ? 'বিশেষ ছাড় মূল্য (৳)' : 'Discount Price (৳)'}
                 </label>
                 <div className="relative">
                   <span className="absolute left-3.5 top-2.5 text-slate-400 font-mono font-bold">৳</span>
@@ -873,8 +906,8 @@ export default function NewProductPage() {
                 {/* Quick Presets */}
                 <div className="space-y-1.5 pt-1">
                   <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase">
-                    <span>Quick Discount:</span>
-                    <span>Custom %</span>
+                    <span>{isBn ? 'দ্রুত ছাড়:' : 'Quick Discount:'}</span>
+                    <span>{isBn ? 'কাস্টম %' : 'Custom %'}</span>
                   </div>
                   <div className="flex items-center gap-1.5 flex-wrap">
                     {[10, 15, 20].map((pct) => (
@@ -905,9 +938,9 @@ export default function NewProductPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5 text-xs font-black text-amber-600 dark:text-amber-400">
                     <Coins className="w-4 h-4 fill-amber-500" />
-                    <span>Loyalty Reward Points</span>
+                    <span>{isBn ? 'লয়্যালটি রিওয়ার্ড পয়েন্ট' : 'Loyalty Reward Points'}</span>
                   </div>
-                  <span className="text-[10px] text-slate-400">৳১০০ = ১০ কয়েন</span>
+                  <span className="text-[10px] text-slate-400">{isBn ? '৳১০০ = ১০ কয়েন' : '৳100 = 10 pts'}</span>
                 </div>
 
                 <div className="relative">
@@ -921,9 +954,9 @@ export default function NewProductPage() {
                 </div>
 
                 <div className="flex items-center justify-between text-[11px] font-bold text-slate-600 dark:text-slate-300 pt-0.5">
-                  <span>গ্রাহক বোনাস পাবে:</span>
-                  <span className="text-amber-600 dark:text-amber-400 font-mono">
-                    +{finalRewardPoints} Points (৳{cashbackValue} Cashback)
+                  <span>{isBn ? 'গ্রাহক বোনাস পাবে:' : 'Customer Bonus:'}</span>
+                  <span className="text-amber-600 dark:text-amber-400 font-mono whitespace-nowrap">
+                    +{isBn ? toBengaliNumber(finalRewardPoints) : finalRewardPoints} {isBn ? 'পয়েন্ট' : 'Points'} ({isBn ? 'ক্যাশব্যাক' : 'Cashback'} {isBn ? `৳${toBengaliNumber(cashbackValue)}` : `৳${cashbackValue}`})
                   </span>
                 </div>
               </div>
@@ -931,14 +964,16 @@ export default function NewProductPage() {
               {/* Profit Margin Metric Card */}
               <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 space-y-1">
                 <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300">
-                  <span>Gross Profit:</span>
-                  <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">
-                    ৳{grossProfit.toLocaleString()} BDT
+                  <span>{isBn ? 'মোট লাভ:' : 'Gross Profit:'}</span>
+                  <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold whitespace-nowrap">
+                    {isBn ? `৳${toBengaliNumber(grossProfit.toLocaleString('en-US'))} BDT` : `৳${grossProfit.toLocaleString()} BDT`}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300">
-                  <span>Profit Margin:</span>
-                  <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">{profitMargin}%</span>
+                  <span>{isBn ? 'প্রফিট মার্জিন:' : 'Profit Margin:'}</span>
+                  <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold whitespace-nowrap">
+                    {isBn ? `${toBengaliNumber(profitMargin)}%` : `${profitMargin}%`}
+                  </span>
                 </div>
               </div>
             </div>
@@ -949,7 +984,7 @@ export default function NewProductPage() {
                 <div className="flex items-center gap-2">
                   <Tag className="w-4 h-4 text-orange-600 dark:text-orange-400" />
                   <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
-                    Category & Stock
+                    {isBn ? 'ক্যাটাগরি ও স্টক' : 'Category & Stock'}
                   </h2>
                 </div>
                 {!isAddingNewCategory && (
@@ -958,7 +993,7 @@ export default function NewProductPage() {
                     onClick={() => setIsAddingNewCategory(true)}
                     className="inline-flex items-center gap-1 text-[11px] font-bold text-orange-600 dark:text-orange-400 hover:underline cursor-pointer"
                   >
-                    <FolderPlus className="w-3.5 h-3.5" /> + New Category
+                    <FolderPlus className="w-3.5 h-3.5" /> + {isBn ? 'নতুন ক্যাটাগরি' : 'New Category'}
                   </button>
                 )}
               </div>
@@ -967,7 +1002,7 @@ export default function NewProductPage() {
               {isAddingNewCategory ? (
                 <div className="p-3 rounded-2xl bg-orange-500/10 border border-orange-500/30 space-y-2 animate-in fade-in">
                   <label className="block text-xs font-bold text-orange-700 dark:text-orange-300">
-                    Create New Category
+                    {isBn ? 'নতুন ক্যাটাগরি তৈরি করুন' : 'Create New Category'}
                   </label>
                   <div className="flex items-center gap-2">
                     <input
@@ -982,7 +1017,7 @@ export default function NewProductPage() {
                       onClick={handleAddCustomCategory}
                       className="px-3 py-1.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold shadow-xs cursor-pointer"
                     >
-                      Add
+                      {isBn ? 'যোগ' : 'Add'}
                     </button>
                     <button
                       type="button"
@@ -996,7 +1031,7 @@ export default function NewProductPage() {
               ) : (
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    Product Category <span className="text-rose-500">*</span>
+                    {isBn ? 'পণ্যের ক্যাটাগরি' : 'Product Category'} <span className="text-rose-500">*</span>
                   </label>
                   <select
                     value={formData.category}
@@ -1015,12 +1050,12 @@ export default function NewProductPage() {
               {/* Initial Stock */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  Initial Stock Quantity <span className="text-rose-500">*</span>
+                  {isBn ? 'প্রাথমিক স্টক সংখ্যা' : 'Initial Stock Quantity'} <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="number"
                   required
-                  placeholder="Enter available quantity (e.g. 25)"
+                  placeholder={isBn ? 'স্টক সংখ্যা লিখুন (e.g. 25)' : 'Enter available quantity (e.g. 25)'}
                   value={formData.stock}
                   onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
                   className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-mono font-bold focus:outline-none focus:border-orange-500"
@@ -1038,21 +1073,25 @@ export default function NewProductPage() {
                 <div>
                   <div className="text-xs font-bold text-orange-600 dark:text-orange-400 flex items-center gap-1">
                     <Zap className="w-3.5 h-3.5 fill-current" />
-                    <span>Flash Sale Campaign</span>
+                    <span>{isBn ? 'ফ্ল্যাশ সেল ক্যাম্পেইন' : 'Flash Sale Campaign'}</span>
                   </div>
-                  <span className="text-[10px] text-slate-500">স্টোরফ্রন্টে লাইভ কাউন্টডাউন ও ছাড় ব্যাজ দেখাবে</span>
+                  <span className="text-[10px] text-slate-500">
+                    {isBn
+                      ? 'স্টোরফ্রন্টে লাইভ কাউন্টডাউন ও ছাড় ব্যাজ দেখাবে'
+                      : 'Displays live countdown & discount badge on storefront'}
+                  </span>
                 </div>
               </label>
             </div>
 
-            {/* 4. Live Storefront Card Preview (Zero Dummy Sony fallback) */}
+            {/* 4. Live Storefront Card Preview */}
             <div className="p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
               <div className="flex items-center justify-between text-xs font-black text-slate-700 dark:text-slate-300">
                 <div className="flex items-center gap-1.5">
                   <Eye className="w-3.5 h-3.5 text-orange-500" />
-                  <span>Live Storefront Preview</span>
+                  <span>{isBn ? 'লাইভ স্টোরফ্রন্ট প্রিভিউ' : 'Live Storefront Preview'}</span>
                 </div>
-                <span className="text-[10px] text-slate-400 font-normal">Real-time update</span>
+                <span className="text-[10px] text-slate-400 font-normal">{isBn ? 'রিয়েল-টাইম আপডেট' : 'Real-time update'}</span>
               </div>
 
               <div className="rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-950 p-3 space-y-2.5">
@@ -1068,20 +1107,24 @@ export default function NewProductPage() {
                   ) : (
                     <div className="text-center p-4 space-y-1 text-slate-400 dark:text-slate-600">
                       <ImageIcon className="w-8 h-8 mx-auto stroke-1" />
-                      <span className="text-[10px] font-bold block uppercase tracking-wider">No Image Selected</span>
-                      <span className="text-[9px] block">Upload or enter image URL</span>
+                      <span className="text-[10px] font-bold block uppercase tracking-wider">
+                        {isBn ? 'কোনো ছবি নির্বাচিত হয়নি' : 'No Image Selected'}
+                      </span>
+                      <span className="text-[9px] block">
+                        {isBn ? 'ছবি আপলোড করুন বা ইউআরএল দিন' : 'Upload or enter image URL'}
+                      </span>
                     </div>
                   )}
 
                   {formData.isFlashSale && (
                     <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white text-[9px] font-black shadow-md">
-                      FLASH SALE
+                      {isBn ? 'ফ্ল্যাশ সেল' : 'FLASH SALE'}
                     </div>
                   )}
                   {finalRewardPoints > 0 && (
-                    <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[9px] font-black flex items-center gap-1 shadow-md">
+                    <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[9px] font-black flex items-center gap-1 shadow-md whitespace-nowrap">
                       <Coins className="w-2.5 h-2.5 fill-slate-950" />
-                      <span>+{finalRewardPoints} pts</span>
+                      <span>+{isBn ? toBengaliNumber(finalRewardPoints) : finalRewardPoints} {isBn ? 'পয়েন্ট' : 'pts'}</span>
                     </div>
                   )}
                 </div>
@@ -1089,15 +1132,17 @@ export default function NewProductPage() {
                 <div>
                   <span className="text-[10px] text-orange-500 font-bold uppercase">{formData.category}</span>
                   <h4 className="text-xs font-bold text-slate-900 dark:text-white line-clamp-1">
-                    {formData.name || 'Your New Product Title'}
+                    {formData.name || (isBn ? 'নতুন পণ্যের শিরোনাম' : 'Your New Product Title')}
                   </h4>
                   <div className="flex items-baseline gap-2 mt-1">
-                    <span className="text-sm font-black text-slate-900 dark:text-white font-mono">
-                      ৳{(discountPrice > 0 ? discountPrice : (sellingPrice || 0)).toLocaleString()}
+                    <span className="text-sm font-black text-slate-900 dark:text-white font-mono whitespace-nowrap">
+                      {isBn
+                        ? `৳${toBengaliNumber((discountPrice > 0 ? discountPrice : (sellingPrice || 0)).toLocaleString('en-US'))}`
+                        : `৳${(discountPrice > 0 ? discountPrice : (sellingPrice || 0)).toLocaleString()}`}
                     </span>
                     {discountPrice > 0 && sellingPrice > 0 && (
-                      <span className="text-xs text-slate-400 line-through font-mono">
-                        ৳{sellingPrice.toLocaleString()}
+                      <span className="text-xs text-slate-400 line-through font-mono whitespace-nowrap">
+                        {isBn ? `৳${toBengaliNumber(sellingPrice.toLocaleString('en-US'))}` : `৳${sellingPrice.toLocaleString()}`}
                       </span>
                     )}
                   </div>
