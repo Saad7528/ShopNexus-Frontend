@@ -364,7 +364,7 @@ export const ChatbotWidget: React.FC = () => {
                     <div
                       className={`inline-block p-3.5 rounded-2xl text-xs sm:text-sm leading-relaxed ${
                         isUser
-                          ? 'bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white shadow-md rounded-tr-xs'
+                          ? 'bg-linear-to-r from-[#ff4400] to-[#ff7700] text-white shadow-md rounded-tr-xs'
                           : 'bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 rounded-tl-xs'
                       }`}
                     >
@@ -440,7 +440,7 @@ export const ChatbotWidget: React.FC = () => {
                                 <button
                                   type="button"
                                   onClick={() => handleAddSuggestedToCart(prod)}
-                                  className="p-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#ff5500] hover:to-[#ff8800] text-white transition-all shadow-md shadow-orange-500/20 active:scale-95 cursor-pointer"
+                                  className="p-2.5 rounded-xl bg-linear-to-r from-[#ff4400] to-[#ff7700] hover:from-[#ff5500] hover:to-[#ff8800] text-white transition-all shadow-md shadow-orange-500/20 active:scale-95 cursor-pointer"
                                   title={language === 'bn' ? '১-ক্লিকে কার্টে যোগ করুন' : '1-Click Add to Cart'}
                                 >
                                   <ShoppingBag className="w-3.5 h-3.5" />
