@@ -26,6 +26,53 @@ function parseBengaliOrEnglishNumber(text: string): number | null {
   return null;
 }
 
+// Module-level in-memory catalog cache for lightning fast sub-second responses
+let cachedCatalogProducts: any[] | null = null;
+let lastCatalogCacheTime = 0;
+const CATALOG_CACHE_TTL = 5 * 60 * 1000; // 5 minutes TTL
+
+async function getCachedCatalogProducts(): Promise<any[]> {
+  const now = Date.now();
+  if (cachedCatalogProducts && cachedCatalogProducts.length > 0 && now - lastCatalogCacheTime < CATALOG_CACHE_TTL) {
+    return cachedCatalogProducts;
+  }
+
+  let catalogProducts: any[] = [];
+  try {
+    await connectToDatabase();
+    const db = mongoose.connection.db;
+    if (db) {
+      const dbItems = await db.collection('products').find({ isActive: { $ne: false } }).toArray();
+      if (dbItems && dbItems.length > 0) {
+        const normalizedDbItems = dbItems.map((item) => ({
+          ...item,
+          _id: item._id?.toString() || item.id || item.slug,
+        }));
+
+        const dbKeySet = new Set(
+          normalizedDbItems.flatMap((item: any) => [item.slug, item._id, item.title?.toLowerCase()]).filter(Boolean)
+        );
+
+        const missingStatic = ALL_PRODUCTS.filter(
+          (p) => !dbKeySet.has(p.slug) && !dbKeySet.has(p._id) && !dbKeySet.has(p.title?.toLowerCase())
+        );
+
+        catalogProducts = [...normalizedDbItems, ...missingStatic];
+      }
+    }
+  } catch (dbErr) {
+    console.warn('MongoDB connection note, using cached static catalog:', dbErr);
+  }
+
+  if (catalogProducts.length === 0) {
+    catalogProducts = [...ALL_PRODUCTS];
+  }
+
+  cachedCatalogProducts = catalogProducts;
+  lastCatalogCacheTime = now;
+  return catalogProducts;
+}
+
 export async function POST(req: NextRequest) {
   const startTime = Date.now();
 
@@ -41,43 +88,14 @@ export async function POST(req: NextRequest) {
     const query = message.trim();
     const queryLower = query.toLowerCase();
 
-    // 🗄️ 1. Fetch live products from MongoDB Atlas (with fallback to ALL_PRODUCTS)
-    let catalogProducts: any[] = [];
-    try {
-      await connectToDatabase();
-      const db = mongoose.connection.db;
-      if (db) {
-        const dbItems = await db.collection('products').find({ isActive: { $ne: false } }).toArray();
-        if (dbItems && dbItems.length > 0) {
-          const normalizedDbItems = dbItems.map((item) => ({
-            ...item,
-            _id: item._id?.toString() || item.id || item.slug,
-          }));
+    // 🗄️ 1. Fetch live products with in-memory caching (< 1ms overhead)
+    const catalogProducts = await getCachedCatalogProducts();
 
-          const dbKeySet = new Set(
-            normalizedDbItems.flatMap((item: any) => [item.slug, item._id, item.title?.toLowerCase()]).filter(Boolean)
-          );
-
-          const missingStatic = ALL_PRODUCTS.filter(
-            (p) => !dbKeySet.has(p.slug) && !dbKeySet.has(p._id) && !dbKeySet.has(p.title?.toLowerCase())
-          );
-
-          catalogProducts = [...normalizedDbItems, ...missingStatic];
-        }
-      }
-    } catch (dbErr) {
-      console.warn('MongoDB connection note, using cached static catalog:', dbErr);
-    }
-
-    if (catalogProducts.length === 0) {
-      catalogProducts = [...ALL_PRODUCTS];
-    }
-
-    // Build catalog grounding for Gemini
+    // Build compact catalog grounding for fast AI processing
     const catalogContext = catalogProducts
       .map(
         (p) =>
-          `ID: ${p._id} | Title: ${p.title} | Category: ${p.category} | Brand: ${p.brand} | Price: ৳${(p.discountPrice || p.price).toLocaleString()} BDT | Rating: ${p.averageRating || 4.9}★ | Description: ${p.description || ''}`
+          `ID: ${p._id} | Title: ${p.title} | Category: ${p.category} | Brand: ${p.brand} | Price: ৳${(p.discountPrice || p.price).toLocaleString()} BDT | Rating: ${p.averageRating || 4.9}★`
       )
       .join('\n');
 
@@ -112,13 +130,13 @@ STRICT RULES & GUIDELINES:
 OFFICIAL SHOPNEXUS CATALOG:
 ${catalogContext}`;
 
-    // ⚡ 3. Call Google Gemini API
+    // ⚡ 3. Call Google Gemini API with fastest low-latency models first
     let aiReply: string | null = null;
-    let provider = 'gemini-3.6-flash';
+    let provider = 'gemini-flash-latest';
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
     if (GEMINI_API_KEY) {
-      const modelsToTry = ['gemini-3.6-flash', 'gemini-flash-latest', 'gemini-3.5-flash', 'gemini-3.7-flash'];
+      const modelsToTry = ['gemini-flash-latest', 'gemini-3.5-flash', 'gemini-3.6-flash'];
 
       for (const model of modelsToTry) {
         if (aiReply) break;
@@ -133,20 +151,20 @@ ${catalogContext}`;
                   {
                     role: 'user',
                     parts: [
-                  {
-                    text: `${systemPrompt}\n\nCustomer Question: "${query}"\nDetected Budget: ${extractedBudget ? `৳${extractedBudget} BDT` : 'Flexible'}\nCategory Filter: ${category || 'All'}`,
+                      {
+                        text: `${systemPrompt}\n\nCustomer Question: "${query}"\nDetected Budget: ${extractedBudget ? `৳${extractedBudget} BDT` : 'Flexible'}\nCategory Filter: ${category || 'All'}`,
+                      },
+                    ],
                   },
                 ],
-              },
-            ],
-            generationConfig: {
-              temperature: 0.2,
-              maxOutputTokens: 2048,
-            },
-          }),
-          signal: AbortSignal.timeout(15000),
-        }
-      );
+                generationConfig: {
+                  temperature: 0.2,
+                  maxOutputTokens: 800,
+                },
+              }),
+              signal: AbortSignal.timeout(12000),
+            }
+          );
 
           if (geminiRes.ok) {
             const geminiData = await geminiRes.json();
