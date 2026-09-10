@@ -31,6 +31,8 @@ import {
 } from 'lucide-react';
 import { useThemeStore } from '@/store/useThemeStore';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useLanguageStore } from '@/store/useLanguageStore';
+import { LanguageToggle } from '@/components/common/LanguageToggle';
 import { useVisitorAnalyticsStore } from '@/store/useVisitorAnalyticsStore';
 import DevTelemetryToggle from '@/components/admin/DevTelemetryToggle';
 
@@ -40,8 +42,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const { theme, toggleTheme } = useThemeStore();
+  const { language } = useLanguageStore();
   const { user, logout } = useAuthStore();
   const liveVisitorCount = useVisitorAnalyticsStore((s) => s.liveVisitorCount);
+  const isBn = language === 'bn';
 
   // Detect screen size for initial mobile state
   useEffect(() => {
@@ -67,58 +71,58 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const navItems = [
     {
-      title: 'Dashboard & Analytics',
+      title: isBn ? 'ড্যাশবোর্ড ও অ্যানালিটিক্স' : 'Dashboard & Analytics',
       href: '/admin/dashboard',
       icon: LayoutDashboard,
     },
     {
-      title: 'Live Visitors & Traffic',
+      title: isBn ? 'লাইভ ভিজিটর ও ট্রাফিক' : 'Live Visitors & Traffic',
       href: '/admin/visitors',
       icon: Activity,
-      badge: 'Live',
+      badge: isBn ? 'লাইভ' : 'Live',
     },
     {
-      title: 'Products & Inventory',
+      title: isBn ? 'প্রোডাক্ট ও ইনভেন্টরি' : 'Products & Inventory',
       href: '/admin/inventory',
       icon: Package,
     },
     {
-      title: 'Orders & Invoices',
+      title: isBn ? 'অর্ডার ও ইনভয়েস' : 'Orders & Invoices',
       href: '/admin/orders',
       icon: ShoppingCart,
     },
     {
-      title: 'Abandoned Carts',
+      title: isBn ? 'পরিত্যক্ত কার্ট' : 'Abandoned Carts',
       href: '/admin/abandoned-carts',
       icon: ShoppingBag,
     },
     {
-      title: 'Bundles & Loyalty',
+      title: isBn ? 'বান্ডেল ও লয়্যালটি' : 'Bundles & Loyalty',
       href: '/admin/bundles-loyalty',
       icon: Gift,
     },
     {
-      title: 'Live Parcel Tracking',
+      title: isBn ? 'লাইভ পার্সেল ট্র্যাকিং' : 'Live Parcel Tracking',
       href: '/admin/tracking',
       icon: Truck,
     },
     {
-      title: 'Coupons & Promotions',
+      title: isBn ? 'কুপন ও প্রমোশন' : 'Coupons & Promotions',
       href: '/admin/coupons',
       icon: Tag,
     },
     {
-      title: 'Customer Reviews',
+      title: isBn ? 'কাস্টমার রিভিউ' : 'Customer Reviews',
       href: '/admin/reviews',
       icon: MessageSquare,
     },
     {
-      title: 'Staff Roles & Security',
+      title: isBn ? 'স্টাফ রোল ও সিকিউরিটি' : 'Staff Roles & Security',
       href: '/admin/staff',
       icon: ShieldCheck,
     },
     {
-      title: 'Customer Directory',
+      title: isBn ? 'কাস্টমার ডিরেক্টরি' : 'Customer Directory',
       href: '/admin/customers',
       icon: Users,
     },
@@ -155,9 +159,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   <ShieldCheck className="w-5 h-5" />
                 </div>
                 <div className="transition-opacity duration-300">
-                  <h2 className="text-sm font-black text-slate-900 dark:text-white leading-tight">Admin Portal</h2>
+                  <h2 className="text-sm font-black text-slate-900 dark:text-white leading-tight">
+                    {isBn ? 'অ্যাডমিন পোর্টাল' : 'Admin Portal'}
+                  </h2>
                   <p className="text-[10px] font-semibold text-orange-600 dark:text-orange-400 uppercase tracking-wider">
-                    ShopNexus Official
+                    {isBn ? 'শপনেক্সাস অফিসিয়াল' : 'ShopNexus Official'}
                   </p>
                 </div>
               </div>
@@ -167,7 +173,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 type="button"
                 onClick={() => setSidebarOpen(false)}
                 className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-orange-500/10 dark:hover:bg-orange-500/20 text-slate-600 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 transition-colors cursor-pointer hidden md:flex shrink-0"
-                title="Collapse Sidebar"
+                title={isBn ? 'সাইডবার গুটিয়ে নিন' : 'Collapse Sidebar'}
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
@@ -189,7 +195,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 type="button"
                 onClick={() => setSidebarOpen(true)}
                 className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-orange-500/15 dark:hover:bg-orange-500/25 text-slate-600 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 flex items-center justify-center transition-all cursor-pointer shadow-sm hover:scale-105 active:scale-95"
-                title="Expand Sidebar"
+                title={isBn ? 'সাইডবার প্রসারিত করুন' : 'Expand Sidebar'}
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
@@ -222,7 +228,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   </div>
                   {(sidebarOpen || isMobile) && (item as any).badge && (
                     <span className="px-1.5 py-0.5 rounded-md bg-emerald-500 text-white text-[9px] font-black uppercase tracking-wider animate-pulse shrink-0">
-                      Live
+                      {item.badge}
                     </span>
                   )}
                 </Link>
@@ -231,7 +237,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </nav>
         </div>
 
-        {/* 👤 SIDEBAR FOOTER: ADMIN PROFILE & STOREFRONT LINK (Always Pinned at the Very Bottom) */}
+        {/* 👤 SIDEBAR FOOTER: ADMIN PROFILE & STOREFRONT LINK */}
         <div className="shrink-0 p-4 border-t border-slate-200 dark:border-slate-800 space-y-3 bg-slate-50/50 dark:bg-slate-950/40">
           {/* Admin Profile Box */}
           {sidebarOpen || isMobile ? (
@@ -244,7 +250,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   <div className="text-xs font-bold text-slate-900 dark:text-white truncate leading-tight">S.M. Amirul Islam</div>
                   <div className="flex items-center gap-1 mt-0.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
-                    <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">Super Admin (Root)</span>
+                    <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                      {isBn ? 'সুপার অ্যাডমিন (রুট)' : 'Super Admin (Root)'}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -253,7 +261,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 type="button"
                 onClick={handleLogout}
                 className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
-                title="Log Out of Admin Portal"
+                title={isBn ? 'অ্যাডমিন থেকে লগআউট' : 'Log Out of Admin Portal'}
               >
                 <LogOut className="w-4 h-4" />
               </button>
@@ -270,7 +278,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 type="button"
                 onClick={handleLogout}
                 className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
-                title="Log Out"
+                title={isBn ? 'লগআউট' : 'Log Out'}
               >
                 <LogOut className="w-3.5 h-3.5" />
               </button>
@@ -283,18 +291,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             className={`flex items-center gap-2 p-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-xs font-semibold transition-all shadow-sm ${
               sidebarOpen || isMobile ? 'justify-between' : 'justify-center'
             }`}
-            title="Visit Live Storefront"
+            title={isBn ? 'লাইভ স্টোর দেখুন' : 'Visit Live Storefront'}
           >
             <div className="flex items-center gap-2">
               <ArrowUpRight className="w-4 h-4 text-orange-600 dark:text-indigo-400 flex-shrink-0" />
-              {(sidebarOpen || isMobile) && <span>Live Storefront</span>}
+              {(sidebarOpen || isMobile) && <span>{isBn ? 'লাইভ স্টোরফ্রন্ট' : 'Live Storefront'}</span>}
             </div>
-            {(sidebarOpen || isMobile) && <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono">Online</span>}
+            {(sidebarOpen || isMobile) && (
+              <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono">
+                {isBn ? 'অনলাইন' : 'Online'}
+              </span>
+            )}
           </Link>
         </div>
       </aside>
 
-      {/* Main Workspace Area with Topbar (Dynamically Padded to align with Fixed Sidebar) */}
+      {/* Main Workspace Area with Topbar */}
       <div
         className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${
           !isMobile ? (sidebarOpen ? 'md:pl-64' : 'md:pl-20') : ''
@@ -307,30 +319,36 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               type="button"
               onClick={() => setSidebarOpen(!sidebarOpen)}
               className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white md:hidden cursor-pointer shrink-0"
-              title="Toggle Menu"
+              title={isBn ? 'মেনু খুলুন/বন্ধ করুন' : 'Toggle Menu'}
             >
               <Menu className="w-5 h-5" />
             </button>
 
             <div className="flex items-center gap-1.5 sm:gap-2 text-xs font-semibold truncate">
-              <span className="text-slate-500 hidden sm:inline">ShopNexus Admin</span>
+              <span className="text-slate-500 hidden sm:inline">
+                {isBn ? 'শপনেক্সাস অ্যাডমিন' : 'ShopNexus Admin'}
+              </span>
               <span className="text-slate-300 dark:text-slate-700 hidden sm:inline">/</span>
               <span className="text-orange-600 dark:text-orange-400 font-bold capitalize truncate">
-                {pathname.split('/')[2] === 'visitors' ? 'Visitors' : pathname.split('/')[2] || 'Dashboard'}
+                {pathname.split('/')[2] === 'visitors' ? (isBn ? 'ভিজিটর ও ট্রাফিক' : 'Visitors') : pathname.split('/')[2] || (isBn ? 'ড্যাশবোর্ড' : 'Dashboard')}
               </span>
             </div>
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+            
             {/* Dev Telemetry Toggle (Localhost only) */}
             <DevTelemetryToggle compact />
+
+            {/* 🌐 Admin Language Toggle (EN / বাং) */}
+            <LanguageToggle />
 
             {/* Theme Toggle */}
             <button
               type="button"
               onClick={toggleTheme}
               className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-amber-500 transition-all cursor-pointer"
-              title="Toggle Theme"
+              title={isBn ? 'থিম পরিবর্তন' : 'Toggle Theme'}
             >
               {theme === 'light' ? <Moon className="w-4 h-4 text-slate-700" /> : <Sun className="w-4 h-4 text-amber-400" />}
             </button>
@@ -340,10 +358,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               type="button"
               onClick={handleLogout}
               className="flex items-center gap-1.5 p-2 sm:px-3 sm:py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-300 border border-rose-500/25 text-xs font-bold transition-all cursor-pointer"
-              title="Log Out"
+              title={isBn ? 'লগআউট' : 'Log Out'}
             >
               <LogOut className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
-              <span className="hidden sm:inline">Log Out</span>
+              <span className="hidden sm:inline">{isBn ? 'লগআউট' : 'Log Out'}</span>
             </button>
           </div>
         </header>
