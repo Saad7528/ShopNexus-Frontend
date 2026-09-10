@@ -1,12 +1,9 @@
 import mongoose from 'mongoose';
 
-const MONGODB_URI =
-  process.env.MONGODB_URI ||
-  process.env.MONGO_URI ||
-  'mongodb+srv://shopnexus:OY0pd4jFeL8Iojlw@sadasaad.pszei0q.mongodb.net/shopnexus?retryWrites=true&w=majority&appName=SadaSaad';
+const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URI || '';
 
-if (!MONGODB_URI) {
-  throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
+if (!MONGODB_URI && typeof window === 'undefined') {
+  // Graceful log in serverless if env is missing
 }
 
 /**
@@ -20,6 +17,10 @@ if (!cached) {
 }
 
 export async function connectToDatabase() {
+  if (!MONGODB_URI) {
+    return null;
+  }
+
   if (cached.conn) {
     return cached.conn;
   }

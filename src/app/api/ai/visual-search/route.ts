@@ -5,6 +5,7 @@ import { ALL_PRODUCTS } from '@/data/products';
 import { INITIAL_INVENTORY } from '@/data/inventory';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 30;
 
 export async function POST(req: NextRequest) {
   try {
