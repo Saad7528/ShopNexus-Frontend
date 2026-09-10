@@ -9,6 +9,7 @@ import { useBundleStore } from '@/store/useBundleStore';
 import { useCartStore } from '@/store/useCartStore';
 import { useLanguageStore } from '@/store/useLanguageStore';
 import { formatCurrency, toBengaliNumber } from '@/lib/translations';
+import { getLocalizedBundle } from '@/lib/localizedProducts';
 
 export const ComboDealsSection: React.FC = () => {
   const { language } = useLanguageStore();
@@ -76,6 +77,7 @@ export const ComboDealsSection: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {activeBundles.map((bundle) => {
             const isAdded = addedBundleId === bundle.id;
+            const loc = mounted ? getLocalizedBundle(bundle, language) : null;
             const cashbackTaka = Math.floor(bundle.rewardPoints / 10);
 
             return (
@@ -87,28 +89,28 @@ export const ComboDealsSection: React.FC = () => {
                 <div className="p-5 pb-3">
                   <div className="flex items-center justify-between gap-2">
                     <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20">
-                      {bundle.badge}
+                      {loc ? loc.badge : bundle.badge}
                     </span>
                     <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                       <Tag className="w-3 h-3" />
                       {mounted && language === 'bn'
-                        ? `সাশ্রয় ${formatCurrency(bundle.savings, language)}`
-                        : `Save ${formatCurrency(bundle.savings, language)}`}
+                        ? `সাশ্রয় ${loc ? loc.savingsFormatted : formatCurrency(bundle.savings, language)}`
+                        : `Save ${loc ? loc.savingsFormatted : formatCurrency(bundle.savings, language)}`}
                     </span>
                   </div>
 
                   <h3 className="text-base font-black text-slate-900 dark:text-white mt-2.5 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
-                    {bundle.title}
+                    {loc ? loc.title : bundle.title}
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
-                    {bundle.description}
+                    {loc ? loc.description : bundle.description}
                   </p>
                 </div>
 
                 {/* Bundle Item Previews */}
                 <div className="px-5 py-3 bg-slate-50/70 dark:bg-slate-950/40 border-y border-slate-100 dark:border-slate-800/60">
                   <div className="flex items-center justify-center gap-2 sm:gap-3">
-                    {bundle.items.map((item, idx) => (
+                    {(loc ? loc.items : bundle.items).map((item, idx) => (
                       <React.Fragment key={item.id || idx}>
                         {idx > 0 && <Plus className="w-4 h-4 text-slate-400 shrink-0" />}
                         <div className="flex flex-col items-center text-center space-y-1">
@@ -140,10 +142,10 @@ export const ComboDealsSection: React.FC = () => {
                       </span>
                       <div className="flex items-baseline gap-2 font-mono">
                         <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
-                          {mounted ? formatCurrency(bundle.bundlePrice, language) : `৳${bundle.bundlePrice.toLocaleString()}`}
+                          {loc ? loc.bundlePriceFormatted : (mounted ? formatCurrency(bundle.bundlePrice, language) : `৳${bundle.bundlePrice.toLocaleString()}`)}
                         </span>
                         <span className="text-xs line-through text-slate-400 dark:text-slate-500">
-                          {mounted ? formatCurrency(bundle.originalTotal, language) : `৳${bundle.originalTotal.toLocaleString()}`}
+                          {loc ? loc.originalTotalFormatted : (mounted ? formatCurrency(bundle.originalTotal, language) : `৳${bundle.originalTotal.toLocaleString()}`)}
                         </span>
                       </div>
                     </div>
@@ -154,8 +156,8 @@ export const ComboDealsSection: React.FC = () => {
                     <Coins className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                     <span>
                       {mounted && language === 'bn'
-                        ? `বোনাস: ${toBengaliNumber(bundle.rewardPoints)} লয়্যালটি পয়েন্ট (৳${toBengaliNumber(cashbackTaka)} ক্যাশব্যাক)`
-                        : `Bonus: ${bundle.rewardPoints} Points (৳${cashbackTaka} Cashback)`}
+                        ? `বোনাস: ${loc ? loc.rewardPointsFormatted : toBengaliNumber(bundle.rewardPoints)} লয়্যালটি পয়েন্ট (${loc ? loc.cashbackFormatted : `৳${toBengaliNumber(cashbackTaka)}`} ক্যাশব্যাক)`
+                        : `Bonus: ${loc ? loc.rewardPointsFormatted : bundle.rewardPoints} Points (${loc ? loc.cashbackFormatted : `৳${cashbackTaka}`} Cashback)`}
                     </span>
                   </div>
 

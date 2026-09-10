@@ -112,7 +112,7 @@ function TrackingContent() {
     <div className="min-h-screen bg-slate-50 dark:bg-[#070a12] text-slate-900 dark:text-white py-10 sm:py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto space-y-8">
         
-        {/* 🌟 Header Section */}
+        {/* Header Section */}
         <div className="text-center space-y-3">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-500/10 dark:bg-orange-500/15 border border-orange-500/25 text-orange-600 dark:text-orange-400 text-xs font-bold uppercase tracking-wider">
             <Truck className="w-4 h-4" />
@@ -128,7 +128,7 @@ function TrackingContent() {
           </p>
         </div>
 
-        {/* 🌟 Search Box */}
+        {/* Search Box */}
         <div className="rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-4 sm:p-6 shadow-xl backdrop-blur-xl space-y-4">
           <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
@@ -182,7 +182,7 @@ function TrackingContent() {
           </div>
         </div>
 
-        {/* 🌟 Result Section */}
+        {/* Result Section */}
         {hasSearched && searchedOrder && (
           <div className="rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-2xl backdrop-blur-2xl space-y-8 animate-fadeIn">
             
@@ -215,7 +215,7 @@ function TrackingContent() {
               </div>
             </div>
 
-            {/* 🌟 5-Step Visual Progress Stepper */}
+            {/*  5-Step Visual Progress Stepper */}
             <div className="space-y-4">
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-orange-500" />
@@ -292,7 +292,7 @@ function TrackingContent() {
               </div>
             </div>
 
-            {/* 🌟 Courier & Dispatch Info Card */}
+            {/* Courier & Dispatch Info Card */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800/80">
               <div className="space-y-1">
                 <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1">
@@ -347,7 +347,7 @@ function TrackingContent() {
               </div>
             )}
 
-            {/* 🌟 Items in this Order */}
+            {/* Items in this Order */}
             {searchedOrder.items && searchedOrder.items.length > 0 && (
               <div className="space-y-3">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
@@ -402,7 +402,7 @@ function TrackingContent() {
           </div>
         )}
 
-        {/* 🌟 Not Found State */}
+        {/*  Not Found State */}
         {hasSearched && !searchedOrder && (
           <div className="rounded-3xl bg-rose-500/5 dark:bg-rose-500/10 border border-rose-500/25 p-8 text-center space-y-3 animate-fadeIn">
             <AlertCircle className="w-10 h-10 text-rose-500 mx-auto" />
@@ -417,7 +417,7 @@ function TrackingContent() {
           </div>
         )}
 
-        {/* 🌟 Trust Features / How It Works (Shown when idle or below result) */}
+        {/* Trust Features / How It Works (Shown when idle or below result) */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
           <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 space-y-2">
             <div className="w-8 h-8 rounded-xl bg-orange-500/10 text-orange-500 flex items-center justify-center font-bold text-xs">

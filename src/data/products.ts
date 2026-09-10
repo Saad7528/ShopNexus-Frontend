@@ -585,7 +585,7 @@ export const ALL_PRODUCTS: Product[] = [
     _id: 'combo-1',
     title: 'Ultimate Audiophile Master Combo (Sony XM5 + Bose QC Ultra)',
     slug: 'ultimate-audiophile-master-combo',
-    description: 'হাই-ফাই মিউজিক ও নয়েজ ক্যান্সেলেশনের সেরা কম্বিনেশন। একসাথে কিনলে ১০,৭১০ টাকা সাশ্রয় ও ৬০০ লয়্যালটি পয়েন্ট বোনাস!',
+    description: 'The ultimate combination of Hi-Fi acoustics and noise cancellation. Save ৳10,710 + get 600 bonus loyalty points!',
     category: 'Combo Packages',
     brand: 'Sony',
     price: 71400,
@@ -607,7 +607,7 @@ export const ALL_PRODUCTS: Product[] = [
     _id: 'combo-2',
     title: 'Titanium Creator Pro Suite (Apple Watch Ultra 2 + Keychron Q1 Pro)',
     slug: 'titanium-creator-pro-suite',
-    description: 'স্মার্ট লাইফস্টাইল ও প্রোডাক্টিভিটি বুস্ট করার জন্য প্রিমিয়াম স্মার্টওয়াচ এবং মেকানিক্যাল কিবোর্ড কম্বো।',
+    description: 'Premium aerospace smartwatch and CNC mechanical keyboard combo to supercharge productivity and lifestyle.',
     category: 'Combo Packages',
     brand: 'Apple',
     price: 97800,
@@ -629,7 +629,7 @@ export const ALL_PRODUCTS: Product[] = [
     _id: 'combo-3',
     title: 'Esports Competitive Duo (Razer Viper V2 Pro + Keychron Q1 Pro)',
     slug: 'esports-competitive-duo',
-    description: 'আল্ট্রা-লাইটওয়েট ওয়্যারলেস গেমিং মাউস ও মেকানিক্যাল কাস্টম কিবোর্ড কম্বো।',
+    description: 'Ultra-lightweight wireless esports gaming mouse and custom acoustic mechanical keyboard package.',
     category: 'Combo Packages',
     brand: 'Razer',
     price: 29800,
@@ -652,13 +652,33 @@ export const ALL_PRODUCTS: Product[] = [
 export function getProductByIdOrSlug(idOrSlug: string): Product | undefined {
   if (!idOrSlug) return undefined;
   const decoded = decodeURIComponent(idOrSlug).toLowerCase().trim();
-  return (
-    ALL_PRODUCTS.find(
-      (p) =>
-        p._id.toLowerCase() === decoded ||
-        p.slug.toLowerCase() === decoded ||
-        p.title.toLowerCase().replace(/[^a-z0-9]/g, '-') === decoded
-    ) ||
-    ALL_PRODUCTS.find((p) => p.slug.toLowerCase().includes(decoded) || decoded.includes(p.slug.toLowerCase()))
+
+  // 1. Direct match by _id, slug, or title slug
+  const directMatch = ALL_PRODUCTS.find(
+    (p) =>
+      p._id.toLowerCase() === decoded ||
+      p.slug.toLowerCase() === decoded ||
+      p.title.toLowerCase().replace(/[^a-z0-9]/g, '-') === decoded
+  );
+  if (directMatch) return directMatch;
+
+  // 2. Map inv-1 -> p1, inv-2 -> p2
+  if (decoded.startsWith('inv-')) {
+    const num = decoded.replace('inv-', '');
+    const pMatch = ALL_PRODUCTS.find((p) => p._id.toLowerCase() === `p${num}`);
+    if (pMatch) return pMatch;
+
+    const index = parseInt(num, 10) - 1;
+    if (index >= 0 && index < ALL_PRODUCTS.length) {
+      return ALL_PRODUCTS[index];
+    }
+  }
+
+  // 3. Fuzzy search in slug or title
+  return ALL_PRODUCTS.find(
+    (p) =>
+      p.slug.toLowerCase().includes(decoded) ||
+      decoded.includes(p.slug.toLowerCase()) ||
+      p.title.toLowerCase().includes(decoded)
   );
 }

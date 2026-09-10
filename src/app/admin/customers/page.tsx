@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { RoleGuard } from '@/components/auth/RoleGuard';
+import { showConfirmDialog, showAlertDialog } from '@/store/useDialogStore';
 import {
   Users,
   ShieldCheck,
@@ -22,6 +23,10 @@ import {
   AlertTriangle,
   FileCheck,
 } from 'lucide-react';
+
+import { useAuthStore } from '@/store/useAuthStore';
+import { useLanguageStore } from '@/store/useLanguageStore';
+import { toBengaliNumber } from '@/lib/translations';
 
 interface IStaffRole {
   id: string;
@@ -54,40 +59,73 @@ interface ICustomer {
 
 const ROLE_DEFINITIONS = {
   'Super Admin': {
-    title: 'Super Admin (Master Authority)',
-    desc: 'Unrestricted master access to all databases, financial logs, RBAC roles, product pricing, and settings.',
-    allowed: ['Full Read & Write', 'RBAC Control', 'Financial Payouts', 'Catalog & Orders', 'System Deletions'],
-    restricted: ['None'],
+    title: { en: 'Super Admin (Master Authority)', bn: 'সুপার অ্যাডমিন (মাস্টার অথরিটি)' },
+    desc: { en: 'Unrestricted master access to all databases, financial logs, RBAC roles, product pricing, and settings.', bn: 'সকল ডাটাবেস, ফাইন্যান্সিয়াল লগ, আরবিএসি রোল, প্রোডাক্ট প্রাইসিং এবং সেটিংসের সম্পূর্ণ মাস্টার অ্যাক্সেস।' },
+    allowed: {
+      en: ['Full Read & Write', 'RBAC Control', 'Financial Payouts', 'Catalog & Orders', 'System Deletions'],
+      bn: ['সম্পূর্ণ রিড ও রাইট', 'আরবিএসি কন্ট্রোল', 'ফাইন্যান্সিয়াল পেআউট', 'ক্যাটালগ ও অর্ডার', 'সিস্টেম ডিলিটেশন']
+    },
+    restricted: { en: ['None'], bn: ['কোনোটি নয়'] },
   },
   'Telesales Executive': {
-    title: 'Telesales / Order Confirmation Executive',
-    desc: 'Communicates with customers, confirms pending cash-on-delivery orders, and verifies delivery addresses.',
-    allowed: ['View Pending Orders', 'Confirm/Cancel Orders', 'Update Delivery Address', 'Customer Notes'],
-    restricted: ['No Product Pricing Access', 'No Stock Adjustments', 'No Financial Balances'],
+    title: { en: 'Telesales / Order Confirmation Executive', bn: 'টেলিসেলস / অর্ডার কনফার্মেশন এক্সিকিউটিভ' },
+    desc: { en: 'Communicates with customers, confirms pending cash-on-delivery orders, and verifies delivery addresses.', bn: 'গ্রাহকদের সাথে যোগাযোগ, ক্যাশ-অন-ডেলিভারি অর্ডার নিশ্চিতকরণ এবং ডেলিভারি ঠিকানা যাচাই।' },
+    allowed: {
+      en: ['View Pending Orders', 'Confirm/Cancel Orders', 'Update Delivery Address', 'Customer Notes'],
+      bn: ['পেন্ডিং অর্ডার দেখা', 'অর্ডার কনফার্ম/ক্যান্সেল', 'ডেলিভারি ঠিকানা আপডেট', 'কাস্টমার নোটস']
+    },
+    restricted: {
+      en: ['No Product Pricing Access', 'No Stock Adjustments', 'No Financial Balances'],
+      bn: ['প্রোডাক্টের দাম পরিবর্তন নিষিদ্ধ', 'স্টক সমন্বয় নিষিদ্ধ', 'আর্থিক ব্যালেন্স দেখা নিষিদ্ধ']
+    },
   },
   'Delivery Officer': {
-    title: 'Delivery & Tracking Officer',
-    desc: 'Oversees packaging, assigns 3rd-party couriers (Pathao/RedX/Steadfast), and generates shipping labels.',
-    allowed: ['View Order Details', 'Generate Barcode Invoices', 'Update 5-Stage Courier Status', 'Logistics Dispatch'],
-    restricted: ['No Customer Billing Edits', 'No Catalog Uploads', 'No Financial Reports'],
+    title: { en: 'Delivery & Tracking Officer', bn: 'ডেলিভারি ও ট্র্যাকিং অফিসার' },
+    desc: { en: 'Oversees packaging, assigns 3rd-party couriers (Pathao/RedX/Steadfast), and generates shipping labels.', bn: 'প্যাকেজিং তদারকি, কুরিয়ার (পাঠাও/রেডএক্স/স্টেডফাস্ট) অ্যাসাইন এবং শিপিং লেবেল প্রস্তুতকরণ।' },
+    allowed: {
+      en: ['View Order Details', 'Generate Barcode Invoices', 'Update 5-Stage Courier Status', 'Logistics Dispatch'],
+      bn: ['অর্ডারের বিস্তারিত দেখা', 'বারকোড ইনভয়েস তৈরি', '৫-ধাপ কুরিয়ার স্ট্যাটাস আপডেট', 'লজিস্টিকস ডিসপ্যাচ']
+    },
+    restricted: {
+      en: ['No Customer Billing Edits', 'No Catalog Uploads', 'No Financial Reports'],
+      bn: ['কাস্টমার বিলিং পরিবর্তন নিষিদ্ধ', 'ক্যাটালগ আপলোড নিষিদ্ধ', 'ফাইন্যান্সিয়াল রিপোর্ট নিষিদ্ধ']
+    },
   },
   'Inventory Manager': {
-    title: 'Catalog / Inventory Manager',
-    desc: 'Uploads new products, manages variants, adjusts stock units, and sets low-stock thresholds.',
-    allowed: ['Upload Products', 'Adjust Stock & SKU', 'Edit Descriptions & Media', 'Set Flash Quotas'],
-    restricted: ['No Customer Order Data', 'No Payment Gateway Info', 'No Staff Accounts'],
+    title: { en: 'Catalog / Inventory Manager', bn: 'ক্যাটালগ / ইনভেন্টরি ম্যানেজার' },
+    desc: { en: 'Uploads new products, manages variants, adjusts stock units, and sets low-stock thresholds.', bn: 'নতুন পণ্য আপলোড, ভ্যারিয়েন্ট ব্যবস্থাপনা, স্টক সংখ্যা সমন্বয় এবং লো-স্টক থ্রেশহোল্ড সেট করা।' },
+    allowed: {
+      en: ['Upload Products', 'Adjust Stock & SKU', 'Edit Descriptions & Media', 'Set Flash Quotas'],
+      bn: ['পণ্য আপলোড', 'স্টক ও এসকেইউ সমন্বয়', 'বিবরণ ও ছবি এডিট', 'ফ্ল্যাশ কোটা নির্ধারণ']
+    },
+    restricted: {
+      en: ['No Customer Order Data', 'No Payment Gateway Info', 'No Staff Accounts'],
+      bn: ['কাস্টমার অর্ডার তথ্য দেখা নিষিদ্ধ', 'পেমেন্ট গেটওয়ে নিষিদ্ধ', 'স্টাফ একাউন্ট নিয়ন্ত্রণ নিষিদ্ধ']
+    },
   },
   'Customer Support': {
-    title: 'Customer Support Agent',
-    desc: 'Manages incoming customer inquiries, AI chat escalations, reviews moderation, and return RMA requests.',
-    allowed: ['View Customer Queries', 'Process Return Requests', 'Moderate Product Reviews'],
-    restricted: ['No Order Price Modifications', 'No Database Direct Changes', 'No Staff Access'],
+    title: { en: 'Customer Support Agent', bn: 'কাস্টমার সাপোর্ট এজেন্ট' },
+    desc: { en: 'Manages incoming customer inquiries, AI chat escalations, reviews moderation, and return RMA requests.', bn: 'গ্রাহকের অনুসন্ধান পরিচালনা, এআই চ্যাট হ্যান্ডওভার, রিভিউ নিয়ন্ত্রণ এবং রিটার্ন আরএমএ অনুরোধ প্রসেস।' },
+    allowed: {
+      en: ['View Customer Queries', 'Process Return Requests', 'Moderate Product Reviews'],
+      bn: ['গ্রাহকের মেসেজ দেখা', 'রিটার্ন অনুরোধ প্রসেস', 'প্রোডাক্ট রিভিউ মডারেশন']
+    },
+    restricted: {
+      en: ['No Order Price Modifications', 'No Database Direct Changes', 'No Staff Access'],
+      bn: ['অর্ডার মূল্য পরিবর্তন নিষিদ্ধ', 'ডাটাবেস পরিবর্তন নিষিদ্ধ', 'স্টাফ একাউন্ট অ্যাক্সেস নিষিদ্ধ']
+    },
   },
   Accountant: {
-    title: 'Accountant / Financial Manager',
-    desc: 'Audits daily sales, reconciles bKash/Nagad/Stripe payouts, and analyzes revenue growth reports.',
-    allowed: ['View Financial Statements', 'Reconcile Gateways', 'Sales Analytics Reports', 'Refund Audits'],
-    restricted: ['No Catalog Modifications', 'No Live Dispatch Management'],
+    title: { en: 'Accountant / Financial Manager', bn: 'অ্যাকাউন্ট্যান্ট / ফাইন্যান্সিয়াল ম্যানেজার' },
+    desc: { en: 'Audits daily sales, reconciles bKash/Nagad/Stripe payouts, and analyzes revenue growth reports.', bn: 'দৈনিক বিক্রয় অডিট, বিকাশ/নগদ/কার্ড পেআউট রিকনসাইল এবং রাজস্ব রিপোর্ট বিশ্লেষণ।' },
+    allowed: {
+      en: ['View Financial Statements', 'Reconcile Gateways', 'Sales Analytics Reports', 'Refund Audits'],
+      bn: ['ফাইন্যান্সিয়াল বিবরণী দেখা', 'গেটওয়ে রিকনসিলেশন', 'সেলস অ্যানালিটিক্স রিপোর্ট', 'রিফান্ড অডিট']
+    },
+    restricted: {
+      en: ['No Catalog Modifications', 'No Live Dispatch Management'],
+      bn: ['ক্যাটালগ পরিবর্তন নিষিদ্ধ', 'লাইভ ডিসপ্যাচ নিষিদ্ধ']
+    },
   },
 };
 
@@ -165,7 +203,7 @@ const INITIAL_CUSTOMERS: ICustomer[] = [
     email: 'tanvir.dev@gmail.com',
     phone: '+880 1712-345678',
     ordersCount: 8,
-    totalSpent: 148500, // ৳ 1.48 Lakh
+    totalSpent: 148500,
     returnRate: 0,
     isFlaggedFraud: false,
     joinedDate: '2026-02-12',
@@ -194,10 +232,11 @@ const INITIAL_CUSTOMERS: ICustomer[] = [
   },
 ];
 
-import { useAuthStore } from '@/store/useAuthStore';
-
 export default function AdminCustomersRBACPage() {
   const { token } = useAuthStore();
+  const { language } = useLanguageStore();
+  const isBn = language === 'bn';
+
   const [staffList, setStaffList] = useState<IStaffRole[]>(INITIAL_STAFF);
   const [customers, setCustomers] = useState<ICustomer[]>(INITIAL_CUSTOMERS);
   const [selectedRoleInfo, setSelectedRoleInfo] = useState<keyof typeof ROLE_DEFINITIONS | null>(null);
@@ -303,10 +342,15 @@ export default function AdminCustomersRBACPage() {
     setTimeout(() => setToastMsg(null), 3500);
   };
 
-  const handleAddStaff = (e: React.FormEvent) => {
+  const handleAddStaff = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newStaff.name || !newStaff.email || !newStaff.password) {
-      alert('Please fill out all staff fields (Name, Gmail, Password).');
+      await showAlertDialog({
+        title: isBn ? 'সকল তথ্য পূরণ করুন' : 'Incomplete Fields',
+        message: isBn ? 'অনুগ্রহ করে সকল স্টাফ ফিল্ড পূরণ করুন (নাম, ইমেইল, পাসওয়ার্ড)।' : 'Please fill out all staff fields (Name, Gmail, Password).',
+        type: 'warning',
+        confirmText: isBn ? 'ঠিক আছে' : 'OK',
+      });
       return;
     }
 
@@ -346,7 +390,17 @@ export default function AdminCustomersRBACPage() {
   };
 
   const handleDeleteStaff = async (id: string, name: string) => {
-    if (confirm(`Are you sure you want to revoke credentials for "${name}"?`)) {
+    const isConfirmed = await showConfirmDialog({
+      title: isBn ? 'স্টাফ এক্সেস বাতিল করবেন?' : 'Revoke Staff Access?',
+      message: isBn
+        ? `আপনি কি নিশ্চিত যে "${name}"-এর স্টাফ ক্রেডেনশিয়াল বাতিল করতে চান?`
+        : `Are you sure you want to revoke credentials for "${name}"?`,
+      type: 'danger',
+      confirmText: isBn ? 'হ্যাঁ, বাতিল করুন' : 'Revoke Access',
+      cancelText: isBn ? 'বাতিল' : 'Cancel',
+    });
+
+    if (isConfirmed) {
       setStaffList((prev) => prev.filter((s) => s.id !== id));
       showToast(`Revoked staff access for "${name}"`);
 
@@ -372,11 +426,15 @@ export default function AdminCustomersRBACPage() {
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-600 dark:text-orange-400 text-xs font-bold uppercase tracking-wider mb-2">
               <ShieldCheck className="w-3.5 h-3.5" />
-              Access Control (RBAC) & Security
+              {isBn ? 'অ্যাক্সেস কন্ট্রোল (RBAC) ও সিকিউরিটি' : 'Access Control (RBAC) & Security'}
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">Staff Roles & Customer Security</h1>
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+              {isBn ? 'স্টাফ রোল ও কাস্টমার সিকিউরিটি' : 'Staff Roles & Customer Security'}
+            </h1>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
-              Create staff accounts with Gmail & password, assign granular RBAC module permissions, and manage customer fraud blocklists.
+              {isBn
+                ? 'স্টাফ অ্যাকাউন্ট তৈরি করুন, গ্র্যানুলার আরবিএসি পারমিশন দিন এবং ফ্রড কাস্টমারদের ব্লক করুন।'
+                : 'Create staff accounts with Gmail & password, assign granular RBAC module permissions, and manage customer fraud blocklists.'}
             </p>
           </div>
 
@@ -387,7 +445,7 @@ export default function AdminCustomersRBACPage() {
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/25 transition-all cursor-pointer hover:scale-105"
             >
               <Plus className="w-4 h-4" />
-              Create Staff Account
+              {isBn ? 'স্টাফ একাউন্ট তৈরি করুন' : 'Create Staff Account'}
             </button>
           </div>
         </div>
@@ -400,26 +458,30 @@ export default function AdminCustomersRBACPage() {
           </div>
         )}
 
-        {/* 👥 SECTION 1: STAFF ROLES & PERMISSIONS TABLE */}
+        {/* SECTION 1: STAFF ROLES & PERMISSIONS TABLE */}
         <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-5 shadow-sm">
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
             <div className="flex items-center gap-2">
               <Key className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-              <h2 className="text-base font-black text-slate-900 dark:text-white">Staff Accounts & RBAC Permissions</h2>
+              <h2 className="text-base font-black text-slate-900 dark:text-white">
+                {isBn ? 'স্টাফ অ্যাকাউন্ট ও আরবিএসি পারমিশন' : 'Staff Accounts & RBAC Permissions'}
+              </h2>
             </div>
-            <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold">{staffList.length} Authorized Team Members</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
+              {isBn ? `${staffList.length} জন অনুমোদিত টিম মেম্বার` : `${staffList.length} Authorized Team Members`}
+            </span>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300">
               <thead className="bg-slate-50 dark:bg-slate-950/80 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
                 <tr>
-                  <th className="px-5 py-3.5">Staff Member</th>
-                  <th className="px-5 py-3.5">Gmail Login</th>
-                  <th className="px-5 py-3.5">Assigned Role</th>
-                  <th className="px-5 py-3.5">Permission Scope</th>
-                  <th className="px-5 py-3.5">Status</th>
-                  <th className="px-5 py-3.5 text-right">Actions</th>
+                  <th className="px-5 py-3.5">{isBn ? 'স্টাফ মেম্বার' : 'Staff Member'}</th>
+                  <th className="px-5 py-3.5">{isBn ? 'জিমেইল লগইন' : 'Gmail Login'}</th>
+                  <th className="px-5 py-3.5">{isBn ? 'নির্ধারিত রোল' : 'Assigned Role'}</th>
+                  <th className="px-5 py-3.5">{isBn ? 'পারমিশন স্কোপ' : 'Permission Scope'}</th>
+                  <th className="px-5 py-3.5">{isBn ? 'স্ট্যাটাস' : 'Status'}</th>
+                  <th className="px-5 py-3.5 text-right">{isBn ? 'অ্যাকশন' : 'Actions'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
@@ -427,20 +489,22 @@ export default function AdminCustomersRBACPage() {
                   <tr key={st.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                     <td className="px-5 py-3.5">
                       <div className="font-bold text-slate-900 dark:text-white">{st.name}</div>
-                      <span className="text-[10px] text-slate-400 dark:text-slate-500">Joined {st.createdAt}</span>
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500">
+                        {isBn ? `যুক্ত হয়েছেন ${st.createdAt}` : `Joined ${st.createdAt}`}
+                      </span>
                     </td>
                     <td className="px-5 py-3.5 font-mono text-orange-600 dark:text-orange-400 text-[11px] font-semibold">{st.email}</td>
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-2">
                         <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-[10px] border border-slate-200 dark:border-slate-700">
-                          {st.role}
+                          {ROLE_DEFINITIONS[st.role as keyof typeof ROLE_DEFINITIONS] ? (isBn ? ROLE_DEFINITIONS[st.role as keyof typeof ROLE_DEFINITIONS].title.bn : ROLE_DEFINITIONS[st.role as keyof typeof ROLE_DEFINITIONS].title.en) : st.role}
                         </span>
-                        {/* ℹ️ Info Button to view exact breakdown of this role */}
+                        {/* Info Button */}
                         <button
                           type="button"
                           onClick={() => setSelectedRoleInfo(st.role as any)}
                           className="p-1 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 text-xs transition-colors cursor-pointer"
-                          title="Click to view detailed permissions (i-button)"
+                          title={isBn ? 'বিস্তারিত পারমিশন দেখতে ক্লিক করুন' : 'Click to view detailed permissions (i-button)'}
                         >
                           <Info className="w-3.5 h-3.5" />
                         </button>
@@ -450,29 +514,29 @@ export default function AdminCustomersRBACPage() {
                       <div className="flex items-center gap-1.5 flex-wrap">
                         {st.permissions.canManageCatalog && (
                           <span className="px-2 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[9px] font-bold">
-                            Catalog
+                            {isBn ? 'ক্যাটালগ' : 'Catalog'}
                           </span>
                         )}
                         {st.permissions.canEditOrders && (
                           <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] font-bold">
-                            Orders
+                            {isBn ? 'অর্ডার' : 'Orders'}
                           </span>
                         )}
                         {st.permissions.canManageLogistics && (
                           <span className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[9px] font-bold">
-                            Logistics
+                            {isBn ? 'লজিস্টিকস' : 'Logistics'}
                           </span>
                         )}
                         {st.permissions.canAccessRBAC && (
                           <span className="px-2 py-0.5 rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 text-[9px] font-bold">
-                            Master Admin
+                            {isBn ? 'মাস্টার অ্যাডমিন' : 'Master Admin'}
                           </span>
                         )}
                       </div>
                     </td>
                     <td className="px-5 py-3.5">
                       <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold">
-                        {st.status}
+                        {isBn ? (st.status === 'Active' ? 'সক্রিয়' : 'স্থগিত') : st.status}
                       </span>
                     </td>
                     <td className="px-5 py-3.5 text-right">
@@ -481,7 +545,7 @@ export default function AdminCustomersRBACPage() {
                           type="button"
                           onClick={() => handleDeleteStaff(st.id, st.name)}
                           className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 text-xs transition-colors cursor-pointer"
-                          title="Revoke Credentials"
+                          title={isBn ? 'অ্যাক্সেস প্রত্যাহার করুন' : 'Revoke Credentials'}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -494,26 +558,30 @@ export default function AdminCustomersRBACPage() {
           </div>
         </div>
 
-        {/* 🛡️ SECTION 2: CUSTOMER DATABASE & FRAUD DETECTION */}
+        {/* SECTION 2: CUSTOMER DATABASE & FRAUD DETECTION */}
         <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-5 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
             <div className="flex items-center gap-2">
               <Users className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-              <h2 className="text-base font-black text-slate-900 dark:text-white">Customer Lifetime Value (LTV) & Fraud Detection</h2>
+              <h2 className="text-base font-black text-slate-900 dark:text-white">
+                {isBn ? 'কাস্টমার লাইফটাইম ভ্যালু (LTV) ও ফ্রড সনাক্তকরণ' : 'Customer Lifetime Value (LTV) & Fraud Detection'}
+              </h2>
             </div>
-            <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Track customer return history & block fake spam orders</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
+              {isBn ? 'কাস্টমারদের রিটার্ন হিস্ট্রি ট্র্যাক করুন ও ফেক অর্ডার ব্লক করুন' : 'Track customer return history & block fake spam orders'}
+            </span>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300">
               <thead className="bg-slate-50 dark:bg-slate-950/80 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
                 <tr>
-                  <th className="px-5 py-3.5">Customer</th>
-                  <th className="px-5 py-3.5">Phone & Email</th>
-                  <th className="px-5 py-3.5">Orders</th>
-                  <th className="px-5 py-3.5">Lifetime Value (৳ BDT)</th>
-                  <th className="px-5 py-3.5">Return Health</th>
-                  <th className="px-5 py-3.5 text-right">Fraud Control</th>
+                  <th className="px-5 py-3.5">{isBn ? 'কাস্টমার' : 'Customer'}</th>
+                  <th className="px-5 py-3.5">{isBn ? 'ফোন ও ইমেইল' : 'Phone & Email'}</th>
+                  <th className="px-5 py-3.5">{isBn ? 'অর্ডার' : 'Orders'}</th>
+                  <th className="px-5 py-3.5">{isBn ? 'লাইফটাইম ভ্যালু (৳ BDT)' : 'Lifetime Value (৳ BDT)'}</th>
+                  <th className="px-5 py-3.5">{isBn ? 'রিটার্ন হেলথ' : 'Return Health'}</th>
+                  <th className="px-5 py-3.5 text-right">{isBn ? 'ফ্রড কন্ট্রোল' : 'Fraud Control'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
@@ -524,18 +592,20 @@ export default function AdminCustomersRBACPage() {
                       <div>{cust.phone}</div>
                       <span className="text-[10px] text-slate-400 dark:text-slate-500 font-sans">{cust.email}</span>
                     </td>
-                    <td className="px-5 py-3.5 font-semibold text-slate-900 dark:text-white">{cust.ordersCount} completed</td>
-                    <td className="px-5 py-3.5 font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                      ৳{cust.totalSpent.toLocaleString()} BDT
+                    <td className="px-5 py-3.5 font-semibold text-slate-900 dark:text-white whitespace-nowrap">
+                      {isBn ? `${toBengaliNumber(cust.ordersCount)}টি সম্পন্ন` : `${cust.ordersCount} completed`}
                     </td>
-                    <td className="px-5 py-3.5">
+                    <td className="px-5 py-3.5 font-mono font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
+                      {isBn ? `৳${toBengaliNumber(cust.totalSpent.toLocaleString('en-US'))} BDT` : `৳${cust.totalSpent.toLocaleString()} BDT`}
+                    </td>
+                    <td className="px-5 py-3.5 whitespace-nowrap">
                       {cust.returnRate > 50 ? (
-                        <span className="px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 text-[10px] font-bold border border-rose-500/20">
-                          {cust.returnRate}% High Return Risk
+                        <span className="px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 text-[10px] font-bold border border-rose-500/20 whitespace-nowrap">
+                          {isBn ? `${toBengaliNumber(cust.returnRate)}% উচ্চ রিটার্ন ঝুঁকি` : `${cust.returnRate}% High Return Risk`}
                         </span>
                       ) : (
-                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold">
-                          0% Clean History
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold whitespace-nowrap">
+                          {isBn ? '০% পরিচ্ছন্ন ইতিহাস' : '0% Clean History'}
                         </span>
                       )}
                     </td>
@@ -549,7 +619,7 @@ export default function AdminCustomersRBACPage() {
                             : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
                         }`}
                       >
-                        {cust.isFlaggedFraud ? '🚨 Blocked (Fraud)' : 'Active (Allowed)'}
+                        {cust.isFlaggedFraud ? (isBn ? '🚨 ব্লকড (ফ্রড)' : '🚨 Blocked (Fraud)') : (isBn ? 'সক্রিয় (অনুমোদিত)' : 'Active (Allowed)')}
                       </button>
                     </td>
                   </tr>
@@ -559,7 +629,7 @@ export default function AdminCustomersRBACPage() {
           </div>
         </div>
 
-        {/* ℹ️ ROLE PERMISSION BREAKDOWN MODAL (Triggered by i-button) */}
+        {/* ROLE PERMISSION BREAKDOWN MODAL (Triggered by i-button) */}
         {selectedRoleInfo && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
             <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5">
@@ -569,7 +639,7 @@ export default function AdminCustomersRBACPage() {
                     <Info className="w-4 h-4" />
                   </div>
                   <h3 className="text-base font-black text-slate-900 dark:text-white">
-                    {ROLE_DEFINITIONS[selectedRoleInfo].title}
+                    {isBn ? ROLE_DEFINITIONS[selectedRoleInfo].title.bn : ROLE_DEFINITIONS[selectedRoleInfo].title.en}
                   </h3>
                 </div>
                 <button
@@ -582,16 +652,16 @@ export default function AdminCustomersRBACPage() {
               </div>
 
               <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                {ROLE_DEFINITIONS[selectedRoleInfo].desc}
+                {isBn ? ROLE_DEFINITIONS[selectedRoleInfo].desc.bn : ROLE_DEFINITIONS[selectedRoleInfo].desc.en}
               </p>
 
               <div className="space-y-3">
                 <div>
                   <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block mb-1.5">
-                    ✓ Permitted Access Modules:
+                    {isBn ? '✓ অনুমোদিত অ্যাক্সেস মডিউলসমূহ:' : '✓ Permitted Access Modules:'}
                   </span>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                    {ROLE_DEFINITIONS[selectedRoleInfo].allowed.map((item, idx) => (
+                    {(isBn ? ROLE_DEFINITIONS[selectedRoleInfo].allowed.bn : ROLE_DEFINITIONS[selectedRoleInfo].allowed.en).map((item, idx) => (
                       <div key={idx} className="flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-200">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
                         <span>{item}</span>
@@ -602,10 +672,10 @@ export default function AdminCustomersRBACPage() {
 
                 <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 block mb-1.5">
-                    ✕ Restricted / Blocked Features:
+                    {isBn ? '✕ সীমাবদ্ধ / ব্লকড ফিচারসমূহ:' : '✕ Restricted / Blocked Features:'}
                   </span>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                    {ROLE_DEFINITIONS[selectedRoleInfo].restricted.map((item, idx) => (
+                    {(isBn ? ROLE_DEFINITIONS[selectedRoleInfo].restricted.bn : ROLE_DEFINITIONS[selectedRoleInfo].restricted.en).map((item, idx) => (
                       <div key={idx} className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
                         <X className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 flex-shrink-0" />
                         <span>{item}</span>
@@ -621,19 +691,21 @@ export default function AdminCustomersRBACPage() {
                   onClick={() => setSelectedRoleInfo(null)}
                   className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white font-bold text-xs cursor-pointer"
                 >
-                  Close Specification
+                  {isBn ? 'বন্ধ করুন' : 'Close Specification'}
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* ➕ CREATE STAFF ACCOUNT MODAL */}
+        {/* CREATE STAFF ACCOUNT MODAL */}
         {isAddStaffOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
             <div className="relative w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-4">
               <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-                <h2 className="text-lg font-black text-slate-900 dark:text-white">Create Staff Login</h2>
+                <h2 className="text-lg font-black text-slate-900 dark:text-white">
+                  {isBn ? 'স্টাফ লগইন তৈরি করুন' : 'Create Staff Login'}
+                </h2>
                 <button
                   type="button"
                   onClick={() => setIsAddStaffOpen(false)}
@@ -646,12 +718,12 @@ export default function AdminCustomersRBACPage() {
               <form onSubmit={handleAddStaff} className="space-y-3.5">
                 <div>
                   <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                    Staff Full Name *
+                    {isBn ? 'স্টাফের পুরো নাম *' : 'Staff Full Name *'}
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Mahbub Alam"
+                    placeholder={isBn ? 'উদাঃ মাহবুব আলম' : 'e.g. Mahbub Alam'}
                     value={newStaff.name}
                     onChange={(e) => setNewStaff({ ...newStaff, name: e.target.value })}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none"
@@ -660,7 +732,7 @@ export default function AdminCustomersRBACPage() {
 
                 <div>
                   <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                    Staff Gmail / Email Address *
+                    {isBn ? 'স্টাফ জিমেইল / ইমেইল ঠিকানা *' : 'Staff Gmail / Email Address *'}
                   </label>
                   <input
                     type="email"
@@ -674,7 +746,7 @@ export default function AdminCustomersRBACPage() {
 
                 <div>
                   <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                    Secure Password *
+                    {isBn ? 'নিরাপদ পাসওয়ার্ড *' : 'Secure Password *'}
                   </label>
                   <input
                     type="password"
@@ -688,18 +760,18 @@ export default function AdminCustomersRBACPage() {
 
                 <div>
                   <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                    Designated Role *
+                    {isBn ? 'নির্ধারিত পদবি *' : 'Designated Role *'}
                   </label>
                   <select
                     value={newStaff.role}
                     onChange={(e) => setNewStaff({ ...newStaff, role: e.target.value as any })}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none cursor-pointer"
                   >
-                    <option value="Telesales Executive">Telesales / Order Confirmation Executive</option>
-                    <option value="Delivery Officer">Delivery & Tracking Officer</option>
-                    <option value="Inventory Manager">Catalog / Inventory Manager</option>
-                    <option value="Customer Support">Customer Support Agent</option>
-                    <option value="Accountant">Accountant / Financial Manager</option>
+                    <option value="Telesales Executive">{isBn ? 'টেলিসেলস / অর্ডার নিশ্চিতকরণ এক্সিকিউটিভ' : 'Telesales / Order Confirmation Executive'}</option>
+                    <option value="Delivery Officer">{isBn ? 'ডেলিভারি ও ট্র্যাকিং অফিসার' : 'Delivery & Tracking Officer'}</option>
+                    <option value="Inventory Manager">{isBn ? 'ক্যাটালগ / ইনভেন্টরি ম্যানেজার' : 'Catalog / Inventory Manager'}</option>
+                    <option value="Customer Support">{isBn ? 'কাস্টমার সাপোর্ট এজেন্ট' : 'Customer Support Agent'}</option>
+                    <option value="Accountant">{isBn ? 'অ্যাকাউন্ট্যান্ট / ফাইন্যান্সিয়াল ম্যানেজার' : 'Accountant / Financial Manager'}</option>
                   </select>
                 </div>
 
@@ -709,13 +781,13 @@ export default function AdminCustomersRBACPage() {
                     onClick={() => setIsAddStaffOpen(false)}
                     className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700"
                   >
-                    Cancel
+                    {isBn ? 'বাতিল' : 'Cancel'}
                   </button>
                   <button
                     type="submit"
                     className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-md shadow-orange-500/25 cursor-pointer"
                   >
-                    Create Staff Credentials
+                    {isBn ? 'স্টাফ একাউন্ট তৈরি করুন' : 'Create Staff Credentials'}
                   </button>
                 </div>
               </form>
@@ -726,3 +798,4 @@ export default function AdminCustomersRBACPage() {
     </RoleGuard>
   );
 }
+

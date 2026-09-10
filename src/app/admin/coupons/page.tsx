@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { RoleGuard } from '@/components/auth/RoleGuard';
+import { showConfirmDialog, showAlertDialog } from '@/store/useDialogStore';
 import {
   Tag,
   Plus,
@@ -99,9 +100,13 @@ const INITIAL_ABANDONED_CARTS: IAbandonedCart[] = [
 ];
 
 import { useAuthStore } from '@/store/useAuthStore';
+import { useLanguageStore } from '@/store/useLanguageStore';
+import { toBengaliNumber } from '@/lib/translations';
 
 export default function AdminCouponsPage() {
   const { token } = useAuthStore();
+  const { language } = useLanguageStore();
+  const isBn = language === 'bn';
   const [coupons, setCoupons] = useState<ICoupon[]>(INITIAL_COUPONS);
   const [abandonedCarts, setAbandonedCarts] = useState<IAbandonedCart[]>(INITIAL_ABANDONED_CARTS);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -163,7 +168,12 @@ export default function AdminCouponsPage() {
   const handleCreateCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCoupon.code) {
-      alert('Please enter a coupon code.');
+      await showAlertDialog({
+        title: isBn ? 'কুপন কোড প্রয়োজন' : 'Coupon Code Required',
+        message: isBn ? 'অনুগ্রহ করে কুপন কোড দিন।' : 'Please enter a coupon code.',
+        type: 'warning',
+        confirmText: isBn ? 'ঠিক আছে' : 'OK',
+      });
       return;
     }
 
@@ -180,7 +190,7 @@ export default function AdminCouponsPage() {
 
     setCoupons([created, ...coupons]);
     setIsCreateModalOpen(false);
-    showToast(`Coupon "${created.code}" created successfully!`);
+    showToast(isBn ? `কুপন "${created.code}" সফলভাবে তৈরি হয়েছে!` : `Coupon "${created.code}" created successfully!`);
 
     // Async DB creation
     try {
@@ -225,20 +235,30 @@ export default function AdminCouponsPage() {
     setAbandonedCarts((prev) =>
       prev.map((c) => (c.id === id ? { ...c, recovered: true } : c))
     );
-    showToast(`Dispatched automated 10% recovery coupon code to ${name}!`);
+    showToast(isBn ? `${name}-এর নিকট ১০% রিকভারি কুপন কোড পাঠানো হয়েছে!` : `Dispatched automated 10% recovery coupon code to ${name}!`);
   };
 
   const toggleCouponStatus = (id: string) => {
     setCoupons((prev) =>
       prev.map((c) => (c.id === id ? { ...c, isActive: !c.isActive } : c))
     );
-    showToast('Coupon status updated!');
+    showToast(isBn ? 'কুপনের স্ট্যাটাস পরিবর্তিত হয়েছে!' : 'Coupon status updated!');
   };
 
   const handleDeleteCoupon = async (id: string, code: string) => {
-    if (confirm(`Are you sure you want to delete coupon code "${code}"?`)) {
+    const isConfirmed = await showConfirmDialog({
+      title: isBn ? 'কুপন মুছে ফেলবেন?' : 'Delete Coupon?',
+      message: isBn
+        ? `আপনি কি নিশ্চিত যে কুপন "${code}" মুছে ফেলতে চান?`
+        : `Are you sure you want to delete coupon code "${code}"?`,
+      type: 'danger',
+      confirmText: isBn ? 'হ্যাঁ, মুছুন' : 'Delete',
+      cancelText: isBn ? 'বাতিল' : 'Cancel',
+    });
+
+    if (isConfirmed) {
       setCoupons((prev) => prev.filter((c) => c.id !== id));
-      showToast(`Coupon "${code}" deleted.`);
+      showToast(isBn ? `কুপন "${code}" মুছে ফেলা হয়েছে।` : `Coupon "${code}" deleted.`);
 
       // Async DB deletion
       try {
@@ -262,11 +282,15 @@ export default function AdminCouponsPage() {
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-600 dark:text-orange-400 text-xs font-bold uppercase tracking-wider mb-2">
               <Tag className="w-3.5 h-3.5" />
-              Promotions & Cart Recovery
+              {isBn ? 'প্রমোশন ও কার্ট রিকভারি' : 'Promotions & Cart Recovery'}
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">Coupons & Marketing Engine</h1>
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+              {isBn ? 'কুপন ও ডিসকাউন্ট ইঞ্জিন' : 'Coupons & Marketing Engine'}
+            </h1>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
-              Create Bangladeshi Taka (৳ BDT) discount coupons, set cart thresholds, and recover abandoned checkouts.
+              {isBn
+                ? 'বাংলাদেশি টাকায় (৳ BDT) ডিসকাউন্ট কুপন তৈরি করুন, অর্ডার থ্রেশহোল্ড নির্ধারণ করুন এবং পরিত্যক্ত কার্ট রিকভার করুন।'
+                : 'Create Bangladeshi Taka (৳ BDT) discount coupons, set cart thresholds, and recover abandoned checkouts.'}
             </p>
           </div>
 
@@ -277,7 +301,7 @@ export default function AdminCouponsPage() {
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/25 transition-all cursor-pointer hover:scale-105"
             >
               <Plus className="w-4 h-4" />
-              Create Coupon Code
+              {isBn ? 'নতুন কুপন কোড তৈরি' : 'Create Coupon Code'}
             </button>
           </div>
         </div>
@@ -311,28 +335,30 @@ export default function AdminCouponsPage() {
                       : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500'
                   }`}
                 >
-                  {coupon.isActive ? 'Active' : 'Disabled'}
+                  {coupon.isActive ? (isBn ? 'সক্রিয়' : 'Active') : (isBn ? 'নিষ্ক্রিয়' : 'Disabled')}
                 </button>
               </div>
 
               <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-400">
                 <div className="flex items-center justify-between">
-                  <span>Discount Rate:</span>
-                  <span className="font-bold text-emerald-600 dark:text-emerald-400 text-sm">{coupon.discountPercentage}% OFF</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Min Order (৳ BDT):</span>
-                  <span className="font-mono text-slate-900 dark:text-white font-semibold">৳{coupon.minOrderAmount.toLocaleString()}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Redeemed:</span>
-                  <span className="font-semibold text-slate-700 dark:text-slate-200">
-                    {coupon.usedCount} / {coupon.usageLimit} uses
+                  <span>{isBn ? 'ডিসকাউন্ট হার:' : 'Discount Rate:'}</span>
+                  <span className="font-bold text-emerald-600 dark:text-emerald-400 text-sm">
+                    {isBn ? `${toBengaliNumber(coupon.discountPercentage)}% ছাড়` : `${coupon.discountPercentage}% OFF`}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span>Expires On:</span>
-                  <span className="font-mono text-slate-600 dark:text-slate-300">{coupon.expiresAt}</span>
+                  <span>{isBn ? 'সর্বনিম্ন অর্ডার (৳):' : 'Min Order (৳ BDT):'}</span>
+                  <span className="font-mono text-slate-900 dark:text-white font-semibold">{isBn ? `৳${toBengaliNumber(coupon.minOrderAmount.toLocaleString('en-US'))}` : `৳${coupon.minOrderAmount.toLocaleString()}`}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>{isBn ? 'ব্যবহার সংখ্যা:' : 'Redeemed:'}</span>
+                  <span className="font-semibold text-slate-700 dark:text-slate-200">
+                    {isBn ? `${toBengaliNumber(coupon.usedCount)} / ${toBengaliNumber(coupon.usageLimit)} বার` : `${coupon.usedCount} / ${coupon.usageLimit} uses`}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>{isBn ? 'মেয়াদ শেষ:' : 'Expires On:'}</span>
+                  <span className="font-mono text-slate-600 dark:text-slate-300">{isBn ? toBengaliNumber(coupon.expiresAt) : coupon.expiresAt}</span>
                 </div>
               </div>
 
@@ -342,7 +368,7 @@ export default function AdminCouponsPage() {
                   type="button"
                   onClick={() => handleDeleteCoupon(coupon.id, coupon.code)}
                   className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 text-xs transition-colors cursor-pointer"
-                  title="Delete Coupon"
+                  title={isBn ? 'কুপন মুছুন' : 'Delete Coupon'}
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -351,20 +377,24 @@ export default function AdminCouponsPage() {
           ))}
         </div>
 
-        {/* 🛒 ABANDONED CART RECOVERY SECTION */}
+        {/* ABANDONED CART RECOVERY SECTION */}
         <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-6 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
             <div>
               <div className="flex items-center gap-2">
                 <ShoppingCart className="w-5 h-5 text-amber-500" />
-                <h2 className="text-lg font-black text-slate-900 dark:text-white">Abandoned Cart Recovery Hub</h2>
+                <h2 className="text-lg font-black text-slate-900 dark:text-white">
+                  {isBn ? 'পরিত্যক্ত কার্ট রিকভারি হাব' : 'Abandoned Cart Recovery Hub'}
+                </h2>
               </div>
               <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-                Recover potential sales by sending 1-click discount vouchers to users who dropped off before checkout.
+                {isBn
+                  ? 'চেকআউটের আগেই চলে যাওয়া গ্রাহকদের কাছে ১-ক্লিকে বিশেষ ভাউচার পাঠিয়ে অর্ডার সম্পূর্ণ করান।'
+                  : 'Recover potential sales by sending 1-click discount vouchers to users who dropped off before checkout.'}
               </p>
             </div>
             <span className="px-3 py-1 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-300 text-xs font-bold self-start sm:self-auto">
-              2 Unfinished Checkouts Today
+              {isBn ? `আজ ${toBengaliNumber(abandonedCarts.length)}টি অসমাপ্ত চেকআউট` : `${abandonedCarts.length} Unfinished Checkouts Today`}
             </span>
           </div>
 
@@ -381,7 +411,7 @@ export default function AdminCouponsPage() {
                 <div className="text-xs text-slate-600 dark:text-slate-400">
                   <div className="text-slate-800 dark:text-slate-300 font-semibold">{cart.items}</div>
                   <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-bold block mt-0.5">
-                    Cart Value: ৳{cart.cartValue.toLocaleString()} BDT
+                    {isBn ? 'কার্ট ভ্যালু:' : 'Cart Value:'} {isBn ? `৳${toBengaliNumber(cart.cartValue.toLocaleString('en-US'))} BDT` : `৳${cart.cartValue.toLocaleString()} BDT`}
                   </span>
                 </div>
 
@@ -389,7 +419,7 @@ export default function AdminCouponsPage() {
                   <span className="text-[10px] text-slate-400 dark:text-slate-500">{cart.email}</span>
                   {cart.recovered ? (
                     <span className="px-3 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-500/30">
-                      ✓ Offer Dispatched
+                      ✓ {isBn ? 'অফার পাঠানো হয়েছে' : 'Offer Dispatched'}
                     </span>
                   ) : (
                     <button
@@ -397,7 +427,7 @@ export default function AdminCouponsPage() {
                       onClick={() => handleSendRecovery(cart.id, cart.customerName)}
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-md shadow-orange-500/20 cursor-pointer"
                     >
-                      <Send className="w-3 h-3" /> Send 10% Voucher
+                      <Send className="w-3 h-3" /> {isBn ? `${toBengaliNumber('10')}% ভাউচার পাঠান` : 'Send 10% Voucher'}
                     </button>
                   )}
                 </div>
@@ -406,16 +436,18 @@ export default function AdminCouponsPage() {
           </div>
         </div>
 
-        {/* Create Coupon Modal */}
+        {/* Create Coupon Modal  */}
         {isCreateModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
             <div className="relative w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-4">
               <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-                <h2 className="text-lg font-black text-slate-900 dark:text-white">Create New Coupon</h2>
+                <h2 className="text-lg font-black text-slate-900 dark:text-white">
+                  {isBn ? 'নতুন কুপন তৈরি করুন' : 'Create New Coupon'}
+                </h2>
                 <button
                   type="button"
                   onClick={() => setIsCreateModalOpen(false)}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -424,7 +456,7 @@ export default function AdminCouponsPage() {
               <form onSubmit={handleCreateCoupon} className="space-y-3.5">
                 <div>
                   <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                    Coupon Code (e.g. FLASH25) *
+                    {isBn ? 'কুপন কোড (যেমন: FLASH25) *' : 'Coupon Code (e.g. FLASH25) *'}
                   </label>
                   <input
                     type="text"
@@ -439,7 +471,7 @@ export default function AdminCouponsPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                      Discount % *
+                      {isBn ? 'ছাড়ের হার (%) *' : 'Discount % *'}
                     </label>
                     <input
                       type="number"
@@ -451,7 +483,7 @@ export default function AdminCouponsPage() {
                   </div>
                   <div>
                     <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                      Min Order (৳ BDT)
+                      {isBn ? 'সর্বনিম্ন অর্ডার (৳)' : 'Min Order (৳ BDT)'}
                     </label>
                     <input
                       type="number"
@@ -465,7 +497,7 @@ export default function AdminCouponsPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                      Usage Limit
+                      {isBn ? 'ব্যবহার সীমা' : 'Usage Limit'}
                     </label>
                     <input
                       type="number"
@@ -476,7 +508,7 @@ export default function AdminCouponsPage() {
                   </div>
                   <div>
                     <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                      Expiry Date
+                      {isBn ? 'মেয়াদ শেষের তারিখ' : 'Expiry Date'}
                     </label>
                     <input
                       type="date"
@@ -493,13 +525,13 @@ export default function AdminCouponsPage() {
                     onClick={() => setIsCreateModalOpen(false)}
                     className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700"
                   >
-                    Cancel
+                    {isBn ? 'বাতিল' : 'Cancel'}
                   </button>
                   <button
                     type="submit"
                     className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-md shadow-orange-500/25 cursor-pointer"
                   >
-                    Save Coupon (৳ BDT)
+                    {isBn ? 'কুপন সংরক্ষণ করুন (৳)' : 'Save Coupon (৳ BDT)'}
                   </button>
                 </div>
               </form>
