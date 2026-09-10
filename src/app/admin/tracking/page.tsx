@@ -99,9 +99,21 @@ const INITIAL_PARCELS: IParcel[] = [
 ];
 
 import { useAuthStore } from '@/store/useAuthStore';
+import { useLanguageStore } from '@/store/useLanguageStore';
+import { toBengaliNumber } from '@/lib/translations';
+
+const STAGES_CONFIG = [
+  { labelEn: 'Order Placed', labelBn: 'অর্ডার গ্রহণ', descEn: 'Customer placed order online', descBn: 'গ্রাহক অনলাইনে অর্ডার সম্পন্ন করেছেন' },
+  { labelEn: 'Confirmed', labelBn: 'নিশ্চিতকৃত', descEn: 'Payment verified & stock allocated', descBn: 'পেমেন্ট যাচাই ও স্টক নিশ্চিত' },
+  { labelEn: 'Packaging', labelBn: 'প্যাকেজিং সম্পন্ন', descEn: 'Inspected & handed to courier', descBn: 'মান যাচাই শেষে কুরিয়ারে হস্তান্তর' },
+  { labelEn: 'In Transit', labelBn: 'ডেলিভারিতে চলমান', descEn: 'Out for final doorstep delivery', descBn: 'গ্রাহকের ঠিকানায় পৌঁছানোর পথে' },
+  { labelEn: 'Delivered', labelBn: 'ডেলিভার্ড', descEn: 'Successfully handed over to customer', descBn: 'সফলভাবে গ্রাহকের হাতে পৌঁছেছে' },
+];
 
 export default function AdminTrackingPage() {
   const { token } = useAuthStore();
+  const { language } = useLanguageStore();
+  const isBn = language === 'bn';
   const [parcels, setParcels] = useState<IParcel[]>(INITIAL_PARCELS);
   const [selectedParcel, setSelectedParcel] = useState<IParcel>(INITIAL_PARCELS[0]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -153,12 +165,13 @@ export default function AdminTrackingPage() {
 
   const updateStage = async (trackingId: string, newStage: number) => {
     setParcels((prev) =>
-      prev.map((p) => (p.trackingId === trackingId ? { ...p, stageIndex: newStage, lastUpdated: 'Just now' } : p))
+      prev.map((p) => (p.trackingId === trackingId ? { ...p, stageIndex: newStage, lastUpdated: isBn ? 'এইমাত্র' : 'Just now' } : p))
     );
     if (selectedParcel.trackingId === trackingId) {
-      setSelectedParcel((prev) => ({ ...prev, stageIndex: newStage, lastUpdated: 'Just now' }));
+      setSelectedParcel((prev) => ({ ...prev, stageIndex: newStage, lastUpdated: isBn ? 'এইমাত্র' : 'Just now' }));
     }
-    setStatusUpdatedToast(`Status updated to "${STAGES[newStage].label}"`);
+    const stageName = isBn ? STAGES_CONFIG[newStage].labelBn : STAGES_CONFIG[newStage].labelEn;
+    setStatusUpdatedToast(isBn ? `স্ট্যাটাস পরিবর্তন হয়ে "${stageName}" করা হয়েছে` : `Status updated to "${stageName}"`);
     setTimeout(() => setStatusUpdatedToast(null), 3000);
 
     // Map stage to order status
@@ -191,16 +204,19 @@ export default function AdminTrackingPage() {
   return (
     <RoleGuard allowedRoles={['admin']}>
       <div className="space-y-8 max-w-7xl mx-auto">
-        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-600 dark:text-orange-400 text-xs font-bold uppercase tracking-wider mb-2">
               <Truck className="w-3.5 h-3.5" />
-              Live Logistics & Dispatch Hub
+              {isBn ? 'লাইভ লজিস্টিকস ও কুরিয়ার হাব' : 'Live Logistics & Dispatch Hub'}
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">Live Courier & Parcel Tracking</h1>
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+              {isBn ? 'লাইভ কুরিয়ার ও পার্সেল ট্র্যাকিং' : 'Live Courier & Parcel Tracking'}
+            </h1>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
-              Track 3rd-party courier dispatches, update delivery milestones, and inspect customer logistics in real-time.
+              {isBn
+                ? 'থার্ড পার্টি কুরিয়ার ডেলিভারি ট্র্যাক করুন, মাইলস্টোন আপডেট করুন এবং গ্রাহক লজিস্টিকস পর্যবেক্ষণ করুন।'
+                : 'Track 3rd-party courier dispatches, update delivery milestones, and inspect customer logistics in real-time.'}
             </p>
           </div>
 
@@ -210,7 +226,7 @@ export default function AdminTrackingPage() {
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white text-xs font-semibold transition-all shadow-sm"
             >
               <Package className="w-4 h-4" />
-              Orders List
+              {isBn ? 'অর্ডার তালিকা' : 'Orders List'}
             </Link>
           </div>
         </div>
@@ -230,7 +246,7 @@ export default function AdminTrackingPage() {
               <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
               <input
                 type="text"
-                placeholder="Search tracking ID, order, or customer..."
+                placeholder={isBn ? 'ট্র্যাকিং আইডি, অর্ডার বা গ্রাহক দিয়ে খুঁজুন...' : 'Search tracking ID, order, or customer...'}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none shadow-sm"
@@ -241,6 +257,7 @@ export default function AdminTrackingPage() {
               {filteredParcels.map((parcel) => {
                 const isSelected = parcel.trackingId === selectedParcel.trackingId;
                 const isDelivered = parcel.stageIndex === 4;
+                const stageLabel = isBn ? STAGES_CONFIG[parcel.stageIndex].labelBn : STAGES_CONFIG[parcel.stageIndex].labelEn;
 
                 return (
                   <div
@@ -261,7 +278,7 @@ export default function AdminTrackingPage() {
                             : 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400'
                         }`}
                       >
-                        {STAGES[parcel.stageIndex].label}
+                        {stageLabel}
                       </span>
                     </div>
 
@@ -272,7 +289,9 @@ export default function AdminTrackingPage() {
                         <Building2 className="w-3 h-3 text-slate-400 dark:text-slate-500" />
                         {parcel.courierPartner}
                       </span>
-                      <span className="font-mono text-slate-900 dark:text-white font-semibold">৳{parcel.totalAmount.toLocaleString()} BDT</span>
+                      <span className="font-mono text-slate-900 dark:text-white font-semibold">
+                        {isBn ? `৳${toBengaliNumber(parcel.totalAmount.toLocaleString('en-US'))} BDT` : `৳${parcel.totalAmount.toLocaleString()} BDT`}
+                      </span>
                     </div>
                   </div>
                 );
@@ -283,7 +302,6 @@ export default function AdminTrackingPage() {
           {/* Right: Selected Parcel 5-Stage Live Timeline & Dispatch Control (7 cols) */}
           <div className="lg:col-span-7 space-y-6">
             <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
-              {/* Header Info */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
                 <div>
                   <div className="flex items-center gap-2">
@@ -291,14 +309,15 @@ export default function AdminTrackingPage() {
                     <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">({selectedParcel.orderId})</span>
                   </div>
                   <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                    Carrier: <span className="text-orange-600 dark:text-orange-400 font-semibold">{selectedParcel.courierPartner}</span> •{' '}
-                    Updated {selectedParcel.lastUpdated}
+                    {isBn ? 'কুরিয়ার ক্যারিয়ার:' : 'Carrier:'}{' '}
+                    <span className="text-orange-600 dark:text-orange-400 font-semibold">{selectedParcel.courierPartner}</span> •{' '}
+                    {isBn ? `আপডেট: ${selectedParcel.lastUpdated}` : `Updated ${selectedParcel.lastUpdated}`}
                   </p>
                 </div>
 
                 <div className="text-left sm:text-right">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">
-                    Estimated Delivery
+                    {isBn ? 'সম্ভাব্য ডেলিভারি' : 'Estimated Delivery'}
                   </span>
                   <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">{selectedParcel.estimatedDelivery}</span>
                 </div>
@@ -307,29 +326,29 @@ export default function AdminTrackingPage() {
               {/* 5-Stage Visual Progress Bar */}
               <div>
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-4">
-                  Live Dispatch Milestone Timeline
+                  {isBn ? 'লাইভ ডেলিভারি মাইলস্টোন টাইমলাইন' : 'Live Dispatch Milestone Timeline'}
                 </h3>
 
                 <div className="relative flex items-center justify-between mb-8">
-                  {/* Progress Line */}
                   <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1 bg-slate-200 dark:bg-slate-800 z-0">
                     <div
                       className="h-full bg-gradient-to-r from-orange-500 via-amber-500 to-emerald-500 transition-all duration-500"
-                      style={{ width: `${(selectedParcel.stageIndex / (STAGES.length - 1)) * 100}%` }}
+                      style={{ width: `${(selectedParcel.stageIndex / (STAGES_CONFIG.length - 1)) * 100}%` }}
                     />
                   </div>
 
-                  {STAGES.map((stg, i) => {
+                  {STAGES_CONFIG.map((stg, i) => {
                     const isPassed = i <= selectedParcel.stageIndex;
                     const isCurrent = i === selectedParcel.stageIndex;
+                    const label = isBn ? stg.labelBn : stg.labelEn;
 
                     return (
                       <button
-                        key={stg.label}
+                        key={stg.labelEn}
                         type="button"
                         onClick={() => updateStage(selectedParcel.trackingId, i)}
                         className={`relative z-10 flex flex-col items-center group cursor-pointer`}
-                        title={`Click to set status to ${stg.label}`}
+                        title={isBn ? `স্ট্যাটাস "${label}"-এ সেট করতে ক্লিক করুন` : `Click to set status to ${label}`}
                       >
                         <div
                           className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all shadow-md ${
@@ -338,14 +357,14 @@ export default function AdminTrackingPage() {
                               : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700'
                           } ${isCurrent ? 'ring-2 ring-orange-500 scale-110' : ''}`}
                         >
-                          {isPassed ? <CheckCircle2 className="w-4 h-4" /> : i + 1}
+                          {isPassed ? <CheckCircle2 className="w-4 h-4" /> : (isBn ? toBengaliNumber(i + 1) : i + 1)}
                         </div>
                         <span
                           className={`text-[10px] font-bold mt-2 text-center transition-colors max-w-[70px] ${
                             isPassed ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'
                           }`}
                         >
-                          {stg.label}
+                          {label}
                         </span>
                       </button>
                     );
@@ -356,23 +375,26 @@ export default function AdminTrackingPage() {
               {/* Quick Status Stage Shifter Buttons */}
               <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 space-y-3">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
-                  Quick Milestone Switcher (1-Click Update):
+                  {isBn ? 'দ্রুত মাইলস্টোন পরিবর্তন (১-ক্লিক আপডেট):' : 'Quick Milestone Switcher (1-Click Update):'}
                 </span>
                 <div className="flex flex-wrap gap-2">
-                  {STAGES.map((stg, i) => (
-                    <button
-                      key={stg.label}
-                      type="button"
-                      onClick={() => updateStage(selectedParcel.trackingId, i)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                        selectedParcel.stageIndex === i
-                          ? 'bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white shadow-md shadow-orange-500/25'
-                          : 'bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-800'
-                      }`}
-                    >
-                      {stg.label}
-                    </button>
-                  ))}
+                  {STAGES_CONFIG.map((stg, i) => {
+                    const label = isBn ? stg.labelBn : stg.labelEn;
+                    return (
+                      <button
+                        key={stg.labelEn}
+                        type="button"
+                        onClick={() => updateStage(selectedParcel.trackingId, i)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                          selectedParcel.stageIndex === i
+                            ? 'bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white shadow-md shadow-orange-500/25'
+                            : 'bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-800'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -381,7 +403,7 @@ export default function AdminTrackingPage() {
                 <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800/80 space-y-2">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
                     <User className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
-                    Recipient Details
+                    {isBn ? 'প্রাপকের বিবরণ' : 'Recipient Details'}
                   </span>
                   <div className="text-xs font-bold text-slate-900 dark:text-white">{selectedParcel.customerName}</div>
                   <div className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
@@ -397,14 +419,20 @@ export default function AdminTrackingPage() {
                 <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800/80 space-y-2">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
                     <Building2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                    Courier Integration
+                    {isBn ? 'কুরিয়ার ইন্টিগ্রেশন' : 'Courier Integration'}
                   </span>
                   <div className="text-xs font-bold text-slate-900 dark:text-white">{selectedParcel.courierPartner}</div>
                   <div className="text-xs text-slate-600 dark:text-slate-400">
-                    Package Content: <span className="text-slate-900 dark:text-white font-semibold">{selectedParcel.itemsCount} Verified Items</span>
+                    {isBn ? 'প্যাকেজের আইটেম:' : 'Package Content:'}{' '}
+                    <span className="text-slate-900 dark:text-white font-semibold">
+                      {isBn ? `${toBengaliNumber(selectedParcel.itemsCount)}টি ভেরিফায়েড পণ্য` : `${selectedParcel.itemsCount} Verified Items`}
+                    </span>
                   </div>
                   <div className="text-xs text-slate-600 dark:text-slate-400">
-                    Payment Gateway: <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Verified Online Pre-Paid</span>
+                    {isBn ? 'পেমেন্ট গেটওয়ে:' : 'Payment Gateway:'}{' '}
+                    <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                      {isBn ? 'ভেরিফায়েড অনলাইন প্রি-পেইড' : 'Verified Online Pre-Paid'}
+                    </span>
                   </div>
                 </div>
               </div>

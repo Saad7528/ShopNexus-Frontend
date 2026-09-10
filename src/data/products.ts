@@ -652,13 +652,33 @@ export const ALL_PRODUCTS: Product[] = [
 export function getProductByIdOrSlug(idOrSlug: string): Product | undefined {
   if (!idOrSlug) return undefined;
   const decoded = decodeURIComponent(idOrSlug).toLowerCase().trim();
-  return (
-    ALL_PRODUCTS.find(
-      (p) =>
-        p._id.toLowerCase() === decoded ||
-        p.slug.toLowerCase() === decoded ||
-        p.title.toLowerCase().replace(/[^a-z0-9]/g, '-') === decoded
-    ) ||
-    ALL_PRODUCTS.find((p) => p.slug.toLowerCase().includes(decoded) || decoded.includes(p.slug.toLowerCase()))
+
+  // 1. Direct match by _id, slug, or title slug
+  const directMatch = ALL_PRODUCTS.find(
+    (p) =>
+      p._id.toLowerCase() === decoded ||
+      p.slug.toLowerCase() === decoded ||
+      p.title.toLowerCase().replace(/[^a-z0-9]/g, '-') === decoded
+  );
+  if (directMatch) return directMatch;
+
+  // 2. Map inv-1 -> p1, inv-2 -> p2
+  if (decoded.startsWith('inv-')) {
+    const num = decoded.replace('inv-', '');
+    const pMatch = ALL_PRODUCTS.find((p) => p._id.toLowerCase() === `p${num}`);
+    if (pMatch) return pMatch;
+
+    const index = parseInt(num, 10) - 1;
+    if (index >= 0 && index < ALL_PRODUCTS.length) {
+      return ALL_PRODUCTS[index];
+    }
+  }
+
+  // 3. Fuzzy search in slug or title
+  return ALL_PRODUCTS.find(
+    (p) =>
+      p.slug.toLowerCase().includes(decoded) ||
+      decoded.includes(p.slug.toLowerCase()) ||
+      p.title.toLowerCase().includes(decoded)
   );
 }

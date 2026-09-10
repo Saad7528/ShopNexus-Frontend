@@ -39,159 +39,159 @@ export const hasBengaliChars = (text: string): boolean => {
   return /[\u0980-\u09FF]/.test(text);
 };
 
-// Comprehensive bilingual dictionary for all catalog items and combos
+// 1-to-1 Synchronized Bilingual Dictionary matching ALL_PRODUCTS exactly
 export const PRODUCT_TRANSLATIONS: Record<string, ProductTranslationItem> = {
   p1: {
     title_en: 'Sony WH-1000XM5 Wireless Noise-Cancelling Headphones',
     title_bn: 'সোনি WH-1000XM5 ওয়্যারলেস নয়েজ-ক্যানসেলিং হেডফোন',
-    desc_en: 'Industry-leading noise cancellation with two processors and 8 microphones, 30-hour battery life, and crystal clear calling.',
+    desc_en: 'Industry-leading noise cancellation with two processors and 8 microphones for unparalleled clarity, 30-hour battery life, and crystal-clear hands-free calling.',
     desc_bn: 'দুটি প্রসেসর ও ৮টি মাইক্রোফোন সহ শীর্ষস্থানীয় অ্যাক্টিভ নয়েজ ক্যানসেলেশন, ৩০ ঘণ্টার ব্যাটারি লাইফ ও ক্রিস্টাল ক্লিয়ার সাউন্ড।',
     category_bn: 'অডিও ও সাউন্ড',
   },
   p2: {
     title_en: 'Bose QuietComfort Ultra Spatial Audio Headphones',
     title_bn: 'বোস কোয়াইট-কমফোর্ট আল্ট্রা স্পেশিয়াল অডিও হেডফোন',
-    desc_en: 'Groundbreaking spatial audio for immersive music listening, custom active noise cancellation, and all-day premium comfort.',
+    desc_en: 'Breakthrough spatialized audio for immersive listening with custom tuned active noise cancellation and world-class comfort.',
     desc_bn: 'ইমারসিভ মিউজিক লিসেনিংয়ের জন্য যুগান্তকারী স্পেশিয়াল অডিও, কাস্টম অ্যাক্টিভ নয়েজ ক্যানসেলেশন ও প্রিমিয়াম কমফোর্ট।',
     category_bn: 'অডিও ও সাউন্ড',
   },
   p3: {
-    title_en: 'Apple AirPods Max (Space Gray) with Smart Case',
-    title_bn: 'অ্যাপল এয়ারপডস ম্যাক্স (স্পেস গ্রে) উইথ স্মার্ট কেস',
-    desc_en: 'High-fidelity audio with dynamic head tracking, active noise cancellation, and computational audio in an anodized aluminum frame.',
+    title_en: 'Apple AirPods Max Space Gray with Smart Case',
+    title_bn: 'অ্যাপল এয়ারপডস ম্যাক্স স্পেস গ্রে উইথ স্মার্ট কেস',
+    desc_en: 'High-fidelity audio with dynamic head tracking and computational acoustics in an anodized aluminum frame.',
     desc_bn: 'ডায়নামিক হেড ট্র্যাকিং এবং কম্পিউটেশনাল অ্যাকোস্টিক সহ হাই-ফিডেলিটি প্রিমিয়াম অ্যালুমিনিয়াম অডিও হেডসেট।',
     category_bn: 'অডিও ও সাউন্ড',
   },
   p4: {
-    title_en: 'Marshall Stanmore III Bluetooth Premium Home Speaker',
+    title_en: 'Marshall Stanmore III Bluetooth Home Speaker',
     title_bn: 'মার্শাল স্ট্যানমোর ৩ ব্লুটুথ প্রিমিয়াম হোম স্পিকার',
-    desc_en: 'Classic vintage styling paired with re-engineered room-filling soundstage and tactile brass analog control knobs.',
+    desc_en: 'Iconic vintage styling with wider soundstage, room-filling sound, and brass control dials.',
     desc_bn: 'ক্লাসিক ভিন্টেজ স্টাইলিং সহ রুম-ভরা সাউন্ডস্টেজ ও নিখুঁত ব্রাস কন্ট্রোল নব অডিও স্পিকার।',
     category_bn: 'অডিও ও সাউন্ড',
   },
   p5: {
     title_en: 'Sennheiser Momentum 4 Wireless Audiophile Headphones',
     title_bn: 'সেনহাইজার মোমেন্টাম ৪ ওয়্যারলেস অডিওফাইল হেডফোন',
-    desc_en: 'Audiophile-grade 42mm transducer system with 60 hours battery backup and intelligent adaptive noise cancellation.',
+    desc_en: '60-hour battery life with audiophile-grade 42mm transducer system and adaptive noise cancellation.',
     desc_bn: 'অডিওফাইল মানের ৪২ মিমি ড্রাইভার, ৬০ ঘণ্টার ব্যাটারি ব্যাকআপ এবং অ্যাডাপটিভ নয়েজ ক্যানসেলেশন।',
     category_bn: 'অডিও ও সাউন্ড',
   },
   p6: {
-    title_en: 'Shure SM7B Professional Broadcast Studio Microphone',
-    title_bn: 'শুয়ার SM7B প্রফেশনাল ব্রডকাস্ট মাইক্রোফোন',
-    desc_en: 'The industry benchmark dynamic microphone trusted worldwide by elite podcasters, broadcasters, and vocalists.',
+    title_en: 'Shure SM7B Dynamic Vocal Microphone for Podcasting',
+    title_bn: 'শুয়ার SM7B ডায়নামিক ভোকাল মাইক্রোফোন',
+    desc_en: 'Smooth, flat, wide-range frequency response suitable for music and speech in all professional audio applications.',
     desc_bn: 'বিশ্বজুড়ে শীর্ষস্থানীয় পডকাস্টার ও মিউজিশিয়ানদের পছন্দের ডায়নামিক স্টুডিও গ্রেড মাইক্রোফোন।',
     category_bn: 'অডিও ও সাউন্ড',
   },
   p7: {
-    title_en: 'Apple Watch Ultra 2 GPS + Cellular Titanium 49mm',
-    title_bn: 'অ্যাপল ওয়াচ আল্ট্রা ২ জিপিএস + সেলুলার টাইটানিয়াম',
-    desc_en: 'Rugged 49mm aerospace-grade titanium case with ultra-bright 3000-nit display, dual-frequency GPS, and multi-day battery.',
+    title_en: 'Apple Watch Ultra 2 GPS + Cellular 49mm Titanium',
+    title_bn: 'অ্যাপল ওয়াচ আল্ট্রা ২ জিপিএস + সেলুলার টাইটানিয়াম ৪৯ মিমি',
+    desc_en: 'Rugged titanium case, precision dual-frequency GPS, up to 36 hours battery life, and 3000-nit sapphire display.',
     desc_bn: 'অ্যারোস্পেস গ্রেড ৪৯ মিমি টাইটানিয়াম বডি, ৩০০০ নিটস উজ্জ্বল ডিসপ্লে এবং অল-ডে ব্যাটারি লাইফ।',
     category_bn: 'স্মার্টওয়াচ ও পরিধানযোগ্য',
   },
   p8: {
-    title_en: 'Garmin Fenix 7 Pro Solar Multisport GPS Smartwatch',
-    title_bn: 'গারমিন ফেনিক্স ৭ প্রো সোলার জিপিএস স্মার্টওয়াচ',
-    desc_en: 'Solar-powered multisport endurance watch with built-in LED flashlight, advanced hill score, and topography navigation.',
-    desc_bn: 'সোলার চার্জিং লেন্স, অ্যাডভান্সড ট্রেনিং মেট্রিক্স এবং বিল্ট-ইন এলইডি ফ্ল্যাশলাইট স্পোর্টস ওয়াচ।',
+    title_en: 'Samsung Galaxy Watch Ultra 47mm Titanium Gray',
+    title_bn: 'স্যামসাং গ্যালাক্সি ওয়াচ আল্ট্রা ৪৭ মিমি টাইটানিয়াম গ্রে',
+    desc_en: 'Cushion design with Grade 4 titanium frame, dual-frequency GPS, and 10ATM water resistance.',
+    desc_bn: 'গ্রেড ৪ টাইটেনিয়াম ফ্রেম, ডুয়াল-ফ্রিকোয়েন্সি জিপিএস, ১০ এটিএম ওয়াটার রেজিস্ট্যান্স এবং প্রিমিয়াম কুশন ডিজাইন।',
     category_bn: 'স্মার্টওয়াচ ও পরিধানযোগ্য',
   },
   p9: {
-    title_en: 'Samsung Galaxy Watch 6 Classic 47mm Bluetooth',
-    title_bn: 'স্যামসাং গ্যালাক্সি ওয়াচ ৬ ক্লাসিক ৪৭ মিমি',
-    desc_en: 'Signature rotating bezel, sapphire crystal glass, advanced sleep coaching, and bioactive cardiovascular health sensor.',
-    desc_bn: 'রোটেটিং বেজেল, স্যাফায়ার ক্রিস্টাল গ্লাস এবং অ্যাডভান্সড বডি কম্পোজিশন ও হেলথ সেন্সর।',
+    title_en: 'Garmin Fenix 7X Pro Solar Sapphire Edition',
+    title_bn: 'গারমিন ফেনিক্স ৭এক্স প্রো সোলার স্যাফায়ার এডিশন',
+    desc_en: 'Multisport GPS watch with built-in LED flashlight, solar charging lens, and top-tier endurance metrics.',
+    desc_bn: 'সোলার চার্জিং লেন্স, অ্যাডভান্সড ট্রেনিং মেট্রিক্স এবং বিল্ট-ইন এলইডি ফ্ল্যাশলাইট স্পোর্টস ওয়াচ।',
     category_bn: 'স্মার্টওয়াচ ও পরিধানযোগ্য',
   },
   p10: {
-    title_en: 'Huawei Watch GT 4 Brown Leather Edition (46mm)',
-    title_bn: 'হুয়াওয়ে ওয়াচ জিটি ৪ ব্রাউন লেদার এডিশন',
-    desc_en: 'Classic octagonal geometric aesthetics with up to 14 days of ultra-long battery life and TruSeen 5.5+ heart monitoring.',
-    desc_bn: 'ক্লাসিক জ্যামিতিক ডিজাইন, ১৪ দিনের দীর্ঘস্থায়ী ব্যাটারি এবং সুনির্দিষ্ট স্লিপ ট্র্যাকিং।',
+    title_en: 'Apple Watch Series 9 GPS 45mm Midnight Aluminum',
+    title_bn: 'অ্যাপল ওয়াচ সিরিজ ৯ জিপিএস ৪৫ মিমি মিডনাইট অ্যালুমিনিয়াম',
+    desc_en: 'Powered by S9 SiP with Double Tap gesture, brighter display, and fast on-device Siri processing.',
+    desc_bn: 'এস৯ চিপ, ডাবল ট্যাপ জেসচার, উজ্জ্বল ডিসপ্লে এবং অল-ডে অ্যাক্টিভিটি ট্র্যাকিং।',
     category_bn: 'স্মার্টওয়াচ ও পরিধানযোগ্য',
   },
   p11: {
-    title_en: 'Keychron Q1 Pro Wireless Custom CNC Mechanical Keyboard',
-    title_bn: 'কিক্রন কিউ১ প্রো সিএনসি কাস্টম মেকানিক্যাল কিবোর্ড',
-    desc_en: 'Full aluminum CNC machined body, Bluetooth 5.1 wireless, hot-swappable switches, and double-gasket acoustic mount design.',
+    title_en: 'Garmin Forerunner 965 Premium Running Smartwatch',
+    title_bn: 'গারমিন ফোররানার ৯৬৫ প্রিমিয়াম রানিং স্মার্টওয়াচ',
+    desc_en: 'Brilliant AMOLED touchscreen display with titanium bezel, built-in mapping, and training readiness.',
+    desc_bn: 'ব্রিলিয়ান্ট অ্যামোলেড টাচস্ক্রিন ডিসপ্লে, টাইটানিয়াম বেজেল এবং বিল্ট-ইন জিপিএস ম্যাপিং।',
+    category_bn: 'স্মার্টওয়াচ ও পরিধানযোগ্য',
+  },
+  p12: {
+    title_en: 'Whoop 4.0 Health, Fitness & Sleep Tracker Band',
+    title_bn: 'হুপ ৪.০ হেলথ, ফিটনেস ও স্লিপ ট্র্যাকার ব্যান্ড',
+    desc_en: 'Continuous biometric tracking monitoring physiological data including heart rate, HRV, and skin temp.',
+    desc_bn: 'সার্বক্ষণিক বায়োমেট্রিক হার্ট রেট, এইচআরভি এবং রিকভারি ট্র্যাকিং ব্যান্ড।',
+    category_bn: 'স্মার্টওয়াচ ও পরিধানযোগ্য',
+  },
+  p13: {
+    title_en: 'Keychron Q1 Pro Custom Mechanical Keyboard (Wireless)',
+    title_bn: 'কিক্রন কিউ১ প্রো কাস্টম মেকানিক্যাল কিবোর্ড (ওয়্যারলেস)',
+    desc_en: 'Full CNC aluminum body, 75% layout, QMK/VIA programmable with south-facing RGB and hot-swap sockets.',
     desc_bn: 'সম্পূর্ণ অ্যালুমিনিয়াম সিএনসি বডি, ব্লুটুথ ৫.১ ওয়্যারলেস, হট-সোয়াপ গ্যাস্কেট মাউন্ট কিবোর্ড।',
     category_bn: 'কিবোর্ড ও মাউস',
   },
-  p12: {
+  p14: {
     title_en: 'Logitech MX Master 3S Wireless Performance Mouse',
     title_bn: 'লজিটেক MX মাস্টার ৩এস ওয়্যারলেস পারফরম্যান্স মাউস',
-    desc_en: '8K DPI track-on-glass optical sensor with quiet clicks, ergonomic thumb rest, and MagSpeed electromagnetic scroll wheel.',
+    desc_en: 'Quiet Click technology with 8000 DPI track-on-glass sensor and MagSpeed electromagnetic scrolling.',
     desc_bn: '৮কে ডিপিআই গ্লাস ট্র্যাকিং, নিঃশব্দ ক্লিক এবং আল্ট্রাফাস্ট ম্যাগস্পিড ইলেক্ট্রোম্যাগনেটিক স্ক্রোল।',
     category_bn: 'কিবোর্ড ও মাউস',
   },
-  p13: {
-    title_en: 'Razer Huntsman V3 Pro Analog Optical Gaming Keyboard',
-    title_bn: 'রেজার হান্টsman ভি৩ প্রো এনালগ গেমিং কিবোর্ড',
-    desc_en: '2nd-Gen Analog Optical Switches with rapid trigger mode, 0.1-4.0mm adjustable actuation, and magnetic leatherette wrist rest.',
-    desc_bn: '২য় প্রজন্মের অপটিক্যাল সুইচ, এডজাস্টেবল অ্যাকচুয়েশন পয়েন্ট এবং র‍্যাপিড ট্রিগার গেমিং প্রযুক্তি।',
-    category_bn: 'কিবোর্ড ও মাউস',
-  },
-  p14: {
-    title_en: 'HyperX Pulsefire Haste 2 Wireless Ultra-Lightweight Mouse',
-    title_bn: 'হায়পারএক্স পালসফায়ার হ্যাস্ট ২ ওয়্যারলেস আল্ট্রালাইট মাউস',
-    desc_en: 'Featherlight 61-gram solid shell design with 26K DPI precision sensor, dual wireless connectivity, and 100-hour battery life.',
-    desc_bn: 'মাত্র ৬১ গ্রাম ওজনের হালকা গেমিং মাউস, ২৬কে ডিপিআই সেন্সর এবং ১০০ ঘণ্টার দীর্ঘস্থায়ী ব্যাটারি।',
-    category_bn: 'কিবোর্ড ও মাউস',
-  },
   p15: {
-    title_en: 'NuPhy Air75 V2 Ultra-Slim Wireless Mechanical Keyboard',
-    title_bn: 'নুফি এয়ার৭৫ ভি২ আল্ট্রা-স্লিম ওয়্যারলেস মেকানিক্যাল কিবোর্ড',
-    desc_en: 'Ultra-low-profile hot-swappable switches with 1000Hz 2.4G wireless polling, QMK/VIA support, and seamless Mac/Windows toggle.',
-    desc_bn: 'লো-প্রোফাইল মেকানিক্যাল সুইচ, ১০০০ হার্টজ পোলিং রেট এবং ম্যাক ও উইন্ডোজ উভয়ের জন্য পারফেক্ট।',
+    title_en: 'Logitech MX Mechanical Wireless Illuminated Keyboard',
+    title_bn: 'লজিটেক MX মেকানিক্যাল ওয়্যারলেস কিবোর্ড',
+    desc_en: 'Low-profile mechanical switches, smart backlighting, and multi-device Bluetooth Easy-Switch.',
+    desc_bn: 'লো-প্রোফাইল মেকানিক্যাল সুইচ, স্মার্ট ব্যাকলাইটিং এবং মাল্টি-ডিভাইস ব্লুটুথ সুইচিং।',
     category_bn: 'কিবোর্ড ও মাউস',
   },
   p16: {
-    title_en: 'Elgato Stream Deck MK.2 Studio Controller (15 LCD Keys)',
-    title_bn: 'এলগাতো স্ট্রিম ডেক এমকে.২ কাস্টম স্টুডিও কন্ট্রোলার',
-    desc_en: '15 customizable tactile LCD keys to trigger unlimited actions with one-touch audio mixing and live streaming automation.',
-    desc_bn: '১৫টি কাস্টমাইজযোগ্য এলসিডি কি, ওয়ান-টাচ অডিও মিক্সিং এবং লাইভ স্ট্রিমিং অটোমেশন।',
-    category_bn: 'ক্রিয়েটর গিয়ার ও স্টুডিও',
+    title_en: 'Razer DeathStalker V2 Pro Wireless RGB Optical Keyboard',
+    title_bn: 'রেজার ডেথস্টকার ভি২ প্রো ওয়্যারলেস আরজিবি অপটিক্যাল কিবোর্ড',
+    desc_en: 'Ultra-slim optical gaming keyboard with Razer HyperSpeed Wireless and linear optical switches.',
+    desc_bn: 'আল্ট্রা-স্লিম অপটিক্যাল গেমিং কিবোর্ড, হাইপারস্পিড ওয়্যারলেস ও অপটিক্যাল সুইচ প্রযুক্তি।',
+    category_bn: 'কিবোর্ড ও মাউস',
   },
   p17: {
-    title_en: 'Sony ZV-E10 Mirrorless 4K Vlog Camera (Body)',
-    title_bn: 'সোনি জেডভি-ই১০ মিররলেস ভ্লগ ক্যামেরা ৪কে',
-    desc_en: '24.2 MP APS-C sensor with 4K HDR video, directional 3-capsule mic with windscreen, and one-touch background defocus bokeh.',
-    desc_bn: '২৪.২ মেগাপিক্সেল এপিএস-সি সেন্সর, ৪কে এইচডিআর ভিডিও এবং ডেডিকেটেড ব্যাকগ্রাউন্ড ব্লার বোকেহ মোড।',
-    category_bn: 'ক্রিয়েটর গিয়ার ও স্টুডিও',
+    title_en: 'Apple Magic Trackpad 3 Multi-Touch Surface (Black)',
+    title_bn: 'অ্যাপল ম্যাজিক ট্র্যাকপ্যাড ৩ মাল্টি-টাচ সারফেস (ব্ল্যাক)',
+    desc_en: 'Wireless and rechargeable, it brings the full range of Force Touch gestures to your desktop setup.',
+    desc_bn: 'ওয়্যারলেস রিচার্জেবল ফোর্স টাচ ট্র্যাকিং এবং সম্পূর্ণ গ্লাস মাল্টি-টাচ সারফেস।',
+    category_bn: 'কিবোর্ড ও মাউস',
   },
   p18: {
-    title_en: 'Philips Hue Play Gradient Lightstrip 65-inch for TV/PC',
-    title_bn: 'ফিলিপস হিউ স্মার্ট অ্যাম্বিয়েন্ট গ্রেডিয়েন্ট লাইটস্ট্রিপ',
-    desc_en: '16 million seamless blended RGB colors with voice assistant control and intelligent dynamic music & screen syncing.',
-    desc_bn: '১৬ মিলিয়ন আরজিবি কালার, ভয়েস অ্যাসিস্ট্যান্ট কন্ট্রোল এবং মিউজিক ও স্ক্রিন সিঙ্ক প্রযুক্তি।',
-    category_bn: 'স্মার্ট হোম ও লিভিং',
+    title_en: 'Razer Viper V3 Pro Ultra-Lightweight Wireless Mouse',
+    title_bn: 'রেজার ভাইপার ভি৩ প্রো আল্ট্রা-লাইটওয়েট ওয়্যারলেস মাউস',
+    desc_en: '54g esports design featuring Focus Pro 35K Gen-2 Optical Sensor and true 8000Hz polling rate.',
+    desc_bn: 'মাত্র ৫৪ গ্রাম ওজনের আল্ট্রা-লাইটওয়েট বডি, ৩৫কে ডিপিআই সেন্সর ও ৮০০০ হার্টজ পোলিং রেট।',
+    category_bn: 'কিবোর্ড ও মাউস',
   },
   p19: {
-    title_en: 'Nest Learning Smart Thermostat 4th Generation',
-    title_bn: 'নেস্ট লার্নিং স্মার্ট থার্মোস্ট্যাট ৪র্থ প্রজন্ম',
-    desc_en: 'Energy-saving AI adaptive temperature scheduling with remote smartphone automation and HVAC smart diagnostics.',
-    desc_bn: 'এনার্জি সেভিং এআই টেম্পারেচার কন্ট্রোল এবং স্মার্টফোন থেকে সার্বক্ষণিক অটোমেশন।',
-    category_bn: 'স্মার্ট হোম ও লিভিং',
+    title_en: 'Apple Studio Display 27-inch 5K Retina (Tilt-Adjustable)',
+    title_bn: 'অ্যাপল স্টুডিও ডিসপ্লে ২৭-ইঞ্চি ৫কে রেটিনা',
+    desc_en: '5K Retina display with 12MP Ultra Wide camera with Center Stage, studio-quality mics, and 6 speakers.',
+    desc_bn: '২৭ ইঞ্চি ৫কে রেটিনা ডিসপ্লে, ১২ মেগাপিক্সেল সেন্টার স্টেজ ক্যামেরা ও ৬-স্পিকার হাই-ফাই সাউন্ড।',
+    category_bn: 'ক্রিয়েটর গিয়ার ও স্টুডিও',
   },
   p20: {
-    title_en: 'Anker Prime 20,000mAh 200W GaN Fast Power Bank Station',
-    title_bn: 'অ্যাঙ্কার প্রাইম ২০,০০০ মিলিঅ্যাম্পিয়ার ফাস্ট পাওয়ার ব্যাংক',
-    desc_en: 'Ultra-fast 200W total output with smart digital color display, real-time power breakdown, and multi-device fast laptop charging.',
-    desc_bn: '২০০ ওয়াট আল্ট্রা-ফাস্ট চার্জিং, স্মার্ট ডিজিটাল কালার ডিসপ্লে এবং ল্যাপটপ ও ফোন চার্জ সাপোর্ট।',
-    category_bn: 'ডেস্ক সেটআপ ও কেবল',
+    title_en: 'Sony Alpha a7 IV Full-Frame Mirrorless Hybrid Camera',
+    title_bn: 'সোনি আলফা এ৭ ৪ ফুল-ফ্রেম মিররলেস ক্যামেরা',
+    desc_en: '33MP Exmor R CMOS sensor with 4K 60p 10-bit video, real-time Eye AF, and S-Cinetone color science.',
+    desc_bn: '৩৩ মেগাপিক্সেল ফুল-ফ্রেম এক্সমোর আর সেন্সর, ৪কে ৬০পি ১০-বিট ভিডিও ও রিয়েল-টাইম আই-এএফ।',
+    category_bn: 'ক্রিয়েটর গিয়ার ও স্টুডিও',
   },
   p21: {
     title_en: 'DJI Osmo Pocket 3 Creator Combo 4K Handheld Gimbal',
     title_bn: 'ডিজেআই ওসমো পকেট ৩ ক্রিয়েটর কম্বো ৪কে জিম্বাল',
-    desc_en: '1-inch CMOS sensor, 4K/120fps recording, 2-inch rotatable OLED screen, and 3-axis mechanical gimbal stabilization.',
+    desc_en: '1-inch CMOS sensor, 4K/120fps recording, 2-inch rotatable OLED screen, and 3-axis mechanical stabilization.',
     desc_bn: '১ ইঞ্চি সিএমওএস সেন্সর, ৪কে/১২০এফপিএস রেকর্ডিং, ২ ইঞ্চি রোটেটিং ওলেড ডিসপ্লে ও ৩-অ্যাক্সিস মেকানিক্যাল জিম্বাল স্ট্যাবিলাইজেশন।',
     category_bn: 'ক্রিয়েটর গিয়ার ও স্টুডিও',
   },
   p22: {
     title_en: 'Elgato Stream Deck MK.2 Studio Controller (15 LCD Keys)',
     title_bn: 'এলগাতো স্ট্রিম ডেক এমকে.২ স্টুডিও কন্ট্রোলার',
-    desc_en: '15 customizable tactile LCD keys to trigger unlimited macros and live broadcast transitions.',
+    desc_en: '15 customizable tactile LCD keys to trigger unlimited actions with one-touch audio mixing and live streaming automation.',
     desc_bn: '১৫টি কাস্টমাইজযোগ্য এলসিডি কি, ওয়ান-টাচ অডিও মিক্সিং এবং লাইভ স্ট্রিমিং অটোমেশন।',
     category_bn: 'ক্রিয়েটর গিয়ার ও স্টুডিও',
   },
@@ -205,9 +205,9 @@ export const PRODUCT_TRANSLATIONS: Record<string, ProductTranslationItem> = {
   p24: {
     title_en: 'Anker Prime 20,000mAh 200W GaN Power Bank Station',
     title_bn: 'অ্যাঙ্কার প্রাইম ২০,০০০ মিলিঅ্যাম্পিয়ার ২০০ ওয়াট পাওয়ার ব্যাংক',
-    desc_en: 'Ultra-fast 200W total output with smart digital display, power breakdown, and multi-device fast charging.',
+    desc_en: 'Ultra-fast 200W total output with smart digital color display, real-time power breakdown, and multi-device fast laptop charging.',
     desc_bn: '২০০ ওয়াট আল্ট্রা-ফাস্ট চার্জিং, স্মার্ট ডিজিটাল কালার ডিসপ্লে এবং ল্যাপটপ ও ফোন চার্জ সাপোর্ট।',
-    category_bn: 'কিবোর্ড ও মাউস',
+    category_bn: 'ডেস্ক সেটআপ ও কেবল',
   },
   p25: {
     title_en: 'Philips Hue Play Gradient Lightstrip 65-inch for TV/PC',
@@ -283,8 +283,8 @@ export const PRODUCT_TRANSLATIONS: Record<string, ProductTranslationItem> = {
     badge_bn: '⭐ জনপ্রিয় কম্বো',
   },
   'combo-3': {
-    title_en: 'Esports Competitive Duo (Razer Viper V2 Pro + Keychron Q1 Pro)',
-    title_bn: 'ই-স্পোর্টস কম্পিটিটিভ ডুয়ো (রেজার ভাইপার V2 প্রো + কিক্রন Q1 প্রো)',
+    title_en: 'Esports Competitive Duo (Razer Viper V3 Pro + Keychron Q1 Pro)',
+    title_bn: 'ই-স্পোর্টস কম্পিটিটিভ ডুয়ো (রেজার ভাইপার V3 প্রো + কিক্রন Q1 প্রো)',
     desc_en: 'Ultra-lightweight wireless esports gaming mouse and custom acoustic mechanical keyboard package.',
     desc_bn: 'আল্ট্রা-লাইটওয়েট ওয়্যারলেস গেমিং মাউস ও মেকানিক্যাল কাস্টম কিবোর্ড কম্বো।',
     category_bn: '🎁 কম্বো প্যাকেজ ও বান্ডেল',
@@ -292,22 +292,13 @@ export const PRODUCT_TRANSLATIONS: Record<string, ProductTranslationItem> = {
     badge_bn: '🎮 গেমার স্পেশাল',
   },
   'b-3': {
-    title_en: 'Esports Competitive Duo (Razer Viper V2 Pro + Keychron Q1 Pro)',
-    title_bn: 'ই-স্পোর্টস কম্পিটিটিভ ডুয়ো (রেজার ভাইপার V2 প্রো + কিক্রন Q1 প্রো)',
+    title_en: 'Esports Competitive Duo (Razer Viper V3 Pro + Keychron Q1 Pro)',
+    title_bn: 'ই-স্পোর্টস কম্পিটিটিভ ডুয়ো (রেজার ভাইপার V3 প্রো + কিক্রন Q1 প্রো)',
     desc_en: 'Ultra-lightweight wireless esports gaming mouse and custom acoustic mechanical keyboard package.',
     desc_bn: 'আল্ট্রা-লাইটওয়েট ওয়্যারলেস গেমিং মাউস ও মেকানিক্যাল কাস্টম কিবোর্ড কম্বো।',
     category_bn: '🎁 কম্বো প্যাকেজ ও বান্ডেল',
     badge_en: '🎮 GAMER SPECIAL',
     badge_bn: '🎮 গেমার স্পেশাল',
-  },
-  'watch-combo': {
-    title_en: 'Apple Watch Ultra 2 + Garmin Fenix 7 Pro Combo',
-    title_bn: 'অ্যাপল ওয়াচ আল্ট্রা ২ + গারমিন ফেনিক্স ৭ প্রো স্মার্টওয়াচ কম্বো',
-    desc_en: 'Special curated hardware combo bundle: Get maximum savings on premium smartwatches with bonus loyalty points.',
-    desc_bn: 'বিশেষ প্যাকেজ অফার: প্রিমিয়াম স্মার্টওয়াচ কম্বোতে আকর্ষণীয় সাশ্রয় ও বোনাস লয়্যালটি পয়েন্ট।',
-    category_bn: '🎁 কম্বো প্যাকেজ ও বান্ডেল',
-    badge_en: '🔥 15% OFF BUNDLE',
-    badge_bn: '🔥 ১৫% ছাড় বান্ডেল',
   },
 };
 
@@ -325,6 +316,7 @@ const BENGALI_WORD_MAP: Array<[RegExp, string]> = [
   [/\bRazer\b/gi, 'রেজার'],
   [/\bLogitech\b/gi, 'লজিটেক'],
   [/\bSamsung\b/gi, 'স্যামসাং'],
+  [/\bGalaxy\b/gi, 'গ্যালাক্সি'],
   [/\bHuawei\b/gi, 'হুয়াওয়ে'],
   [/\bDJI\b/gi, 'ডিজেআই'],
   [/\bElgato\b/gi, 'এলগাতো'],
@@ -337,6 +329,7 @@ const BENGALI_WORD_MAP: Array<[RegExp, string]> = [
   [/\bHyperX\b/gi, 'হায়পারএক্স'],
   [/\bNuPhy\b/gi, 'নুফি'],
   [/\bGarmin\b/gi, 'গারমিন'],
+  [/\bWhoop\b/gi, 'হুপ'],
   [/\bSennheiser\b/gi, 'সেনহাইজার'],
   [/\bStanmore\b/gi, 'স্ট্যানমোর'],
   [/\bQuietComfort\b/gi, 'কোয়াইট-কমফোর্ট'],
@@ -400,7 +393,7 @@ export const autoTranslateTitleToBengali = (title: string): string => {
     translated = translated.replace(pattern, replacement);
   }
 
-  // Handle common trailing digits or models like "III" -> "৩", "3S" -> "৩এস", "II" -> "২"
+  // Handle common numerals or roman numbers
   translated = translated
     .replace(/\bIII\b/g, '৩')
     .replace(/\bII\b/g, '২')
@@ -417,7 +410,6 @@ export const autoTranslateTitleToEnglish = (title: string): string => {
   if (!title) return '';
   if (!hasBengaliChars(title)) return title;
 
-  // If title is pure Bengali, check reverse lookup in dictionary
   for (const item of Object.values(PRODUCT_TRANSLATIONS)) {
     if (item.title_bn === title || title.includes(item.title_bn)) {
       return item.title_en;
@@ -440,7 +432,7 @@ export interface LocalizedProductData {
 
 /**
  * Smart Bilingual Resolver for Products and Combo Packages
- * Supports direct dictionary lookup, slug matching, semantic title matching, and universal auto-translation.
+ * Supports exact ID mapping, slug matching, semantic title matching, and universal auto-translation.
  */
 export const getLocalizedProduct = (product: Partial<Product> | any, lang: Language = 'bn'): LocalizedProductData => {
   if (!product) {
@@ -458,7 +450,7 @@ export const getLocalizedProduct = (product: Partial<Product> | any, lang: Langu
   const lookupKey = (product._id || product.slug || product.id || '').toString();
   let trans = PRODUCT_TRANSLATIONS[lookupKey] || (product.slug ? PRODUCT_TRANSLATIONS[product.slug] : undefined);
 
-  // 2. Fallback lookup by normalized title
+  // 2. Fallback lookup by title
   if (!trans && product.title) {
     const slugified = product.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
     trans = PRODUCT_TRANSLATIONS[slugified];
@@ -497,7 +489,6 @@ export const getLocalizedProduct = (product: Partial<Product> | any, lang: Langu
     } else if (hasBengaliChars(product.title)) {
       title = product.title;
     } else {
-      // Dynamic Auto-Translation from English to Bengali
       title = autoTranslateTitleToBengali(product.title || '');
     }
 
@@ -508,7 +499,6 @@ export const getLocalizedProduct = (product: Partial<Product> | any, lang: Langu
     } else if (hasBengaliChars(product.description)) {
       description = product.description;
     } else {
-      // Dynamic Auto-Translation for Description in Bengali mode
       description = isCombo
         ? 'বিশেষ প্যাকেজ অফার: একসাথে একাধিক গ্যাজেটে আকর্ষণীয় সাশ্রয় ও বোনাস লয়্যালটি পয়েন্ট।'
         : `${product.brand ? `${product.brand} ব্র্যান্ডের ` : ''}১০০% অথেনটিক অফিসিয়াল গ্যাজেট, ম্যানুফ্যাকচারার ওয়ারেন্টি ও ফাস্ট হোম ডেলিভারি সুবিধা সহ।`;

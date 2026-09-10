@@ -10,6 +10,8 @@ import {
   VisitorSession,
   COUNTRY_REGIONS_MAP,
 } from '@/store/useVisitorAnalyticsStore';
+import { useLanguageStore } from '@/store/useLanguageStore';
+import { toBengaliNumber } from '@/lib/translations';
 import {
   Activity,
   Users,
@@ -54,6 +56,9 @@ import {
 import { exportToBrandedExcel, printBrandedPDF } from '@/lib/exportUtils';
 
 export default function VisitorAnalyticsPage() {
+  const { language } = useLanguageStore();
+  const isBn = language === 'bn';
+
   const {
     timeFilter,
     kpiFilter,
@@ -275,12 +280,12 @@ export default function VisitorAnalyticsPage() {
   });
 
   const timeFilterLabels: Record<TimeFilter, string> = {
-    live: '⚡ Live',
-    '30m': 'Past 30m',
-    today: 'Today (24h)',
-    week: 'Last 7 Days',
-    month: 'Last 30 Days',
-    all: 'All Time',
+    live: isBn ? '⚡ লাইভ' : '⚡ Live',
+    '30m': isBn ? 'গত ৩০ মি.' : 'Past 30m',
+    today: isBn ? 'আজ (২৪ ঘণ্টা)' : 'Today (24h)',
+    week: isBn ? 'গত ৭ দিন' : 'Last 7 Days',
+    month: isBn ? 'গত ৩০ দিন' : 'Last 30 Days',
+    all: isBn ? 'সব সময়' : 'All Time',
   };
 
   // Dynamic KPI Calculations from Active Sessions
@@ -479,15 +484,17 @@ export default function VisitorAnalyticsPage() {
           <div className="flex items-center gap-2.5">
             <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
               <Activity className="w-6 h-6 text-orange-500" />
-              Live Visitors & Traffic Telemetry
+              {isBn ? 'লাইভ ভিজিটর ও ট্রাফিক টেলিমেট্রি' : 'Live Visitors & Traffic Telemetry'}
             </h1>
             <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-              Live Real-Time
+              {isBn ? 'লাইভ রিয়েল-টাইম' : 'Live Real-Time'}
             </span>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Real-time shopper session monitoring, exact mobile model tracking, geo-location matrix, and country-level geo-fencing.
+            {isBn
+              ? 'রিয়েল-টাইম শপার সেশন মনিটরিং, নিখুঁত মোবাইল মডেল ট্র্যাকিং, ভৌগলিক অবস্থান ম্যাট্রিক্স ও কান্ট্রি-লেভেল জিও-ফেন্সিং।'
+              : 'Real-time shopper session monitoring, exact mobile model tracking, geo-location matrix, and country-level geo-fencing.'}
           </p>
         </div>
 
@@ -516,7 +523,7 @@ export default function VisitorAnalyticsPage() {
             type="button"
             onClick={handleRefresh}
             className="p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-orange-500 transition-all cursor-pointer shadow-2xs"
-            title="Refresh Telemetry Stream"
+            title={isBn ? 'টেলিমেট্রি স্ট্রিম রিফ্রেশ করুন' : 'Refresh Telemetry Stream'}
           >
             <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-orange-500' : ''}`} />
           </button>
@@ -527,10 +534,10 @@ export default function VisitorAnalyticsPage() {
               type="button"
               onClick={() => setIsExportMenuOpen(!isExportMenuOpen)}
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white text-xs font-bold shadow-md shadow-orange-500/20 transition-all cursor-pointer"
-              title="Export Telemetry & Lead Reports"
+              title={isBn ? 'টেলিমেট্রি ও লিড রিপোর্ট এক্সপোর্ট' : 'Export Telemetry & Lead Reports'}
             >
               <Download className="w-4 h-4" />
-              <span>Export Report</span>
+              <span>{isBn ? 'রিপোর্ট এক্সপোর্ট' : 'Export Report'}</span>
               <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isExportMenuOpen ? 'rotate-180' : ''}`} />
             </button>
 
@@ -545,7 +552,7 @@ export default function VisitorAnalyticsPage() {
                   onClick={() => {
                     exportToBrandedExcel(filteredSessions, timeFilter, kpiFilter, liveVisitorCount);
                     setIsExportMenuOpen(false);
-                    showToast('Branded Excel (.xlsx) report generated with lead phone numbers.');
+                    showToast(isBn ? 'লিড ফোন নম্বর সহ ব্র্যান্ডেড এক্সেল (.xlsx) রিপোর্ট তৈরি হয়েছে।' : 'Branded Excel (.xlsx) report generated with lead phone numbers.');
                   }}
                   className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-left transition-colors cursor-pointer group"
                 >
@@ -554,10 +561,10 @@ export default function VisitorAnalyticsPage() {
                   </div>
                   <div>
                     <span className="font-bold text-xs text-slate-900 dark:text-white block">
-                      Export to Excel (.xlsx)
+                      {isBn ? 'এক্সেলে এক্সপোর্ট (.xlsx)' : 'Export to Excel (.xlsx)'}
                     </span>
                     <span className="text-[10px] text-slate-500 block">
-                      Branded sheet with customer leads & cart ৳
+                      {isBn ? 'কাস্টমার লিড ও কার্ট ৳ সহ ব্র্যান্ডেড শিট' : 'Branded sheet with customer leads & cart ৳'}
                     </span>
                   </div>
                 </button>
@@ -568,7 +575,7 @@ export default function VisitorAnalyticsPage() {
                   onClick={() => {
                     printBrandedPDF(filteredSessions, timeFilter, kpiFilter, liveVisitorCount);
                     setIsExportMenuOpen(false);
-                    showToast('Opening print-ready PDF with ShopNexus watermark.');
+                    showToast(isBn ? 'ShopNexus ওয়াটারমার্ক সহ প্রিন্ট-রেডি পিডিএফ খোলা হচ্ছে।' : 'Opening print-ready PDF with ShopNexus watermark.');
                   }}
                   className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-orange-50 dark:hover:bg-orange-950/40 text-left transition-colors cursor-pointer group"
                 >
@@ -577,10 +584,10 @@ export default function VisitorAnalyticsPage() {
                   </div>
                   <div>
                     <span className="font-bold text-xs text-slate-900 dark:text-white block">
-                      Print / Export PDF Report
+                      {isBn ? 'পিডিএফ প্রিন্ট / এক্সপোর্ট' : 'Print / Export PDF Report'}
                     </span>
                     <span className="text-[10px] text-slate-500 block">
-                      ShopNexus watermark & letterhead
+                      {isBn ? 'ShopNexus ওয়াটারমার্ক ও লেটারহেড' : 'ShopNexus watermark & letterhead'}
                     </span>
                   </div>
                 </button>
@@ -599,10 +606,10 @@ export default function VisitorAnalyticsPage() {
                   </div>
                   <div>
                     <span className="font-bold text-xs text-slate-900 dark:text-white block">
-                      Export Raw CSV
+                      {isBn ? 'র সিএসভি এক্সপোর্ট' : 'Export Raw CSV'}
                     </span>
                     <span className="text-[10px] text-slate-500 block">
-                      Plain data table export
+                      {isBn ? 'সাধারণ ডাটা টেবিল এক্সপোর্ট' : 'Plain data table export'}
                     </span>
                   </div>
                 </button>
@@ -612,7 +619,7 @@ export default function VisitorAnalyticsPage() {
         </div>
       </div>
 
-      {/* 5 Enterprise Telemetry KPI Cards (Fully Interactive Click-to-Drilldown!) */}
+      {/* 5 Enterprise Telemetry KPI Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
         {/* 1. Live Active Visitors Card */}
         <button
@@ -623,11 +630,11 @@ export default function VisitorAnalyticsPage() {
               ? 'bg-emerald-500/15 border-2 border-emerald-500 shadow-lg shadow-emerald-500/10'
               : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-emerald-500/50 shadow-xs'
           }`}
-          title="Click to filter table by Active Live Shoppers"
+          title={isBn ? 'সক্রিয় লাইভ ক্রেতা অনুযায়ী ফিল্টার করুন' : 'Click to filter table by Active Live Shoppers'}
         >
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-              Live Visitors
+              {isBn ? 'লাইভ ভিজিটর' : 'Live Visitors'}
             </span>
             <span className="relative flex h-3 w-3">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
@@ -635,17 +642,17 @@ export default function VisitorAnalyticsPage() {
             </span>
           </div>
           <div className="mt-2.5 flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white font-mono">
-              {liveVisitorCount}
+            <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white font-mono whitespace-nowrap">
+              {isBn ? toBengaliNumber(liveVisitorCount) : liveVisitorCount}
             </span>
             <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-              Active
+              {isBn ? 'সক্রিয়' : 'Active'}
             </span>
           </div>
           <div className="mt-1 flex items-center justify-between text-[10px]">
-            <span className="text-slate-500 dark:text-slate-400">+8.4% last hour</span>
+            <span className="text-slate-500 dark:text-slate-400">{isBn ? '+৮.৪% গত ঘণ্টায়' : '+8.4% last hour'}</span>
             <span className="font-bold text-emerald-600 dark:text-emerald-400 group-hover:underline">
-              {kpiFilter === 'live' ? '✓ Active' : 'Filter'}
+              {kpiFilter === 'live' ? (isBn ? '✓ সক্রিয়' : '✓ Active') : (isBn ? 'ফিল্টার' : 'Filter')}
             </span>
           </div>
         </button>
@@ -659,36 +666,36 @@ export default function VisitorAnalyticsPage() {
               ? 'bg-blue-500/15 border-2 border-blue-500 shadow-lg shadow-blue-500/10'
               : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-blue-500/50 shadow-xs'
           }`}
-          title="Click to filter High Pageview Sessions (5+ hits)"
+          title={isBn ? 'উচ্চ পেজভিউ সেশন ফিল্টার করুন (৫+ ভিউ)' : 'Click to filter High Pageview Sessions (5+ hits)'}
         >
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-              Pageviews
+              {isBn ? 'মোট পেজভিউস' : 'Pageviews'}
             </span>
             <Eye className="w-4 h-4 text-blue-500" />
           </div>
           <div className="mt-2.5 flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white font-mono">
+            <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white font-mono whitespace-nowrap">
               {telemetryMode === 'real'
-                ? totalPageviewsCount
+                ? (isBn ? toBengaliNumber(totalPageviewsCount.toLocaleString('en-US')) : totalPageviewsCount.toLocaleString())
                 : timeFilter === 'live'
-                ? '1,840'
+                ? (isBn ? '১,৮৪০' : '1,840')
                 : timeFilter === 'today'
-                ? '14,290'
+                ? (isBn ? '১৪,২৯০' : '14,290')
                 : timeFilter === 'week'
-                ? '89,400'
-                : '248,100'}
+                ? (isBn ? '৮৯,৪০০' : '89,400')
+                : (isBn ? '২,৪৮,১০০' : '248,100')}
             </span>
             <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400">
-              Hits
+              {isBn ? 'হিটস' : 'Hits'}
             </span>
           </div>
           <div className="mt-1 flex items-center justify-between text-[10px]">
             <span className="text-slate-500 dark:text-slate-400">
-              ~{totalSessionsCount > 0 ? (totalPageviewsCount / totalSessionsCount).toFixed(1) : '1.0'} views / user
+              ~{totalSessionsCount > 0 ? (isBn ? toBengaliNumber((totalPageviewsCount / totalSessionsCount).toFixed(1)) : (totalPageviewsCount / totalSessionsCount).toFixed(1)) : (isBn ? '১.০' : '1.0')} {isBn ? 'ভিউ / ইউজার' : 'views / user'}
             </span>
             <span className="font-bold text-blue-600 dark:text-blue-400 group-hover:underline">
-              {kpiFilter === 'pageviews' ? '✓ Active' : 'Filter'}
+              {kpiFilter === 'pageviews' ? (isBn ? '✓ সক্রিয়' : '✓ Active') : (isBn ? 'ফিল্টার' : 'Filter')}
             </span>
           </div>
         </button>
@@ -702,28 +709,28 @@ export default function VisitorAnalyticsPage() {
               ? 'bg-amber-500/15 border-2 border-amber-500 shadow-lg shadow-amber-500/10'
               : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-amber-500/50 shadow-xs'
           }`}
-          title="Click to filter Deep Engagement Sessions (200s+)"
+          title={isBn ? 'দীর্ঘ সময় অবস্থানরত সেশন ফিল্টার করুন (২০০ সে.+)' : 'Click to filter Deep Engagement Sessions (200s+)'}
         >
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-              Avg. Session
+              {isBn ? 'গড় সেশন সময়' : 'Avg. Session'}
             </span>
             <Clock className="w-4 h-4 text-amber-500" />
           </div>
           <div className="mt-2.5 flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white font-mono">
-              {telemetryMode === 'real' ? formattedAvgDuration : '4m 38s'}
+            <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white font-mono whitespace-nowrap">
+              {telemetryMode === 'real' ? (isBn ? toBengaliNumber(formattedAvgDuration) : formattedAvgDuration) : (isBn ? '৪মি ৩৮সে' : '4m 38s')}
             </span>
             <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400">
-              {telemetryMode === 'real' ? 'Live' : 'High'}
+              {telemetryMode === 'real' ? (isBn ? 'লাইভ' : 'Live') : (isBn ? 'উচ্চ' : 'High')}
             </span>
           </div>
           <div className="mt-1 flex items-center justify-between text-[10px]">
             <span className="text-slate-500 dark:text-slate-400">
-              {telemetryMode === 'real' ? `~${avgSessionSecs}s active duration` : '+32s benchmark'}
+              {telemetryMode === 'real' ? `~${isBn ? toBengaliNumber(avgSessionSecs) : avgSessionSecs}s ${isBn ? 'গড় স্থায়িত্ব' : 'active duration'}` : (isBn ? '+৩২ সে. বেঞ্চমার্ক' : '+32s benchmark')}
             </span>
             <span className="font-bold text-amber-600 dark:text-amber-400 group-hover:underline">
-              {kpiFilter === 'duration' ? '✓ Active' : 'Filter'}
+              {kpiFilter === 'duration' ? (isBn ? '✓ সক্রিয়' : '✓ Active') : (isBn ? 'ফিল্টার' : 'Filter')}
             </span>
           </div>
         </button>
@@ -737,33 +744,33 @@ export default function VisitorAnalyticsPage() {
               ? 'bg-purple-500/15 border-2 border-purple-500 shadow-lg shadow-purple-500/10'
               : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-purple-500/50 shadow-xs'
           }`}
-          title="Click to view Bounced Sessions and exit reasons"
+          title={isBn ? 'বাউন্সড সেশন এবং প্রস্থান কারণ দেখুন' : 'Click to view Bounced Sessions and exit reasons'}
         >
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-              Bounce Rate
+              {isBn ? 'বাউন্স রেট' : 'Bounce Rate'}
             </span>
             <TrendingUp className="w-4 h-4 text-purple-500" />
           </div>
           <div className="mt-2.5 flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white font-mono">
-              {telemetryMode === 'real' ? `${bounceRatePct}%` : '23.4%'}
+            <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white font-mono whitespace-nowrap">
+              {telemetryMode === 'real' ? `${isBn ? toBengaliNumber(bounceRatePct) : bounceRatePct}%` : (isBn ? '২৩.৪%' : '23.4%')}
             </span>
             <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-              {telemetryMode === 'real' && Number(bounceRatePct) === 0 ? 'Zero Exits' : 'Optimal'}
+              {telemetryMode === 'real' && Number(bounceRatePct) === 0 ? (isBn ? 'শূন্য প্রস্থান' : 'Zero Exits') : (isBn ? 'অনুকূল' : 'Optimal')}
             </span>
           </div>
           <div className="mt-1 flex items-center justify-between text-[10px]">
             <span className="text-slate-500 dark:text-slate-400">
-              {telemetryMode === 'real' ? `${bouncedSessions.length} single-page exits` : 'Single-page exits'}
+              {telemetryMode === 'real' ? `${isBn ? toBengaliNumber(bouncedSessions.length) : bouncedSessions.length} ${isBn ? 'একক-পেজ প্রস্থান' : 'single-page exits'}` : (isBn ? 'একক-পেজ প্রস্থান' : 'Single-page exits')}
             </span>
             <span className="font-bold text-purple-600 dark:text-purple-400 group-hover:underline">
-              {kpiFilter === 'bounced' ? '✓ Active' : 'Filter'}
+              {kpiFilter === 'bounced' ? (isBn ? '✓ সক্রিয়' : '✓ Active') : (isBn ? 'ফিল্টার' : 'Filter')}
             </span>
           </div>
         </button>
 
-        {/* 5. Live Cart Velocity Card (Full-width span on mobile 2-col layout) */}
+        {/* 5. Live Cart Velocity Card */}
         <button
           type="button"
           onClick={() => setKpiFilter(kpiFilter === 'cart' ? 'all' : 'cart')}
@@ -772,28 +779,28 @@ export default function VisitorAnalyticsPage() {
               ? 'bg-orange-500/15 border-2 border-orange-500 shadow-lg shadow-orange-500/10'
               : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-orange-500/50 shadow-xs'
           }`}
-          title="Click to view Active Cart Shoppers & Cart Values"
+          title={isBn ? 'সক্রিয় কার্ট ক্রেতা ও কার্ট মূল্য দেখুন' : 'Click to view Active Cart Shoppers & Cart Values'}
         >
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-              Cart Velocity
+              {isBn ? 'কার্ট ভেলোসিটি' : 'Cart Velocity'}
             </span>
             <ShoppingBag className="w-4 h-4 text-orange-500" />
           </div>
           <div className="mt-2.5 flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-black text-orange-600 dark:text-orange-400 font-mono">
-              {cartVelocityPct}%
+            <span className="text-2xl sm:text-3xl font-black text-orange-600 dark:text-orange-400 font-mono whitespace-nowrap">
+              {isBn ? `${toBengaliNumber(cartVelocityPct)}%` : `${cartVelocityPct}%`}
             </span>
             <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">
-              In Cart
+              {isBn ? 'কার্টে' : 'In Cart'}
             </span>
           </div>
           <div className="mt-1 flex items-center justify-between text-[10px]">
             <span className="text-slate-500 dark:text-slate-400">
-              {telemetryMode === 'real' ? `${cartActiveCount} shoppers` : `${Math.round(liveVisitorCount * 0.38)} shoppers`}
+              {telemetryMode === 'real' ? `${isBn ? toBengaliNumber(cartActiveCount) : cartActiveCount} ${isBn ? 'জন ক্রেতা' : 'shoppers'}` : `${isBn ? toBengaliNumber(Math.round(liveVisitorCount * 0.38)) : Math.round(liveVisitorCount * 0.38)} ${isBn ? 'জন ক্রেতা' : 'shoppers'}`}
             </span>
             <span className="font-bold text-orange-600 dark:text-orange-400 group-hover:underline">
-              {kpiFilter === 'cart' ? '✓ Active' : 'Filter'}
+              {kpiFilter === 'cart' ? (isBn ? '✓ সক্রিয়' : '✓ Active') : (isBn ? 'ফিল্টার' : 'Filter')}
             </span>
           </div>
         </button>
@@ -805,13 +812,16 @@ export default function VisitorAnalyticsPage() {
           <div className="flex items-center gap-2 font-bold text-orange-700 dark:text-orange-300">
             <Filter className="w-4 h-4 text-orange-500" />
             <span>
-              Active Filter: {kpiFilter === 'live' && '🟢 Live Active Shoppers'}
-              {kpiFilter === 'pageviews' && '👁️ High Pageview Sessions (5+ hits)'}
-              {kpiFilter === 'duration' && '⏱️ Long Engagement Sessions (200s+)'}
-              {kpiFilter === 'bounced' && '🚪 Bounced Sessions (<20s single pageview)'}
-              {kpiFilter === 'cart' && '🛒 Shoppers with Active Cart Items'}
+              {isBn ? 'সক্রিয় ফিল্টার: ' : 'Active Filter: '}
+              {kpiFilter === 'live' && (isBn ? '🟢 লাইভ সক্রিয় ক্রেতাগণ' : '🟢 Live Active Shoppers')}
+              {kpiFilter === 'pageviews' && (isBn ? '👁️ উচ্চ পেজভিউ সেশন (৫+ ভিউ)' : '👁️ High Pageview Sessions (5+ hits)')}
+              {kpiFilter === 'duration' && (isBn ? '⏱️ দীর্ঘ সময় অবস্থানরত সেশন (২০০ সে.+)' : '⏱️ Long Engagement Sessions (200s+)')}
+              {kpiFilter === 'bounced' && (isBn ? '🚪 বাউন্সড সেশন (<২০ সে. একক ভিউ)' : '🚪 Bounced Sessions (<20s single pageview)')}
+              {kpiFilter === 'cart' && (isBn ? '🛒 সক্রিয় কার্ট পণ্যসহ ক্রেতাগণ' : '🛒 Shoppers with Active Cart Items')}
             </span>
-            <span className="text-slate-500 font-normal">({filteredSessions.length} sessions matched)</span>
+            <span className="text-slate-500 font-normal">
+              ({isBn ? toBengaliNumber(filteredSessions.length) : filteredSessions.length} {isBn ? 'টি সেশন পাওয়া গেছে' : 'sessions matched'})
+            </span>
           </div>
           <button
             type="button"
@@ -819,7 +829,7 @@ export default function VisitorAnalyticsPage() {
             className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-bold hover:bg-slate-100 transition-all cursor-pointer"
           >
             <X className="w-3.5 h-3.5" />
-            <span>Clear Filter</span>
+            <span>{isBn ? 'ফিল্টার মুছুন' : 'Clear Filter'}</span>
           </button>
         </div>
       )}
@@ -838,7 +848,7 @@ export default function VisitorAnalyticsPage() {
             }`}
           >
             <Radio className="w-4 h-4" />
-            <span>Live Sessions & IP Access Control ({filteredSessions.length})</span>
+            <span>{isBn ? `লাইভ সেশন ও আইপি অ্যাক্সেস কন্ট্রোল (${toBengaliNumber(filteredSessions.length)})` : `Live Sessions & IP Access Control (${filteredSessions.length})`}</span>
           </button>
 
           <button
@@ -851,7 +861,7 @@ export default function VisitorAnalyticsPage() {
             }`}
           >
             <Globe className="w-4 h-4" />
-            <span>Geo-Location & City Matrix</span>
+            <span>{isBn ? 'জিও-লোকেশন ও সিটি ম্যাট্রিক্স' : 'Geo-Location & City Matrix'}</span>
           </button>
 
           <button
@@ -864,7 +874,7 @@ export default function VisitorAnalyticsPage() {
             }`}
           >
             <Smartphone className="w-4 h-4" />
-            <span>Devices & Browsers</span>
+            <span>{isBn ? 'ডিভাইস ও ব্রাউজার' : 'Devices & Browsers'}</span>
           </button>
 
           <button
@@ -877,7 +887,7 @@ export default function VisitorAnalyticsPage() {
             }`}
           >
             <Compass className="w-4 h-4" />
-            <span>Traffic Acquisition Sources</span>
+            <span>{isBn ? 'ট্রাফিক সোর্স' : 'Traffic Acquisition Sources'}</span>
           </button>
 
           <button
@@ -890,7 +900,7 @@ export default function VisitorAnalyticsPage() {
             }`}
           >
             <ShieldX className="w-4 h-4" />
-            <span>Blocked IPs Shield ({blockedIPs.length})</span>
+            <span>{isBn ? `ব্লকড আইপি শিল্ড (${blockedIPs.length})` : `Blocked IPs Shield (${blockedIPs.length})`}</span>
           </button>
         </div>
 
@@ -898,12 +908,13 @@ export default function VisitorAnalyticsPage() {
         {activeTab === 'sessions' && (
           <div className="space-y-4">
             {/* Search & Filter Bar (Fully Mobile Responsive) */}
+            {/* Search & Filter Bar */}
             <div className="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-xs">
               <div className="relative w-full sm:w-80 lg:w-96">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Search by IP, Mobile Model, City, ISP..."
+                  placeholder={isBn ? 'আইপি, মোবাইল মডেল, শহর বা আইএসপি দিয়ে খুঁজুন...' : 'Search by IP, Mobile Model, City, ISP...'}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-orange-500"
@@ -917,10 +928,10 @@ export default function VisitorAnalyticsPage() {
                   onChange={(e) => setDeviceFilter(e.target.value)}
                   className="w-full sm:w-auto px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer truncate"
                 >
-                  <option value="all">All Devices</option>
-                  <option value="mobile">📱 Mobile</option>
-                  <option value="desktop">💻 Desktop</option>
-                  <option value="tablet">📟 Tablet</option>
+                  <option value="all">{isBn ? 'সকল ডিভাইস' : 'All Devices'}</option>
+                  <option value="mobile">{isBn ? '📱 মোবাইল' : '📱 Mobile'}</option>
+                  <option value="desktop">{isBn ? '💻 ডেস্কটপ' : '💻 Desktop'}</option>
+                  <option value="tablet">{isBn ? '📟 ট্যাবলেট' : '📟 Tablet'}</option>
                 </select>
 
                 {/* Status Filter */}
@@ -929,11 +940,11 @@ export default function VisitorAnalyticsPage() {
                   onChange={(e) => setStatusFilter(e.target.value)}
                   className="w-full sm:w-auto px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer truncate"
                 >
-                  <option value="all">All Statuses</option>
-                  <option value="active">🟢 Active</option>
-                  <option value="bounced">🚪 Bounced</option>
-                  <option value="bot">🟡 Bots</option>
-                  <option value="blocked">🔴 Blocked</option>
+                  <option value="all">{isBn ? 'সকল স্ট্যাটাস' : 'All Statuses'}</option>
+                  <option value="active">{isBn ? '🟢 সক্রিয়' : '🟢 Active'}</option>
+                  <option value="bounced">{isBn ? '🚪 বাউন্সড' : '🚪 Bounced'}</option>
+                  <option value="bot">{isBn ? '🟡 বট স্পাইডার' : '🟡 Bots'}</option>
+                  <option value="blocked">{isBn ? '🔴 ব্লকড' : '🔴 Blocked'}</option>
                 </select>
               </div>
             </div>
@@ -944,13 +955,13 @@ export default function VisitorAnalyticsPage() {
                 <table className="w-full text-left text-xs min-w-[1000px]">
                   <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-bold uppercase text-[10px]">
                     <tr>
-                      <th className="py-3 px-4 w-[180px]">Visitor & Location</th>
-                      <th className="py-3 px-4 w-[180px]">IP & Network ISP</th>
-                      <th className="py-3 px-4 w-[230px]">Device & Exact Model</th>
-                      <th className="py-3 px-4 w-[240px]">Current Page & Activity</th>
-                      <th className="py-3 px-4 w-[150px]">Session Duration</th>
-                      <th className="py-3 px-4 w-[130px]">Status</th>
-                      <th className="py-3 px-4 text-right w-[110px]">Action</th>
+                      <th className="py-3 px-4 w-[180px]">{isBn ? 'ভিজিটর ও অবস্থান' : 'Visitor & Location'}</th>
+                      <th className="py-3 px-4 w-[180px]">{isBn ? 'আইপি ও নেটওয়ার্ক আইএসপি' : 'IP & Network ISP'}</th>
+                      <th className="py-3 px-4 w-[230px]">{isBn ? 'ডিভাইস ও সুনির্দিষ্ট মডেল' : 'Device & Exact Model'}</th>
+                      <th className="py-3 px-4 w-[240px]">{isBn ? 'বর্তমান পেজ ও কার্যক্রম' : 'Current Page & Activity'}</th>
+                      <th className="py-3 px-4 w-[150px]">{isBn ? 'সেশনের স্থায়িত্ব' : 'Session Duration'}</th>
+                      <th className="py-3 px-4 w-[130px]">{isBn ? 'স্ট্যাটাস' : 'Status'}</th>
+                      <th className="py-3 px-4 text-right w-[110px]">{isBn ? 'অ্যাকশন' : 'Action'}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
@@ -960,12 +971,16 @@ export default function VisitorAnalyticsPage() {
                           <div className="flex flex-col items-center justify-center gap-2.5 max-w-md mx-auto">
                             <Activity className="w-8 h-8 text-orange-500/60 animate-pulse" />
                             <span className="font-bold text-slate-800 dark:text-white text-sm">
-                              {telemetryMode === 'real' ? 'No Active Shoppers on Storefront Right Now' : 'No sessions matching the filter'}
+                              {telemetryMode === 'real'
+                                ? (isBn ? 'বর্তমানে স্টোরফ্রন্টে কোনো সক্রিয় ক্রেতা নেই' : 'No Active Shoppers on Storefront Right Now')
+                                : (isBn ? 'ফিল্টারের সাথে কোনো সেশন মিলেনি' : 'No sessions matching the filter')}
                             </span>
                             <p className="text-xs text-slate-500">
                               {telemetryMode === 'real'
-                                ? 'Real telemetry mode only tracks customer storefront activity (admin portal is excluded). Open any storefront page (/products, /cart) in another tab or mobile device to see live telemetry.'
-                                : 'Try changing your search keywords or KPI filter.'}
+                                ? (isBn
+                                    ? 'রিয়েল টেলিমেট্রি মোড কেবল গ্রাহকদের স্টোরফ্রন্ট ব্রাউজিং ট্র্যাক করে (অ্যাডমিন পোর্টাল অন্তর্ভুক্ত নয়)। লাইভ দেখতে অন্য ট্যাবে বা ফোনে /products বা /cart খুলুন।'
+                                    : 'Real telemetry mode only tracks customer storefront activity (admin portal is excluded). Open any storefront page (/products, /cart) in another tab or mobile device to see live telemetry.')
+                                : (isBn ? 'আপনার সার্চ কি-ওয়ার্ড বা ফিল্টার পরিবর্তন করুন।' : 'Try changing your search keywords or KPI filter.')}
                             </p>
                             {kpiFilter !== 'all' && (
                               <button
@@ -973,7 +988,7 @@ export default function VisitorAnalyticsPage() {
                                 onClick={() => setKpiFilter('all')}
                                 className="text-xs text-orange-600 dark:text-orange-400 font-bold underline cursor-pointer mt-1"
                               >
-                                Clear current KPI filter
+                                {isBn ? 'বর্তমান কেপিআই ফিল্টার মুছুন' : 'Clear current KPI filter'}
                               </button>
                             )}
                           </div>
@@ -990,7 +1005,7 @@ export default function VisitorAnalyticsPage() {
                             className={`hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors cursor-pointer ${
                               sess.isCartActive ? 'bg-orange-500/5 dark:bg-orange-500/5' : ''
                             } ${sess.isBounced ? 'bg-purple-500/5 dark:bg-purple-500/5' : ''}`}
-                            title="Click row to inspect complete Route Journey & Device Specs"
+                            title={isBn ? 'সম্পূর্ণ রুট জার্নি ও ডিভাইস স্পেক দেখতে ক্লিক করুন' : 'Click row to inspect complete Route Journey & Device Specs'}
                           >
                             {/* Visitor & Location & Contact Lead */}
                             <td className="py-3.5 px-4">
@@ -1061,13 +1076,13 @@ export default function VisitorAnalyticsPage() {
                                     title={sess.cartItemsSummary ? `Cart: ${sess.cartItemsSummary} (৳${sess.cartValueBDT?.toLocaleString()})` : 'Active Cart'}
                                   >
                                     <ShoppingBag className="w-3 h-3" />
-                                    <span>Cart Active</span>
+                                    <span>{isBn ? 'সক্রিয় কার্ট' : 'Cart Active'}</span>
                                   </span>
                                 )}
                               </div>
                               <div className="flex items-center gap-1.5 text-[10px] text-slate-500 truncate max-w-[210px] mt-0.5">
                                 <span className="px-1.5 py-0.2 rounded-md bg-slate-100 dark:bg-slate-800 font-mono font-semibold text-[9px] text-slate-600 dark:text-slate-400">
-                                  {routeCount} {routeCount > 1 ? 'routes' : 'route'}
+                                  {isBn ? `${routeCount}টি রুট` : `${routeCount} ${routeCount > 1 ? 'routes' : 'route'}`}
                                 </span>
                                 <span>•</span>
                                 <span className="truncate">{sess.referrer}</span>
@@ -1080,7 +1095,7 @@ export default function VisitorAnalyticsPage() {
                                 {Math.floor(sess.durationSeconds / 60)}m {sess.durationSeconds % 60}s
                               </span>
                               <span className="text-[10px] text-slate-500 font-sans">
-                                {sess.pageviews} views • {sess.lastActiveAt}
+                                {sess.pageviews} {isBn ? 'ভিউ' : 'views'} • {sess.lastActiveAt}
                               </span>
                             </td>
 
@@ -1089,21 +1104,21 @@ export default function VisitorAnalyticsPage() {
                               {isBlocked ? (
                                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-[10px] font-bold shrink-0">
                                   <ShieldX className="w-3 h-3" />
-                                  <span>Blocked</span>
+                                  <span>{isBn ? 'ব্লকড' : 'Blocked'}</span>
                                 </span>
                               ) : sess.status === 'bot' ? (
                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25 text-[10px] font-bold shrink-0 whitespace-nowrap">
                                   <Cpu className="w-3 h-3" />
-                                  <span>Search Spider</span>
+                                  <span>{isBn ? 'সার্চ স্পাইডার' : 'Search Spider'}</span>
                                 </span>
                               ) : sess.isBounced ? (
                                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/25 text-[10px] font-bold shrink-0 whitespace-nowrap">
-                                  <span>Bounced</span>
+                                  <span>{isBn ? 'বাউন্সড' : 'Bounced'}</span>
                                 </span>
                               ) : (
                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-bold shrink-0 whitespace-nowrap">
                                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                  <span>Active</span>
+                                  <span>{isBn ? 'সক্রিয়' : 'Active'}</span>
                                 </span>
                               )}
                             </td>
@@ -1115,10 +1130,10 @@ export default function VisitorAnalyticsPage() {
                                   type="button"
                                   onClick={() => setSelectedJourneySession(sess)}
                                   className="inline-flex items-center gap-1 px-2 py-1 rounded-xl bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/25 text-[11px] font-bold transition-all cursor-pointer active:scale-95"
-                                  title="Inspect Route Navigation Timeline"
+                                  title={isBn ? 'রুট নেভিগেশন টাইমলাইন পর্যালোচনা করুন' : 'Inspect Route Navigation Timeline'}
                                 >
                                   <Layers className="w-3.5 h-3.5" />
-                                  <span>Journey</span>
+                                  <span>{isBn ? 'জার্নি' : 'Journey'}</span>
                                 </button>
 
                                 {isBlocked ? (
@@ -1126,20 +1141,20 @@ export default function VisitorAnalyticsPage() {
                                     type="button"
                                     onClick={() => handleUnblock(sess.ip)}
                                     className="inline-flex items-center gap-1 px-2 py-1 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 text-[11px] font-bold transition-all cursor-pointer active:scale-95"
-                                    title="Unblock this IP Address"
+                                    title={isBn ? 'এই আইপি অ্যাড্রেস আনব্লক করুন' : 'Unblock this IP Address'}
                                   >
                                     <Unlock className="w-3.5 h-3.5" />
-                                    <span>Unblock</span>
+                                    <span>{isBn ? 'আনব্লক' : 'Unblock'}</span>
                                   </button>
                                 ) : (
                                   <button
                                     type="button"
                                     onClick={() => setSelectedIPToBlock(sess.ip)}
                                     className="inline-flex items-center gap-1 px-2 py-1 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/25 text-[11px] font-bold transition-all cursor-pointer active:scale-95"
-                                    title="Block this IP Address"
+                                    title={isBn ? 'এই আইপি অ্যাড্রেস ব্লক করুন' : 'Block this IP Address'}
                                   >
                                     <Ban className="w-3.5 h-3.5" />
-                                    <span>Block</span>
+                                    <span>{isBn ? 'ব্লক' : 'Block'}</span>
                                   </button>
                                 )}
                               </div>
@@ -1166,19 +1181,25 @@ export default function VisitorAnalyticsPage() {
                 </div>
                 <div>
                   <h4 className="text-xs sm:text-sm font-black flex items-center gap-2">
-                    <span>Geo-Fencing & Country Firewall Mode:</span>
+                    <span>{isBn ? 'জিও-ফেন্সিং ও কান্ট্রি ফায়ারওয়াল মোড:' : 'Geo-Fencing & Country Firewall Mode:'}</span>
                     <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider font-bold ${
                       geoPolicyMode === 'domestic_only'
                         ? 'bg-emerald-500 text-white animate-pulse'
                         : 'bg-blue-500/30 text-blue-300'
                     }`}>
-                      {geoPolicyMode === 'domestic_only' ? '🇧🇩 Domestic Whitelist Only' : '🌐 Global with Selective Bans'}
+                      {geoPolicyMode === 'domestic_only'
+                        ? (isBn ? '🇧🇩 কেবল অভ্যন্তরীণ হোয়াইটলিস্ট' : '🇧🇩 Domestic Whitelist Only')
+                        : (isBn ? '🌐 গ্লোবাল উইথ সিলেক্টিভ ব্যান' : '🌐 Global with Selective Bans')}
                     </span>
                   </h4>
                   <p className="text-[11px] text-slate-300 mt-0.5">
                     {geoPolicyMode === 'domestic_only'
-                      ? 'Only Bangladesh visitors are permitted to browse and place orders. All international traffic is blocked.'
-                      : 'Global traffic is allowed by default. You can selectively block any individual country below.'}
+                      ? (isBn
+                          ? 'কেবলমাত্র বাংলাদেশের ভিজিটরদের ব্রাউজ ও অর্ডার করতে অনুমতি দেওয়া হয়েছে। সকল আন্তর্জাতিক ট্রাফিক ব্লকড।'
+                          : 'Only Bangladesh visitors are permitted to browse and place orders. All international traffic is blocked.')
+                      : (isBn
+                          ? 'সাধারণভাবে গ্লোবাল ট্রাফিক অনুমোদিত। আপনি নিচে যেকোনো একক দেশ ব্লক করতে পারেন।'
+                          : 'Global traffic is allowed by default. You can selectively block any individual country below.')}
                   </p>
                 </div>
               </div>
@@ -1189,7 +1210,7 @@ export default function VisitorAnalyticsPage() {
                   type="button"
                   onClick={() => {
                     setGeoPolicyMode('global');
-                    showToast('Switched to Global Traffic Mode with selective country bans.');
+                    showToast(isBn ? 'সিলেক্টিভ ব্যান সহ গ্লোবাল ট্রাফিক মোডে পরিবর্তিত হয়েছে।' : 'Switched to Global Traffic Mode with selective country bans.');
                   }}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     geoPolicyMode === 'global'
@@ -1197,13 +1218,13 @@ export default function VisitorAnalyticsPage() {
                       : 'text-slate-400 hover:text-white'
                   }`}
                 >
-                  🌐 Global Mode
+                  {isBn ? '🌐 গ্লোবাল মোড' : '🌐 Global Mode'}
                 </button>
                 <button
                   type="button"
                   onClick={() => {
                     setGeoPolicyMode('domestic_only');
-                    showToast('Domestic Whitelist Active: Only Bangladesh traffic is now permitted.');
+                    showToast(isBn ? 'ডোমেস্টিক হোয়াইটলিস্ট সক্রিয়: কেবল বাংলাদেশ ট্রাফিক অনুমোদিত।' : 'Domestic Whitelist Active: Only Bangladesh traffic is now permitted.');
                   }}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     geoPolicyMode === 'domestic_only'
@@ -1211,27 +1232,27 @@ export default function VisitorAnalyticsPage() {
                       : 'text-slate-400 hover:text-white'
                   }`}
                 >
-                  🇧🇩 Bangladesh Only
+                  {isBn ? '🇧🇩 শুধু বাংলাদেশ' : '🇧🇩 Bangladesh Only'}
                 </button>
               </div>
             </div>
 
-            {/* Country List (Left) & Dynamic City Matrix (Right) */}
+            {/* Country List & Dynamic City Matrix */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Left Card: Top Countries (Interactive Click-to-Select) */}
+              {/* Left Card: Top Countries */}
               <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
                       <Globe className="w-4 h-4 text-blue-500" />
-                      Top Countries by Traffic Volume
+                      {isBn ? 'ট্রাফিক ভলিউম অনুযায়ী শীর্ষ দেশসমূহ' : 'Top Countries by Traffic Volume'}
                     </h3>
                     <p className="text-[11px] text-slate-500 mt-0.5">
-                      Click any country to view its detailed city & division matrix on the right.
+                      {isBn ? 'ডানপাশে বিস্তারিত বিভাগ ও সিটি ম্যাট্রিক্স দেখতে যেকোনো দেশে ক্লিক করুন।' : 'Click any country to view its detailed city & division matrix on the right.'}
                     </p>
                   </div>
                   <span className="text-xs font-bold text-slate-500">
-                    {liveVisitorCount} Active
+                    {liveVisitorCount} {isBn ? 'সক্রিয়' : 'Active'}
                   </span>
                 </div>
 
@@ -1259,19 +1280,19 @@ export default function VisitorAnalyticsPage() {
                               </span>
                               {c.isPrimary && (
                                 <span className="px-1.5 py-0.2 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[9px] font-bold">
-                                  Primary
+                                  {isBn ? 'প্রধান' : 'Primary'}
                                 </span>
                               )}
                               {isSelected && (
                                 <span className="px-1.5 py-0.2 rounded-md bg-blue-500 text-white text-[9px] font-black uppercase">
-                                  Selected
+                                  {isBn ? 'নির্বাচিত' : 'Selected'}
                                 </span>
                               )}
                             </div>
                             <div className="flex items-center gap-2 mt-1 text-[11px] font-mono text-slate-500">
-                              <span>{c.count} visitors</span>
+                              <span>{c.count} {isBn ? 'ভিজিটর' : 'visitors'}</span>
                               <span>•</span>
-                              <span className="font-bold text-slate-700 dark:text-slate-300">{c.pct}% of total traffic</span>
+                              <span className="font-bold text-slate-700 dark:text-slate-300">{c.pct}% {isBn ? 'মোট ট্রাফিকের' : 'of total traffic'}</span>
                             </div>
                           </div>
                         </div>
@@ -1283,20 +1304,20 @@ export default function VisitorAnalyticsPage() {
                               type="button"
                               onClick={(e) => handleToggleCountry(c.code, c.country, e)}
                               className="px-2.5 py-1 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/25 text-[10px] font-bold transition-all cursor-pointer flex items-center gap-1"
-                              title="Unblock Country"
+                              title={isBn ? 'দেশ আনব্লক করুন' : 'Unblock Country'}
                             >
                               <ShieldX className="w-3 h-3" />
-                              <span>Blocked</span>
+                              <span>{isBn ? 'ব্লকড' : 'Blocked'}</span>
                             </button>
                           ) : (
                             <button
                               type="button"
                               onClick={(e) => handleToggleCountry(c.code, c.country, e)}
                               className="px-2.5 py-1 rounded-xl bg-slate-200 dark:bg-slate-700 hover:bg-rose-500/15 hover:text-rose-600 text-slate-600 dark:text-slate-300 text-[10px] font-bold transition-all cursor-pointer flex items-center gap-1"
-                              title="Block this Country"
+                              title={isBn ? 'এই দেশ ব্লক করুন' : 'Block this Country'}
                             >
                               <Ban className="w-3 h-3" />
-                              <span>Block</span>
+                              <span>{isBn ? 'ব্লক' : 'Block'}</span>
                             </button>
                           )}
                           <ChevronRight className={`w-4 h-4 transition-transform ${isSelected ? 'text-blue-500 translate-x-0.5' : 'text-slate-400'}`} />
@@ -1307,20 +1328,22 @@ export default function VisitorAnalyticsPage() {
                 </div>
               </div>
 
-              {/* Right Card: Dynamic City & Division Matrix (Updates with selected country) */}
+              {/* Right Card: Dynamic City & Division Matrix */}
               <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                   <div>
                     <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
                       <span className="text-xl">{activeCountryData.flag}</span>
-                      <span>{activeCountryData.country} Regional Breakdown</span>
+                      <span>{isBn ? `${activeCountryData.country} আঞ্চলিক বিভাজন` : `${activeCountryData.country} Regional Breakdown`}</span>
                     </h3>
                     <p className="text-[11px] text-slate-500 mt-0.5">
-                      Subdivision & metropolitan city traffic density (~{selectedCountryTotalVisitors} live sessions • {selectedCountryPct}%)
+                      {isBn
+                        ? `বিভাগীয় ও মহানগর ট্রাফিক ঘনত্ব (~${selectedCountryTotalVisitors} লাইভ সেশন • ${selectedCountryPct}%)`
+                        : `Subdivision & metropolitan city traffic density (~${selectedCountryTotalVisitors} live sessions • ${selectedCountryPct}%)`}
                     </p>
                   </div>
                   <span className="px-2.5 py-1 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-xs font-mono font-bold">
-                    {activeCountryData.cities.length} Regions
+                    {activeCountryData.cities.length} {isBn ? 'টি অঞ্চল' : 'Regions'}
                   </span>
                 </div>
 
@@ -1371,7 +1394,7 @@ export default function VisitorAnalyticsPage() {
                             </div>
                           </div>
                           <div className="flex items-center gap-2.5 text-xs font-mono font-bold">
-                            <span className="text-slate-500">{cityLiveCount} live</span>
+                            <span className="text-slate-500">{cityLiveCount} {isBn ? 'লাইভ' : 'live'}</span>
                             <span className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400">
                               {cityPercentage}%
                             </span>
@@ -1401,7 +1424,7 @@ export default function VisitorAnalyticsPage() {
             <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
               <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
                 <Smartphone className="w-4 h-4 text-orange-500" />
-                Device Category Share
+                {isBn ? 'ডিভাইস ক্যাটাগরি শেয়ার' : 'Device Category Share'}
               </h3>
               <div className="space-y-4">
                 {deviceData.map((d) => {
@@ -1411,10 +1434,10 @@ export default function VisitorAnalyticsPage() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white">
                           <Icon className="w-4 h-4 text-orange-500" />
-                          <span>{d.type}</span>
+                          <span>{d.type === 'Mobile' ? (isBn ? 'মোবাইল' : 'Mobile') : d.type === 'Desktop' ? (isBn ? 'ডেস্কটপ' : 'Desktop') : (isBn ? 'ট্যাবলেট' : 'Tablet')}</span>
                         </div>
                         <span className="text-xs font-mono font-black text-slate-900 dark:text-white">
-                          {d.pct}% ({d.count} users)
+                          {d.pct}% ({d.count} {isBn ? 'জন ইউজার' : 'users'})
                         </span>
                       </div>
                       <div className="h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
@@ -1433,7 +1456,7 @@ export default function VisitorAnalyticsPage() {
             <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
               <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
                 <Monitor className="w-4 h-4 text-blue-500" />
-                Operating System Distribution
+                {isBn ? 'অপারেটিং সিস্টেম বিভাজন' : 'Operating System Distribution'}
               </h3>
               <div className="space-y-2.5 text-xs">
                 {osDistribution.map((item) => (
@@ -1449,7 +1472,7 @@ export default function VisitorAnalyticsPage() {
             <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
               <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
                 <Compass className="w-4 h-4 text-emerald-500" />
-                Browser Ecosystem
+                {isBn ? 'ব্রাউজার ইকোসিস্টেম' : 'Browser Ecosystem'}
               </h3>
               <div className="space-y-2.5 text-xs">
                 {browserDistribution.map((item) => (
@@ -1468,7 +1491,7 @@ export default function VisitorAnalyticsPage() {
           <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
             <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
               <Compass className="w-4 h-4 text-indigo-500" />
-              Traffic Acquisition & Campaign Inflows
+              {isBn ? 'ট্রাফিক সোর্স ও ক্যাম্পেইন প্রবাহ' : 'Traffic Acquisition & Campaign Inflows'}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {trafficSources.map((src) => (
@@ -1485,7 +1508,7 @@ export default function VisitorAnalyticsPage() {
                     {src.source}
                   </h4>
                   <p className="text-[11px] font-mono text-slate-500">
-                    ~{src.visitors} live active sessions
+                    ~{src.visitors} {isBn ? 'লাইভ সক্রিয় সেশন' : 'live active sessions'}
                   </p>
                 </div>
               ))}
@@ -1500,10 +1523,10 @@ export default function VisitorAnalyticsPage() {
               <div>
                 <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
                   <ShieldAlert className="w-5 h-5 text-rose-500" />
-                  IP Firewall Blacklist ({blockedIPs.length} Blocked Addresses)
+                  {isBn ? `আইপি ফায়ারওয়াল ব্ল্যাকলিস্ট (${blockedIPs.length}টি ব্লকড আইপি)` : `IP Firewall Blacklist (${blockedIPs.length} Blocked Addresses)`}
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Blocked IP addresses are barred from making checkout transactions or automated requests.
+                  {isBn ? 'ব্লকড আইপি অ্যাড্রেস থেকে চেকআউট বা অটোমেটেড রিকোয়েস্ট সম্পূর্ণ নিষিদ্ধ।' : 'Blocked IP addresses are barred from making checkout transactions or automated requests.'}
                 </p>
               </div>
             </div>
@@ -1511,7 +1534,7 @@ export default function VisitorAnalyticsPage() {
             <div className="divide-y divide-slate-100 dark:divide-slate-800 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
               {blockedIPs.length === 0 ? (
                 <div className="p-8 text-center text-xs text-slate-500">
-                  No IP addresses currently in the blacklist shield.
+                  {isBn ? 'বর্তমানে কোনো আইপি ব্ল্যাকলিস্টে নেই।' : 'No IP addresses currently in the blacklist shield.'}
                 </div>
               ) : (
                 blockedIPs.map((b) => (
@@ -1522,14 +1545,14 @@ export default function VisitorAnalyticsPage() {
                         <div className="flex items-center gap-2">
                           <span className="font-mono font-bold text-xs text-slate-900 dark:text-white">{b.ip}</span>
                           <span className="px-2 py-0.2 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 text-[10px] font-bold">
-                            Banned
+                            {isBn ? 'নিষিদ্ধ' : 'Banned'}
                           </span>
                         </div>
                         <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5">
-                          Reason: {b.reason}
+                          {isBn ? 'কারণ: ' : 'Reason: '}{b.reason}
                         </p>
                         <span className="text-[10px] text-slate-400 font-mono">
-                          Blocked on: {b.blockedAt} by {b.blockedBy}
+                          {isBn ? 'ব্লক করার তারিখ: ' : 'Blocked on: '}{b.blockedAt} {isBn ? 'কর্তৃক' : 'by'} {b.blockedBy}
                         </span>
                       </div>
                     </div>
@@ -1539,7 +1562,7 @@ export default function VisitorAnalyticsPage() {
                       onClick={() => handleUnblock(b.ip)}
                       className="px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs font-bold transition-all cursor-pointer shrink-0 self-start sm:self-auto"
                     >
-                      Unblock & Whitelist
+                      {isBn ? 'আনব্লক ও হোয়াইটলিস্ট' : 'Unblock & Whitelist'}
                     </button>
                   </div>
                 ))
@@ -1549,7 +1572,7 @@ export default function VisitorAnalyticsPage() {
         )}
       </div>
 
-      {/* 🚀 VISITOR ROUTE JOURNEY & HARDWARE DRILLDOWN DRAWER */}
+      {/* VISITOR ROUTE JOURNEY & HARDWARE DRILLDOWN DRAWER */}
       {selectedJourneySession && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex justify-end animate-in fade-in duration-200" onClick={() => setSelectedJourneySession(null)}>
           <div
@@ -1565,7 +1588,7 @@ export default function VisitorAnalyticsPage() {
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="font-black text-sm text-slate-900 dark:text-white">
-                      {selectedJourneySession.customerName || 'Guest Shopper'}
+                      {selectedJourneySession.customerName || (isBn ? 'গেস্ট ক্রেতা' : 'Guest Shopper')}
                     </h3>
                     <span
                       className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
@@ -1590,7 +1613,7 @@ export default function VisitorAnalyticsPage() {
                 type="button"
                 onClick={() => setSelectedJourneySession(null)}
                 className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer"
-                title="Close Drawer"
+                title={isBn ? 'বন্ধ করুন' : 'Close Drawer'}
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1601,23 +1624,23 @@ export default function VisitorAnalyticsPage() {
               {/* 4 Summary Metric Badges */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                 <div className="p-3 rounded-xl bg-slate-100/70 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Total Hits</span>
-                  <span className="font-mono font-black text-sm text-slate-900 dark:text-white">{selectedJourneySession.pageviews} Views</span>
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">{isBn ? 'মোট হিটস' : 'Total Hits'}</span>
+                  <span className="font-mono font-black text-sm text-slate-900 dark:text-white">{selectedJourneySession.pageviews} {isBn ? 'ভিউ' : 'Views'}</span>
                 </div>
                 <div className="p-3 rounded-xl bg-slate-100/70 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Total Duration</span>
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">{isBn ? 'মোট সময়' : 'Total Duration'}</span>
                   <span className="font-mono font-black text-sm text-slate-900 dark:text-white">
                     {Math.floor(selectedJourneySession.durationSeconds / 60)}m {selectedJourneySession.durationSeconds % 60}s
                   </span>
                 </div>
                 <div className="p-3 rounded-xl bg-slate-100/70 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Device Type</span>
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">{isBn ? 'ডিভাইসের ধরন' : 'Device Type'}</span>
                   <span className="font-bold text-xs text-orange-600 dark:text-orange-400 truncate block">{selectedJourneySession.device}</span>
                 </div>
                 <div className="p-3 rounded-xl bg-slate-100/70 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Cart Value</span>
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">{isBn ? 'কার্ট মূল্য' : 'Cart Value'}</span>
                   <span className="font-mono font-bold text-xs text-emerald-600 dark:text-emerald-400">
-                    {selectedJourneySession.isCartActive ? `৳${selectedJourneySession.cartValueBDT?.toLocaleString() || '0'}` : 'No Cart'}
+                    {selectedJourneySession.isCartActive ? `৳${selectedJourneySession.cartValueBDT?.toLocaleString() || '0'}` : (isBn ? 'কার্ট নেই' : 'No Cart')}
                   </span>
                 </div>
               </div>
@@ -1626,36 +1649,36 @@ export default function VisitorAnalyticsPage() {
               <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 space-y-2.5">
                 <h4 className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
                   <Cpu className="w-4 h-4 text-orange-500" />
-                  Hardware & System Environment
+                  {isBn ? 'হার্ডওয়্যার ও সিস্টেম এনভায়রনমেন্ট' : 'Hardware & System Environment'}
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                   <div>
-                    <span className="text-slate-500 text-[11px] block">Exact Hardware Model:</span>
+                    <span className="text-slate-500 text-[11px] block">{isBn ? 'সুনির্দিষ্ট হার্ডওয়্যার মডেল:' : 'Exact Hardware Model:'}</span>
                     <span className="font-bold text-slate-900 dark:text-white">{selectedJourneySession.deviceModel}</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 text-[11px] block">Operating System:</span>
+                    <span className="text-slate-500 text-[11px] block">{isBn ? 'অপারেটিং সিস্টেম:' : 'Operating System:'}</span>
                     <span className="font-bold text-slate-900 dark:text-white">{selectedJourneySession.os}</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 text-[11px] block">Browser & Version:</span>
+                    <span className="text-slate-500 text-[11px] block">{isBn ? 'ব্রাউজার ও সংস্করণ:' : 'Browser & Version:'}</span>
                     <span className="font-bold text-slate-900 dark:text-white">{selectedJourneySession.browser}</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 text-[11px] block">Internet Service Provider:</span>
+                    <span className="text-slate-500 text-[11px] block">{isBn ? 'ইন্টারনেট সার্ভিস প্রোভাইডার:' : 'Internet Service Provider:'}</span>
                     <span className="font-bold text-slate-900 dark:text-white truncate">{selectedJourneySession.isp}</span>
                   </div>
                 </div>
               </div>
 
-              {/* 🧭 NAVIGATION ROUTE TIMELINE & ENGAGEMENT DEEP DIVE */}
+              {/* NAVIGATION ROUTE TIMELINE */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
                     <Compass className="w-4 h-4 text-orange-500" />
-                    Complete Route Navigation Journey ({selectedJourneySession.routeHistory?.length || 1} Routes)
+                    {isBn ? `সম্পূর্ণ রুট নেভিগেশন জার্নি (${selectedJourneySession.routeHistory?.length || 1}টি রুট)` : `Complete Route Navigation Journey (${selectedJourneySession.routeHistory?.length || 1} Routes)`}
                   </h4>
-                  <span className="text-[10px] text-slate-500">Sorted by entry order</span>
+                  <span className="text-[10px] text-slate-500">{isBn ? 'প্রবেশের ক্রমানুসারে সাজানো' : 'Sorted by entry order'}</span>
                 </div>
 
                 <div className="space-y-2.5">
@@ -1689,12 +1712,12 @@ export default function VisitorAnalyticsPage() {
                             </span>
                             {isCurrent && (
                               <span className="px-2 py-0.2 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] font-bold shrink-0">
-                                Live On Page
+                                {isBn ? 'বর্তমানে এই পেজে' : 'Live On Page'}
                               </span>
                             )}
                             {isHighEngagement && (
                               <span className="px-2 py-0.2 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[9px] font-bold shrink-0 flex items-center gap-1">
-                                🔥 High Interest
+                                {isBn ? '🔥 উচ্চ আগ্রহ' : '🔥 High Interest'}
                               </span>
                             )}
                           </div>
@@ -1703,7 +1726,7 @@ export default function VisitorAnalyticsPage() {
                           </span>
                         </div>
 
-                        {/* Progress Bar of Time Spent */}
+                        {/* Progress Bar */}
                         <div className="mt-2 flex items-center gap-2">
                           <div className="flex-1 h-1.5 rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
                             <div
@@ -1711,7 +1734,7 @@ export default function VisitorAnalyticsPage() {
                               style={{ width: `${pctOfTotal}%` }}
                             />
                           </div>
-                          <span className="text-[10px] font-mono text-slate-500 shrink-0">{pctOfTotal}% of session</span>
+                          <span className="text-[10px] font-mono text-slate-500 shrink-0">{pctOfTotal}% {isBn ? 'সেশনের' : 'of session'}</span>
                         </div>
                       </div>
                     );
@@ -1726,11 +1749,11 @@ export default function VisitorAnalyticsPage() {
                 type="button"
                 onClick={() => {
                   navigator.clipboard.writeText(selectedJourneySession.ip);
-                  showToast(`IP ${selectedJourneySession.ip} copied to clipboard.`);
+                  showToast(isBn ? `আইপি ${selectedJourneySession.ip} ক্লিপবোর্ডে কপি করা হয়েছে।` : `IP ${selectedJourneySession.ip} copied to clipboard.`);
                 }}
                 className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 transition-colors cursor-pointer"
               >
-                Copy IP Address
+                {isBn ? 'আইপি অ্যাড্রেস কপি করুন' : 'Copy IP Address'}
               </button>
 
               <div className="flex items-center gap-2">
@@ -1743,7 +1766,7 @@ export default function VisitorAnalyticsPage() {
                     }}
                     className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold shadow-md shadow-emerald-500/20 transition-all cursor-pointer"
                   >
-                    Unblock IP
+                    {isBn ? 'আইপি আনব্লক করুন' : 'Unblock IP'}
                   </button>
                 ) : (
                   <button
@@ -1753,7 +1776,7 @@ export default function VisitorAnalyticsPage() {
                     }}
                     className="px-4 py-2 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold shadow-md shadow-rose-500/20 transition-all cursor-pointer"
                   >
-                    Block IP Address
+                    {isBn ? 'আইপি অ্যাড্রেস ব্লক করুন' : 'Block IP Address'}
                   </button>
                 )}
               </div>
@@ -1772,10 +1795,10 @@ export default function VisitorAnalyticsPage() {
               </div>
               <div>
                 <h3 className="text-sm font-black text-slate-900 dark:text-white">
-                  Confirm IP Address Block
+                  {isBn ? 'আইপি অ্যাড্রেস ব্লক নিশ্চিতকরণ' : 'Confirm IP Address Block'}
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Bar this visitor from accessing storefront and checkout.
+                  {isBn ? 'এই ভিজিটরকে স্টোরফ্রন্ট এবং চেকআউট থেকে নিষিদ্ধ করুন।' : 'Bar this visitor from accessing storefront and checkout.'}
                 </p>
               </div>
             </div>
@@ -1786,13 +1809,13 @@ export default function VisitorAnalyticsPage() {
 
             <div>
               <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                Block Reason (Optional):
+                {isBn ? 'ব্লক করার কারণ (ঐচ্ছিক):' : 'Block Reason (Optional):'}
               </label>
               <input
                 type="text"
                 value={blockReasonInput}
                 onChange={(e) => setBlockReasonInput(e.target.value)}
-                placeholder="e.g. Excessive bot scraping / malicious attempts"
+                placeholder={isBn ? 'উদাঃ অতিরিক্ত বট স্ক্র্যাপিং / ক্ষতিকারক প্রচেষ্টা' : 'e.g. Excessive bot scraping / malicious attempts'}
                 className="w-full px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-rose-500"
               />
             </div>
@@ -1803,14 +1826,14 @@ export default function VisitorAnalyticsPage() {
                 onClick={() => setSelectedIPToBlock(null)}
                 className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all cursor-pointer"
               >
-                Cancel
+                {isBn ? 'বাতিল' : 'Cancel'}
               </button>
               <button
                 type="button"
                 onClick={handleConfirmBlock}
                 className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-md shadow-rose-500/25 transition-all cursor-pointer"
               >
-                Confirm Block IP
+                {isBn ? 'আইপি ব্লক নিশ্চিত করুন' : 'Confirm Block IP'}
               </button>
             </div>
           </div>
@@ -1819,3 +1842,4 @@ export default function VisitorAnalyticsPage() {
     </div>
   );
 }
+

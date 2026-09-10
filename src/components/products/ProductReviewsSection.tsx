@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useReviewStore, IReviewItem } from '@/store/useReviewStore';
+import { showConfirmDialog, showAlertDialog } from '@/store/useDialogStore';
 import { ReviewForm } from './ReviewForm';
 
 interface ProductReviewsSectionProps {
@@ -122,17 +123,29 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
     return list;
   }, [productReviews, activeTab, sortBy]);
 
-  const handleDelete = (reviewId: string) => {
+  const handleDelete = async (reviewId: string) => {
     if (!currentUserId) return;
-    if (confirm('আপনি কি নিশ্চিত যে এই রিভিউটি ডিলিট করতে চান?')) {
+    const isConfirmed = await showConfirmDialog({
+      title: 'রিভিউ মুছে ফেলবেন?',
+      message: 'আপনি কি নিশ্চিত যে এই রিভিউটি ডিলিট করতে চান?',
+      type: 'danger',
+      confirmText: 'মুছে ফেলুন',
+      cancelText: 'বাতিল',
+    });
+    if (isConfirmed) {
       deleteReview(reviewId, currentUserId, isAdmin);
       setActiveMenuId(null);
     }
   };
 
-  const handleVote = (reviewId: string) => {
+  const handleVote = async (reviewId: string) => {
     if (!currentUserId) {
-      alert('সহায়ক ভোট দিতে অনুগ্রহ করে লগইন করুন।');
+      await showAlertDialog({
+        title: 'লগইন প্রয়োজন',
+        message: 'সহায়ক ভোট দিতে অনুগ্রহ করে আপনার অ্যাকাউন্টে লগইন করুন।',
+        type: 'info',
+        confirmText: 'ঠিক আছে',
+      });
       return;
     }
     toggleHelpfulVote(reviewId, currentUserId);
@@ -384,7 +397,7 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
                     </div>
                   )}
 
-                  {/* Footer: Helpful Voting Button */}
+                  {/* Helpful Voting Button */}
                   <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800/60 text-xs">
                     <button
                       type="button"
@@ -406,7 +419,7 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
                     </span>
                   </div>
 
-                  {/* Official Merchant / Admin Reply Box */}
+                  {/* Official Merchant Reply */}
                   {rev.sellerReply && (
                     <div className="mt-3 p-4 rounded-2xl bg-orange-500/5 dark:bg-orange-500/10 border border-orange-500/20 space-y-2">
                       <div className="flex items-center justify-between">
@@ -436,8 +449,15 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
                               </button>
                               <button
                                 type="button"
-                                onClick={() => {
-                                  if (confirm('রিপ্লাই মুছে ফেলতে চান?')) {
+                                onClick={async () => {
+                                  const isConfirmed = await showConfirmDialog({
+                                    title: 'রিপ্লাই মুছে ফেলবেন?',
+                                    message: 'আপনি কি নিশ্চিত যে এই রিপ্লাইটি মুছে ফেলতে চান?',
+                                    type: 'danger',
+                                    confirmText: 'মুছুন',
+                                    cancelText: 'বাতিল',
+                                  });
+                                  if (isConfirmed) {
                                     deleteSellerReply(rev.id);
                                   }
                                 }}

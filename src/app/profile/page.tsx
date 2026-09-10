@@ -8,6 +8,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useOrderStore, UserOrder } from '@/store/useOrderStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
 import { useCartStore } from '@/store/useCartStore';
+import { showAlertDialog } from '@/store/useDialogStore';
 import {
   User as UserIcon,
   Package,
@@ -82,12 +83,17 @@ function ProfileContent() {
   }, [user]);
 
   // 📷 Handle Real Device File Upload for Profile Photo
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      alert('Image size exceeds 5MB. Please choose a smaller image.');
+      await showAlertDialog({
+        title: 'ছবির সাইজ সীমা অতিক্রম করেছে',
+        message: 'ছবির সাইজ সর্বোচ্চ ৫ মেগাবাইট (5MB) হতে পারে। অনুগ্রহ করে ছোট সাইজের ছবি নির্বাচন করুন।',
+        type: 'warning',
+        confirmText: 'ঠিক আছে',
+      });
       return;
     }
 
@@ -549,7 +555,7 @@ function ProfileContent() {
                         </div>
                       </div>
 
-                      {/* Tracking ID & Dispatch info */}
+                      {/* Tracking ID info */}
                       {selectedOrder.trackingNumber && (
                         <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
                           <div>

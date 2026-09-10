@@ -329,8 +329,12 @@ const AUDIT_LOGS = [
 ];
 
 import { useAuthStore } from '@/store/useAuthStore';
+import { useLanguageStore } from '@/store/useLanguageStore';
+import { toBengaliNumber } from '@/lib/translations';
 
 export default function AdminDashboardPage() {
+  const { language } = useLanguageStore();
+  const isBn = language === 'bn';
   const { token } = useAuthStore();
   const [timeRange, setTimeRange] = useState<TimeRange>('6months');
   const [activeModal, setActiveModal] = useState<DashboardModalType>('none');
@@ -397,13 +401,15 @@ export default function AdminDashboardPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-600 dark:text-orange-400 text-xs font-bold uppercase tracking-wider mb-2">
-              <ShieldCheck className="w-3.5 h-3.5" /> Super Admin Executive Ops
+              <ShieldCheck className="w-3.5 h-3.5" /> {isBn ? 'সুপার অ্যাডমিন এক্সিকিউটিভ অপস' : 'Super Admin Executive Ops'}
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-              Executive Dashboard & Telemetry
+              {isBn ? 'এক্সিকিউটিভ ড্যাশবোর্ড ও টেলিমেট্রি' : 'Executive Dashboard & Telemetry'}
             </h1>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
-              Real-time Bangladeshi Taka (৳) revenue analytics, inventory health, and live staff audit logs.
+              {isBn
+                ? 'রিয়েল-টাইম আয় অ্যানালিটিক্স, ইনভেন্টরি অবস্থা ও লাইভ অডিট লগ।'
+                : 'Real-time Bangladeshi Taka (৳) revenue analytics, inventory health, and live staff audit logs.'}
             </p>
           </div>
 
@@ -418,7 +424,7 @@ export default function AdminDashboardPage() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
               </span>
-              <span>{liveVisitorCount} Live Visitors</span>
+              <span>{isBn ? `${toBengaliNumber(liveVisitorCount)} জন লাইভ ভিজিটর` : `${liveVisitorCount} Live Visitors`}</span>
               <ArrowUpRight className="w-3.5 h-3.5 ml-0.5 opacity-70" />
             </Link>
           </div>
@@ -435,7 +441,7 @@ export default function AdminDashboardPage() {
           >
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                Revenue
+                {isBn ? 'মোট আয়' : 'Revenue'}
               </span>
               <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs group-hover:scale-110 transition-transform">
                 ৳ BDT
@@ -443,14 +449,14 @@ export default function AdminDashboardPage() {
             </div>
             <div className="mt-2.5 flex items-baseline justify-between">
               <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
-                ৳{currentData.totalRevenue.toLocaleString()}
+                {isBn ? `৳${toBengaliNumber(currentData.totalRevenue.toLocaleString('en-US'))}` : `৳${currentData.totalRevenue.toLocaleString()}`}
               </span>
               <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                Ledger &rarr;
+                {isBn ? 'লেজার →' : 'Ledger →'}
               </span>
             </div>
             <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 mt-1">
-              {currentData.growth} <ArrowUpRight className="w-3 h-3" />
+              {isBn ? currentData.growth.replace('vs last week', 'গত সপ্তাহের তুলনায়').replace('vs last month', 'গত মাসের তুলনায়').replace('vs prev 6mo', 'পূর্ববর্তী ৬ মাসের তুলনায়').replace('YoY Annual', 'বার্ষিক প্রবৃদ্ধি') : currentData.growth} <ArrowUpRight className="w-3 h-3" />
             </span>
           </button>
 
@@ -463,7 +469,7 @@ export default function AdminDashboardPage() {
           >
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
-                Orders
+                {isBn ? 'মোট অর্ডার' : 'Orders'}
               </span>
               <div className="p-1.5 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-400 group-hover:scale-110 transition-transform">
                 <Package className="w-4 h-4" />
@@ -471,14 +477,14 @@ export default function AdminDashboardPage() {
             </div>
             <div className="mt-2.5 flex items-baseline justify-between">
               <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
-                {currentData.totalOrders.toLocaleString()}
+                {isBn ? `${toBengaliNumber(currentData.totalOrders.toLocaleString('en-US'))}টি` : currentData.totalOrders.toLocaleString()}
               </span>
               <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                View &rarr;
+                {isBn ? 'দেখুন →' : 'View →'}
               </span>
             </div>
             <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400 flex items-center gap-1 mt-1">
-              99.2% Fulfillment
+              {isBn ? `${toBengaliNumber('99.2')}% সরবরাহ সম্পন্ন` : '99.2% Fulfillment'}
             </span>
           </button>
 
@@ -491,7 +497,7 @@ export default function AdminDashboardPage() {
           >
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
-                Average AOV
+                {isBn ? 'গড় অর্ডার মান (AOV)' : 'Average AOV'}
               </span>
               <div className="p-1.5 rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-400 group-hover:scale-110 transition-transform">
                 <TrendingUp className="w-4 h-4" />
@@ -499,13 +505,13 @@ export default function AdminDashboardPage() {
             </div>
             <div className="mt-2.5 flex items-baseline justify-between">
               <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
-                ৳{currentData.aov.toLocaleString()}
+                {isBn ? `৳${toBengaliNumber(currentData.aov.toLocaleString('en-US'))}` : `৳${currentData.aov.toLocaleString()}`}
               </span>
               <span className="text-[10px] font-bold text-violet-600 dark:text-violet-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                Analysis &rarr;
+                {isBn ? 'বিশ্লেষণ →' : 'Analysis →'}
               </span>
             </div>
-            <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 block mt-1">Per cart transaction</span>
+            <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 block mt-1">{isBn ? 'প্রতি কার্ট ট্রানজ্যাকশন' : 'Per cart transaction'}</span>
           </button>
 
           {/* 4. Return Rate Card (Click to open Return Registry & Customer History) */}
@@ -517,19 +523,19 @@ export default function AdminDashboardPage() {
           >
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
-                Return Rate
+                {isBn ? 'রিটার্ন হার' : 'Return Rate'}
               </span>
               <div className="p-1.5 rounded-lg bg-teal-500/10 text-teal-600 dark:text-teal-400 group-hover:scale-110 transition-transform">
                 <RotateCcw className="w-4 h-4" />
               </div>
             </div>
             <div className="mt-2.5 flex items-baseline justify-between">
-              <span className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400">0.8%</span>
+              <span className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400">{isBn ? `${toBengaliNumber('0.8')}%` : '0.8%'}</span>
               <span className="text-[10px] font-bold text-teal-600 dark:text-teal-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                Registry &rarr;
+                {isBn ? 'রেজিস্ট্রি →' : 'Registry →'}
               </span>
             </div>
-            <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 block mt-1">12 returned items</span>
+            <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 block mt-1">{isBn ? `${toBengaliNumber('12')}টি ফেরত পণ্য` : '12 returned items'}</span>
           </button>
 
           {/* 5. Stock Alerts (Interactive Link to Low Stock Inventory) */}
@@ -540,19 +546,19 @@ export default function AdminDashboardPage() {
           >
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
-                Low Stock
+                {isBn ? 'কম স্টক' : 'Low Stock'}
               </span>
               <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform">
                 <AlertTriangle className="w-4 h-4" />
               </div>
             </div>
             <div className="mt-2.5 flex items-baseline justify-between">
-              <span className="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400">3 items</span>
+              <span className="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400">{isBn ? `${toBengaliNumber('3')}টি পণ্য` : '3 items'}</span>
               <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                View &rarr;
+                {isBn ? 'দেখুন →' : 'View →'}
               </span>
             </div>
-            <span className="text-[10px] font-semibold text-amber-600/80 dark:text-amber-400/80 block mt-1">Threshold &le; 5 units</span>
+            <span className="text-[10px] font-semibold text-amber-600/80 dark:text-amber-400/80 block mt-1">{isBn ? `থ্রেশহোল্ড ≤ ${toBengaliNumber('5')} ইউনিট` : 'Threshold ≤ 5 units'}</span>
           </Link>
         </div>
 
@@ -567,43 +573,43 @@ export default function AdminDashboardPage() {
                 <div className="flex items-center gap-2">
                   <h2 className="text-lg font-black text-slate-900 dark:text-white">S.M. Amirul Islam Saad</h2>
                   <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-wider">
-                    Super Admin
+                    {isBn ? 'সুপার অ্যাডমিন' : 'Super Admin'}
                   </span>
                 </div>
                 <p className="text-xs text-orange-600 dark:text-orange-400 font-mono mt-0.5">admin@shopnexus.io • ID: ADM-001</p>
                 <div className="flex items-center gap-3 mt-2 text-[11px] text-slate-500 dark:text-slate-400">
-                  <span>Role: Lead Full-Stack Architect</span>
+                  <span>{isBn ? 'ভূমিকা: লিড ফুল-স্ট্যাক আর্কিটেক্ট' : 'Role: Lead Full-Stack Architect'}</span>
                   <span>•</span>
-                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold">2FA Enforced</span>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{isBn ? '২এফএ সক্রিয়' : '2FA Enforced'}</span>
                 </div>
               </div>
             </div>
 
             <div className="flex flex-col sm:items-end gap-2 text-xs">
-              <span className="text-slate-500 dark:text-slate-400">Status: <span className="text-emerald-600 dark:text-emerald-400 font-bold">Active Master Session</span></span>
+              <span className="text-slate-500 dark:text-slate-400">{isBn ? 'স্ট্যাটাস:' : 'Status:'} <span className="text-emerald-600 dark:text-emerald-400 font-bold">{isBn ? 'অ্যাক্টিভ মাস্টার সেশন' : 'Active Master Session'}</span></span>
               <Link
                 href="/admin/inventory"
                 className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-md shadow-orange-500/25 transition-all cursor-pointer"
               >
-                Upload & Manage Catalog
+                {isBn ? 'ক্যাটালগ আপলোড ও পরিচালনা' : 'Upload & Manage Catalog'}
               </Link>
             </div>
           </div>
 
           <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 flex flex-col justify-between space-y-3 shadow-sm">
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Platform Health & Telemetry</span>
+            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{isBn ? 'প্ল্যাটফর্ম হেলথ ও টেলিমেট্রি' : 'Platform Health & Telemetry'}</span>
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-600 dark:text-slate-400">Atlas Cloud Database</span>
-                <span className="text-emerald-600 dark:text-emerald-400 font-bold">Connected (99.9%)</span>
+                <span className="text-slate-600 dark:text-slate-400">{isBn ? 'অ্যাটলাস ক্লাউড ডেটাবেস' : 'Atlas Cloud Database'}</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-bold">{isBn ? 'সংযুক্ত (৯৯.৯%)' : 'Connected (99.9%)'}</span>
               </div>
               <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-600 dark:text-slate-400">AI Chatbot Fallback Engine</span>
-                <span className="text-orange-600 dark:text-orange-400 font-bold">Gemini + Groq Active</span>
+                <span className="text-slate-600 dark:text-slate-400">{isBn ? 'এআই চ্যাটবট ইঞ্জিন' : 'AI Chatbot Fallback Engine'}</span>
+                <span className="text-orange-600 dark:text-orange-400 font-bold">{isBn ? 'জেমিনি + গ্রক সক্রিয়' : 'Gemini + Groq Active'}</span>
               </div>
               <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-600 dark:text-slate-400">Logistics API Gateway</span>
-                <span className="text-amber-600 dark:text-amber-400 font-bold">4 Courier Partners Live</span>
+                <span className="text-slate-600 dark:text-slate-400">{isBn ? 'লজিস্টিকস এপিআই গেটওয়ে' : 'Logistics API Gateway'}</span>
+                <span className="text-amber-600 dark:text-amber-400 font-bold">{isBn ? '৪টি কুরিয়ার পার্টনার লাইভ' : '4 Courier Partners Live'}</span>
               </div>
             </div>
           </div>
@@ -617,8 +623,8 @@ export default function AdminDashboardPage() {
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                 <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white">Revenue Growth (৳ BDT)</h3>
-                  <span className="text-xs text-slate-500 dark:text-slate-400">Dynamic sales & order volume analysis</span>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">{isBn ? 'আয় প্রবৃদ্ধি (৳ BDT)' : 'Revenue Growth (৳ BDT)'}</h3>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">{isBn ? 'ডাইনামিক সেলস ও অর্ডার ভলিউম অ্যানালিটিক্স' : 'Dynamic sales & order volume analysis'}</span>
                 </div>
               </div>
 
@@ -633,7 +639,7 @@ export default function AdminDashboardPage() {
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
-                  7 Days
+                  {isBn ? '৭ দিন' : '7 Days'}
                 </button>
                 <button
                   type="button"
@@ -644,7 +650,7 @@ export default function AdminDashboardPage() {
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
-                  30 Days
+                  {isBn ? '৩০ দিন' : '30 Days'}
                 </button>
                 <button
                   type="button"
@@ -655,7 +661,7 @@ export default function AdminDashboardPage() {
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
-                  6 Months
+                  {isBn ? '৬ মাস' : '6 Months'}
                 </button>
                 <button
                   type="button"
@@ -666,7 +672,7 @@ export default function AdminDashboardPage() {
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
-                  Year 2026
+                  {isBn ? '১ বছর' : 'Year'}
                 </button>
               </div>
             </div>
@@ -711,7 +717,7 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* 🌟 1. REVENUE INFLOW LEDGER MODAL */}
+        {/* 1. REVENUE INFLOW LEDGER MODAL */}
         {activeModal === 'revenue' && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md overflow-y-auto">
             <div className="relative w-full max-w-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5 my-8 max-h-[90vh] overflow-y-auto">
@@ -737,19 +743,19 @@ export default function AdminDashboardPage() {
               {/* 3 Quick Settlement Stats */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
-                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Settled Revenue</span>
-                  <div className="text-xl font-black text-slate-900 dark:text-white mt-1">৳{currentData.totalRevenue.toLocaleString()}</div>
-                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">{currentData.growth}</span>
+                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">{isBn ? 'নিষ্পত্তিকৃত আয়' : 'Settled Revenue'}</span>
+                  <div className="text-xl font-black text-slate-900 dark:text-white mt-1">{isBn ? `৳${toBengaliNumber(currentData.totalRevenue.toLocaleString('en-US'))}` : `৳${currentData.totalRevenue.toLocaleString()}`}</div>
+                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">{isBn ? currentData.growth.replace('vs last week', 'গত সপ্তাহের তুলনায়').replace('vs last month', 'গত মাসের তুলনায়').replace('vs prev 6mo', 'পূর্ববর্তী ৬ মাসের তুলনায়').replace('YoY Annual', 'বার্ষিক প্রবৃদ্ধি') : currentData.growth}</span>
                 </div>
                 <div className="p-3.5 rounded-2xl bg-orange-500/10 border border-orange-500/20">
-                  <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider">MFS Inflow (bKash/Nagad)</span>
-                  <div className="text-xl font-black text-slate-900 dark:text-white mt-1">৳2,630,000</div>
-                  <span className="text-[10px] text-orange-600 dark:text-orange-400 font-semibold">76.2% of Total Inflow</span>
+                  <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider">{isBn ? 'এমএফএস ইনফ্লো (বিকাশ/নগদ)' : 'MFS Inflow (bKash/Nagad)'}</span>
+                  <div className="text-xl font-black text-slate-900 dark:text-white mt-1">{isBn ? `৳${toBengaliNumber('2,630,000')}` : '৳2,630,000'}</div>
+                  <span className="text-[10px] text-orange-600 dark:text-orange-400 font-semibold">{isBn ? `${toBengaliNumber('76.2')}% মোট ইনফ্লো` : '76.2% of Total Inflow'}</span>
                 </div>
                 <div className="p-3.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/20">
-                  <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">Card & COD Escrow</span>
-                  <div className="text-xl font-black text-slate-900 dark:text-white mt-1">৳820,000</div>
-                  <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold">Bank Cleared</span>
+                  <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">{isBn ? 'কার্ড ও সিওডি এসক্রো' : 'Card & COD Escrow'}</span>
+                  <div className="text-xl font-black text-slate-900 dark:text-white mt-1">{isBn ? `৳${toBengaliNumber('820,000')}` : '৳820,000'}</div>
+                  <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold">{isBn ? 'ব্যাংক ক্লিয়ার্ড' : 'Bank Cleared'}</span>
                 </div>
               </div>
 
@@ -758,11 +764,11 @@ export default function AdminDashboardPage() {
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-50 dark:bg-slate-950 text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
                     <tr>
-                      <th className="px-4 py-3">Date & TRX ID</th>
-                      <th className="px-4 py-3">Customer & Item</th>
-                      <th className="px-4 py-3">Gateway</th>
-                      <th className="px-4 py-3 text-right">Inflow Amount (৳)</th>
-                      <th className="px-4 py-3 text-right">Status</th>
+                      <th className="px-4 py-3">{isBn ? 'তারিখ ও টিআরএক্স আইডি' : 'Date & TRX ID'}</th>
+                      <th className="px-4 py-3">{isBn ? 'গ্রাহক ও পণ্য' : 'Customer & Item'}</th>
+                      <th className="px-4 py-3">{isBn ? 'গেটওয়ে' : 'Gateway'}</th>
+                      <th className="px-4 py-3 text-right">{isBn ? 'ইনফ্লো পরিমাণ (৳)' : 'Inflow Amount (৳)'}</th>
+                      <th className="px-4 py-3 text-right">{isBn ? 'স্ট্যাটাস' : 'Status'}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60 text-slate-700 dark:text-slate-300">
@@ -782,7 +788,7 @@ export default function AdminDashboardPage() {
                           </span>
                         </td>
                         <td className="px-4 py-3 text-right font-mono font-black text-emerald-600 dark:text-emerald-400">
-                          +৳{trx.amount.toLocaleString()}
+                          {isBn ? `+৳${toBengaliNumber(trx.amount.toLocaleString('en-US'))}` : `+৳${trx.amount.toLocaleString()}`}
                         </td>
                         <td className="px-4 py-3 text-right">
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold">
@@ -796,20 +802,20 @@ export default function AdminDashboardPage() {
               </div>
 
               <div className="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-800">
-                <span className="text-xs text-slate-500 dark:text-slate-400">Showing latest live gateway settlements in Bangladeshi Taka</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">{isBn ? 'সর্বশেষ লাইভ গেটওয়ে নিষ্পত্তি (বাংলাদেশি টাকায়)' : 'Showing latest live gateway settlements in Bangladeshi Taka'}</span>
                 <button
                   type="button"
                   onClick={() => setActiveModal('none')}
                   className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition-all cursor-pointer"
                 >
-                  Close Ledger
+                  {isBn ? 'লেজার বন্ধ করুন' : 'Close Ledger'}
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* 🌟 2. ORDERS OVERVIEW & GROSS VOLUME MODAL */}
+        {/* 2. ORDERS OVERVIEW & GROSS VOLUME MODAL */}
         {activeModal === 'orders' && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md overflow-y-auto">
             <div className="relative w-full max-w-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5 my-8 max-h-[90vh] overflow-y-auto">
@@ -819,8 +825,8 @@ export default function AdminDashboardPage() {
                     <ShoppingBag className="w-5 h-5" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-black text-slate-900 dark:text-white">Customer Sales Orders Breakdown</h2>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400">Total {currentData.totalOrders.toLocaleString()} orders generated across Bangladesh</p>
+                    <h2 className="text-lg font-black text-slate-900 dark:text-white">{isBn ? 'গ্রাহক সেলস অর্ডার বিবরণ' : 'Customer Sales Orders Breakdown'}</h2>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">{isBn ? `সারাদেশ থেকে মোট ${toBengaliNumber(currentData.totalOrders.toLocaleString('en-US'))}টি অর্ডার গৃহীত হয়েছে` : `Total ${currentData.totalOrders.toLocaleString()} orders generated across Bangladesh`}</p>
                   </div>
                 </div>
                 <button
@@ -835,19 +841,19 @@ export default function AdminDashboardPage() {
               {/* Order Stats */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-                  <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Volume</span>
-                  <div className="text-xl font-black text-slate-900 dark:text-white mt-1">{currentData.totalOrders.toLocaleString()} Orders</div>
-                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">99.2% Fulfillment Rate</span>
+                  <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{isBn ? 'মোট ভলিউম' : 'Total Volume'}</span>
+                  <div className="text-xl font-black text-slate-900 dark:text-white mt-1">{isBn ? `${toBengaliNumber(currentData.totalOrders.toLocaleString('en-US'))}টি অর্ডার` : `${currentData.totalOrders.toLocaleString()} Orders`}</div>
+                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">{isBn ? `${toBengaliNumber('99.2')}% সরবরাহ সম্পন্ন` : '99.2% Fulfillment Rate'}</span>
                 </div>
                 <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-                  <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Gross Order Value</span>
-                  <div className="text-xl font-black text-slate-900 dark:text-white mt-1">৳{currentData.totalRevenue.toLocaleString()}</div>
-                  <span className="text-[10px] text-orange-600 dark:text-orange-400 font-semibold">All Items Verified</span>
+                  <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{isBn ? 'মোট অর্ডার মূল্য' : 'Gross Order Value'}</span>
+                  <div className="text-xl font-black text-slate-900 dark:text-white mt-1">{isBn ? `৳${toBengaliNumber(currentData.totalRevenue.toLocaleString('en-US'))}` : `৳${currentData.totalRevenue.toLocaleString()}`}</div>
+                  <span className="text-[10px] text-orange-600 dark:text-orange-400 font-semibold">{isBn ? 'সকল আইটেম যাচাইকৃত' : 'All Items Verified'}</span>
                 </div>
                 <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-                  <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Average Items / Cart</span>
-                  <div className="text-xl font-black text-slate-900 dark:text-white mt-1">2.4 Items</div>
-                  <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold">Multi-item conversion</span>
+                  <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{isBn ? 'গড় আইটেম / কার্ট' : 'Average Items / Cart'}</span>
+                  <div className="text-xl font-black text-slate-900 dark:text-white mt-1">{isBn ? `${toBengaliNumber('2.4')}টি আইটেম` : '2.4 Items'}</div>
+                  <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold">{isBn ? 'মাল্টি-আইটেম কনভার্সন' : 'Multi-item conversion'}</span>
                 </div>
               </div>
 
@@ -856,11 +862,11 @@ export default function AdminDashboardPage() {
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-50 dark:bg-slate-950 text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
                     <tr>
-                      <th className="px-4 py-3">Order ID & Customer</th>
-                      <th className="px-4 py-3">Purchased Items</th>
-                      <th className="px-4 py-3">Payment</th>
-                      <th className="px-4 py-3 text-right">Order Value (৳)</th>
-                      <th className="px-4 py-3 text-right">Status</th>
+                      <th className="px-4 py-3">{isBn ? 'অর্ডার আইডি ও গ্রাহক' : 'Order ID & Customer'}</th>
+                      <th className="px-4 py-3">{isBn ? 'ক্রয়কৃত পণ্য' : 'Purchased Items'}</th>
+                      <th className="px-4 py-3">{isBn ? 'পেমেন্ট' : 'Payment'}</th>
+                      <th className="px-4 py-3 text-right">{isBn ? 'অর্ডার মূল্য (৳)' : 'Order Value (৳)'}</th>
+                      <th className="px-4 py-3 text-right">{isBn ? 'স্ট্যাটাস' : 'Status'}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60 text-slate-700 dark:text-slate-300">
@@ -879,7 +885,7 @@ export default function AdminDashboardPage() {
                           </span>
                         </td>
                         <td className="px-4 py-3 text-right font-mono font-black text-slate-900 dark:text-white">
-                          ৳{ord.amount.toLocaleString()}
+                          {isBn ? `৳${toBengaliNumber(ord.amount.toLocaleString('en-US'))}` : `৳${ord.amount.toLocaleString()}`}
                         </td>
                         <td className="px-4 py-3 text-right">
                           <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold">
@@ -897,21 +903,21 @@ export default function AdminDashboardPage() {
                   href="/admin/orders"
                   className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white text-xs font-bold shadow-md shadow-orange-500/25 hover:from-[#e63d00] hover:to-[#ff6600] transition-all cursor-pointer"
                 >
-                  Manage All Orders in Order Portal <ExternalLink className="w-3.5 h-3.5" />
+                  {isBn ? 'অর্ডার পোর্টালে সব অর্ডার দেখুন' : 'Manage All Orders in Order Portal'} <ExternalLink className="w-3.5 h-3.5" />
                 </Link>
                 <button
                   type="button"
                   onClick={() => setActiveModal('none')}
                   className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition-all cursor-pointer"
                 >
-                  Close
+                  {isBn ? 'বন্ধ করুন' : 'Close'}
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* 🌟 3. AVERAGE ORDER VALUE (AOV) ANALYTICS MODAL */}
+        {/* 3. AVERAGE ORDER VALUE (AOV) ANALYTICS MODAL */}
         {activeModal === 'aov' && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md overflow-y-auto">
             <div className="relative w-full max-w-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5 my-8 max-h-[90vh] overflow-y-auto">
@@ -921,8 +927,8 @@ export default function AdminDashboardPage() {
                     <PieChart className="w-5 h-5" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-black text-slate-900 dark:text-white">Average Order Value (AOV) Analytics</h2>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400">Cart sizing, customer purchasing power, and category breakdown</p>
+                    <h2 className="text-lg font-black text-slate-900 dark:text-white">{isBn ? 'গড় অর্ডার মূল্য (AOV) বিশ্লেষণ' : 'Average Order Value (AOV) Analytics'}</h2>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">{isBn ? 'কার্ট সাইজিং, গ্রাহকের ক্রয়ক্ষমতা ও ক্যাটাগরি বিশ্লেষণ' : 'Cart sizing, customer purchasing power, and category breakdown'}</p>
                   </div>
                 </div>
                 <button
@@ -937,25 +943,25 @@ export default function AdminDashboardPage() {
               {/* Key AOV Banner */}
               <div className="p-4 rounded-2xl bg-gradient-to-r from-violet-500/10 via-purple-500/10 to-indigo-500/10 border border-violet-500/20 flex items-center justify-between">
                 <div>
-                  <span className="text-[11px] font-bold text-violet-600 dark:text-violet-400 uppercase tracking-wider">Current Benchmark AOV</span>
-                  <div className="text-3xl font-black text-slate-900 dark:text-white mt-1">৳{currentData.aov.toLocaleString()} BDT</div>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Calculated across {currentData.totalOrders.toLocaleString()} confirmed checkout sessions</p>
+                  <span className="text-[11px] font-bold text-violet-600 dark:text-violet-400 uppercase tracking-wider">{isBn ? 'বর্তমান বেঞ্চমার্ক AOV' : 'Current Benchmark AOV'}</span>
+                  <div className="text-3xl font-black text-slate-900 dark:text-white mt-1">{isBn ? `৳${toBengaliNumber(currentData.aov.toLocaleString('en-US'))}` : `৳${currentData.aov.toLocaleString()} BDT`}</div>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{isBn ? `${toBengaliNumber(currentData.totalOrders.toLocaleString('en-US'))}টি নিশ্চিত চেকআউট সেশনের ভিত্তিতে গণনাকৃত` : `Calculated across ${currentData.totalOrders.toLocaleString()} confirmed checkout sessions`}</p>
                 </div>
                 <div className="text-right">
                   <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold">
-                    +12.8% vs Q1
+                    {isBn ? `+${toBengaliNumber('12.8')}% Q1 এর তুলনায়` : '+12.8% vs Q1'}
                   </span>
                 </div>
               </div>
 
               {/* Basket Size Breakdown */}
               <div className="space-y-2.5">
-                <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Cart Basket Sizing Distribution</h4>
+                <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">{isBn ? 'কার্ট বাস্কেট সাইজ বিন্যাস' : 'Cart Basket Sizing Distribution'}</h4>
                 
                 <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1.5">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-slate-700 dark:text-slate-300">Single Item Carts (42% volume)</span>
-                    <span className="font-bold text-slate-900 dark:text-white font-mono">Avg ৳1,850</span>
+                    <span className="font-semibold text-slate-700 dark:text-slate-300">{isBn ? `একক পণ্যের কার্ট (${toBengaliNumber('42')}% ভলিউম)` : 'Single Item Carts (42% volume)'}</span>
+                    <span className="font-bold text-slate-900 dark:text-white font-mono">{isBn ? `গড় ৳${toBengaliNumber('1,850')}` : 'Avg ৳1,850'}</span>
                   </div>
                   <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
                     <div className="bg-orange-500 h-full rounded-full" style={{ width: '42%' }} />
@@ -964,8 +970,8 @@ export default function AdminDashboardPage() {
 
                 <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1.5">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-slate-700 dark:text-slate-300">Multi-item Bundle Carts (48% volume)</span>
-                    <span className="font-bold text-slate-900 dark:text-white font-mono">Avg ৳3,420</span>
+                    <span className="font-semibold text-slate-700 dark:text-slate-300">{isBn ? `মাল্টি-আইটেম বান্ডেল কার্ট (${toBengaliNumber('48')}% ভলিউম)` : 'Multi-item Bundle Carts (48% volume)'}</span>
+                    <span className="font-bold text-slate-900 dark:text-white font-mono">{isBn ? `গড় ৳${toBengaliNumber('3,420')}` : 'Avg ৳3,420'}</span>
                   </div>
                   <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
                     <div className="bg-violet-500 h-full rounded-full" style={{ width: '48%' }} />
@@ -974,8 +980,8 @@ export default function AdminDashboardPage() {
 
                 <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1.5">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-slate-700 dark:text-slate-300">High-Ticket Enthusiast Bundles (10% volume)</span>
-                    <span className="font-bold text-slate-900 dark:text-white font-mono">Avg ৳6,950</span>
+                    <span className="font-semibold text-slate-700 dark:text-slate-300">{isBn ? `হাই-টিকিট এনথুসিয়াস্ট বান্ডেল (${toBengaliNumber('10')}% ভলিউম)` : 'High-Ticket Enthusiast Bundles (10% volume)'}</span>
+                    <span className="font-bold text-slate-900 dark:text-white font-mono">{isBn ? `গড় ৳${toBengaliNumber('6,950')}` : 'Avg ৳6,950'}</span>
                   </div>
                   <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
                     <div className="bg-emerald-500 h-full rounded-full" style={{ width: '10%' }} />
@@ -1006,7 +1012,7 @@ export default function AdminDashboardPage() {
           </div>
         )}
 
-        {/* 🌟 4. RETURN RATE REGISTRY & CUSTOMER DISPUTE REMINDER MODAL */}
+        {/* 4. RETURN RATE REGISTRY & CUSTOMER DISPUTE REMINDER MODAL */}
         {activeModal === 'returns' && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md overflow-y-auto">
             <div className="relative w-full max-w-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5 my-8 max-h-[90vh] overflow-y-auto">
@@ -1108,7 +1114,7 @@ export default function AdminDashboardPage() {
           </div>
         )}
 
-        {/* 🌟 5. LIVE STAFF AUDIT TRAIL & TIMESHEET MODAL */}
+        {/* 5. LIVE STAFF AUDIT TRAIL & TIMESHEET MODAL */}
         {activeModal === 'staff-logs' && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md overflow-y-auto">
             <div className="relative w-full max-w-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5 my-8 max-h-[90vh] overflow-y-auto">
@@ -1142,7 +1148,9 @@ export default function AdminDashboardPage() {
                       : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900'
                   }`}
                 >
-                  Staff Session Timesheet (কে কখন আসছে ও কতক্ষণ লগইন ছিল)
+                  {isBn
+                    ? 'স্টাফ সেশন টাইমশিট (কে কখন আসছে ও কতক্ষণ লগইন ছিল)'
+                    : 'Staff Session Timesheet (Clock-in & Session Duration)'}
                 </button>
                 <button
                   type="button"
@@ -1153,7 +1161,9 @@ export default function AdminDashboardPage() {
                       : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900'
                   }`}
                 >
-                  Live Action Event Logs ({AUDIT_LOGS.length})
+                  {isBn
+                    ? `লাইভ অ্যাকশন ইভেন্ট লগ (${AUDIT_LOGS.length})`
+                    : `Live Action Event Logs (${AUDIT_LOGS.length})`}
                 </button>
               </div>
 

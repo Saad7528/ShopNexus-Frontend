@@ -9,6 +9,7 @@ import { useCartStore } from '@/store/useCartStore';
 import { useLanguageStore } from '@/store/useLanguageStore';
 import { formatCurrency, toBengaliNumber } from '@/lib/translations';
 import { getLocalizedProduct } from '@/lib/localizedProducts';
+import { showAlertDialog } from '@/store/useDialogStore';
 import {
   Sparkles,
   X,
@@ -105,9 +106,17 @@ export const ChatbotWidget: React.FC = () => {
     }
   }, [language]);
 
-  const toggleVoiceInput = () => {
+  const toggleVoiceInput = async () => {
     if (!recognitionRef.current) {
-      alert('Your browser does not support Web Speech Recognition. Please use Chrome/Edge or type your message.');
+      await showAlertDialog({
+        title: language === 'bn' ? 'ভয়েস ইনপুট সমর্থিত নয়' : 'Voice Input Unsupported',
+        message:
+          language === 'bn'
+            ? 'আপনার ব্রাউজারে ওয়েব স্পিচ রিকগনিশন উপলব্ধ নেই। অনুগ্রহ করে Chrome/Edge ব্যবহার করুন অথবা টাইপ করে লিখুন।'
+            : 'Your browser does not support Web Speech Recognition. Please use Chrome/Edge or type your message.',
+        type: 'info',
+        confirmText: language === 'bn' ? 'ঠিক আছে' : 'OK',
+      });
       return;
     }
 
@@ -124,9 +133,17 @@ export const ChatbotWidget: React.FC = () => {
     }
   };
 
-  const handleSpeak = (text: string, msgId: string) => {
+  const handleSpeak = async (text: string, msgId: string) => {
     if (!('speechSynthesis' in window)) {
-      alert(language === 'bn' ? 'আপনার ব্রাউজারে টেক্সট-টু-স্পিচ উপলব্ধ নেই।' : 'Text-to-speech is not supported on this browser.');
+      await showAlertDialog({
+        title: language === 'bn' ? 'ভয়েস আউটপুট সমর্থিত নয়' : 'Speech Unsupported',
+        message:
+          language === 'bn'
+            ? 'আপনার ব্রাউজারে টেক্সট-টু-স্পিচ উপলব্ধ নেই।'
+            : 'Text-to-speech is not supported on this browser.',
+        type: 'info',
+        confirmText: language === 'bn' ? 'ঠিক আছে' : 'OK',
+      });
       return;
     }
 
@@ -343,11 +360,11 @@ export const ChatbotWidget: React.FC = () => {
                     {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
                   </div>
 
-                  <div className={`max-w-[85%] space-y-2 ${isUser ? 'text-right' : 'text-left'}`}>
+                  <div className={`max-w-[92%] sm:max-w-[88%] space-y-2 ${isUser ? 'text-right' : 'text-left'}`}>
                     <div
                       className={`inline-block p-3.5 rounded-2xl text-xs sm:text-sm leading-relaxed ${
                         isUser
-                          ? 'bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white shadow-md rounded-tr-xs'
+                          ? 'bg-linear-to-r from-[#ff4400] to-[#ff7700] text-white shadow-md rounded-tr-xs'
                           : 'bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 rounded-tl-xs'
                       }`}
                     >
@@ -379,43 +396,63 @@ export const ChatbotWidget: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Suggested Product Cards Grid */}
+                    {/* Suggested Product Cards */}
                     {msg.suggestedProducts && msg.suggestedProducts.length > 0 && (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                      <div className={isFullScreen ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 pt-1" : "space-y-2 pt-1"}>
                         {msg.suggestedProducts.map((prod) => {
                           const localizedProd = getLocalizedProduct(prod, language);
                           return (
                             <div
                               key={prod._id}
-                              className="p-2.5 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 hover:border-orange-500/50 shadow-xs flex items-center gap-2.5 transition-all group"
+                              className="p-3 rounded-2xl bg-white dark:bg-slate-900/95 border border-slate-200 dark:border-slate-800 hover:border-orange-500/50 shadow-xs flex items-center justify-between gap-3 transition-all group"
                             >
-                              <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 shrink-0">
-                                <Image src={prod.image} alt={prod.title} fill className="object-cover" unoptimized />
-                              </div>
+                              <div className="flex items-center gap-3 min-w-0 flex-1">
+                                <Link
+                                  href={`/products/${prod._id}`}
+                                  className="relative w-12 h-12 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 shrink-0 border border-slate-200/60 dark:border-slate-800"
+                                >
+                                  <Image src={prod.image} alt={prod.title} fill className="object-cover group-hover:scale-105 transition-transform" unoptimized />
+                                </Link>
 
-                              <div className="flex-1 min-w-0">
-                                <h4 className="font-bold text-[11px] text-slate-900 dark:text-white truncate">
-                                  {localizedProd.title}
-                                </h4>
-                                <div className="flex items-center gap-1 text-[10px] text-amber-500">
-                                  <Star className="w-2.5 h-2.5 fill-current" />
-                                  <span className="font-bold">
-                                    {language === 'bn' ? toBengaliNumber(prod.rating || 4.8) : (prod.rating || 4.8)}
-                                  </span>
+                                <div className="flex-1 min-w-0">
+                                  <Link
+                                    href={`/products/${prod._id}`}
+                                    className="font-bold text-xs text-slate-900 dark:text-white hover:text-orange-600 dark:hover:text-orange-400 transition-colors line-clamp-2 leading-tight block"
+                                    title={localizedProd.title}
+                                  >
+                                    {localizedProd.title}
+                                  </Link>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <div className="flex items-center gap-1 text-[10px] text-amber-500 shrink-0 font-bold">
+                                      <Star className="w-2.5 h-2.5 fill-current" />
+                                      <span>
+                                        {language === 'bn' ? toBengaliNumber(prod.rating || 4.8) : (prod.rating || 4.8)}
+                                      </span>
+                                    </div>
+                                    <span className="font-mono font-black text-xs text-orange-600 dark:text-orange-400">
+                                      {formatCurrency(prod.discountPrice || prod.price, language)}
+                                    </span>
+                                  </div>
                                 </div>
-                                <span className="font-mono font-black text-xs text-orange-600 dark:text-orange-400 block">
-                                  {formatCurrency(prod.discountPrice || prod.price, language)}
-                                </span>
                               </div>
 
-                              <button
-                                type="button"
-                                onClick={() => handleAddSuggestedToCart(prod)}
-                                className="p-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white transition-all shadow-xs active:scale-90 cursor-pointer shrink-0"
-                                title={language === 'bn' ? '১-ক্লিকে কার্টে যোগ করুন' : '1-Click Add to Cart'}
-                              >
-                                <ShoppingBag className="w-3.5 h-3.5" />
-                              </button>
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => handleAddSuggestedToCart(prod)}
+                                  className="p-2.5 rounded-xl bg-linear-to-r from-[#ff4400] to-[#ff7700] hover:from-[#ff5500] hover:to-[#ff8800] text-white transition-all shadow-md shadow-orange-500/20 active:scale-95 cursor-pointer"
+                                  title={language === 'bn' ? '১-ক্লিকে কার্টে যোগ করুন' : '1-Click Add to Cart'}
+                                >
+                                  <ShoppingBag className="w-3.5 h-3.5" />
+                                </button>
+                                <Link
+                                  href={`/products/${prod._id}`}
+                                  className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors"
+                                  title={language === 'bn' ? 'বিস্তারিত দেখুন' : 'View Details'}
+                                >
+                                  <ArrowRight className="w-3.5 h-3.5" />
+                                </Link>
+                              </div>
                             </div>
                           );
                         })}
