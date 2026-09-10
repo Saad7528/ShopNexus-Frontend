@@ -53,7 +53,6 @@ export default function AdminReviewsPage() {
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
-  // Fetch live reviews on mount
   React.useEffect(() => {
     const fetchLiveReviews = async () => {
       try {
@@ -64,7 +63,6 @@ export default function AdminReviewsPage() {
         });
         if (res.ok) {
           const data = await res.json();
-          // Successfully retrieved reviews from MongoDB Atlas
         }
       } catch (err) {
         console.error('Error fetching live reviews:', err);
