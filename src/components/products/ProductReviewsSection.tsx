@@ -397,7 +397,7 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
                     </div>
                   )}
 
-                  {/* Footer: Helpful Voting Button */}
+                  {/* Helpful Voting Button */}
                   <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800/60 text-xs">
                     <button
                       type="button"
@@ -419,7 +419,7 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
                     </span>
                   </div>
 
-                  {/* Official Merchant / Admin Reply Box */}
+                  {/* Official Merchant Reply */}
                   {rev.sellerReply && (
                     <div className="mt-3 p-4 rounded-2xl bg-orange-500/5 dark:bg-orange-500/10 border border-orange-500/20 space-y-2">
                       <div className="flex items-center justify-between">
