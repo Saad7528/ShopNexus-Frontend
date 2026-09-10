@@ -189,7 +189,7 @@ export function getProductOrInventoryById(idOrSlug: string): (IInventoryItem | P
   if (!idOrSlug) return undefined;
   const decoded = decodeURIComponent(idOrSlug).trim().toLowerCase();
 
-  // 1. Direct match in INITIAL_INVENTORY
+  // 1. Direct match INITIAL_INVENTORY
   const invFound = INITIAL_INVENTORY.find(
     (item) =>
       item.id.toLowerCase() === decoded ||
