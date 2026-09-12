@@ -56,14 +56,14 @@ function GoogleCallbackContent() {
           }),
         });
 
-        let data: any = {};
+        let data: { success?: boolean; message?: string; data?: { user: import('@/types/user').User; token: string } } = {};
         try {
           data = await backendRes.json();
-        } catch (_jsonErr) {
+        } catch {
           throw new Error(`Server returned unexpected response (${backendRes.status})`);
         }
 
-        if (!backendRes.ok || !data.success) {
+        if (!backendRes.ok || !data.success || !data.data) {
           throw new Error(data.message || 'Failed to authenticate with backend.');
         }
 
@@ -73,9 +73,10 @@ function GoogleCallbackContent() {
         setTimeout(() => {
           router.push('/products');
         }, 1200);
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Google authentication failed.';
         setStatus('error');
-        setErrorMsg(err.message || 'Google authentication failed.');
+        setErrorMsg(message);
       }
     };
 

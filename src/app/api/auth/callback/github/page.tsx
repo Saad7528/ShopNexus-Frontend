@@ -27,14 +27,14 @@ function GitHubCallbackContent() {
           body: JSON.stringify({ code }),
         });
 
-        let data: any = {};
+        let data: { success?: boolean; message?: string; data?: { user: import('@/types/user').User; token: string } } = {};
         try {
           data = await backendRes.json();
-        } catch (_jsonErr) {
+        } catch {
           throw new Error(`Server returned unexpected response (${backendRes.status})`);
         }
 
-        if (!backendRes.ok || !data.success) {
+        if (!backendRes.ok || !data.success || !data.data) {
           throw new Error(data.message || 'GitHub login failed.');
         }
 
@@ -44,9 +44,10 @@ function GitHubCallbackContent() {
         setTimeout(() => {
           router.push('/products');
         }, 1200);
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'GitHub authentication failed.';
         setStatus('error');
-        setErrorMsg(err.message || 'GitHub authentication failed.');
+        setErrorMsg(message);
       }
     };
 

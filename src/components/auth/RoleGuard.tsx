@@ -1,37 +1,22 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useAuthStore, UserRole } from '@/store/useAuthStore';
-import { ShieldAlert, Lock, ArrowLeft, ArrowRight, UserPlus, LogIn } from 'lucide-react';
+import { ShieldAlert, Lock, ArrowLeft, ArrowRight, LogIn } from 'lucide-react';
+import { useHydrated } from '@/lib/useHydrated';
 
 interface RoleGuardProps {
   children: React.ReactNode;
   allowedRoles: UserRole[];
-  fallbackUrl?: string;
 }
 
 export const RoleGuard: React.FC<RoleGuardProps> = ({
   children,
   allowedRoles,
-  fallbackUrl = '/login',
 }) => {
   const { user, isAuthenticated } = useAuthStore();
-  const [hasHydrated, setHasHydrated] = useState(false);
-
-  useEffect(() => {
-    if (useAuthStore.persist?.hasHydrated?.()) {
-      setHasHydrated(true);
-      return;
-    }
-    const unsub = useAuthStore.persist?.onFinishHydration?.(() => {
-      setHasHydrated(true);
-    });
-    // Fallback ensures hydration is marked true on client mount
-    setHasHydrated(true);
-    return () => unsub?.();
-  }, []);
+  const hasHydrated = useHydrated();
 
   if (!hasHydrated) {
     return (
