@@ -1,4 +1,11 @@
-// Global Types Barrel Export
+// Domain Model Exports
+export * from './product';
+export * from './cart';
+export * from './order';
+export * from './user';
+export * from './api';
+
+// Admin, Loyalty, & Staff Exports
 export * from './admin';
 export * from './staff/roles';
 export * from './staff/permissions';
