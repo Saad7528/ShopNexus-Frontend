@@ -10,18 +10,15 @@ import { useCartStore } from '@/store/useCartStore';
 import { useLanguageStore } from '@/store/useLanguageStore';
 import { formatCurrency, toBengaliNumber } from '@/lib/translations';
 import { getLocalizedBundle } from '@/lib/localizedProducts';
+import { useHydrated } from '@/lib/useHydrated';
 
 export const ComboDealsSection: React.FC = () => {
   const { language } = useLanguageStore();
-  const [mounted, setMounted] = React.useState(false);
+  const mounted = useHydrated();
   const [addedBundleId, setAddedBundleId] = React.useState<string | null>(null);
   const { addItem, openDrawer } = useCartStore();
   const rawBundles = useBundleStore((state) => state.bundles);
   const activeBundles = React.useMemo(() => rawBundles.filter((b) => b.status === 'Active'), [rawBundles]);
-
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const handleAddBundle = (bundle: IBundleDeal) => {
     bundle.items.forEach((item) => {
@@ -85,8 +82,8 @@ export const ComboDealsSection: React.FC = () => {
                 key={bundle.id}
                 className="group relative rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 backdrop-blur-xl shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col justify-between overflow-hidden hover:border-orange-500/50"
               >
-                {/* Top Badge */}
-                <div className="p-5 pb-3">
+                {/* Top Badge & Title (Clickable) */}
+                <Link href={`/products/${bundle.id}`} className="p-5 pb-3 block cursor-pointer">
                   <div className="flex items-center justify-between gap-2">
                     <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20">
                       {loc ? loc.badge : bundle.badge}
@@ -105,10 +102,10 @@ export const ComboDealsSection: React.FC = () => {
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
                     {loc ? loc.description : bundle.description}
                   </p>
-                </div>
+                </Link>
 
-                {/* Bundle Item Previews */}
-                <div className="px-5 py-3 bg-slate-50/70 dark:bg-slate-950/40 border-y border-slate-100 dark:border-slate-800/60">
+                {/* Bundle Item Previews (Clickable) */}
+                <Link href={`/products/${bundle.id}`} className="px-5 py-3 bg-slate-50/70 dark:bg-slate-950/40 border-y border-slate-100 dark:border-slate-800/60 block cursor-pointer">
                   <div className="flex items-center justify-center gap-2 sm:gap-3">
                     {(loc ? loc.items : bundle.items).map((item, idx) => (
                       <React.Fragment key={item.id || idx}>
@@ -130,7 +127,7 @@ export const ComboDealsSection: React.FC = () => {
                       </React.Fragment>
                     ))}
                   </div>
-                </div>
+                </Link>
 
                 {/* Bottom Pricing, Loyalty Points & Buy Button */}
                 <div className="p-5 space-y-3">
