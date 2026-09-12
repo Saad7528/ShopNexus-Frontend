@@ -1,31 +1,10 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-
-export interface CartItemType {
-  productId: string;
-  title: string;
-  price: number;
-  image: string;
-  quantity: number;
-  stock: number;
-  vendorName: string;
-  variant?: string;
-}
-
-export type ShippingMethod = 'standard' | 'express';
+import { CartItemType, ShippingMethod, CartTotals } from '@/types/cart';
+export type { CartItemType, ShippingMethod, CartTotals };
 
 export const FREE_SHIPPING_THRESHOLD = 150;
 
-interface CartTotals {
-  subtotal: number;
-  discount: number;
-  shippingFee: number;
-  tax: number;
-  total: number;
-  itemCount: number;
-  freeShippingProgress: number; // 0 - 100
-  amountUntilFreeShipping: number;
-}
 
 interface CartState {
   items: CartItemType[];
@@ -87,7 +66,7 @@ const syncCartWithServer = (
             customerPhone = parsed.state.user.phoneNumber || customerPhone;
           }
         }
-      } catch (_e) {}
+      } catch {}
 
       const payload = JSON.stringify({
         guestId,
@@ -120,7 +99,7 @@ const syncCartWithServer = (
           body: payload,
         }).catch(() => {});
       }
-    } catch (_err) {
+    } catch {
       // Graceful offline fallback
     }
   }, 400);
