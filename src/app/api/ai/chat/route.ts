@@ -29,36 +29,65 @@ function parseBengaliOrEnglishNumber(text: string): number | null {
   return null;
 }
 
+interface ChatProduct {
+  _id: string;
+  id?: string;
+  slug?: string;
+  title: string;
+  name?: string;
+  category: string;
+  brand?: string;
+  price: number;
+  discountPrice?: number;
+  rating?: number;
+  averageRating?: number;
+  stock?: number;
+  images?: string[];
+  image?: string;
+  description?: string;
+  description_bn?: string;
+  features?: string[];
+}
+
 // Module-level in-memory catalog cache for lightning fast sub-second responses
-let cachedCatalogProducts: any[] | null = null;
+let cachedCatalogProducts: ChatProduct[] | null = null;
 let lastCatalogCacheTime = 0;
 const CATALOG_CACHE_TTL = 5 * 60 * 1000; // 5 minutes TTL
 
-async function getCachedCatalogProducts(): Promise<any[]> {
+async function getCachedCatalogProducts(): Promise<ChatProduct[]> {
   const now = Date.now();
   if (cachedCatalogProducts && cachedCatalogProducts.length > 0 && now - lastCatalogCacheTime < CATALOG_CACHE_TTL) {
     return cachedCatalogProducts;
   }
 
-  let catalogProducts: any[] = [];
+  let catalogProducts: ChatProduct[] = [];
   try {
     await connectToDatabase();
     const db = mongoose.connection.db;
     if (db) {
       const dbItems = await db.collection('products').find({ isActive: { $ne: false } }).toArray();
       if (dbItems && dbItems.length > 0) {
-        const normalizedDbItems = dbItems.map((item) => ({
+        const normalizedDbItems: ChatProduct[] = dbItems.map((item) => ({
           ...item,
-          _id: item._id?.toString() || item.id || item.slug,
+          _id: item._id ? String(item._id) : (item.id || item.slug || 'prod-id'),
+          title: item.title || item.name || 'Product',
+          category: item.category || 'Audio',
+          price: Number(item.price) || 0,
         }));
 
         const dbKeySet = new Set(
-          normalizedDbItems.flatMap((item: any) => [item.slug, item._id, item.title?.toLowerCase()]).filter(Boolean)
+          normalizedDbItems.flatMap((item) => [item.slug, item._id, item.title.toLowerCase()]).filter(Boolean)
         );
 
-        const missingStatic = ALL_PRODUCTS.filter(
-          (p) => !dbKeySet.has(p.slug) && !dbKeySet.has(p._id) && !dbKeySet.has(p.title?.toLowerCase())
-        );
+        const missingStatic: ChatProduct[] = ALL_PRODUCTS.filter(
+          (p) => !dbKeySet.has(p.slug) && !dbKeySet.has(p._id) && !dbKeySet.has(p.title.toLowerCase())
+        ).map((p) => ({
+          ...p,
+          _id: p._id,
+          title: p.title,
+          category: p.category,
+          price: p.price,
+        }));
 
         catalogProducts = [...normalizedDbItems, ...missingStatic];
       }
@@ -174,10 +203,10 @@ ${catalogContext}`;
 
           if (geminiRes.ok) {
             const geminiData = await geminiRes.json();
-            const parts = geminiData?.candidates?.[0]?.content?.parts || [];
+            const parts = (geminiData?.candidates?.[0]?.content?.parts || []) as Array<{ text?: string }>;
             // Extract and concatenate ALL text parts (never take only parts[0] as multi-part responses slice text)
             const fullText = parts
-              .map((p: any) => (typeof p.text === 'string' ? p.text : ''))
+              .map((p) => (typeof p.text === 'string' ? p.text : ''))
               .join('')
               .trim();
 
@@ -189,8 +218,9 @@ ${catalogContext}`;
           } else {
             console.warn(`Gemini model ${model} responded with status ${geminiRes.status}`);
           }
-        } catch (err: any) {
-          console.warn(`Gemini model ${model} error:`, err?.message);
+        } catch (err: unknown) {
+          const errMsg = err instanceof Error ? err.message : 'Unknown error';
+          console.warn(`Gemini model ${model} error:`, errMsg);
         }
       }
     }
@@ -351,19 +381,19 @@ ${catalogContext}`;
     }
 
     // 🎯 7. Fetch Matching Product Objects for UI Cards
-    let suggestedProducts: any[] = [];
+    let suggestedProducts: ChatProduct[] = [];
     if (recommendedIds.length > 0) {
-      suggestedProducts = recommendedIds
+      suggestedProducts = (recommendedIds
         .map((recId) => {
           return catalogProducts.find(
             (p) =>
-              p._id?.toString() === recId ||
+              p._id === recId ||
               p.slug === recId ||
-              p.title?.toLowerCase().includes(recId.toLowerCase())
+              p.title.toLowerCase().includes(recId.toLowerCase())
           );
         })
         .filter(Boolean)
-        .slice(0, 4);
+        .slice(0, 4)) as ChatProduct[];
     }
 
     const responseTimeMs = Date.now() - startTime;
@@ -375,7 +405,7 @@ ${catalogContext}`;
         provider,
         responseTimeMs,
         suggestedProducts: suggestedProducts.map((p) => ({
-          _id: (p._id || p.slug || '').toString(),
+          _id: p._id || p.slug || '',
           title: p.title,
           price: p.price,
           discountPrice: p.discountPrice,
@@ -385,12 +415,13 @@ ${catalogContext}`;
         })),
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Internal AI Server Error';
     console.error('AI chat route error:', error);
     return NextResponse.json(
       {
         success: false,
-        message: error.message || 'Internal AI Server Error',
+        message,
       },
       { status: 500 }
     );
