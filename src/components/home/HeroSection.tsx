@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useCartStore } from '@/store/useCartStore';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useHydrated } from '@/lib/useHydrated';
 import {
   Zap,
   ArrowRight,
@@ -31,7 +32,7 @@ import {
 interface SlideData {
   id: number;
   tag: string;
-  tagIcon: any;
+  tagIcon: React.ComponentType<{ className?: string }>;
   title: string;
   titleHighlight: string;
   description: string;
@@ -146,16 +147,12 @@ import { formatCurrency, toBengaliNumber } from '@/lib/translations';
 export const HeroSection: React.FC = () => {
   const router = useRouter();
   const { t, language } = useLanguageStore();
-  const [mounted, setMounted] = useState(false);
+  const mounted = useHydrated();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [selectedColorIdx, setSelectedColorIdx] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
   const [noticeIndex, setNoticeIndex] = useState(0);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const isBn = mounted && language === 'bn';
   const slides = getHeroSlides(isBn);
