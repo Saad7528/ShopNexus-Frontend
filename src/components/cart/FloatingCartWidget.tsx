@@ -6,53 +6,53 @@ import { ShoppingBag } from 'lucide-react';
 import { useCartStore } from '@/store/useCartStore';
 import { useLanguageStore } from '@/store/useLanguageStore';
 import { toBengaliNumber } from '@/lib/translations';
+import { useHydrated } from '@/lib/useHydrated';
 
 export const FloatingCartWidget: React.FC = () => {
   const pathname = usePathname();
   const { items, isOpen: isCartOpen, openDrawer } = useCartStore();
   const { language } = useLanguageStore();
 
-  const [isMounted, setIsMounted] = useState(false);
-  const [topPos, setTopPos] = useState<number | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [hasMoved, setHasMoved] = useState(false);
-  const [highlightPulse, setHighlightPulse] = useState(false);
-
-  const prevCountRef = useRef(0);
-  const dragStartRef = useRef<{ y: number; initialTop: number }>({ y: 0, initialTop: 0 });
-  const widgetRef = useRef<HTMLDivElement>(null);
-
-  const itemCount = isMounted ? items.reduce((acc, item) => acc + item.quantity, 0) : 0;
-
-  // Set default initial position vertically centered
-  useEffect(() => {
-    setIsMounted(true);
+  const isMounted = useHydrated();
+  const [topPos, setTopPos] = useState<number | null>(() => {
     if (typeof window !== 'undefined') {
       const savedTop = sessionStorage.getItem('shopnexus_floating_cart_y');
       if (savedTop) {
         const parsed = parseFloat(savedTop);
         if (!isNaN(parsed) && parsed > 50 && parsed < window.innerHeight - 90) {
-          setTopPos(parsed);
-          return;
+          return parsed;
         }
       }
-      setTopPos(Math.round(window.innerHeight * 0.45));
+      return Math.round(window.innerHeight * 0.45);
     }
-  }, []);
+    return null;
+  });
+  const [isDragging, setIsDragging] = useState(false);
+  const [hasMoved, setHasMoved] = useState(false);
+  const [highlightPulse, setHighlightPulse] = useState(false);
 
-  // Trigger glowing pulse & bounce animation whenever an item is added
-  useEffect(() => {
-    if (isMounted && itemCount > prevCountRef.current && itemCount > 0) {
+  const dragStartRef = useRef<{ y: number; initialTop: number }>({ y: 0, initialTop: 0 });
+  const widgetRef = useRef<HTMLDivElement>(null);
+
+  const itemCount = isMounted ? items.reduce((acc, item) => acc + item.quantity, 0) : 0;
+  const [prevCount, setPrevCount] = useState(itemCount);
+  if (isMounted && itemCount !== prevCount) {
+    setPrevCount(itemCount);
+    if (itemCount > prevCount) {
       setHighlightPulse(true);
+    } else if (itemCount === 0) {
+      setHighlightPulse(false);
+    }
+  }
+
+  useEffect(() => {
+    if (highlightPulse) {
       const timer = setTimeout(() => {
         setHighlightPulse(false);
       }, 1000);
       return () => clearTimeout(timer);
-    } else if (itemCount === 0) {
-      setHighlightPulse(false);
     }
-    prevCountRef.current = itemCount;
-  }, [itemCount, isMounted]);
+  }, [highlightPulse]);
 
   // Mouse / Touch Drag Logic
   const handleStartDrag = (clientY: number) => {

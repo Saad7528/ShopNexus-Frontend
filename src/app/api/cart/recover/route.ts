@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     let objectId: mongoose.Types.ObjectId | null = null;
     try {
       objectId = new mongoose.Types.ObjectId(id);
-    } catch (_e) {}
+    } catch {}
 
     const query = objectId ? { $or: [{ _id: objectId }, { guestId: id }] } : { guestId: id };
     const cart = await cartsCollection.findOne(query);
@@ -39,8 +39,17 @@ export async function GET(req: NextRequest) {
     }
 
     // Return mapped cart items ready for zustand useCartStore
-    const items = (cart.items || []).map((i: any, idx: number) => ({
-      productId: i.productId ? i.productId.toString() : `item-${idx}`,
+    const rawItems = Array.isArray(cart.items) ? cart.items : [];
+    const items = rawItems.map((i: {
+      productId?: unknown;
+      title?: string;
+      price?: number | string;
+      quantity?: number | string;
+      image?: string;
+      vendorName?: string;
+      variant?: string;
+    }, idx: number) => ({
+      productId: i.productId ? String(i.productId) : `item-${idx}`,
       title: i.title || 'Product Item',
       price: Number(i.price) || 0,
       quantity: Math.max(1, Number(i.quantity) || 1),
@@ -54,7 +63,7 @@ export async function GET(req: NextRequest) {
       success: true,
       message: 'Cart session recovered successfully',
       data: {
-        id: cart._id.toString(),
+        id: String(cart._id),
         items,
         couponCode: cart.recoveryDiscountCode || cart.appliedCoupon || '',
         discount: Number(cart.discount) || 0,
@@ -63,10 +72,11 @@ export async function GET(req: NextRequest) {
         customerPhone: cart.customerPhone || '',
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Internal server error';
     console.error('Cart recovery error:', error);
     return NextResponse.json(
-      { success: false, message: error.message || 'Internal server error' },
+      { success: false, message },
       { status: 500 }
     );
   }
