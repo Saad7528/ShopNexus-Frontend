@@ -14,8 +14,10 @@ import { getProductByIdOrSlug, ALL_PRODUCTS } from '@/data/products';
 import { INITIAL_BUNDLES, IBundleDeal } from '@/data/bundles';
 import { ProductCard } from '@/components/products/ProductCard';
 import { useLanguageStore } from '@/store/useLanguageStore';
-import { getLocalizedProduct, getLocalizedCategory } from '@/lib/localizedProducts';
+import { getLocalizedProduct } from '@/lib/localizedProducts';
 import { formatCurrency, toBengaliNumber } from '@/lib/translations';
+import { useHydrated } from '@/lib/useHydrated';
+import { Product } from '@/types/product';
 import {
   Star,
   ShoppingCart,
@@ -26,19 +28,12 @@ import {
   Tag,
   Zap,
   CheckCircle2,
-  Share2,
-  ChevronRight,
   Package,
   ArrowRight,
   ArrowLeft,
-  Sparkles,
-  Award,
-  Layers,
   Check,
-  Flame,
   Coins,
   Gift,
-  Loader2,
   AlertCircle,
 } from 'lucide-react';
 
@@ -54,7 +49,7 @@ export interface IProductReview {
 export default function ProductDetailPage() {
   const router = useRouter();
   const routeParams = useParams();
-  const [mounted, setMounted] = useState(false);
+  const mounted = useHydrated();
   const { language, t } = useLanguageStore();
 
   const rawId = typeof routeParams?.id === 'string' 
@@ -65,7 +60,6 @@ export default function ProductDetailPage() {
   const productId = decodeURIComponent(rawId || '').trim();
 
   useEffect(() => {
-    setMounted(true);
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, []);
 
@@ -78,19 +72,24 @@ export default function ProductDetailPage() {
   // 1. Check if this page matches a Combo Bundle synchronously
   const matchedBundle = useMemo<IBundleDeal | null>(() => {
     if (!productId) return null;
-    let b = rawBundles.find((deal) => deal.id === productId || deal.id === `b-${productId}`);
+    let b = rawBundles.find((deal) => deal.id === productId || deal.id === `b-${productId}` || deal.id === productId.replace('combo-', 'b-'));
     if (b) return b;
-    if (productId === 'combo-1') b = rawBundles.find((deal) => deal.id === 'b-1');
-    if (productId === 'combo-2') b = rawBundles.find((deal) => deal.id === 'b-2');
-    if (productId === 'combo-3') b = rawBundles.find((deal) => deal.id === 'b-3');
-    if (b) return b;
+    if (productId === 'combo-1' || productId === 'b-1' || productId === 'b1') {
+      return rawBundles.find((deal) => deal.id === 'b-1') || INITIAL_BUNDLES.find((deal) => deal.id === 'b-1') || null;
+    }
+    if (productId === 'combo-2' || productId === 'b-2' || productId === 'b2') {
+      return rawBundles.find((deal) => deal.id === 'b-2') || INITIAL_BUNDLES.find((deal) => deal.id === 'b-2') || null;
+    }
+    if (productId === 'combo-3' || productId === 'b-3' || productId === 'b3') {
+      return rawBundles.find((deal) => deal.id === 'b-3') || INITIAL_BUNDLES.find((deal) => deal.id === 'b-3') || null;
+    }
     b = rawBundles.find(
       (deal) =>
         deal.title.toLowerCase().replace(/[^a-z0-9]+/g, '-') ===
         productId.toLowerCase().replace(/[^a-z0-9]+/g, '-')
     );
     if (b) return b;
-    b = INITIAL_BUNDLES.find((deal) => deal.id === productId || deal.id === `b-${productId}`);
+    b = INITIAL_BUNDLES.find((deal) => deal.id === productId || deal.id === `b-${productId}` || deal.id === productId.replace('combo-', 'b-'));
     return b || null;
   }, [productId, rawBundles]);
 
@@ -100,9 +99,10 @@ export default function ProductDetailPage() {
     return getProductByIdOrSlug(productId);
   }, [productId]);
 
-  const [apiProduct, setApiProduct] = useState<any | null>(null);
+  const [apiProduct, setApiProduct] = useState<Product | null>(null);
   const [isLoadingApi, setIsLoadingApi] = useState(!staticProduct && !matchedBundle);
   const [apiFetched, setApiFetched] = useState(false);
+
 
   // 3. Fetch from DB if not already available or to refresh real-time stock
   useEffect(() => {
@@ -152,7 +152,7 @@ export default function ProductDetailPage() {
     if (apiProduct) {
       return {
         _id: apiProduct._id || productId,
-        title: apiProduct.title || apiProduct.name,
+        title: apiProduct.title || '',
         slug: apiProduct.slug || productId,
         brand: apiProduct.brand || 'ShopNexus Official',
         vendorName: apiProduct.vendorName || 'ShopNexus Official Store',
@@ -184,7 +184,7 @@ export default function ProductDetailPage() {
     return null;
   }, [apiProduct, staticProduct, matchedBundle, productId]);
 
-  const localized = rawProduct && mounted ? getLocalizedProduct(rawProduct as any, language) : null;
+  const localized = rawProduct && mounted ? getLocalizedProduct(rawProduct, language) : null;
 
   // Selected Options
   const [selectedColor, setSelectedColor] = useState('Midnight Black');
