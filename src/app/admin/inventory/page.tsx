@@ -124,14 +124,25 @@ function InventoryContent() {
 
     // Async DB update
     try {
-      await fetch(`${API_URL}/products/${id}`, {
+      let res = await fetch(`/api/products/${id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({ stock: editStockValue }),
-      });
+      }).catch(() => null);
+
+      if ((!res || !res.ok) && API_URL && !API_URL.startsWith('/api') && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+        await fetch(`${API_URL}/products/${id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ stock: editStockValue }),
+        }).catch(() => null);
+      }
     } catch (e) {
       console.error('Failed to sync stock change with DB:', e);
     }
@@ -154,12 +165,21 @@ function InventoryContent() {
 
       // Async DB deletion
       try {
-        await fetch(`${API_URL}/products/${id}`, {
+        let res = await fetch(`/api/products/${id}`, {
           method: 'DELETE',
           headers: {
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
-        });
+        }).catch(() => null);
+
+        if ((!res || !res.ok) && API_URL && !API_URL.startsWith('/api') && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+          await fetch(`${API_URL}/products/${id}`, {
+            method: 'DELETE',
+            headers: {
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+          }).catch(() => null);
+        }
       } catch (e) {
         console.error('Failed to delete from live DB:', e);
       }
@@ -398,8 +418,12 @@ function InventoryContent() {
                         )}
                       </td>
                       <td className="px-5 py-3.5 whitespace-nowrap">
-                        {isLow ? (
+                        {item.stock <= 0 ? (
                           <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-600 dark:text-rose-400 bg-rose-500/10 px-2.5 py-0.5 rounded-full border border-rose-500/20 whitespace-nowrap">
+                            <AlertTriangle className="w-3 h-3 shrink-0" /> {isBn ? 'স্টক শেষ' : 'Out of Stock'}
+                          </span>
+                        ) : isLow ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20 whitespace-nowrap">
                             <AlertTriangle className="w-3 h-3 shrink-0" /> {isBn ? 'কম স্টক' : 'Low Stock'}
                           </span>
                         ) : (

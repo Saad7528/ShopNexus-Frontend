@@ -22,11 +22,16 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
     if (db) {
       const productsColl = db.collection('products');
+      const escaped = decoded.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
       const queryList: Record<string, unknown>[] = [
         { _id: decoded },
         { id: decoded },
         { slug: decoded },
         { slug: decoded.toLowerCase() },
+        { title: decoded },
+        { name: decoded },
+        { title: { $regex: new RegExp('^' + escaped + '$', 'i') } },
+        { name: { $regex: new RegExp('^' + escaped + '$', 'i') } },
       ];
 
       // If valid 24-char ObjectId
@@ -74,20 +79,27 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+    const decoded = decodeURIComponent(id).trim();
     const body = await req.json();
     await connectToDatabase();
     const db = mongoose.connection.db;
 
     if (db) {
       const productsColl = db.collection('products');
+      const escaped = decoded.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
       const queryList: Record<string, unknown>[] = [
-        { _id: id },
-        { id },
-        { slug: id },
+        { _id: decoded },
+        { id: decoded },
+        { slug: decoded },
+        { slug: decoded.toLowerCase() },
+        { title: decoded },
+        { name: decoded },
+        { title: { $regex: new RegExp('^' + escaped + '$', 'i') } },
+        { name: { $regex: new RegExp('^' + escaped + '$', 'i') } },
       ];
-      if (/^[0-9a-fA-F]{24}$/.test(id)) {
+      if (/^[0-9a-fA-F]{24}$/.test(decoded)) {
         try {
-          queryList.push({ _id: new mongoose.Types.ObjectId(id) });
+          queryList.push({ _id: new mongoose.Types.ObjectId(decoded) });
         } catch {}
       }
 
@@ -106,22 +118,33 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   }
 }
 
+export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+  return PUT(req, ctx);
+}
+
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+    const decoded = decodeURIComponent(id).trim();
     await connectToDatabase();
     const db = mongoose.connection.db;
 
     if (db) {
       const productsColl = db.collection('products');
+      const escaped = decoded.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
       const queryList: Record<string, unknown>[] = [
-        { _id: id },
-        { id },
-        { slug: id },
+        { _id: decoded },
+        { id: decoded },
+        { slug: decoded },
+        { slug: decoded.toLowerCase() },
+        { title: decoded },
+        { name: decoded },
+        { title: { $regex: new RegExp('^' + escaped + '$', 'i') } },
+        { name: { $regex: new RegExp('^' + escaped + '$', 'i') } },
       ];
-      if (/^[0-9a-fA-F]{24}$/.test(id)) {
+      if (/^[0-9a-fA-F]{24}$/.test(decoded)) {
         try {
-          queryList.push({ _id: new mongoose.Types.ObjectId(id) });
+          queryList.push({ _id: new mongoose.Types.ObjectId(decoded) });
         } catch {}
       }
 
