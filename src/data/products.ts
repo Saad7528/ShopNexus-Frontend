@@ -657,12 +657,17 @@ export function getProductByIdOrSlug(idOrSlug: string): Product | undefined {
   const directMatch = ALL_PRODUCTS.find(
     (p) =>
       p._id.toLowerCase() === decoded ||
-      p.slug.toLowerCase() === decoded ||
+      (p.slug && p.slug.toLowerCase() === decoded) ||
       p.title.toLowerCase().replace(/[^a-z0-9]/g, '-') === decoded
   );
   if (directMatch) return directMatch;
 
-  // 2. Map inv-1 -> p1, inv-2 -> p2
+  // 2. Combo bundle aliases
+  if (decoded === 'b-1' || decoded === 'b1') return ALL_PRODUCTS.find((p) => p._id === 'combo-1');
+  if (decoded === 'b-2' || decoded === 'b2') return ALL_PRODUCTS.find((p) => p._id === 'combo-2');
+  if (decoded === 'b-3' || decoded === 'b3') return ALL_PRODUCTS.find((p) => p._id === 'combo-3');
+
+  // 3. Map inv-1 -> p1, inv-2 -> p2
   if (decoded.startsWith('inv-')) {
     const num = decoded.replace('inv-', '');
     const pMatch = ALL_PRODUCTS.find((p) => p._id.toLowerCase() === `p${num}`);
@@ -674,11 +679,17 @@ export function getProductByIdOrSlug(idOrSlug: string): Product | undefined {
     }
   }
 
-  // 3. Fuzzy search in slug or title
+  // 4. Map standalone numbers '1' -> 'p1'
+  if (/^\d+$/.test(decoded)) {
+    const pMatch = ALL_PRODUCTS.find((p) => p._id.toLowerCase() === `p${decoded}`);
+    if (pMatch) return pMatch;
+  }
+
+  // 5. Fuzzy search in slug or title
   return ALL_PRODUCTS.find(
     (p) =>
-      p.slug.toLowerCase().includes(decoded) ||
-      decoded.includes(p.slug.toLowerCase()) ||
+      (p.slug && p.slug.toLowerCase().includes(decoded)) ||
+      (p.slug && decoded.includes(p.slug.toLowerCase())) ||
       p.title.toLowerCase().includes(decoded)
   );
 }
