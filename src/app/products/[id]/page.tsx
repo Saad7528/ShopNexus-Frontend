@@ -100,7 +100,7 @@ export default function ProductDetailPage() {
   }, [productId]);
 
   const [apiProduct, setApiProduct] = useState<Product | null>(null);
-  const [isLoadingApi, setIsLoadingApi] = useState(!staticProduct && !matchedBundle);
+  const [isLoadingApi, setIsLoadingApi] = useState(true);
   const [apiFetched, setApiFetched] = useState(false);
 
 
@@ -689,7 +689,13 @@ export default function ProductDetailPage() {
 
               {/* Actions: Out of stock Wishlist OR Regular Quantity + Add to Cart + Buy Now */}
               <div className="space-y-3 pt-2">
-                {product.stockCount <= 0 ? (
+                {isLoadingApi ? (
+                  <div className="flex items-center gap-3">
+                    <div className="w-24 h-11 rounded-xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
+                    <div className="flex-1 h-11 rounded-xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
+                    <div className="flex-1 h-11 rounded-xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
+                  </div>
+                ) : product.stockCount <= 0 ? (
                   <div className="space-y-2">
                     <div className="p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/40 text-rose-700 dark:text-rose-300 text-xs flex items-center gap-2">
                       <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
@@ -708,7 +714,7 @@ export default function ProductDetailPage() {
                           price: product.price,
                           image: product.images[0],
                           category: product.category,
-                          inStock: false,
+                          inStock: product.stockCount > 0,
                         })
                       }
                       className={`w-full py-3.5 px-6 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 shadow-md transition-all active:scale-95 cursor-pointer border ${

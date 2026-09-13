@@ -16,9 +16,33 @@ export default function WishlistPage() {
   const addItem = useCartStore((state) => state.addItem);
   const { t, language } = useLanguageStore();
   const mounted = useHydrated();
+  const [liveDbProducts, setLiveDbProducts] = useState<any[]>([]);
+
+  useEffect(() => {
+    let isCancelled = false;
+    const fetchLiveCatalog = async () => {
+      try {
+        let res = await fetch('/api/products?limit=100').catch(() => null);
+        if ((!res || !res.ok) && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+          const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+          res = await fetch(`${API_URL}/products?limit=100`).catch(() => null);
+        }
+        if (!res || !res.ok) return;
+        const data = await res.json().catch(() => null);
+        const list = data?.data?.products || (Array.isArray(data?.data) ? data.data : null);
+        if (!isCancelled && list && Array.isArray(list)) {
+          setLiveDbProducts(list);
+        }
+      } catch {}
+    };
+    fetchLiveCatalog();
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
 
   const handleMoveToCart = (item: (typeof items)[0], stockCount: number) => {
-    if (stockCount <= 0 || item.inStock === false) return;
+    if (stockCount <= 0) return;
     addItem({
       productId: item.id,
       title: item.name,
@@ -85,9 +109,11 @@ export default function WishlistPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {items.map((item) => {
-              const catalogProd = getProductByIdOrSlug(item.id) || ALL_PRODUCTS.find((p) => p._id === item.id || p.slug === item.id);
-              const isOutOfStock = item.inStock === false || (catalogProd !== undefined && (catalogProd.stock ?? 0) <= 0);
-              const availableStock = catalogProd?.stock ?? (item.inStock === false ? 0 : 10);
+              const liveProd = liveDbProducts.find((p) => p._id === item.id || p.slug === item.id || p.id === item.id);
+              const staticProd = getProductByIdOrSlug(item.id) || ALL_PRODUCTS.find((p) => p._id === item.id || p.slug === item.id);
+              const activeProd = liveProd || staticProd;
+              const availableStock = activeProd ? (Number(activeProd.stock) ?? 0) : (item.inStock === false ? 0 : 10);
+              const isOutOfStock = availableStock <= 0;
 
               return (
                 <div

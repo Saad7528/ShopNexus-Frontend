@@ -609,9 +609,9 @@ function ProfileContent() {
             {wishlistItems && wishlistItems.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {wishlistItems.map((item) => {
-                  const catalogProd = getProductByIdOrSlug(item.id) || ALL_PRODUCTS.find((p) => p._id === item.id || p.slug === item.id);
-                  const isOutOfStock = item.inStock === false || (catalogProd !== undefined && (catalogProd.stock ?? 0) <= 0);
-                  const availableStock = catalogProd?.stock ?? (item.inStock === false ? 0 : 10);
+                  const staticProd = getProductByIdOrSlug(item.id) || ALL_PRODUCTS.find((p) => p._id === item.id || p.slug === item.id);
+                  const availableStock = staticProd ? (Number(staticProd.stock) ?? 0) : (item.inStock === false ? 0 : 10);
+                  const isOutOfStock = availableStock <= 0;
 
                   return (
                     <div
