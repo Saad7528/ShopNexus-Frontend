@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useRef, Suspense } from 'react';
-import Image from 'next/image';
+import React, { useState, useRef, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useOrderStore, UserOrder } from '@/store/useOrderStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
@@ -19,9 +18,7 @@ import {
   Mail,
   Camera,
   CheckCircle2,
-  Clock,
   Truck,
-  Box,
   Trash2,
   Save,
   LogOut,
@@ -29,58 +26,54 @@ import {
   Plus,
   Minus,
   ShoppingBag,
-  Sparkles,
 } from 'lucide-react';
 
 function ProfileContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const requestedTab = searchParams.get('tab');
 
-  const { user, token, setUser, logout, isAuthenticated } = useAuthStore();
+  const { user, token, setUser, logout } = useAuthStore();
   const { orders: userOrders } = useOrderStore();
   const { items: wishlistItems, removeFromWishlist } = useWishlistStore();
   const { items: cartItems, addItem, removeItem, updateQuantity, getTotals } = useCartStore();
 
-  const [activeTab, setActiveTab] = useState<'profile' | 'orders' | 'wishlist' | 'cart'>('profile');
-  const [selectedOrder, setSelectedOrder] = useState<UserOrder | null>(null);
+  const tabFromQuery = requestedTab === 'orders' || requestedTab === 'wishlist' || requestedTab === 'cart' || requestedTab === 'profile' ? requestedTab : null;
+  const [activeTab, setActiveTab] = useState<'profile' | 'orders' | 'wishlist' | 'cart'>(tabFromQuery || 'profile');
+  const [prevTabQuery, setPrevTabQuery] = useState(tabFromQuery);
+  if (prevTabQuery !== tabFromQuery) {
+    setPrevTabQuery(tabFromQuery);
+    if (tabFromQuery) setActiveTab(tabFromQuery);
+  }
+
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const selectedOrder = (selectedOrderId ? userOrders.find((o) => o.id === selectedOrderId || o.orderNumber === selectedOrderId) : null) || (userOrders && userOrders.length > 0 ? userOrders[0] : null);
+  const setSelectedOrder = (order: UserOrder | null) => {
+    setSelectedOrderId(order ? (order.id || order.orderNumber) : null);
+  };
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Sync tab from URL query param
-  useEffect(() => {
-    if (requestedTab === 'orders' || requestedTab === 'wishlist' || requestedTab === 'cart' || requestedTab === 'profile') {
-      setActiveTab(requestedTab);
-    }
-  }, [requestedTab]);
-
-  useEffect(() => {
-    if (userOrders && userOrders.length > 0 && !selectedOrder) {
-      setSelectedOrder(userOrders[0]);
-    }
-  }, [userOrders, selectedOrder]);
-
   // Form State initialized purely from real user data (Zero fake/dummy hardcoded values)
-  const [name, setName] = useState('');
-  const [avatar, setAvatar] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [address, setAddress] = useState('');
-  const [city, setCity] = useState('');
-  const [zipCode, setZipCode] = useState('');
-  const [country, setCountry] = useState('Bangladesh');
+  const [name, setName] = useState(user?.name || '');
+  const [avatar, setAvatar] = useState(user?.avatar || '');
+  const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || '');
+  const [address, setAddress] = useState(user?.address || '');
+  const [city, setCity] = useState(user?.city || '');
+  const [zipCode, setZipCode] = useState(user?.zipCode || '');
+  const [country, setCountry] = useState(user?.country || 'Bangladesh');
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      setName(user.name || '');
-      setAvatar(user.avatar || '');
-      setPhoneNumber(user.phoneNumber || '');
-      setAddress(user.address || '');
-      setCity(user.city || '');
-      setZipCode(user.zipCode || '');
-      setCountry(user.country || 'Bangladesh');
-    }
-  }, [user]);
+  const [prevUserId, setPrevUserId] = useState(user?._id);
+  if (user && user._id !== prevUserId) {
+    setPrevUserId(user._id);
+    setName(user.name || '');
+    setAvatar(user.avatar || '');
+    setPhoneNumber(user.phoneNumber || '');
+    setAddress(user.address || '');
+    setCity(user.city || '');
+    setZipCode(user.zipCode || '');
+    setCountry(user.country || 'Bangladesh');
+  }
 
   // 📷 Handle Real Device File Upload for Profile Photo
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -158,7 +151,7 @@ function ProfileContent() {
     }
   };
 
-  const handleMoveWishlistToCart = (item: any) => {
+  const handleMoveWishlistToCart = (item: { id: string; name: string; price: number; image: string }) => {
     addItem({
       productId: item.id,
       title: item.name,
@@ -170,6 +163,7 @@ function ProfileContent() {
     });
     removeFromWishlist(item.id);
   };
+
 
   const getStepProgress = (status: UserOrder['status']) => {
     switch (status) {

@@ -8,16 +8,13 @@ import { useCartStore } from '@/store/useCartStore';
 import { useLanguageStore } from '@/store/useLanguageStore';
 import { formatCurrency, toBengaliNumber } from '@/lib/translations';
 import { Heart, ShoppingCart, Trash2, ArrowLeft, ArrowRight } from 'lucide-react';
+import { useHydrated } from '@/lib/useHydrated';
 
 export default function WishlistPage() {
   const { items, removeFromWishlist, clearWishlist } = useWishlistStore();
   const addItem = useCartStore((state) => state.addItem);
   const { t, language } = useLanguageStore();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useHydrated();
 
   const handleMoveToCart = (item: (typeof items)[0]) => {
     addItem({
