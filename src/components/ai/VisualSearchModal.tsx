@@ -9,13 +9,8 @@ import {
   X,
   Sparkles,
   Loader2,
-  CheckCircle2,
   ShoppingBag,
-  Layers,
   ArrowRight,
-  RefreshCw,
-  Zap,
-  Tag,
   SwitchCamera,
   AlertCircle,
 } from 'lucide-react';
@@ -29,12 +24,32 @@ interface VisualSearchModalProps {
   onClose: () => void;
 }
 
+export interface VisualMatchedResult {
+  product: {
+    _id: string;
+    title: string;
+    category?: string;
+    brand?: string;
+    price?: number;
+    discountPrice?: number;
+    images?: string[];
+    image?: string;
+    stock?: number;
+    description?: string;
+    vendorName?: string;
+  };
+  similarityScore: number;
+  matchLabel?: string;
+  confidence?: string;
+  matchedFeatures?: string[];
+}
+
 export const VisualSearchModal: React.FC<VisualSearchModalProps> = ({ isOpen, onClose }) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [scanningStep, setScanningStep] = useState<string>('');
-  const [results, setResults] = useState<any[]>([]);
-  const [alternativeResults, setAlternativeResults] = useState<any[]>([]);
+  const [results, setResults] = useState<VisualMatchedResult[]>([]);
+  const [alternativeResults, setAlternativeResults] = useState<VisualMatchedResult[]>([]);
   const [detectedCategory, setDetectedCategory] = useState<string>('');
   const [tags, setTags] = useState<string[]>([]);
   const [detectedTitle, setDetectedTitle] = useState<string>('');
@@ -68,16 +83,23 @@ export const VisualSearchModal: React.FC<VisualSearchModalProps> = ({ isOpen, on
     setCameraError(null);
   }, []);
 
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  if (prevIsOpen && !isOpen) {
+    setPrevIsOpen(isOpen);
+    setSelectedImage(null);
+    setResults([]);
+    setAlternativeResults([]);
+    setDetectedCategory('');
+    setTags([]);
+    setAiResponseData(null);
+    setIsScanning(false);
+  } else if (!prevIsOpen && isOpen) {
+    setPrevIsOpen(isOpen);
+  }
+
   useEffect(() => {
-    if (!isOpen) {
+    if (!isOpen && streamRef.current) {
       stopCamera();
-      setSelectedImage(null);
-      setResults([]);
-      setAlternativeResults([]);
-      setDetectedCategory('');
-      setTags([]);
-      setAiResponseData(null);
-      setIsScanning(false);
     }
   }, [isOpen, stopCamera]);
 
@@ -106,7 +128,7 @@ export const VisualSearchModal: React.FC<VisualSearchModalProps> = ({ isOpen, on
         videoRef.current.srcObject = stream;
         videoRef.current.play();
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Camera access error:', err);
       setCameraError(
         isBn
@@ -199,7 +221,7 @@ export const VisualSearchModal: React.FC<VisualSearchModalProps> = ({ isOpen, on
       } else {
         throw new Error(data.message || 'Visual search failed');
       }
-    } catch (_err) {
+    } catch {
       // Graceful fallback
       setDetectedTitle(isBn ? 'ছবিটি বিশ্লেষণ করা হয়েছে' : 'Image Analyzed');
       setAiResponseData({
@@ -517,7 +539,8 @@ export const VisualSearchModal: React.FC<VisualSearchModalProps> = ({ isOpen, on
                         <div className="space-y-2">
                           {alternativeResults.map((alt, idx) => {
                             const prod = alt.product;
-                            const effectivePrice = prod.discountPrice || prod.price;
+                            const effectivePrice = prod.discountPrice || prod.price || 0;
+                            const originalPrice = prod.price ?? 0;
                             return (
                               <div
                                 key={idx}
@@ -552,9 +575,9 @@ export const VisualSearchModal: React.FC<VisualSearchModalProps> = ({ isOpen, on
                                       <span className="text-xs font-black text-orange-600 dark:text-orange-400">
                                         {isBn ? `৳${toBengaliNumber(effectivePrice.toLocaleString('en-US'))}` : `৳${effectivePrice.toLocaleString()}`}
                                       </span>
-                                      {prod.discountPrice && prod.price > prod.discountPrice && (
+                                      {Boolean(prod.discountPrice && originalPrice > prod.discountPrice) && (
                                         <span className="text-[10px] text-slate-400 line-through">
-                                          {isBn ? `৳${toBengaliNumber(prod.price.toLocaleString('en-US'))}` : `৳${prod.price.toLocaleString()}`}
+                                          {isBn ? `৳${toBengaliNumber(originalPrice.toLocaleString('en-US'))}` : `৳${originalPrice.toLocaleString()}`}
                                         </span>
                                       )}
                                     </div>
@@ -635,7 +658,8 @@ export const VisualSearchModal: React.FC<VisualSearchModalProps> = ({ isOpen, on
                   results.map((match, idx) => {
                     const prod = match.product;
                     const scorePercent = Math.round(match.similarityScore * 100);
-                    const effectivePrice = prod.discountPrice || prod.price;
+                    const effectivePrice = prod.discountPrice || prod.price || 0;
+                    const originalPrice = prod.price ?? 0;
 
                     return (
                       <div
@@ -672,9 +696,9 @@ export const VisualSearchModal: React.FC<VisualSearchModalProps> = ({ isOpen, on
                               <span className="text-xs font-black text-orange-600 dark:text-orange-400">
                                 {isBn ? `৳${toBengaliNumber(effectivePrice.toLocaleString('en-US'))}` : `৳${effectivePrice.toLocaleString()}`}
                               </span>
-                              {prod.discountPrice && prod.price > prod.discountPrice && (
+                              {Boolean(prod.discountPrice && originalPrice > prod.discountPrice) && (
                                 <span className="text-[10px] text-slate-400 line-through">
-                                  {isBn ? `৳${toBengaliNumber(prod.price.toLocaleString('en-US'))}` : `৳${prod.price.toLocaleString()}`}
+                                  {isBn ? `৳${toBengaliNumber(originalPrice.toLocaleString('en-US'))}` : `৳${originalPrice.toLocaleString()}`}
                                 </span>
                               )}
                             </div>

@@ -416,3 +416,8 @@ export const formatCurrency = (amount?: number | null, lang: Language = 'bn'): s
   }
   return `৳${formatted}`;
 };
+
+export const getTranslation = (lang: Language, key: TranslationKey, fallback?: string): string => {
+  return TRANSLATIONS[lang]?.[key] || fallback || TRANSLATIONS.en[key] || String(key);
+};
+

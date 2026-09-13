@@ -1,12 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
 import {
   useVisitorAnalyticsStore,
   TimeFilter,
-  KpiFilterType,
-  GeoPolicyMode,
   VisitorSession,
   COUNTRY_REGIONS_MAP,
 } from '@/store/useVisitorAnalyticsStore';
@@ -14,7 +11,6 @@ import { useLanguageStore } from '@/store/useLanguageStore';
 import { toBengaliNumber } from '@/lib/translations';
 import {
   Activity,
-  Users,
   Eye,
   Clock,
   TrendingUp,
@@ -29,29 +25,20 @@ import {
   Filter,
   Download,
   RefreshCw,
-  ArrowUpRight,
-  ExternalLink,
-  MapPin,
   Compass,
   Layers,
-  Sparkles,
-  Zap,
   ShoppingBag,
   CheckCircle2,
-  AlertTriangle,
   Radio,
   ChevronRight,
   Ban,
   Unlock,
   X,
   Cpu,
-  Lock,
-  Flag,
   FileSpreadsheet,
   Printer,
   FileText,
   ChevronDown,
-  Phone,
 } from 'lucide-react';
 import { exportToBrandedExcel, printBrandedPDF } from '@/lib/exportUtils';
 
@@ -93,7 +80,6 @@ export default function VisitorAnalyticsPage() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [selectedIPToBlock, setSelectedIPToBlock] = useState<string | null>(null);
   const [blockReasonInput, setBlockReasonInput] = useState('');
-  const [liveDbUsers, setLiveDbUsers] = useState<any[]>([]);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -106,22 +92,10 @@ export default function VisitorAnalyticsPage() {
         if ((!resLiveTelemetry || !resLiveTelemetry.ok) && API_URL && !API_URL.startsWith('/api') && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
           resLiveTelemetry = await fetch(`${API_URL}/telemetry/live-sessions?range=${timeFilter}`).catch(() => null);
         }
-
-        let resUsers = await fetch('/api/admin/users').catch(() => null);
-        if ((!resUsers || !resUsers.ok) && API_URL && !API_URL.startsWith('/api') && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-          resUsers = await fetch(`${API_URL}/admin/users`).catch(() => null);
-        }
-
         if (resLiveTelemetry && resLiveTelemetry.ok) {
           const telemetryJson = await resLiveTelemetry.json();
           if (telemetryJson?.success && Array.isArray(telemetryJson.data)) {
             syncBackendSessions(telemetryJson.data);
-          }
-        }
-        if (resUsers && resUsers.ok) {
-          const usersData = await resUsers.json();
-          if (usersData?.data && Array.isArray(usersData.data)) {
-            setLiveDbUsers(usersData.data);
           }
         }
       } catch (e) {

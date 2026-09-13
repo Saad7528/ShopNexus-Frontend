@@ -10,25 +10,23 @@ import { useLanguageStore } from '@/store/useLanguageStore';
 import { toBengaliNumber } from '@/lib/translations';
 import { ALL_PRODUCTS, getProductByIdOrSlug } from '@/data/products';
 import { getProductOrInventoryById, INITIAL_INVENTORY, IInventoryItem } from '@/data/inventory';
+import { Product } from '@/store/useProductStore';
 import {
   Package,
-  Edit2,
   ArrowLeft,
   ShieldCheck,
   Truck,
   RotateCcw,
   Check,
-  Sparkles,
   Zap,
   Tag,
   DollarSign,
-  Barcode,
   Layers,
-  Percent,
   CheckCircle2,
-  AlertCircle,
   Image as ImageIcon,
+  Edit2,
 } from 'lucide-react';
+
 
 const CATEGORIES = [
   'Audio',
@@ -85,39 +83,53 @@ export default function EditProductPage() {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  const populateFields = (prod: any) => {
-    if (!prod) return;
+  const populateFields = React.useCallback((prod: Partial<Product> & {
+    id?: string;
+    name?: string;
+    threshold?: number;
+    variantColor?: string;
+    image?: string;
+    description_en?: string;
+    description_bn?: string;
+    hasFastDelivery?: boolean;
+    hasWarranty?: boolean;
+    warrantyText?: string;
+    hasReturnPolicy?: boolean;
+    isOfficialGenuine?: boolean;
+    vatTaxPercent?: number | string;
+  }) => {
+    const titleToUse = String(prod.title || prod.name || '');
+    const brandToUse = String(prod.brand || 'ShopNexus');
+    const categoryToUse = String(prod.category || 'Audio');
+    const skuToUse = String(prod.sku || `SKU-${Date.now().toString().slice(-4)}`);
+    const barcodeToUse = String(prod.barcode || `BC-${Date.now().toString().slice(-6)}`);
+    const costToUse = prod.costPrice ? String(prod.costPrice) : '0';
     const basePrice = prod.price || 0;
     const discPrice = prod.discountPrice || 0;
-    const calcDiscountPct =
-      discPrice > 0 && basePrice > discPrice
-        ? Math.round(((basePrice - discPrice) / basePrice) * 100)
-        : '';
 
-    const titleToUse = prod.title || prod.name || prod.title_en || prod.title_bn || '';
-    const brandToUse = prod.brand || 'ShopNexus Official';
-    const categoryToUse = prod.category || 'Audio';
-    const skuToUse = prod.sku || prod.variants?.[0]?.sku || `SKU-${productId?.toUpperCase() || 'PROD'}`;
-    const barcodeToUse = prod.barcode || `BC-${productId?.toUpperCase() || '880190'}`;
-    const costToUse = prod.costPrice ? prod.costPrice.toString() : Math.round((basePrice || 5000) * 0.7).toString();
-    const stockToUse = prod.stock !== undefined ? prod.stock.toString() : '20';
-    const thresholdToUse = prod.threshold !== undefined ? prod.threshold.toString() : '5';
-    const variantToUse = prod.variantColor || prod.variants?.[0]?.name || 'Standard Space Gray';
+    let calcDiscountPct = '';
+    if (basePrice > 0 && discPrice > 0 && discPrice < basePrice) {
+      calcDiscountPct = Math.round(((basePrice - discPrice) / basePrice) * 100).toString();
+    }
+
+    const stockToUse = prod.stock !== undefined ? String(prod.stock) : '15';
+    const thresholdToUse = prod.threshold !== undefined ? String(prod.threshold) : '5';
+    const variantToUse = String(prod.variantColor || 'Standard Space Gray');
     const imageToUse =
       (Array.isArray(prod.images) && prod.images[0]) ||
-      prod.image ||
+      (typeof prod.image === 'string' ? prod.image : '') ||
       'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80';
     const descToUse =
-      prod.description ||
+      String(prod.description ||
       prod.description_en ||
       prod.description_bn ||
-      'Official high-performance gear with premium manufacturer specifications, durability, and warranty.';
+      'Official high-performance gear with premium manufacturer specifications, durability, and warranty.');
 
-    const fastDelivery = prod.hasFastDelivery !== undefined ? prod.hasFastDelivery : prod.trustBadges?.hasFastDelivery !== false;
-    const warranty = prod.hasWarranty !== undefined ? prod.hasWarranty : prod.trustBadges?.hasWarranty !== false;
-    const warrantyTxt = prod.warrantyText || prod.trustBadges?.warrantyText || '১ বছরের অফিসিয়াল ওয়ারেন্টি';
-    const returnPolicy = prod.hasReturnPolicy !== undefined ? prod.hasReturnPolicy : prod.trustBadges?.hasReturnPolicy !== false;
-    const officialGenuine = prod.isOfficialGenuine !== undefined ? prod.isOfficialGenuine : prod.trustBadges?.isOfficialGenuine !== false;
+    const fastDelivery = prod.hasFastDelivery !== undefined ? Boolean(prod.hasFastDelivery) : true;
+    const warranty = prod.hasWarranty !== undefined ? Boolean(prod.hasWarranty) : true;
+    const warrantyTxt = String(prod.warrantyText || '১ বছরের অফিসিয়াল ওয়ারেন্টি');
+    const returnPolicy = prod.hasReturnPolicy !== undefined ? Boolean(prod.hasReturnPolicy) : true;
+    const officialGenuine = prod.isOfficialGenuine !== undefined ? Boolean(prod.isOfficialGenuine) : true;
 
     setFormData({
       name: titleToUse,
@@ -129,7 +141,7 @@ export default function EditProductPage() {
       price: basePrice > 0 ? basePrice.toString() : '',
       discountPrice: discPrice > 0 ? discPrice.toString() : '',
       customDiscountPercent: calcDiscountPct ? calcDiscountPct.toString() : '',
-      vatTaxPercent: prod.vatTaxPercent ? prod.vatTaxPercent.toString() : '7.5',
+      vatTaxPercent: prod.vatTaxPercent ? String(prod.vatTaxPercent) : '7.5',
       stock: stockToUse,
       threshold: thresholdToUse,
       variantColor: variantToUse,
@@ -142,7 +154,7 @@ export default function EditProductPage() {
       hasReturnPolicy: returnPolicy,
       isOfficialGenuine: officialGenuine,
     });
-  };
+  }, []);
 
   // Fetch product data on load
   useEffect(() => {
@@ -167,21 +179,22 @@ export default function EditProductPage() {
             return;
           }
         }
-      } catch (_e) {}
+      } catch {}
 
       // Tier 2: Check Local custom storage
       try {
         const existingRaw = localStorage.getItem('shopnexus_custom_products');
         if (existingRaw) {
           const list = JSON.parse(existingRaw);
-          const found = list.find((p: any) => p.id === productId || p._id === productId || p.slug === productId);
+          const found = list.find((p: Partial<Product> & { id?: string; name?: string }) => p.id === productId || p._id === productId || p.slug === productId);
           if (found && (found.title || found.name)) {
             populateFields(found);
             setIsLoading(false);
             return;
           }
         }
-      } catch (_e) {}
+      } catch {}
+
 
       // Tier 3: Check Shared Inventory Dataset & Resolver
       const staticMatch = getProductOrInventoryById(productId);
@@ -200,7 +213,7 @@ export default function EditProductPage() {
     };
 
     loadProductData();
-  }, [productId]);
+  }, [productId, populateFields]);
 
   // Live Pricing & Profit Calculations
   const sellingPrice = parseFloat(formData.price) || 0;
@@ -345,14 +358,15 @@ export default function EditProductPage() {
 
         const existingRaw = localStorage.getItem('shopnexus_custom_products');
         const list = existingRaw ? JSON.parse(existingRaw) : [];
-        const existingIdx = list.findIndex((p: any) => p.id === productId || p._id === productId);
+        const existingIdx = list.findIndex((p: Partial<Product> & { id?: string }) => p.id === productId || p._id === productId);
         if (existingIdx >= 0) {
           list[existingIdx] = { ...list[existingIdx], ...itemForStorage };
         } else {
           list.push(itemForStorage);
         }
         localStorage.setItem('shopnexus_custom_products', JSON.stringify(list));
-      } catch (_e) {}
+      } catch {}
+
 
       showToast(isBn ? '✅ প্রোডাক্টের সকল পরিবর্তন সফলভাবে সংরক্ষিত হয়েছে!' : '✅ All product changes saved successfully!');
       setTimeout(() => {

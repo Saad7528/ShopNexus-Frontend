@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { CartItemType, useCartStore } from '@/store/useCartStore';
 import { useLanguageStore } from '@/store/useLanguageStore';
 import { formatCurrency, toBengaliNumber } from '@/lib/translations';
@@ -12,7 +13,7 @@ interface CartItemProps {
 }
 
 export const CartItem: React.FC<CartItemProps> = ({ item }) => {
-  const { updateQuantity, removeItem } = useCartStore();
+  const { updateQuantity, removeItem, closeDrawer } = useCartStore();
   const { language } = useLanguageStore();
   const isMaxStock = item.quantity >= item.stock;
   const isLowStock = item.stock <= 5;
@@ -20,19 +21,29 @@ export const CartItem: React.FC<CartItemProps> = ({ item }) => {
   return (
     <div className="flex gap-3.5 py-3.5 border-b border-slate-100 dark:border-slate-800/80 items-center">
       {/* Product Thumbnail */}
-      <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-950 flex-shrink-0 border border-slate-200 dark:border-slate-800">
+      <Link
+        href={`/products/${item.productId}`}
+        onClick={() => closeDrawer()}
+        className="relative w-16 h-16 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-950 flex-shrink-0 border border-slate-200 dark:border-slate-800 hover:opacity-80 transition-opacity cursor-pointer"
+      >
         <Image
           src={item.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&q=80'}
           alt={item.title}
           fill
           className="object-cover"
         />
-      </div>
+      </Link>
 
       {/* Info & Counter */}
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">
-          <h4 className="text-xs font-semibold text-slate-900 dark:text-slate-100 line-clamp-1">{item.title}</h4>
+          <Link
+            href={`/products/${item.productId}`}
+            onClick={() => closeDrawer()}
+            className="hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+          >
+            <h4 className="text-xs font-semibold text-slate-900 dark:text-slate-100 line-clamp-1">{item.title}</h4>
+          </Link>
           <button
             onClick={() => removeItem(item.productId)}
             className="text-slate-400 dark:text-slate-500 hover:text-rose-500 dark:hover:text-rose-400 p-1 transition-colors flex-shrink-0 cursor-pointer"

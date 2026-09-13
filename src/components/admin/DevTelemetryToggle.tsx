@@ -1,26 +1,13 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useVisitorAnalyticsStore } from '@/store/useVisitorAnalyticsStore';
-import { Radio, Sparkles, Laptop, Shield } from 'lucide-react';
+import { Sparkles, Laptop } from 'lucide-react';
+import { useHydrated } from '@/lib/useHydrated';
 
 export default function DevTelemetryToggle({ compact = false }: { compact?: boolean }) {
-  const [mounted, setMounted] = useState(false);
-  const [isLocal, setIsLocal] = useState(false);
+  const mounted = useHydrated();
   const { telemetryMode, setTelemetryMode } = useVisitorAnalyticsStore();
-
-  useEffect(() => {
-    setMounted(true);
-    if (typeof window !== 'undefined') {
-      const hostname = window.location.hostname;
-      setIsLocal(
-        hostname === 'localhost' ||
-        hostname === '127.0.0.1' ||
-        hostname === '0.0.0.0' ||
-        hostname.endsWith('.local')
-      );
-    }
-  }, []);
 
   if (!mounted) {
     return null;

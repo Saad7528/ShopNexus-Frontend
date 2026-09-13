@@ -7,14 +7,10 @@ import {
   Camera,
   ThumbsUp,
   MessageSquare,
-  ShieldCheck,
-  Check,
   MoreVertical,
   Edit2,
   Trash2,
   Clock,
-  Filter,
-  Sparkles,
   SlidersHorizontal,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -32,7 +28,7 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
   productName = 'Product',
 }) => {
   const { user } = useAuthStore();
-  const { getProductReviews, toggleHelpfulVote, deleteReview, addSellerReply, deleteSellerReply } = useReviewStore();
+  const { toggleHelpfulVote, deleteReview, addSellerReply, deleteSellerReply } = useReviewStore();
 
   const [activeTab, setActiveTab] = useState<'all' | 'photos'>('all');
   const [sortBy, setSortBy] = useState<'recent' | 'highest' | 'lowest' | 'helpful'>('recent');
@@ -47,34 +43,22 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
 
   // Stable selectors from store
   const allReviews = useReviewStore((state) => state.reviews);
-  const moderationMode = useReviewStore((state) => state.moderationMode);
 
   // Compute filtered reviews respecting privacy (pending reviews only visible to author or admin)
   const productReviews = useMemo(() => {
-    const matched = allReviews.filter(
-      (r) =>
-        r.productId === productId ||
-        r.productName?.toLowerCase().includes(productId.toLowerCase())
-    );
-
-    const now = Date.now();
-    const effectiveList = matched.map((r) => {
-      if (r.status === 'PENDING' && moderationMode === 'AUTO_24H') {
-        const hoursPassed = (now - r.timestamp) / (1000 * 60 * 60);
-        if (hoursPassed >= 24) {
-          return { ...r, status: 'APPROVED' as const };
-        }
-      }
-      return r;
-    });
-
-    return effectiveList.filter((r) => {
-      if (isAdmin) return true;
-      if (r.status === 'APPROVED') return true;
-      if (r.status === 'PENDING' && currentUserId && r.userId === currentUserId) return true;
-      return false;
-    });
-  }, [allReviews, moderationMode, productId, currentUserId, isAdmin]);
+    return allReviews
+      .filter(
+        (r) =>
+          r.productId === productId ||
+          r.productName?.toLowerCase().includes(productId.toLowerCase())
+      )
+      .filter((r) => {
+        if (isAdmin) return true;
+        if (r.status === 'APPROVED') return true;
+        if (r.status === 'PENDING' && currentUserId && r.userId === currentUserId) return true;
+        return false;
+      });
+  }, [allReviews, productId, currentUserId, isAdmin]);
 
   // Reviews with photos count
   const photoReviewsCount = useMemo(

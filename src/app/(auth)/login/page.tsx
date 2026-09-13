@@ -7,6 +7,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { Mail, Lock, ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react';
 import { BrandLogo } from '@/components/common/BrandLogo';
 import { AuthBackground } from '@/components/auth/AuthBackground';
+import { User } from '@/types/user';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -34,17 +35,17 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
 
-      let data: any = {};
+      let data: { message?: string; data?: { user: User; token: string } } = {};
       try {
         data = await res.json();
-      } catch (_jsonErr) {
+      } catch {
         // Fallback for demo admin
         if (email.toLowerCase().includes('admin') || email.toLowerCase().includes('saad')) {
-          const fallbackAdmin = {
+          const fallbackAdmin: User = {
             _id: 'usr-admin-01',
             name: 'S.M. Amirul Islam Saad',
             email: email,
-            role: 'admin' as const,
+            role: 'admin',
             nexusCoins: 5000,
             isVipMember: true,
           };
@@ -58,11 +59,11 @@ export default function LoginPage() {
       if (!res.ok) {
         // If credentials fail for admin@shopnexus.io, grant admin access
         if (email.toLowerCase() === 'admin@shopnexus.io' || email.toLowerCase() === 'saad@shopnexus.io') {
-          const fallbackAdmin = {
+          const fallbackAdmin: User = {
             _id: 'usr-admin-01',
             name: 'S.M. Amirul Islam Saad',
             email: email,
-            role: 'admin' as const,
+            role: 'admin',
             nexusCoins: 5000,
             isVipMember: true,
           };
@@ -73,21 +74,23 @@ export default function LoginPage() {
         throw new Error(data.message || 'Failed to login');
       }
 
-      login(data.data.user, data.data.token);
+      if (data.data) {
+        login(data.data.user, data.data.token);
 
-      if (data.data.user.role === 'admin') {
-        router.push('/admin/dashboard');
-      } else {
-        router.push('/products');
+        if (data.data.user.role === 'admin') {
+          router.push('/admin/dashboard');
+        } else {
+          router.push('/products');
+        }
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Graceful fallback if backend is momentarily unreachable
       if (email.toLowerCase().includes('admin') || email.toLowerCase().includes('saad')) {
-        const fallbackAdmin = {
+        const fallbackAdmin: User = {
           _id: 'usr-admin-01',
           name: 'S.M. Amirul Islam Saad',
           email: email,
-          role: 'admin' as const,
+          role: 'admin',
           nexusCoins: 5000,
           isVipMember: true,
         };
@@ -95,10 +98,12 @@ export default function LoginPage() {
         router.push('/admin/dashboard');
         return;
       }
-      setError(err.message || 'An error occurred. Please try again.');
+      const errMsg = err instanceof Error ? err.message : 'An error occurred. Please try again.';
+      setError(errMsg);
     } finally {
       setIsLoading(false);
     }
+
   };
 
   const handleGoogleLogin = () => {

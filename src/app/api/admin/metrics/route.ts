@@ -75,7 +75,7 @@ export async function GET(_req: NextRequest) {
         salesTrends,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('API Admin Metrics GET error:', error);
     return NextResponse.json({
       success: true,

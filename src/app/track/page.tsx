@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -8,25 +8,22 @@ import {
   Search,
   Truck,
   Package,
-  CheckCircle2,
   Clock,
   MapPin,
-  ShieldCheck,
   ArrowRight,
   Copy,
   Check,
   MessageCircle,
-  HelpCircle,
   Calendar,
   CreditCard,
   Building2,
   Sparkles,
-  PhoneCall,
   AlertCircle,
 } from 'lucide-react';
 import { useOrderStore, UserOrder } from '@/store/useOrderStore';
 import { useLanguageStore } from '@/store/useLanguageStore';
-import { formatCurrency, toBengaliNumber } from '@/lib/translations';
+import { formatCurrency } from '@/lib/translations';
+import { useHydrated } from '@/lib/useHydrated';
 
 const STEP_DEFINITIONS = [
   { key: 'PLACED', stepNumber: 1, labelEn: 'Order Placed', labelBn: 'অর্ডার প্লেসড', descEn: 'Order placed & received in queue', descBn: 'অর্ডার সফলভাবে সিস্টেমে গ্রহণ করা হয়েছে' },
@@ -38,15 +35,16 @@ const STEP_DEFINITIONS = [
 
 function getStepIndex(status: string): number {
   switch (status?.toUpperCase()) {
-    case 'DELIVERED':
-      return 5;
-    case 'SHIPPED':
-      return 4;
-    case 'PACKAGING':
-      return 3;
-    case 'CONFIRMED':
-      return 2;
     case 'PLACED':
+      return 0;
+    case 'CONFIRMED':
+      return 1;
+    case 'PACKAGING':
+      return 2;
+    case 'SHIPPED':
+      return 3;
+    case 'DELIVERED':
+      return 4;
     default:
       return 1;
   }
@@ -57,44 +55,37 @@ function TrackingContent() {
   const initialQuery = searchParams.get('id') || searchParams.get('tracking') || '';
   
   const [query, setQuery] = useState(initialQuery);
-  const [searchedOrder, setSearchedOrder] = useState<UserOrder | null>(null);
-  const [hasSearched, setHasSearched] = useState(false);
+  const [prevInitialQuery, setPrevInitialQuery] = useState(initialQuery);
+  if (prevInitialQuery !== initialQuery) {
+    setPrevInitialQuery(initialQuery);
+    setQuery(initialQuery);
+  }
+
+  const [hasSubmitted, setHasSubmitted] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useHydrated();
 
   const { orders } = useOrderStore();
   const { language } = useLanguageStore();
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const performSearch = (searchTerm: string) => {
-    if (!searchTerm.trim()) return;
-    const clean = searchTerm.trim().toLowerCase();
-
-    const found = orders.find(
+  const activeSearchTerm = hasSubmitted ? query : initialQuery;
+  const searchedOrder = useMemo(() => {
+    if (!activeSearchTerm.trim()) return null;
+    const clean = activeSearchTerm.trim().toLowerCase();
+    return orders.find(
       (o) =>
         o.orderNumber?.toLowerCase() === clean ||
         o.trackingNumber?.toLowerCase() === clean ||
         o.id?.toLowerCase() === clean ||
         o.shippingAddress?.toLowerCase().includes(clean)
-    );
+    ) || null;
+  }, [activeSearchTerm, orders]);
 
-    setSearchedOrder(found || null);
-    setHasSearched(true);
-  };
-
-  useEffect(() => {
-    if (initialQuery) {
-      setQuery(initialQuery);
-      performSearch(initialQuery);
-    }
-  }, [initialQuery]);
+  const hasSearched = hasSubmitted || Boolean(initialQuery.trim());
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    performSearch(query);
+    setHasSubmitted(true);
   };
 
   const handleCopyTrackingLink = () => {
@@ -163,7 +154,7 @@ function TrackingContent() {
               type="button"
               onClick={() => {
                 setQuery('NX-ORD-9021');
-                performSearch('NX-ORD-9021');
+                setHasSubmitted(true);
               }}
               className="px-2.5 py-1 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 font-mono font-semibold border border-orange-500/20 transition-colors cursor-pointer"
             >
@@ -173,7 +164,7 @@ function TrackingContent() {
               type="button"
               onClick={() => {
                 setQuery('NX-ORD-8814');
-                performSearch('NX-ORD-8814');
+                setHasSubmitted(true);
               }}
               className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-mono font-semibold border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
             >

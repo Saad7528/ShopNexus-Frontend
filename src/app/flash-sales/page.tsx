@@ -154,13 +154,11 @@ const FLASH_DEALS: Product[] = [
   },
 ];
 
+import { useHydrated } from '@/lib/useHydrated';
+
 export default function FlashSalesPage() {
   const { t, language } = useLanguageStore();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useHydrated();
 
   const [timeLeft, setTimeLeft] = useState({
     hours: 8,

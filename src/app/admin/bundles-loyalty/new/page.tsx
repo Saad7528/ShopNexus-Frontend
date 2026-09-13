@@ -19,7 +19,6 @@ import {
   Check,
   Tag,
   Trash2,
-  AlertCircle,
   Coins,
   Percent,
   CheckCircle2,

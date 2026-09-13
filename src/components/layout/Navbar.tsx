@@ -23,6 +23,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { VisualSearchModal } from '@/components/ai/VisualSearchModal';
+import { useHydrated } from '@/lib/useHydrated';
 import { NotificationDrawer } from '@/components/notifications/NotificationDrawer';
 import { BrandLogo } from '@/components/common/BrandLogo';
 import { LanguageToggle } from '@/components/common/LanguageToggle';
@@ -41,16 +42,21 @@ export const Navbar: React.FC = () => {
   const { user, isAuthenticated, logout } = useAuthStore();
 
   // Local state
-  const [isMounted, setIsMounted] = useState(false);
+  const isMounted = useHydrated();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [prevPath, setPrevPath] = useState(pathname);
+  if (prevPath !== pathname) {
+    setPrevPath(pathname);
+    setMobileMenuOpen(false);
+  }
+
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [visualSearchOpen, setVisualSearchOpen] = useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setIsMounted(true);
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };
@@ -82,10 +88,6 @@ export const Navbar: React.FC = () => {
       window.removeEventListener('scroll', handleScrollClose);
     };
   }, [userDropdownOpen]);
-
-  useEffect(() => {
-    setMobileMenuOpen(false);
-  }, [pathname]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

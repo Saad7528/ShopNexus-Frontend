@@ -434,7 +434,10 @@ export interface LocalizedProductData {
  * Smart Bilingual Resolver for Products and Combo Packages
  * Supports exact ID mapping, slug matching, semantic title matching, and universal auto-translation.
  */
-export const getLocalizedProduct = (product: Partial<Product> | any, lang: Language = 'bn'): LocalizedProductData => {
+export const getLocalizedProduct = (
+  product: Product | Partial<Product> | Record<string, unknown> | null | undefined,
+  lang: Language = 'bn'
+): LocalizedProductData => {
   if (!product) {
     return {
       title: '',
@@ -446,21 +449,32 @@ export const getLocalizedProduct = (product: Partial<Product> | any, lang: Langu
     };
   }
 
+  const p = product as Partial<Product> & Record<string, unknown>;
+
   // 1. Precise lookup by _id, slug, or id
-  const lookupKey = (product._id || product.slug || product.id || '').toString();
-  let trans = PRODUCT_TRANSLATIONS[lookupKey] || (product.slug ? PRODUCT_TRANSLATIONS[product.slug] : undefined);
+  const lookupKey = (p._id || p.slug || p.id || '').toString();
+  let trans = PRODUCT_TRANSLATIONS[lookupKey] || (p.slug && typeof p.slug === 'string' ? PRODUCT_TRANSLATIONS[p.slug] : undefined);
 
   // 2. Fallback lookup by title
-  if (!trans && product.title) {
-    const slugified = product.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const rawTitle = typeof p.title === 'string' ? p.title : '';
+  const rawDesc = typeof p.description === 'string' ? p.description : '';
+  const rawCategory = typeof p.category === 'string' ? p.category : '';
+  const rawBrand = typeof p.brand === 'string' ? p.brand : '';
+  const rawTitleBn = typeof p.title_bn === 'string' ? p.title_bn : '';
+  const rawDescBn = typeof p.description_bn === 'string' ? p.description_bn : '';
+  const rawTitleEn = typeof p.title_en === 'string' ? p.title_en : '';
+  const rawDescEn = typeof p.description_en === 'string' ? p.description_en : '';
+
+  if (!trans && rawTitle) {
+    const slugified = rawTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
     trans = PRODUCT_TRANSLATIONS[slugified];
 
     if (!trans) {
       for (const item of Object.values(PRODUCT_TRANSLATIONS)) {
         if (
-          item.title_en.toLowerCase() === product.title.toLowerCase() ||
-          item.title_bn === product.title ||
-          product.title.toLowerCase().includes(item.title_en.toLowerCase())
+          item.title_en.toLowerCase() === rawTitle.toLowerCase() ||
+          item.title_bn === rawTitle ||
+          rawTitle.toLowerCase().includes(item.title_en.toLowerCase())
         ) {
           trans = item;
           break;
@@ -470,9 +484,9 @@ export const getLocalizedProduct = (product: Partial<Product> | any, lang: Langu
   }
 
   const isCombo =
-    product.category === 'Combo Packages' ||
-    (product.tags && product.tags.includes('combo')) ||
-    (product.title && /combo|bundle|suite/i.test(product.title));
+    rawCategory === 'Combo Packages' ||
+    (Array.isArray(p.tags) && p.tags.includes('combo')) ||
+    (rawTitle && /combo|bundle|suite/i.test(rawTitle));
 
   let title = '';
   let description = '';
@@ -484,24 +498,24 @@ export const getLocalizedProduct = (product: Partial<Product> | any, lang: Langu
     // ----------------------------------------------------
     if (trans?.title_bn) {
       title = trans.title_bn;
-    } else if (product.title_bn) {
-      title = product.title_bn;
-    } else if (hasBengaliChars(product.title)) {
-      title = product.title;
+    } else if (rawTitleBn) {
+      title = rawTitleBn;
+    } else if (rawTitle && hasBengaliChars(rawTitle)) {
+      title = rawTitle;
     } else {
-      title = autoTranslateTitleToBengali(product.title || '');
+      title = autoTranslateTitleToBengali(rawTitle);
     }
 
     if (trans?.desc_bn) {
       description = trans.desc_bn;
-    } else if (product.description_bn) {
-      description = product.description_bn;
-    } else if (hasBengaliChars(product.description)) {
-      description = product.description;
+    } else if (rawDescBn) {
+      description = rawDescBn;
+    } else if (rawDesc && hasBengaliChars(rawDesc)) {
+      description = rawDesc;
     } else {
       description = isCombo
         ? 'বিশেষ প্যাকেজ অফার: একসাথে একাধিক গ্যাজেটে আকর্ষণীয় সাশ্রয় ও বোনাস লয়্যালটি পয়েন্ট।'
-        : `${product.brand ? `${product.brand} ব্র্যান্ডের ` : ''}১০০% অথেনটিক অফিসিয়াল গ্যাজেট, ম্যানুফ্যাকচারার ওয়ারেন্টি ও ফাস্ট হোম ডেলিভারি সুবিধা সহ।`;
+        : `${rawBrand ? `${rawBrand} ব্র্যান্ডের ` : ''}১০০% অথেনটিক অফিসিয়াল গ্যাজেট, ম্যানুফ্যাকচারার ওয়ারেন্টি ও ফাস্ট হোম ডেলিভারি সুবিধা সহ।`;
     }
 
     badge = trans?.badge_bn;
@@ -511,30 +525,30 @@ export const getLocalizedProduct = (product: Partial<Product> | any, lang: Langu
     // ----------------------------------------------------
     if (trans?.title_en) {
       title = trans.title_en;
-    } else if (product.title_en) {
-      title = product.title_en;
-    } else if (!hasBengaliChars(product.title)) {
-      title = product.title || '';
+    } else if (rawTitleEn) {
+      title = rawTitleEn;
+    } else if (rawTitle && !hasBengaliChars(rawTitle)) {
+      title = rawTitle;
     } else {
-      title = autoTranslateTitleToEnglish(product.title || '');
+      title = autoTranslateTitleToEnglish(rawTitle);
     }
 
     if (trans?.desc_en) {
       description = trans.desc_en;
-    } else if (product.description_en) {
-      description = product.description_en;
-    } else if (product.description && !hasBengaliChars(product.description)) {
-      description = product.description;
+    } else if (rawDescEn) {
+      description = rawDescEn;
+    } else if (rawDesc && !hasBengaliChars(rawDesc)) {
+      description = rawDesc;
     } else {
       description = isCombo
         ? 'Special Curated Bundle: Get extra discount on multiple devices with bonus reward points.'
-        : `Authentic ${product.brand || 'premium'} device with manufacturer warranty and fast express delivery.`;
+        : `Authentic ${rawBrand || 'premium'} device with manufacturer warranty and fast express delivery.`;
     }
 
     badge = trans?.badge_en;
   }
 
-  const category = getLocalizedCategory(product.category || '', lang);
+  const category = getLocalizedCategory(rawCategory, lang);
 
   const rawPrice = typeof product.price === 'number' ? product.price : 0;
   const displayPrice =

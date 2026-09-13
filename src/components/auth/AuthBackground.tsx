@@ -1,22 +1,22 @@
 'use client';
 
 import React, { useRef, useEffect } from 'react';
+import { useHydrated } from '@/lib/useHydrated';
 
 interface AuthBackgroundProps {
   children?: React.ReactNode;
 }
 
 export const AuthBackground: React.FC<AuthBackgroundProps> = ({ children }) => {
-  const [mounted, setMounted] = React.useState(false);
+  const mounted = useHydrated();
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    setMounted(true);
-    if (videoRef.current) {
+    if (mounted && videoRef.current) {
       videoRef.current.playbackRate = 0.9;
       videoRef.current.play().catch(() => {});
     }
-  }, []);
+  }, [mounted]);
 
   return (
     <div className="relative min-h-screen w-full flex flex-col items-center justify-center p-4 overflow-hidden bg-slate-950">

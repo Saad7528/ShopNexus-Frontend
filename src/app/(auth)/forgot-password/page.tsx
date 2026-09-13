@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Mail, ArrowLeft, Send, CheckCircle2, ShieldCheck, KeyRound } from 'lucide-react';
+import { Mail, ArrowLeft, Send, CheckCircle2, KeyRound } from 'lucide-react';
+
 import { BrandLogo } from '@/components/common/BrandLogo';
 import { AuthBackground } from '@/components/auth/AuthBackground';
 
@@ -36,7 +37,7 @@ export default function ForgotPasswordPage() {
       } else {
         setErrorMessage(json.message || 'Failed to process request.');
       }
-    } catch (_err) {
+    } catch {
       // Local fallback simulation if offline
       const mockToken = Math.random().toString(36).substring(2, 15);
       setResetToken(mockToken);

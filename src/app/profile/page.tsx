@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useRef, Suspense } from 'react';
-import Image from 'next/image';
+import React, { useState, useRef, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useOrderStore, UserOrder } from '@/store/useOrderStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
@@ -19,9 +18,7 @@ import {
   Mail,
   Camera,
   CheckCircle2,
-  Clock,
   Truck,
-  Box,
   Trash2,
   Save,
   LogOut,
@@ -29,58 +26,56 @@ import {
   Plus,
   Minus,
   ShoppingBag,
-  Sparkles,
+  AlertCircle,
 } from 'lucide-react';
+import { ALL_PRODUCTS, getProductByIdOrSlug } from '@/data/products';
 
 function ProfileContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const requestedTab = searchParams.get('tab');
 
-  const { user, token, setUser, logout, isAuthenticated } = useAuthStore();
+  const { user, token, setUser, logout } = useAuthStore();
   const { orders: userOrders } = useOrderStore();
   const { items: wishlistItems, removeFromWishlist } = useWishlistStore();
   const { items: cartItems, addItem, removeItem, updateQuantity, getTotals } = useCartStore();
 
-  const [activeTab, setActiveTab] = useState<'profile' | 'orders' | 'wishlist' | 'cart'>('profile');
-  const [selectedOrder, setSelectedOrder] = useState<UserOrder | null>(null);
+  const tabFromQuery = requestedTab === 'orders' || requestedTab === 'wishlist' || requestedTab === 'cart' || requestedTab === 'profile' ? requestedTab : null;
+  const [activeTab, setActiveTab] = useState<'profile' | 'orders' | 'wishlist' | 'cart'>(tabFromQuery || 'profile');
+  const [prevTabQuery, setPrevTabQuery] = useState(tabFromQuery);
+  if (prevTabQuery !== tabFromQuery) {
+    setPrevTabQuery(tabFromQuery);
+    if (tabFromQuery) setActiveTab(tabFromQuery);
+  }
+
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const selectedOrder = (selectedOrderId ? userOrders.find((o) => o.id === selectedOrderId || o.orderNumber === selectedOrderId) : null) || (userOrders && userOrders.length > 0 ? userOrders[0] : null);
+  const setSelectedOrder = (order: UserOrder | null) => {
+    setSelectedOrderId(order ? (order.id || order.orderNumber) : null);
+  };
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Sync tab from URL query param
-  useEffect(() => {
-    if (requestedTab === 'orders' || requestedTab === 'wishlist' || requestedTab === 'cart' || requestedTab === 'profile') {
-      setActiveTab(requestedTab);
-    }
-  }, [requestedTab]);
-
-  useEffect(() => {
-    if (userOrders && userOrders.length > 0 && !selectedOrder) {
-      setSelectedOrder(userOrders[0]);
-    }
-  }, [userOrders, selectedOrder]);
-
   // Form State initialized purely from real user data (Zero fake/dummy hardcoded values)
-  const [name, setName] = useState('');
-  const [avatar, setAvatar] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [address, setAddress] = useState('');
-  const [city, setCity] = useState('');
-  const [zipCode, setZipCode] = useState('');
-  const [country, setCountry] = useState('Bangladesh');
+  const [name, setName] = useState(user?.name || '');
+  const [avatar, setAvatar] = useState(user?.avatar || '');
+  const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || '');
+  const [address, setAddress] = useState(user?.address || '');
+  const [city, setCity] = useState(user?.city || '');
+  const [zipCode, setZipCode] = useState(user?.zipCode || '');
+  const [country, setCountry] = useState(user?.country || 'Bangladesh');
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      setName(user.name || '');
-      setAvatar(user.avatar || '');
-      setPhoneNumber(user.phoneNumber || '');
-      setAddress(user.address || '');
-      setCity(user.city || '');
-      setZipCode(user.zipCode || '');
-      setCountry(user.country || 'Bangladesh');
-    }
-  }, [user]);
+  const [prevUserId, setPrevUserId] = useState(user?._id);
+  if (user && user._id !== prevUserId) {
+    setPrevUserId(user._id);
+    setName(user.name || '');
+    setAvatar(user.avatar || '');
+    setPhoneNumber(user.phoneNumber || '');
+    setAddress(user.address || '');
+    setCity(user.city || '');
+    setZipCode(user.zipCode || '');
+    setCountry(user.country || 'Bangladesh');
+  }
 
   // 📷 Handle Real Device File Upload for Profile Photo
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -158,18 +153,20 @@ function ProfileContent() {
     }
   };
 
-  const handleMoveWishlistToCart = (item: any) => {
+  const handleMoveWishlistToCart = (item: { id: string; name: string; price: number; image: string; inStock?: boolean }, stockCount: number) => {
+    if (stockCount <= 0 || item.inStock === false) return;
     addItem({
       productId: item.id,
       title: item.name,
       price: item.price,
       image: item.image,
       quantity: 1,
-      stock: 15,
+      stock: stockCount,
       vendorName: 'ShopNexus Official Store',
     });
     removeFromWishlist(item.id);
   };
+
 
   const getStepProgress = (status: UserOrder['status']) => {
     switch (status) {
@@ -611,44 +608,65 @@ function ProfileContent() {
 
             {wishlistItems && wishlistItems.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {wishlistItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 flex flex-col justify-between gap-4 group"
-                  >
-                    <div className="flex items-center gap-3.5">
-                      <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-white dark:bg-slate-900 shrink-0 border border-slate-200 dark:border-slate-800">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-orange-600 dark:text-orange-400 block">{item.category}</span>
-                        <h4 className="font-bold text-xs text-slate-900 dark:text-white truncate">{item.name}</h4>
-                        <span className="font-mono font-bold text-xs text-slate-900 dark:text-white block mt-1">
-                          ৳{item.price.toLocaleString()}
-                        </span>
-                      </div>
-                    </div>
+                {wishlistItems.map((item) => {
+                  const staticProd = getProductByIdOrSlug(item.id) || ALL_PRODUCTS.find((p) => p._id === item.id || p.slug === item.id);
+                  const availableStock = staticProd ? (Number(staticProd.stock) ?? 0) : (item.inStock === false ? 0 : 10);
+                  const isOutOfStock = availableStock <= 0;
 
-                    <div className="flex items-center gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-800/80">
-                      <button
-                        type="button"
-                        onClick={() => handleMoveWishlistToCart(item)}
-                        className="flex-1 py-2 px-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer"
-                      >
-                        <ShoppingBag className="w-3.5 h-3.5" /> Move to Cart
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => removeFromWishlist(item.id)}
-                        className="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 transition-all cursor-pointer"
-                        title="Remove from wishlist"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                  return (
+                    <div
+                      key={item.id}
+                      className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 flex flex-col justify-between gap-4 group"
+                    >
+                      <div className="flex items-center gap-3.5">
+                        <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-white dark:bg-slate-900 shrink-0 border border-slate-200 dark:border-slate-800">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                          {isOutOfStock && (
+                            <div className="absolute inset-x-0 bottom-0 py-0.5 bg-rose-600/90 text-[8px] font-bold text-white text-center">
+                              Out of Stock
+                            </div>
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-orange-600 dark:text-orange-400 block">{item.category}</span>
+                          <h4 className="font-bold text-xs text-slate-900 dark:text-white truncate">{item.name}</h4>
+                          <span className="font-mono font-bold text-xs text-slate-900 dark:text-white block mt-1">
+                            ৳{item.price.toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-800/80">
+                        {isOutOfStock ? (
+                          <button
+                            type="button"
+                            disabled
+                            className="flex-1 py-2 px-3 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-bold text-xs flex items-center justify-center gap-1.5 cursor-not-allowed border border-slate-300 dark:border-slate-700 opacity-80 select-none"
+                          >
+                            <AlertCircle className="w-3.5 h-3.5 text-rose-500" /> Out of Stock
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleMoveWishlistToCart(item, availableStock)}
+                            className="flex-1 py-2 px-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                          >
+                            <ShoppingBag className="w-3.5 h-3.5" /> Move to Cart
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => removeFromWishlist(item.id)}
+                          className="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 transition-all cursor-pointer"
+                          title="Remove from wishlist"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="text-center py-12 space-y-3">

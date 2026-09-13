@@ -4,6 +4,44 @@ import mongoose from 'mongoose';
 
 export const dynamic = 'force-dynamic';
 
+interface RouteItem {
+  path: string;
+  durationSeconds: number;
+  lastVisitedAt: string;
+}
+
+interface TelemetrySessionDoc {
+  _id?: unknown;
+  id?: string;
+  ip?: string;
+  pageviews?: number;
+  durationSeconds?: number;
+  isCartActive?: boolean;
+  cartItemsCount?: number;
+  cartValueBDT?: number;
+  cartItemsSummary?: string;
+  status?: string;
+  device?: string;
+  deviceModel?: string;
+  browser?: string;
+  os?: string;
+  routeHistory?: RouteItem[];
+  currentUrl?: string;
+  startedAt?: string;
+  updatedAt?: string | Date;
+  createdAt?: string | Date;
+  customerName?: string;
+  contactPhone?: string;
+  city?: string;
+  country?: string;
+  countryCode?: string;
+  flag?: string;
+  isp?: string;
+  referrer?: string;
+  isBounced?: boolean;
+  bounceReason?: string;
+}
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -18,7 +56,7 @@ export async function GET(req: NextRequest) {
     const telemetryCollection = db.collection('telemetry_sessions');
     const now = new Date();
 
-    let query: any = {};
+    let query: Record<string, unknown> = {};
 
     if (range === 'live') {
       // Live window: Active within 25 seconds and strictly active status (immune to mobile packet jitter)
@@ -44,21 +82,21 @@ export async function GET(req: NextRequest) {
     }
     // range === 'all' queries everything ({})
 
-    const rawSessions = await telemetryCollection
+    const rawSessions = (await telemetryCollection
       .find(query)
       .sort({ updatedAt: -1, createdAt: -1 })
       .limit(300)
-      .toArray();
+      .toArray()) as unknown as TelemetrySessionDoc[];
 
     // Group & Deduplicate strictly by IP
-    const ipMap = new Map<string, any>();
+    const ipMap = new Map<string, TelemetrySessionDoc>();
 
     for (const s of rawSessions) {
       const ipKey = s.ip || '103.145.118.24';
       if (!ipMap.has(ipKey)) {
         ipMap.set(ipKey, { ...s });
       } else {
-        const existing = ipMap.get(ipKey);
+        const existing = ipMap.get(ipKey)!;
         // Sum pageviews and duration
         existing.pageviews = (existing.pageviews || 1) + (s.pageviews || 1);
         existing.durationSeconds = (existing.durationSeconds || 1) + (s.durationSeconds || 1);
@@ -78,9 +116,9 @@ export async function GET(req: NextRequest) {
         const mergedRoutes = [...existingRoutes];
         
         for (const nr of newRoutes) {
-          const idx = mergedRoutes.findIndex((r: any) => r.path === nr.path);
+          const idx = mergedRoutes.findIndex((r) => r.path === nr.path);
           if (idx >= 0) {
-            mergedRoutes[idx].durationSeconds += nr.durationSeconds || 1;
+            mergedRoutes[idx].durationSeconds = (mergedRoutes[idx].durationSeconds || 1) + (nr.durationSeconds || 1);
           } else {
             mergedRoutes.push(nr);
           }
@@ -92,11 +130,11 @@ export async function GET(req: NextRequest) {
 
     const uniqueSessions = Array.from(ipMap.values());
 
-    const mappedSessions = uniqueSessions.map((s: any) => {
+    const mappedSessions = uniqueSessions.map((s) => {
       const isCurrentlyOnline = s.status === 'active' && s.updatedAt && (now.getTime() - new Date(s.updatedAt).getTime() <= 25000);
 
       // Default route history if empty
-      const defaultRoutes = [
+      const defaultRoutes: RouteItem[] = [
         {
           path: s.currentUrl || '/',
           durationSeconds: Number(s.durationSeconds) || 1,
@@ -112,8 +150,10 @@ export async function GET(req: NextRequest) {
         cleanOS = 'Android 14 (MIUI / HyperOS)';
       }
 
+      const sessionIdentifier = s.id || (s._id ? String(s._id) : 'session-default');
+
       return {
-        id: s.id || s._id.toString(),
+        id: sessionIdentifier,
         ip: s.ip || '103.145.118.24',
         customerName: s.customerName || 'Guest Shopper',
         contactPhone: s.contactPhone,
@@ -148,8 +188,9 @@ export async function GET(req: NextRequest) {
       count: mappedSessions.length,
       data: mappedSessions,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Internal error';
     console.error('Fetch live telemetry error:', error);
-    return NextResponse.json({ success: false, message: error.message || 'Internal error' }, { status: 500 });
+    return NextResponse.json({ success: false, message }, { status: 500 });
   }
 }

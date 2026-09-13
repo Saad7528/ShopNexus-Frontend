@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { RoleGuard } from '@/components/auth/RoleGuard';
@@ -17,14 +18,15 @@ import {
   Coins,
   Sliders,
   Tag,
-  Package,
 } from 'lucide-react';
+
 
 import { useBundleStore } from '@/store/useBundleStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useLanguageStore } from '@/store/useLanguageStore';
 import { toBengaliNumber } from '@/lib/translations';
 import { showConfirmDialog } from '@/store/useDialogStore';
+import { User } from '@/types/user';
 
 interface ICustomerLoyalty {
   id: string;
@@ -98,21 +100,22 @@ export default function BundlesAndLoyaltyPage() {
         const data = await res.json();
         if (data?.data && Array.isArray(data.data) && data.data.length > 0) {
           const mapped: ICustomerLoyalty[] = data.data
-            .filter((u: any) => u.role === 'customer' || !u.role)
-            .map((u: any) => {
-              const points = u.nexusCoins || 500;
+            .filter((u: Partial<User>) => u.role === 'customer' || !u.role)
+            .map((u: Partial<User> & Record<string, unknown>) => {
+              const points = Number(u.nexusCoins) || 500;
               const tier: ICustomerLoyalty['tier'] =
                 points >= 3000 ? 'Gold VIP' : points >= 1000 ? 'Silver Member' : 'Bronze Shopper';
               return {
-                id: u._id,
-                name: u.name,
-                phone: u.phoneNumber || '+880 1700-000000',
+                id: String(u._id || u.id || ''),
+                name: String(u.name || 'Shopper'),
+                phone: String(u.phoneNumber || '+880 1700-000000'),
                 tier,
                 points,
                 totalSpent: points * 25,
                 lastRedeemed: u.vipFirstOrderUsed ? '1 day ago (৳200 VIP used)' : 'Never redeemed',
               };
             });
+
 
           if (mapped.length > 0) {
             setLoyaltyCustomers((prev) => {

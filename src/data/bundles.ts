@@ -45,7 +45,7 @@ export const INITIAL_BUNDLES: IBundleDeal[] = [
     purchaseInstruction: 'চেকআউটে অটো ডিসকাউন্ট প্রযোজ্য অথবা কোড AUDIOPRO15 ব্যবহার করুন',
     items: [
       {
-        id: '1',
+        id: 'p1',
         title: 'Sony WH-1000XM5 Wireless Headphones',
         image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&q=80',
         regularPrice: 32500,
@@ -53,7 +53,7 @@ export const INITIAL_BUNDLES: IBundleDeal[] = [
         loyaltyPoints: 325,
       },
       {
-        id: '4',
+        id: 'p2',
         title: 'Bose QuietComfort Ultra Spatial Audio',
         image: 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=600&q=80',
         regularPrice: 38900,
@@ -83,7 +83,7 @@ export const INITIAL_BUNDLES: IBundleDeal[] = [
     purchaseInstruction: 'এক ক্লিকে কম্বো অর্ডার করুন এবং ফ্রি ডেলিভারি উপভোগ করুন',
     items: [
       {
-        id: '2',
+        id: 'p4',
         title: 'Apple Watch Ultra 2 Aerospace Titanium',
         image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80',
         regularPrice: 79900,
@@ -91,7 +91,7 @@ export const INITIAL_BUNDLES: IBundleDeal[] = [
         loyaltyPoints: 799,
       },
       {
-        id: '5',
+        id: 'p16',
         title: 'Keychron Q1 Pro Custom Keyboard',
         image: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=600&q=80',
         regularPrice: 17900,
@@ -121,7 +121,7 @@ export const INITIAL_BUNDLES: IBundleDeal[] = [
     purchaseInstruction: 'গেমিং বান্ডেল ডিসকাউন্টের সাথে পাবেন ৩ মাসের রিপ্লেসমেন্ট ওয়ারেন্টি',
     items: [
       {
-        id: '8',
+        id: 'p15',
         title: 'Razer Viper V2 Pro Ultra-Lightweight',
         image: 'https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=600&q=80',
         regularPrice: 11900,
@@ -129,7 +129,7 @@ export const INITIAL_BUNDLES: IBundleDeal[] = [
         loyaltyPoints: 119,
       },
       {
-        id: '5',
+        id: 'p16',
         title: 'Keychron Q1 Pro Custom Keyboard',
         image: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=600&q=80',
         regularPrice: 17900,
