@@ -5,8 +5,6 @@ import Link from 'next/link';
 import { SalesChart, SalesDataPoint } from '@/components/admin/SalesChart';
 import { RoleGuard } from '@/components/auth/RoleGuard';
 import {
-  DollarSign,
-  Users,
   Package,
   AlertTriangle,
   TrendingUp,
@@ -14,24 +12,19 @@ import {
   ShieldCheck,
   Activity,
   Clock,
-  Eye,
   RotateCcw,
   CheckCircle2,
-  Calendar,
   X,
-  ArrowRight,
   Wallet,
   ShoppingBag,
   PieChart,
   ShieldAlert,
   Phone,
-  Mail,
-  FileText,
-  UserCheck,
   ExternalLink,
   ChevronRight,
   Sparkles,
 } from 'lucide-react';
+
 import { useVisitorAnalyticsStore } from '@/store/useVisitorAnalyticsStore';
 
 type TimeRange = '7days' | '30days' | '6months' | 'year';
@@ -339,7 +332,14 @@ export default function AdminDashboardPage() {
   const [timeRange, setTimeRange] = useState<TimeRange>('6months');
   const [activeModal, setActiveModal] = useState<DashboardModalType>('none');
   const [staffTab, setStaffTab] = useState<'timesheet' | 'audit-trail'>('timesheet');
-  const [liveMetrics, setLiveMetrics] = useState<any>(null);
+  const [liveMetrics, setLiveMetrics] = useState<{
+    summary?: {
+      totalRevenue?: number;
+      totalOrders?: number;
+      averageOrderValue?: number;
+    };
+    salesTrends?: Array<{ month: string; revenue: number; orders: number }>;
+  } | null>(null);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -365,7 +365,7 @@ export default function AdminDashboardPage() {
         if (data?.data?.summary) {
           setLiveMetrics(data.data);
         }
-      } catch (_err) {
+      } catch {
         // Safe fallback without throwing unhandled exceptions
       }
     };
@@ -383,9 +383,10 @@ export default function AdminDashboardPage() {
         aov: liveMetrics?.summary?.averageOrderValue ?? 0,
         growth: 'Live MongoDB Data',
         chart: liveMetrics?.salesTrends && liveMetrics.salesTrends.length > 0
-          ? liveMetrics.salesTrends.map((t: any) => ({ label: t.month, revenue: t.revenue, orders: t.orders }))
+          ? liveMetrics.salesTrends.map((t: { month: string; revenue: number; orders: number }) => ({ label: t.month, revenue: t.revenue, orders: t.orders }))
           : baseData.chart,
       }
+
     : {
         ...baseData,
         totalRevenue: baseData.totalRevenue,

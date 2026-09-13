@@ -46,9 +46,9 @@ export const SalesChart: React.FC<SalesChartProps> = ({ data }) => {
             tickFormatter={(val) => `৳${val >= 100000 ? (val / 100000).toFixed(1) + 'L' : (val / 1000).toFixed(0) + 'k'}`}
           />
           <Tooltip
-            formatter={(value: any, name: any) => [
-              name === 'Revenue (৳)' ? `৳${Number(value).toLocaleString()} BDT` : `${value} Orders`,
-              name,
+            formatter={(value: unknown, name: unknown) => [
+              name === 'Revenue (৳)' ? `৳${Number(value).toLocaleString()} BDT` : `${String(value)} Orders`,
+              String(name),
             ]}
             contentStyle={{
               backgroundColor: '#0b0f19',
