@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useWishlistStore } from '@/store/useWishlistStore';
 import { useCartStore } from '@/store/useCartStore';
+import { useProductStore } from '@/store/useProductStore';
 import { useLanguageStore } from '@/store/useLanguageStore';
 import { formatCurrency, toBengaliNumber } from '@/lib/translations';
 import { Heart, ShoppingCart, Trash2, ArrowLeft, ArrowRight, AlertCircle } from 'lucide-react';
@@ -14,32 +15,14 @@ import { ALL_PRODUCTS, getProductByIdOrSlug } from '@/data/products';
 export default function WishlistPage() {
   const { items, removeFromWishlist, clearWishlist } = useWishlistStore();
   const addItem = useCartStore((state) => state.addItem);
+  const { products: storeProducts, fetchProducts } = useProductStore();
   const { t, language } = useLanguageStore();
   const mounted = useHydrated();
-  const [liveDbProducts, setLiveDbProducts] = useState<any[]>([]);
 
+  // Background SWR revalidation
   useEffect(() => {
-    let isCancelled = false;
-    const fetchLiveCatalog = async () => {
-      try {
-        let res = await fetch('/api/products?limit=100').catch(() => null);
-        if ((!res || !res.ok) && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-          const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-          res = await fetch(`${API_URL}/products?limit=100`).catch(() => null);
-        }
-        if (!res || !res.ok) return;
-        const data = await res.json().catch(() => null);
-        const list = data?.data?.products || (Array.isArray(data?.data) ? data.data : null);
-        if (!isCancelled && list && Array.isArray(list)) {
-          setLiveDbProducts(list);
-        }
-      } catch {}
-    };
-    fetchLiveCatalog();
-    return () => {
-      isCancelled = true;
-    };
-  }, []);
+    fetchProducts();
+  }, [fetchProducts]);
 
   const [addedCartId, setAddedCartId] = useState<string | null>(null);
 
@@ -114,24 +97,42 @@ export default function WishlistPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {items.map((item) => {
-              const liveProd = liveDbProducts.find(
-                (p) =>
-                  (item.id && (p._id === item.id || p.slug === item.id || p.id === item.id)) ||
-                  (item.productId && (p._id === item.productId || p.slug === item.productId || p.id === item.productId)) ||
-                  (item.slug && (p.slug === item.slug || p._id === item.slug)) ||
-                  (item.name && (p.title?.toLowerCase() === item.name.toLowerCase() || p.name?.toLowerCase() === item.name.toLowerCase()))
-              );
-              const staticProd =
+              const normalize = (str?: string) => (str || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+              const normItemTitle = normalize(item.name || item.title);
+              const normItemSlug = normalize(item.slug);
+              const normItemId = normalize(item.id || item.productId);
+
+              // 1. Check reactive real-time store products (instant from admin edits & cache)
+              const activeProd =
+                storeProducts.find((p) => {
+                  const normPTitle = normalize(p.title || (p as any).name);
+                  const normPSlug = normalize(p.slug);
+                  const normPId = normalize(p._id);
+                  return Boolean(
+                    (normItemId && (normItemId === normPId || normItemId === normPSlug)) ||
+                    (normItemSlug && (normItemSlug === normPSlug || normItemSlug === normPId)) ||
+                    (normItemTitle && normPTitle && (normItemTitle === normPTitle || normPTitle.includes(normItemTitle) || normItemTitle.includes(normPTitle)))
+                  );
+                }) ||
                 getProductByIdOrSlug(item.productId || item.slug || item.id) ||
-                ALL_PRODUCTS.find(
-                  (p) =>
-                    p._id === item.id ||
-                    p.slug === item.id ||
-                    (item.slug && p.slug === item.slug) ||
-                    (item.name && p.title.toLowerCase() === item.name.toLowerCase())
-                );
-              const activeProd = liveProd || staticProd;
-              const availableStock = activeProd ? (Number(activeProd.stock) ?? 0) : (item.inStock === false ? 0 : 10);
+                ALL_PRODUCTS.find((p) => {
+                  const normPTitle = normalize(p.title || (p as any).title_en);
+                  const normPSlug = normalize(p.slug);
+                  const normPId = normalize(p._id);
+                  return Boolean(
+                    (normItemId && (normItemId === normPId || normItemId === normPSlug)) ||
+                    (normItemSlug && (normItemSlug === normPSlug || normItemSlug === normPId)) ||
+                    (normItemTitle && normPTitle && (normItemTitle === normPTitle || normPTitle.includes(normItemTitle) || normItemTitle.includes(normPTitle)))
+                  );
+                });
+
+              const availableStock = activeProd?.stock !== undefined
+                ? Number(activeProd.stock)
+                : typeof item.stock === 'number'
+                ? item.stock
+                : item.inStock === false
+                ? 0
+                : 10;
               const isOutOfStock = availableStock <= 0;
               const isJustAdded = addedCartId === item.id;
 

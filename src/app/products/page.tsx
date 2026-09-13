@@ -28,6 +28,8 @@ const CATEGORIES_LIST = [
 function ProductsContent() {
   const searchParams = useSearchParams();
   const {
+    products: storeProducts,
+    fetchProducts,
     search,
     category,
     brand,
@@ -42,77 +44,22 @@ function ProductsContent() {
 
   const { t, language } = useLanguageStore();
   const mounted = useHydrated();
-  const [liveDbProducts, setLiveDbProducts] = useState<Product[]>([]);
   const rawBundles = useBundleStore((state) => state.bundles);
 
+  // Background SWR Revalidation: silently syncs latest stock & prices from MongoDB
   useEffect(() => {
-    let isCancelled = false;
-    const fetchDbProducts = async () => {
-      try {
-        let res = await fetch('/api/products?limit=100').catch(() => null);
-        if ((!res || !res.ok) && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-          const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-          res = await fetch(`${API_URL}/products?limit=100`).catch(() => null);
-        }
-        if (!res || !res.ok) return;
-        const data = await res.json().catch(() => null);
-        const productsList = data?.data?.products || (Array.isArray(data?.data) ? data.data : null);
-        if (!isCancelled && productsList && Array.isArray(productsList) && productsList.length > 0) {
-          const mapped: Product[] = productsList.map((p: Partial<Product> & { id?: string; name?: string }) => ({
-            _id: p._id || p.id || String(Math.random()),
-            title: p.title || p.name || 'Product',
-            slug: p.slug || p._id || p.id || '',
-            description: p.description || '',
-            category: p.category || 'Audio',
-            brand: p.brand || 'ShopNexus Official',
-            price: Number(p.price) || 0,
-            discountPrice: p.discountPrice !== undefined ? Number(p.discountPrice) : undefined,
-            stock: p.stock ?? 20,
-            images: p.images && p.images.length > 0 ? p.images : ['https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80'],
-            vendorName: p.vendorName || 'ShopNexus Official',
-            isFlashSale: !!p.isFlashSale,
-            flashSaleDiscountPercent: p.flashSaleDiscountPercent || (p.discountPrice && p.price ? Math.round(((Number(p.price) - Number(p.discountPrice)) / Number(p.price)) * 100) : 0),
-            averageRating: Number(p.averageRating) || 4.8,
-            totalReviews: Number(p.totalReviews) || 12,
-            tags: p.tags || ['popular', 'official'],
-          }));
-          setLiveDbProducts(mapped);
-        }
-      } catch (_err) {}
-    };
+    fetchProducts();
+  }, [fetchProducts]);
 
-    fetchDbProducts();
-    return () => {
-      isCancelled = true;
-    };
-  }, []);
-
-
-  // Merge custom dynamic bundles with live DB products and base products stably
+  // Merge custom dynamic bundles with cached products instantly (0ms instant render)
   const allCatalogProducts = React.useMemo(() => {
     const bundleProducts = rawBundles
       .filter((b) => b.status === 'Active')
       .map(convertBundleToProduct);
-    const nonCombos = ALL_PRODUCTS.filter((p) => p.category !== 'Combo Packages');
+    const nonCombos = storeProducts.filter((p) => p.category !== 'Combo Packages');
 
-    // Create a lookup for live DB updates to preserve stable list order
-    const liveMap = new Map<string, Product>();
-    liveDbProducts.forEach((p) => {
-      if (p._id) liveMap.set(p._id, p);
-      if (p.slug) liveMap.set(p.slug, p);
-    });
-
-    const catalogMerged = nonCombos.map((base) => {
-      const live = (base._id && liveMap.get(base._id)) || (base.slug && liveMap.get(base.slug));
-      return live ? { ...base, ...live } : base;
-    });
-
-    const baseIds = new Set(nonCombos.map((p) => p._id).filter(Boolean));
-    const baseSlugs = new Set(nonCombos.map((p) => p.slug).filter((s): s is string => Boolean(s)));
-    const newDbProducts = liveDbProducts.filter((p) => !baseIds.has(p._id) && (!p.slug || !baseSlugs.has(p.slug)));
-
-    return [...bundleProducts, ...catalogMerged, ...newDbProducts];
-  }, [rawBundles, liveDbProducts]);
+    return [...bundleProducts, ...nonCombos];
+  }, [rawBundles, storeProducts]);
 
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 

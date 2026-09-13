@@ -163,7 +163,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                 fill
                 sizes="(max-width: 768px) 35vw, 20vw"
                 className="object-contain p-2 transition-transform duration-500"
-                unoptimized={dual1Src.startsWith('/')}
+                unoptimized={dual1Src.startsWith('/') || dual1Src.startsWith('data:') || dual1Src.startsWith('blob:')}
                 onError={() => setDual1Error(true)}
               />
             </div>
@@ -184,7 +184,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                 fill
                 sizes="(max-width: 768px) 35vw, 20vw"
                 className="object-contain p-2 transition-transform duration-500"
-                unoptimized={dual2Src.startsWith('/')}
+                unoptimized={dual2Src.startsWith('/') || dual2Src.startsWith('data:') || dual2Src.startsWith('blob:')}
                 onError={() => setDual2Error(true)}
               />
             </div>
@@ -207,7 +207,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             fill
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
             className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
-            unoptimized={mainImageSrc.startsWith('/')}
+            unoptimized={mainImageSrc.startsWith('/') || mainImageSrc.startsWith('data:') || mainImageSrc.startsWith('blob:')}
             onError={() => setImgError(true)}
           />
         )}
