@@ -14,22 +14,18 @@ import {
   ArrowRight,
   Sun,
   Moon,
-  Globe,
 } from 'lucide-react';
 import { BrandLogo } from '@/components/common/BrandLogo';
 import { useLanguageStore } from '@/store/useLanguageStore';
 import { useThemeStore } from '@/store/useThemeStore';
 import { LanguageToggle } from '@/components/common/LanguageToggle';
+import { useHydrated } from '@/lib/useHydrated';
 
 export default function NotFound() {
   const router = useRouter();
   const { language } = useLanguageStore();
   const { theme, toggleTheme } = useThemeStore();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useHydrated();
 
   const isBn = mounted && language === 'bn';
 
