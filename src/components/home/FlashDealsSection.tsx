@@ -5,7 +5,7 @@ import { Zap, Clock } from 'lucide-react';
 import { ProductCard } from '@/components/products/ProductCard';
 import { Product } from '@/types/product';
 import { useLanguageStore } from '@/store/useLanguageStore';
-import { toBengaliNumber } from '@/lib/translations';
+import { toBengaliNumber, Language, TRANSLATIONS } from '@/lib/translations';
 
 import { useHydrated } from '@/lib/useHydrated';
 
@@ -30,6 +30,7 @@ export function FlashDealsSection({ products }: FlashDealsSectionProps) {
     return () => clearInterval(timer);
   }, []);
 
+  const currentLang: Language = mounted ? language : 'bn';
   const hoursStr = String(timeLeft.hours).padStart(2, '0');
   const minutesStr = String(timeLeft.minutes).padStart(2, '0');
   const secondsStr = String(timeLeft.seconds).padStart(2, '0');
@@ -44,10 +45,10 @@ export function FlashDealsSection({ products }: FlashDealsSectionProps) {
             </div>
             <div className="min-w-0">
               <h2 className="text-sm sm:text-xl font-black text-slate-900 dark:text-white truncate">
-                {mounted ? t('home_flash_title') : 'Flash Deals & Drops'}
+                {TRANSLATIONS[currentLang]?.home_flash_title || t('home_flash_title')}
               </h2>
               <p className="text-[10px] sm:text-xs text-slate-600 dark:text-orange-300/80 truncate">
-                {mounted ? t('home_flash_desc') : 'Save up to 40% on verified hardware'}
+                {TRANSLATIONS[currentLang]?.home_flash_desc || t('home_flash_desc')}
               </p>
             </div>
           </div>
@@ -56,13 +57,13 @@ export function FlashDealsSection({ products }: FlashDealsSectionProps) {
           <div className="flex items-center gap-1 sm:gap-1.5 font-mono text-[10px] sm:text-xs font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-950/80 px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
             <Clock className="w-3 h-3 text-orange-500 hidden xs:inline" />
             <span className="text-orange-600 dark:text-orange-400">
-              {mounted && language === 'bn' ? toBengaliNumber(hoursStr) : hoursStr}h
+              {currentLang === 'bn' ? toBengaliNumber(hoursStr) : hoursStr}h
             </span>:
             <span>
-              {mounted && language === 'bn' ? toBengaliNumber(minutesStr) : minutesStr}m
+              {currentLang === 'bn' ? toBengaliNumber(minutesStr) : minutesStr}m
             </span>:
             <span className="text-rose-500 dark:text-rose-400">
-              {mounted && language === 'bn' ? toBengaliNumber(secondsStr) : secondsStr}s
+              {currentLang === 'bn' ? toBengaliNumber(secondsStr) : secondsStr}s
             </span>
           </div>
         </div>
