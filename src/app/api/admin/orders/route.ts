@@ -23,7 +23,7 @@ export async function GET(_req: NextRequest) {
     }
 
     return NextResponse.json({ success: true, count: 0, data: [] });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('API Admin Orders GET error:', error);
     return NextResponse.json({ success: true, count: 0, data: [] });
   }

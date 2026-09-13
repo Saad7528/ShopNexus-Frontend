@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
 import { RoleGuard } from '@/components/auth/RoleGuard';
+
 import { showConfirmDialog, showAlertDialog } from '@/store/useDialogStore';
 import {
   Users,
@@ -10,23 +10,16 @@ import {
   Plus,
   Trash2,
   CheckCircle2,
-  Search,
   Info,
   X,
-  Lock,
-  Mail,
-  UserCheck,
-  UserX,
   Key,
-  Eye,
-  Edit,
-  AlertTriangle,
-  FileCheck,
 } from 'lucide-react';
+
 
 import { useAuthStore } from '@/store/useAuthStore';
 import { useLanguageStore } from '@/store/useLanguageStore';
 import { toBengaliNumber } from '@/lib/translations';
+import { User } from '@/types/user';
 
 interface IStaffRole {
   id: string;
@@ -242,7 +235,6 @@ export default function AdminCustomersRBACPage() {
   const [selectedRoleInfo, setSelectedRoleInfo] = useState<keyof typeof ROLE_DEFINITIONS | null>(null);
   const [isAddStaffOpen, setIsAddStaffOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -271,28 +263,28 @@ export default function AdminCustomersRBACPage() {
 
           // Map customers
           const liveCustomers: ICustomer[] = liveUsers
-            .filter((u: any) => u.role === 'customer' || !u.role)
-            .map((u: any) => ({
-              id: u._id,
-              name: u.name || 'Valued Shopper',
-              email: u.email,
-              phone: u.phoneNumber || '+880 1700-000000',
+            .filter((u: Partial<User>) => u.role === 'customer' || !u.role)
+            .map((u: Partial<User> & Record<string, unknown>) => ({
+              id: String(u._id || u.id || ''),
+              name: String(u.name || 'Valued Shopper'),
+              email: String(u.email || ''),
+              phone: String(u.phoneNumber || '+880 1700-000000'),
               ordersCount: 3,
-              totalSpent: u.nexusCoins ? u.nexusCoins * 20 : 35000,
+              totalSpent: Number(u.nexusCoins) ? Number(u.nexusCoins) * 20 : 35000,
               returnRate: 0,
               isFlaggedFraud: !!u.isLocked,
-              joinedDate: u.createdAt ? new Date(u.createdAt).toISOString().split('T')[0] : '2026-01-15',
+              joinedDate: u.createdAt ? new Date(String(u.createdAt)).toISOString().split('T')[0] : '2026-01-15',
             }));
 
           // Map staff / admins / vendors
           const liveStaff: IStaffRole[] = liveUsers
-            .filter((u: any) => u.role === 'admin' || u.role === 'vendor')
-            .map((u: any) => {
+            .filter((u: Partial<User>) => u.role === 'admin' || u.role === 'vendor')
+            .map((u: Partial<User> & Record<string, unknown>) => {
               const roleTitle: IStaffRole['role'] = u.role === 'admin' ? 'Super Admin' : 'Inventory Manager';
               return {
-                id: u._id,
-                name: u.name,
-                email: u.email,
+                id: String(u._id || u.id || ''),
+                name: String(u.name || 'Staff Member'),
+                email: String(u.email || ''),
                 role: roleTitle,
                 permissions: {
                   canViewOrders: true,
@@ -303,9 +295,10 @@ export default function AdminCustomersRBACPage() {
                   canAccessRBAC: u.role === 'admin',
                 },
                 status: 'Active',
-                createdAt: u.createdAt ? new Date(u.createdAt).toISOString().split('T')[0] : '2026-01-01',
+                createdAt: u.createdAt ? new Date(String(u.createdAt)).toISOString().split('T')[0] : '2026-01-01',
               };
             });
+
 
           if (liveCustomers.length > 0) {
             setCustomers((prev) => {
@@ -502,12 +495,13 @@ export default function AdminCustomersRBACPage() {
                         {/* ℹ️ Info Button */}
                         <button
                           type="button"
-                          onClick={() => setSelectedRoleInfo(st.role as any)}
+                          onClick={() => setSelectedRoleInfo(st.role as keyof typeof ROLE_DEFINITIONS)}
                           className="p-1 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 text-xs transition-colors cursor-pointer"
                           title={isBn ? 'বিস্তারিত পারমিশন দেখতে ক্লিক করুন' : 'Click to view detailed permissions (i-button)'}
                         >
                           <Info className="w-3.5 h-3.5" />
                         </button>
+
                       </div>
                     </td>
                     <td className="px-5 py-3.5">
@@ -764,9 +758,10 @@ export default function AdminCustomersRBACPage() {
                   </label>
                   <select
                     value={newStaff.role}
-                    onChange={(e) => setNewStaff({ ...newStaff, role: e.target.value as any })}
+                    onChange={(e) => setNewStaff({ ...newStaff, role: e.target.value as IStaffRole['role'] })}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none cursor-pointer"
                   >
+
                     <option value="Telesales Executive">{isBn ? 'টেলিসেলস / অর্ডার নিশ্চিতকরণ এক্সিকিউটিভ' : 'Telesales / Order Confirmation Executive'}</option>
                     <option value="Delivery Officer">{isBn ? 'ডেলিভারি ও ট্র্যাকিং অফিসার' : 'Delivery & Tracking Officer'}</option>
                     <option value="Inventory Manager">{isBn ? 'ক্যাটালগ / ইনভেন্টরি ম্যানেজার' : 'Catalog / Inventory Manager'}</option>

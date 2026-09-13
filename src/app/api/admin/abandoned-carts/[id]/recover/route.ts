@@ -21,7 +21,7 @@ export async function POST(
     let objectId: mongoose.Types.ObjectId | null = null;
     try {
       objectId = new mongoose.Types.ObjectId(id);
-    } catch (_e) {}
+    } catch {}
 
     const query = objectId ? { _id: objectId } : { guestId: id };
     const result = await cartsCollection.updateOne(
@@ -40,10 +40,11 @@ export async function POST(
       message: 'Recovery voucher recorded successfully',
       data: result,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Internal server error';
     console.error('Abandoned cart recovery error:', error);
     return NextResponse.json(
-      { success: false, message: error.message || 'Internal server error' },
+      { success: false, message },
       { status: 500 }
     );
   }

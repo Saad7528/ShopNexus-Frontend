@@ -27,7 +27,6 @@ import {
   Package,
   Layers,
   ShoppingBag,
-  Info,
 } from 'lucide-react';
 
 const BADGE_PRESETS = [
@@ -81,42 +80,39 @@ export default function EditComboBundlePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  const [hydratedBundleId, setHydratedBundleId] = useState<string | null>(null);
+  if (existingBundle && hydratedBundleId !== existingBundle.id) {
+    setHydratedBundleId(existingBundle.id);
+    setBundleTitle(existingBundle.title || '');
+    if (BADGE_PRESETS.includes(existingBundle.badge)) {
+      setBundleBadge(existingBundle.badge);
+      setCustomBadge('');
+    } else {
+      setBundleBadge('🔥 15% OFF BUNDLE');
+      setCustomBadge(existingBundle.badge || '');
+    }
+    setBundleDescription(existingBundle.description || '');
+    setBundlePromoCode(existingBundle.promoCode || '');
+    setBundlePurchaseInstruction(existingBundle.purchaseInstruction || '');
+    setBundleStatus(existingBundle.status || 'Active');
+    setSelectedItems(existingBundle.items || []);
+    setBundlePriceInput(existingBundle.bundlePrice.toString());
+    if (existingBundle.rewardPoints !== undefined) {
+      setRewardPointsInput(existingBundle.rewardPoints.toString());
+      setIsCustomRewardPoints(true);
+    }
+    if (existingBundle.originalTotal > 0) {
+      const pct = Math.round(
+        ((existingBundle.originalTotal - existingBundle.bundlePrice) / existingBundle.originalTotal) * 100
+      );
+      setDiscountPercentInput(pct > 0 ? pct.toString() : '15');
+    }
+  }
+
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
   };
-
-  // Populate fields when existingBundle is loaded
-  useEffect(() => {
-    if (existingBundle) {
-      setBundleTitle(existingBundle.title || '');
-      if (BADGE_PRESETS.includes(existingBundle.badge)) {
-        setBundleBadge(existingBundle.badge);
-        setCustomBadge('');
-      } else {
-        setBundleBadge('🔥 15% OFF BUNDLE');
-        setCustomBadge(existingBundle.badge || '');
-      }
-      setBundleDescription(existingBundle.description || '');
-      setBundlePromoCode(existingBundle.promoCode || '');
-      setBundlePurchaseInstruction(existingBundle.purchaseInstruction || '');
-      setBundleStatus(existingBundle.status || 'Active');
-      setSelectedItems(existingBundle.items || []);
-      setBundlePriceInput(existingBundle.bundlePrice.toString());
-
-      if (existingBundle.rewardPoints !== undefined) {
-        setRewardPointsInput(existingBundle.rewardPoints.toString());
-        setIsCustomRewardPoints(true);
-      }
-
-      if (existingBundle.originalTotal > 0) {
-        const pct = Math.round(
-          ((existingBundle.originalTotal - existingBundle.bundlePrice) / existingBundle.originalTotal) * 100
-        );
-        setDiscountPercentInput(pct > 0 ? pct.toString() : '15');
-      }
-    }
-  }, [existingBundle]);
 
   // Extract unique categories
   const categories = useMemo(() => {

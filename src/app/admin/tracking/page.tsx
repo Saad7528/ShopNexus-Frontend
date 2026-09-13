@@ -8,17 +8,10 @@ import {
   Search,
   Package,
   CheckCircle2,
-  Clock,
   MapPin,
   Building2,
-  Calendar,
-  AlertCircle,
-  ArrowRight,
-  ShieldCheck,
-  RefreshCw,
   PhoneCall,
   User,
-  ExternalLink,
 } from 'lucide-react';
 
 interface IParcel {
@@ -35,13 +28,17 @@ interface IParcel {
   estimatedDelivery: string;
 }
 
-const STAGES = [
-  { label: 'Order Placed', desc: 'Customer placed order online' },
-  { label: 'Confirmed', desc: 'Payment verified & stock allocated' },
-  { label: 'Packaging', desc: 'Inspected & handed to courier' },
-  { label: 'In Transit', desc: 'Out for final doorstep delivery' },
-  { label: 'Delivered', desc: 'Successfully handed over to customer' },
-];
+interface RawParcelData {
+  trackingNumber: string;
+  orderId: string;
+  recipient?: { name?: string; phone?: string; address?: string };
+  courier?: string;
+  currentStage?: number;
+  items?: unknown[];
+  amount?: number;
+  lastUpdated?: string;
+  statusText?: string;
+}
 
 const INITIAL_PARCELS: IParcel[] = [
   {
@@ -133,7 +130,7 @@ export default function AdminTrackingPage() {
         if (!res.ok) return;
         const data = await res.json();
         if (data?.data && Array.isArray(data.data) && data.data.length > 0) {
-          const mapped: IParcel[] = data.data.map((p: any) => ({
+          const mapped: IParcel[] = data.data.map((p: RawParcelData) => ({
             trackingId: p.trackingNumber,
             orderId: p.orderId,
             customerName: p.recipient?.name || 'Customer',
@@ -190,7 +187,7 @@ export default function AdminTrackingPage() {
           body: JSON.stringify({ orderStatus: targetStatus }),
         });
       }
-    } catch (_e) {}
+    } catch {}
   };
 
   const filteredParcels = parcels.filter(

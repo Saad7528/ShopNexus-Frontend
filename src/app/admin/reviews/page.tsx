@@ -14,17 +14,13 @@ import {
   ArrowLeft,
   ShieldCheck,
   Search,
-  Camera,
-  User,
   ThumbsUp,
   Sliders,
   Send,
-  Sparkles,
   Zap,
   Check,
-  AlertTriangle,
 } from 'lucide-react';
-import { useReviewStore, ModerationMode, IReviewItem } from '@/store/useReviewStore';
+import { useReviewStore } from '@/store/useReviewStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useLanguageStore } from '@/store/useLanguageStore';
 import { toBengaliNumber } from '@/lib/translations';
@@ -57,15 +53,11 @@ export default function AdminReviewsPage() {
   React.useEffect(() => {
     const fetchLiveReviews = async () => {
       try {
-        const res = await fetch(`${API_URL}/admin/reviews`, {
+        await fetch(`${API_URL}/admin/reviews`, {
           headers: {
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
         });
-        if (res.ok) {
-          const data = await res.json();
-          // Successfully retrieved reviews from MongoDB Atlas
-        }
       } catch (err) {
         console.error('Error fetching live reviews:', err);
       }
@@ -116,7 +108,7 @@ export default function AdminReviewsPage() {
         },
         body: JSON.stringify({ status: 'approved' }),
       });
-    } catch (_e) {}
+    } catch {}
   };
 
   const handleReject = async (id: string) => {
@@ -132,7 +124,7 @@ export default function AdminReviewsPage() {
         },
         body: JSON.stringify({ status: 'rejected' }),
       });
-    } catch (_e) {}
+    } catch {}
   };
 
   const handleDelete = async (id: string, userId: string) => {

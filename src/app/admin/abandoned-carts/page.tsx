@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
 import { RoleGuard } from '@/components/auth/RoleGuard';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -14,23 +13,17 @@ import {
   ArrowUpRight,
   Sparkles,
   Phone,
-  Mail,
   Copy,
   CheckCircle2,
   X,
-  Send,
   RefreshCw,
   Tag,
-  Flame,
-  User,
-  Filter,
   AlertCircle,
   Check,
-  ChevronDown,
   Percent,
   Banknote,
-  Truck,
 } from 'lucide-react';
+
 
 interface IAbandonedItem {
   id: string;
@@ -267,7 +260,7 @@ export default function AbandonedCartsPage() {
             fetched = json.data;
           }
         }
-      } catch (_e) {}
+      } catch {}
 
       // 2. Fallback to Express Backend if needed
       if (!fetched && API_URL) {
@@ -285,7 +278,7 @@ export default function AbandonedCartsPage() {
               fetched = json.data;
             }
           }
-        } catch (_e) {}
+        } catch {}
       }
 
       if (fetched) {
@@ -300,12 +293,25 @@ export default function AbandonedCartsPage() {
   }, [API_URL, token, telemetryMode]);
 
   useEffect(() => {
-    fetchAbandonedCarts();
+    let isMounted = true;
+    const runFetch = async () => {
+      if (isMounted) {
+        await fetchAbandonedCarts();
+      }
+    };
+    runFetch();
+
     // Auto-refresh telemetry every 15 seconds
     const interval = setInterval(() => {
-      fetchAbandonedCarts(false);
+      if (isMounted) {
+        fetchAbandonedCarts(false);
+      }
     }, 15000);
-    return () => clearInterval(interval);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, [fetchAbandonedCarts]);
 
   // Statistics KPIs
@@ -644,8 +650,9 @@ export default function AbandonedCartsPage() {
                         <div className="space-y-1">
                           <select
                             value={cart.status}
-                            onChange={(e) => handleUpdateStatus(cart.id, e.target.value as any)}
+                            onChange={(e) => handleUpdateStatus(cart.id, e.target.value as IAbandonedCart['status'])}
                             className={`px-2.5 py-1 rounded-full text-[10px] font-bold border cursor-pointer outline-none transition-all ${
+
                               cart.status === 'Recovered'
                                 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
                                 : cart.status === 'WhatsApp Sent'
