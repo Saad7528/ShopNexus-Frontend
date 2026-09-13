@@ -8,20 +8,19 @@ import { IBundleDeal } from '@/data/bundles';
 import { useBundleStore } from '@/store/useBundleStore';
 import { useCartStore } from '@/store/useCartStore';
 import { useLanguageStore } from '@/store/useLanguageStore';
-import { formatCurrency, toBengaliNumber } from '@/lib/translations';
+import { formatCurrency, toBengaliNumber, Language } from '@/lib/translations';
 import { getLocalizedBundle } from '@/lib/localizedProducts';
+import { useHydrated } from '@/lib/useHydrated';
 
 export const ComboDealsSection: React.FC = () => {
   const { language } = useLanguageStore();
-  const [mounted, setMounted] = React.useState(false);
+  const mounted = useHydrated();
+  const currentLang: Language = mounted ? language : 'bn';
+  const isBn = currentLang === 'bn';
   const [addedBundleId, setAddedBundleId] = React.useState<string | null>(null);
   const { addItem, openDrawer } = useCartStore();
   const rawBundles = useBundleStore((state) => state.bundles);
   const activeBundles = React.useMemo(() => rawBundles.filter((b) => b.status === 'Active'), [rawBundles]);
-
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const handleAddBundle = (bundle: IBundleDeal) => {
     bundle.items.forEach((item) => {
@@ -52,13 +51,13 @@ export const ComboDealsSection: React.FC = () => {
           <div className="space-y-1.5">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 dark:bg-orange-500/15 border border-orange-500/20 text-orange-600 dark:text-orange-400 text-xs font-bold uppercase tracking-wider">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>{mounted && language === 'bn' ? 'এক্সক্লুসিভ বান্ডেল ডিল' : 'Exclusive Combo Bundles'}</span>
+              <span>{isBn ? 'এক্সক্লুসিভ বান্ডেল ডিল' : 'Exclusive Combo Bundles'}</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-              {mounted && language === 'bn' ? '🔥 হট কম্বো প্যাকেজ অফার' : '🔥 Top Hot Combo Packages'}
+              {isBn ? '🔥 হট কম্বো প্যাকেজ অফার' : '🔥 Top Hot Combo Packages'}
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-2xl">
-              {mounted && language === 'bn'
+              {isBn
                 ? 'সেরা গ্যাজেট কম্বিনেশন একসাথে কিনুন, অতিরিক্ত ১৫% পর্যন্ত সাশ্রয় ও প্রতিটি বান্ডেলে বিশেষ লয়্যালটি পয়েন্ট ক্যাশব্যাক উপভোগ করুন!'
                 : 'Buy matching hardware suites together to unlock up to 15% instant savings & bonus loyalty points!'}
             </p>
@@ -68,7 +67,7 @@ export const ComboDealsSection: React.FC = () => {
             href="/products?category=Combo+Packages"
             className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-orange-600 dark:text-orange-400 hover:text-orange-700 transition-colors self-start sm:self-auto group"
           >
-            <span>{mounted && language === 'bn' ? 'সকল কম্বো দেখুন' : 'Explore All Combos'}</span>
+            <span>{isBn ? 'সকল কম্বো দেখুন' : 'Explore All Combos'}</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
@@ -77,7 +76,7 @@ export const ComboDealsSection: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {activeBundles.map((bundle) => {
             const isAdded = addedBundleId === bundle.id;
-            const loc = mounted ? getLocalizedBundle(bundle, language) : null;
+            const loc = getLocalizedBundle(bundle, currentLang);
             const cashbackTaka = Math.floor(bundle.rewardPoints / 10);
 
             return (
@@ -85,17 +84,17 @@ export const ComboDealsSection: React.FC = () => {
                 key={bundle.id}
                 className="group relative rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 backdrop-blur-xl shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col justify-between overflow-hidden hover:border-orange-500/50"
               >
-                {/* Top Badge */}
-                <div className="p-5 pb-3">
+                {/* Top Badge & Title (Clickable) */}
+                <Link href={`/products/${bundle.id}`} className="p-5 pb-3 block cursor-pointer">
                   <div className="flex items-center justify-between gap-2">
                     <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20">
                       {loc ? loc.badge : bundle.badge}
                     </span>
                     <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                       <Tag className="w-3 h-3" />
-                      {mounted && language === 'bn'
-                        ? `সাশ্রয় ${loc ? loc.savingsFormatted : formatCurrency(bundle.savings, language)}`
-                        : `Save ${loc ? loc.savingsFormatted : formatCurrency(bundle.savings, language)}`}
+                      {isBn
+                        ? `সাশ্রয় ${loc ? loc.savingsFormatted : formatCurrency(bundle.savings, currentLang)}`
+                        : `Save ${loc ? loc.savingsFormatted : formatCurrency(bundle.savings, currentLang)}`}
                     </span>
                   </div>
 
@@ -105,10 +104,10 @@ export const ComboDealsSection: React.FC = () => {
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
                     {loc ? loc.description : bundle.description}
                   </p>
-                </div>
+                </Link>
 
-                {/* Bundle Item Previews */}
-                <div className="px-5 py-3 bg-slate-50/70 dark:bg-slate-950/40 border-y border-slate-100 dark:border-slate-800/60">
+                {/* Bundle Item Previews (Clickable) */}
+                <Link href={`/products/${bundle.id}`} className="px-5 py-3 bg-slate-50/70 dark:bg-slate-950/40 border-y border-slate-100 dark:border-slate-800/60 block cursor-pointer">
                   <div className="flex items-center justify-center gap-2 sm:gap-3">
                     {(loc ? loc.items : bundle.items).map((item, idx) => (
                       <React.Fragment key={item.id || idx}>
@@ -130,7 +129,7 @@ export const ComboDealsSection: React.FC = () => {
                       </React.Fragment>
                     ))}
                   </div>
-                </div>
+                </Link>
 
                 {/* Bottom Pricing, Loyalty Points & Buy Button */}
                 <div className="p-5 space-y-3">
@@ -138,14 +137,14 @@ export const ComboDealsSection: React.FC = () => {
                   <div className="flex items-baseline justify-between">
                     <div>
                       <span className="text-xs text-slate-500 dark:text-slate-400">
-                        {mounted && language === 'bn' ? 'কম্বো মূল্য' : 'Combo Price'}:
+                        {isBn ? 'কম্বো মূল্য' : 'Combo Price'}:
                       </span>
                       <div className="flex items-baseline gap-2 font-mono">
                         <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
-                          {loc ? loc.bundlePriceFormatted : (mounted ? formatCurrency(bundle.bundlePrice, language) : `৳${bundle.bundlePrice.toLocaleString()}`)}
+                          {loc ? loc.bundlePriceFormatted : formatCurrency(bundle.bundlePrice, currentLang)}
                         </span>
                         <span className="text-xs line-through text-slate-400 dark:text-slate-500">
-                          {loc ? loc.originalTotalFormatted : (mounted ? formatCurrency(bundle.originalTotal, language) : `৳${bundle.originalTotal.toLocaleString()}`)}
+                          {loc ? loc.originalTotalFormatted : formatCurrency(bundle.originalTotal, currentLang)}
                         </span>
                       </div>
                     </div>
@@ -155,7 +154,7 @@ export const ComboDealsSection: React.FC = () => {
                   <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 text-[11px] font-semibold flex items-center gap-1.5">
                     <Coins className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                     <span>
-                      {mounted && language === 'bn'
+                      {isBn
                         ? `বোনাস: ${loc ? loc.rewardPointsFormatted : toBengaliNumber(bundle.rewardPoints)} লয়্যালটি পয়েন্ট (${loc ? loc.cashbackFormatted : `৳${toBengaliNumber(cashbackTaka)}`} ক্যাশব্যাক)`
                         : `Bonus: ${loc ? loc.rewardPointsFormatted : bundle.rewardPoints} Points (${loc ? loc.cashbackFormatted : `৳${cashbackTaka}`} Cashback)`}
                     </span>
@@ -174,13 +173,13 @@ export const ComboDealsSection: React.FC = () => {
                     {isAdded ? (
                       <>
                         <Check className="w-4 h-4 stroke-[2.5]" />
-                        <span>{mounted && language === 'bn' ? 'কম্বো যোগ হয়েছে!' : 'Combo Added!'}</span>
+                        <span>{isBn ? 'কম্বো যোগ হয়েছে!' : 'Combo Added!'}</span>
                       </>
                     ) : (
                       <>
                         <ShoppingBag className="w-4 h-4" />
                         <span>
-                          {mounted && language === 'bn'
+                          {isBn
                             ? `কম্বো কার্টে যোগ করুন (${toBengaliNumber(bundle.items.length)} আইটেম)`
                             : `Add Combo to Cart (${bundle.items.length} Items)`}
                         </span>

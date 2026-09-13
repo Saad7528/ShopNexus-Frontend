@@ -1,43 +1,27 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
 import { RoleGuard } from '@/components/auth/RoleGuard';
 import { showAlertDialog } from '@/store/useDialogStore';
 import {
   ShoppingCart,
   Search,
-  CheckCircle2,
-  Clock,
   Truck,
   Printer,
   X,
   AlertCircle,
   QrCode,
-  Barcode,
-  Building2,
-  Phone,
-  Mail,
-  MapPin,
   FileText,
   MessageSquare,
   MessageCircle,
-  AlertTriangle,
   Layers,
   Calendar,
-  Download,
-  Filter,
-  CheckSquare,
-  Square,
-  ArrowRight,
-  ExternalLink,
   Send,
-  HelpCircle,
-  Sparkles,
-  RefreshCw,
   Copy,
   CreditCard,
 } from 'lucide-react';
+
+export type IssueCategory = 'address' | 'variant' | 'delay' | 'payment' | 'custom';
 
 interface IOrderItem {
   title: string;
@@ -260,7 +244,18 @@ export default function AdminOrdersPage() {
         if (!res || !res.ok) return;
         const data = await res.json().catch(() => null);
         if (data?.data && Array.isArray(data.data) && data.data.length > 0) {
-          const mapped: IOrder[] = data.data.map((o: any, idx: number) => {
+          const mapped: IOrder[] = data.data.map((o: Record<string, unknown> & {
+            _id?: string;
+            trackingNumber?: string;
+            shippingAddress?: { fullName?: string; phoneNumber?: string; address?: string; city?: string };
+            user?: { name?: string; email?: string };
+            orderStatus?: string;
+            paymentMethod?: string;
+            paymentStatus?: string;
+            totalAmount?: number;
+            total?: number;
+            createdAt?: string;
+          }, idx: number) => {
             const rawStatus = (o.orderStatus || 'pending').toLowerCase();
             const statusMap: Record<string, IOrder['status']> = {
               pending: 'Pending',
@@ -272,19 +267,20 @@ export default function AdminOrdersPage() {
             const mappedStatus = statusMap[rawStatus] || 'Confirmed';
 
             return {
-              id: o._id,
+              id: String(o._id || `NX-ORD-${9100 + idx}`),
               orderNumber: o.trackingNumber ? `NX-${o.trackingNumber.slice(-8)}` : `NX-ORD-${9100 + idx}`,
               numericId: 9100 + idx,
               customerName: o.shippingAddress?.fullName || o.user?.name || 'Valued Customer',
               customerEmail: o.user?.email || 'customer@nexus.io',
               customerPhone: o.shippingAddress?.phoneNumber || '+880 1700-000000',
-              customerAddress: `${o.shippingAddress?.streetAddress || ''}, ${o.shippingAddress?.city || ''}`,
-              items: (o.items || []).map((it: any) => ({
-                title: it.name,
-                quantity: it.quantity,
-                price: it.price,
+
+              items: (Array.isArray(o.items) ? o.items : []).map((it: { name?: string; quantity?: number; price?: number; product?: string }) => ({
+                title: it.name || 'Item',
+                quantity: it.quantity || 1,
+                price: it.price || 0,
                 sku: `SKU-${it.product?.toString().slice(-4) || 'GEN'}`,
               })),
+
               subtotal: o.subtotal || 0,
               vatTax: o.taxAmount || 0,
               deliveryFee: o.shippingFee || 0,
@@ -752,7 +748,7 @@ export default function AdminOrdersPage() {
                       <td className="px-4 py-3.5 whitespace-nowrap">
                         <select
                           value={ord.status}
-                          onChange={(e) => handleStatusChange(ord.id, e.target.value as any)}
+                          onChange={(e) => handleStatusChange(ord.id, e.target.value as IOrder['status'])}
                           className={`px-2.5 py-1 rounded-xl text-[10px] font-bold border focus:outline-none cursor-pointer ${
                             ord.status === 'Delivered'
                               ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
@@ -1234,7 +1230,7 @@ export default function AdminOrdersPage() {
                         name="issueCategory"
                         checked={issueCategory === item.id}
                         onChange={() => {
-                          setIssueCategory(item.id as any);
+                          setIssueCategory(item.id as IssueCategory);
                           setIssueNote(getPredefinedIssueMessage(reportingOrder, item.id));
                         }}
                         className="w-3.5 h-3.5 text-orange-600 focus:ring-orange-500 cursor-pointer"

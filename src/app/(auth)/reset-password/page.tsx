@@ -1,14 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Lock, CheckCircle2, ArrowRight, ShieldCheck } from 'lucide-react';
 import { BrandLogo } from '@/components/common/BrandLogo';
 import { AuthBackground } from '@/components/auth/AuthBackground';
 
 function ResetPasswordForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const tokenFromUrl = searchParams.get('token') || '';
 
@@ -18,12 +17,6 @@ function ResetPasswordForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (tokenFromUrl) {
-      setToken(tokenFromUrl);
-    }
-  }, [tokenFromUrl]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,7 +48,7 @@ function ResetPasswordForm() {
       } else {
         setErrorMessage(json.message || 'Failed to reset password.');
       }
-    } catch (_err) {
+    } catch {
       // Local fallback success simulation
       setIsSuccess(true);
     } finally {

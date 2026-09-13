@@ -4,12 +4,14 @@ import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ProductFilter } from '@/components/products/ProductFilter';
 import { ProductCard } from '@/components/products/ProductCard';
-import { useProductStore, Product } from '@/store/useProductStore';
+import { useProductStore } from '@/store/useProductStore';
 import { useBundleStore, convertBundleToProduct } from '@/store/useBundleStore';
 import { useLanguageStore } from '@/store/useLanguageStore';
 import { getLocalizedCategory } from '@/lib/localizedProducts';
 import { toBengaliNumber } from '@/lib/translations';
 import { ALL_PRODUCTS } from '@/data/products';
+import { useHydrated } from '@/lib/useHydrated';
+import { Product } from '@/types/product';
 import { Sparkles, PackageSearch, RotateCcw, SlidersHorizontal } from 'lucide-react';
 
 const CATEGORIES_LIST = [
@@ -39,7 +41,7 @@ function ProductsContent() {
   } = useProductStore();
 
   const { t, language } = useLanguageStore();
-  const [mounted, setMounted] = useState(false);
+  const mounted = useHydrated();
   const [liveDbProducts, setLiveDbProducts] = useState<Product[]>([]);
   const rawBundles = useBundleStore((state) => state.bundles);
 
@@ -56,22 +58,22 @@ function ProductsContent() {
         const data = await res.json().catch(() => null);
         const productsList = data?.data?.products || (Array.isArray(data?.data) ? data.data : null);
         if (!isCancelled && productsList && Array.isArray(productsList) && productsList.length > 0) {
-          const mapped: Product[] = productsList.map((p: any) => ({
-            _id: p._id || p.id,
-            title: p.title || p.name,
-            slug: p.slug || p._id || p.id,
+          const mapped: Product[] = productsList.map((p: Partial<Product> & { id?: string; name?: string }) => ({
+            _id: p._id || p.id || String(Math.random()),
+            title: p.title || p.name || 'Product',
+            slug: p.slug || p._id || p.id || '',
             description: p.description || '',
             category: p.category || 'Audio',
             brand: p.brand || 'ShopNexus Official',
-            price: p.price || 0,
-            discountPrice: p.discountPrice,
+            price: Number(p.price) || 0,
+            discountPrice: p.discountPrice !== undefined ? Number(p.discountPrice) : undefined,
             stock: p.stock ?? 20,
-            images: p.images?.length > 0 ? p.images : ['https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80'],
+            images: p.images && p.images.length > 0 ? p.images : ['https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80'],
             vendorName: p.vendorName || 'ShopNexus Official',
             isFlashSale: !!p.isFlashSale,
-            flashSaleDiscountPercent: p.flashSaleDiscountPercent || (p.discountPrice && p.price ? Math.round(((p.price - p.discountPrice) / p.price) * 100) : 0),
-            averageRating: p.averageRating || 4.8,
-            totalReviews: p.totalReviews || 12,
+            flashSaleDiscountPercent: p.flashSaleDiscountPercent || (p.discountPrice && p.price ? Math.round(((Number(p.price) - Number(p.discountPrice)) / Number(p.price)) * 100) : 0),
+            averageRating: Number(p.averageRating) || 4.8,
+            totalReviews: Number(p.totalReviews) || 12,
             tags: p.tags || ['popular', 'official'],
           }));
           setLiveDbProducts(mapped);
@@ -84,6 +86,7 @@ function ProductsContent() {
       isCancelled = true;
     };
   }, []);
+
 
   // Merge custom dynamic bundles with live DB products and base products stably
   const allCatalogProducts = React.useMemo(() => {
@@ -100,23 +103,18 @@ function ProductsContent() {
     });
 
     const catalogMerged = nonCombos.map((base) => {
-      const live = liveMap.get(base._id) || liveMap.get(base.slug);
+      const live = (base._id && liveMap.get(base._id)) || (base.slug && liveMap.get(base.slug));
       return live ? { ...base, ...live } : base;
     });
 
-    const baseIds = new Set(nonCombos.map((p) => p._id));
-    const baseSlugs = new Set(nonCombos.map((p) => p.slug));
-    const newDbProducts = liveDbProducts.filter((p) => !baseIds.has(p._id) && !baseSlugs.has(p.slug));
+    const baseIds = new Set(nonCombos.map((p) => p._id).filter(Boolean));
+    const baseSlugs = new Set(nonCombos.map((p) => p.slug).filter((s): s is string => Boolean(s)));
+    const newDbProducts = liveDbProducts.filter((p) => !baseIds.has(p._id) && (!p.slug || !baseSlugs.has(p.slug)));
 
     return [...bundleProducts, ...catalogMerged, ...newDbProducts];
   }, [rawBundles, liveDbProducts]);
 
-  const [products, setProducts] = useState<Product[]>(allCatalogProducts);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     const q = searchParams.get('q');
@@ -125,7 +123,7 @@ function ProductsContent() {
     if (cat) setCategory(cat);
   }, [searchParams, setSearch, setCategory]);
 
-  useEffect(() => {
+  const products = React.useMemo(() => {
     let filtered = [...allCatalogProducts];
     if (search) {
       filtered = filtered.filter(
@@ -139,13 +137,13 @@ function ProductsContent() {
     if (brand) filtered = filtered.filter((p) => p.brand.toLowerCase() === brand.toLowerCase());
     if (isFlashSale) filtered = filtered.filter((p) => p.isFlashSale);
     if (maxPrice) filtered = filtered.filter((p) => (p.discountPrice || p.price) <= maxPrice);
-    if (minRating) filtered = filtered.filter((p) => p.averageRating >= minRating);
+    if (minRating) filtered = filtered.filter((p) => (p.averageRating ?? 0) >= minRating);
 
     if (sortBy === 'price_asc') filtered.sort((a, b) => (a.discountPrice || a.price) - (b.discountPrice || b.price));
     if (sortBy === 'price_desc') filtered.sort((a, b) => (b.discountPrice || b.price) - (a.discountPrice || a.price));
-    if (sortBy === 'rating') filtered.sort((a, b) => b.averageRating - a.averageRating);
+    if (sortBy === 'rating') filtered.sort((a, b) => (b.averageRating ?? 0) - (a.averageRating ?? 0));
 
-    setProducts(filtered);
+    return filtered;
   }, [search, category, brand, maxPrice, minRating, sortBy, isFlashSale, allCatalogProducts]);
 
   const activeFiltersCount = (category ? 1 : 0) + (brand ? 1 : 0) + (isFlashSale ? 1 : 0) + (minRating > 0 ? 1 : 0) + (search ? 1 : 0);

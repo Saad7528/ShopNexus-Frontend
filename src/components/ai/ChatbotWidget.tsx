@@ -32,6 +32,44 @@ import {
   Check,
 } from 'lucide-react';
 
+interface SpeechRecognitionEvent {
+  results: {
+    length: number;
+    [index: number]: {
+      [index: number]: {
+        transcript: string;
+      };
+    };
+  };
+  error?: string;
+}
+
+interface ISpeechRecognitionInstance {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+  onerror: ((event: SpeechRecognitionEvent) => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+}
+
+interface WindowWithSpeech {
+  SpeechRecognition?: new () => ISpeechRecognitionInstance;
+  webkitSpeechRecognition?: new () => ISpeechRecognitionInstance;
+}
+
+interface SuggestedProductItem {
+  _id: string;
+  title: string;
+  price: number;
+  discountPrice?: number;
+  category?: string;
+  rating?: number;
+  image: string;
+}
+
 export const ChatbotWidget: React.FC = () => {
   const pathname = usePathname();
   const isAuthPage =
@@ -64,7 +102,7 @@ export const ChatbotWidget: React.FC = () => {
   const [speakingMsgId, setSpeakingMsgId] = useState<string | null>(null);
   const [addedItemName, setAddedItemName] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<ISpeechRecognitionInstance | null>(null);
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -74,8 +112,8 @@ export const ChatbotWidget: React.FC = () => {
   // Initialize Web Speech Recognition
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const SpeechRecognition =
-        (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const win = window as unknown as WindowWithSpeech;
+      const SpeechRecognition = win.SpeechRecognition || win.webkitSpeechRecognition;
 
       if (SpeechRecognition) {
         const recognition = new SpeechRecognition();
@@ -83,16 +121,16 @@ export const ChatbotWidget: React.FC = () => {
         recognition.interimResults = true;
         recognition.lang = language === 'bn' ? 'bn-BD' : 'en-US';
 
-        recognition.onresult = (event: any) => {
-          const transcript = Array.from(event.results)
-            .map((result: any) => result[0])
-            .map((result: any) => result.transcript)
+        recognition.onresult = (event: SpeechRecognitionEvent) => {
+          const transcript = Array.from({ length: event.results.length }, (_, idx) => event.results[idx])
+            .map((result) => result[0])
+            .map((result) => result.transcript)
             .join('');
 
           setInputText(transcript);
         };
 
-        recognition.onerror = (event: any) => {
+        recognition.onerror = (event: SpeechRecognitionEvent) => {
           console.warn('Speech recognition error:', event.error);
           setIsListening(false);
         };
@@ -216,7 +254,7 @@ export const ChatbotWidget: React.FC = () => {
         suggestedProducts: data.data.suggestedProducts,
         provider: data.data.provider,
       });
-    } catch (err: any) {
+    } catch {
       const fallbackText = language === 'en'
         ? `Here are the top official hardware gadgets matching your request at ShopNexus (${effectiveBudget ? `Budget ৳${effectiveBudget.toLocaleString()} BDT` : 'Top Rated'}):`
         : `আপনার চাহিদামতো শপনেক্সাসের সেরা অফিসিয়াল গ্যাজেটগুলো নিচে দেওয়া হলো (${effectiveBudget ? `বাজেট ৳${effectiveBudget.toLocaleString()}` : 'সব রেটিং'}):`;
@@ -235,11 +273,11 @@ export const ChatbotWidget: React.FC = () => {
     }
   };
 
-  const handleAddSuggestedToCart = (product: any) => {
+  const handleAddSuggestedToCart = (product: SuggestedProductItem) => {
     addItem({ productId: product._id, title: product.title, price: product.discountPrice || product.price, image: product.image, quantity: 1, stock: 15, vendorName: 'ShopNexus Official Store' });
   };
 
-  const getMessageDisplay = (msg: any) => {
+  const getMessageDisplay = (msg: { id?: string; text?: string }) => {
     if (msg.id === 'welcome-msg') {
       return language === 'bn'
         ? '👋 স্বাগতম! আমি শপনেক্সাস এআই শপিং সহকারী। সাউন্ড গিয়ার, মেকানিক্যাল কিবোর্ড, স্মার্টওয়াচ বা আপনার বাজেটের সেরা গ্যাজেট সম্পর্কে যেকোনো প্রশ্ন করতে পারেন।'
@@ -250,7 +288,7 @@ export const ChatbotWidget: React.FC = () => {
         ? '👋 কথোপকথন রিসেট করা হয়েছে। আজ আপনি কী খুঁজছেন?'
         : '👋 Chat history refreshed. What gadget or gear are you looking for today?';
     }
-    return msg.text;
+    return msg.text || '';
   };
 
   if (isAuthPage || pathname.startsWith('/admin')) return null;

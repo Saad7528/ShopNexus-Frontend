@@ -16,15 +16,12 @@ import {
   Truck,
   RotateCcw,
   Check,
-  Sparkles,
   Zap,
   Tag,
   DollarSign,
   Barcode,
   Layers,
-  Percent,
   CheckCircle2,
-  AlertCircle,
   Eye,
   Image as ImageIcon,
   UploadCloud,
@@ -34,6 +31,7 @@ import {
   X,
   FolderPlus,
 } from 'lucide-react';
+
 
 const INITIAL_CATEGORIES = [
   'Audio',
@@ -73,8 +71,8 @@ export default function AdminNewProductPage() {
     brand: '',
     vendorName: 'ShopNexus Official Store',
     category: 'Audio',
-    sku: `SKU-${Date.now().toString().slice(-6)}`,
-    barcode: `BC-${Date.now().toString().slice(-6)}`,
+    sku: 'SKU-NX-001',
+    barcode: 'BC-NX-001',
     costPrice: '',
     price: '',
     discountPrice: '',
@@ -322,7 +320,7 @@ export default function AdminNewProductPage() {
           threshold: parseInt(formData.threshold, 10) || 5,
         };
         localStorage.setItem('shopnexus_custom_products', JSON.stringify([newLocalItem, ...existing]));
-      } catch (_e) {}
+      } catch {}
 
       showToast(isBn ? '🎉 নতুন প্রোডাক্ট সফলভাবে ক্যাটালগে যুক্ত হয়েছে!' : '🎉 New product published to catalog successfully!');
       setTimeout(() => {

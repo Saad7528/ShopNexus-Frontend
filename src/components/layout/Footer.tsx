@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { BrandLogo } from '@/components/common/BrandLogo';
 import { useLanguageStore } from '@/store/useLanguageStore';
+import { useHydrated } from '@/lib/useHydrated';
 
 const SOCIAL_LINKS = [
   {
@@ -67,13 +68,9 @@ const SOCIAL_LINKS = [
 export const Footer: React.FC = () => {
   const pathname = usePathname();
   const { t, language } = useLanguageStore();
-  const [mounted, setMounted] = React.useState(false);
+  const mounted = useHydrated();
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
-
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Hide Footer on auth pages and Admin panel
   const isAuthPage =

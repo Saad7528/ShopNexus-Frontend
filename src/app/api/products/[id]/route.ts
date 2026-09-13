@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import { connectToDatabase } from '@/lib/db';
-import { ALL_PRODUCTS, getProductByIdOrSlug } from '@/data/products';
+import { getProductByIdOrSlug } from '@/data/products';
 import { INITIAL_BUNDLES } from '@/data/bundles';
 import { convertBundleToProduct } from '@/store/useBundleStore';
 
@@ -22,18 +22,25 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
     if (db) {
       const productsColl = db.collection('products');
-      const queryList: any[] = [
-        { _id: decoded as any },
+      const escaped = decoded.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+      const queryList: Record<string, unknown>[] = [
+        { _id: decoded },
         { id: decoded },
         { slug: decoded },
         { slug: decoded.toLowerCase() },
+        { title: decoded },
+        { name: decoded },
+        { title: { $regex: new RegExp('^' + escaped + '$', 'i') } },
+        { name: { $regex: new RegExp('^' + escaped + '$', 'i') } },
       ];
 
       // If valid 24-char ObjectId
       if (/^[0-9a-fA-F]{24}$/.test(decoded)) {
         try {
           queryList.push({ _id: new mongoose.Types.ObjectId(decoded) });
-        } catch (_e) {}
+        } catch {
+          // ignore object id parse error
+        }
       }
 
       const product = await productsColl.findOne({ $or: queryList });
@@ -62,51 +69,94 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     }
 
     return NextResponse.json({ success: false, message: 'Product not found' }, { status: 404 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('API Product GET by ID error:', error);
-    return NextResponse.json({ success: false, message: error.message || 'Internal error' }, { status: 500 });
+    const msg = error instanceof Error ? error.message : 'Internal error';
+    return NextResponse.json({ success: false, message: msg }, { status: 500 });
   }
 }
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+    const decoded = decodeURIComponent(id).trim();
     const body = await req.json();
     await connectToDatabase();
     const db = mongoose.connection.db;
 
     if (db) {
       const productsColl = db.collection('products');
+      const escaped = decoded.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+      const queryList: Record<string, unknown>[] = [
+        { _id: decoded },
+        { id: decoded },
+        { slug: decoded },
+        { slug: decoded.toLowerCase() },
+        { title: decoded },
+        { name: decoded },
+        { title: { $regex: new RegExp('^' + escaped + '$', 'i') } },
+        { name: { $regex: new RegExp('^' + escaped + '$', 'i') } },
+      ];
+      if (/^[0-9a-fA-F]{24}$/.test(decoded)) {
+        try {
+          queryList.push({ _id: new mongoose.Types.ObjectId(decoded) });
+        } catch {}
+      }
+
       await productsColl.updateOne(
-        { $or: [{ _id: id as any }, { id }, { slug: id }] },
+        { $or: queryList },
         { $set: { ...body, updatedAt: new Date() } },
         { upsert: true }
       );
     }
 
     return NextResponse.json({ success: true, message: 'Product updated successfully', data: body });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('API Product PUT error:', error);
-    return NextResponse.json({ success: false, message: error.message || 'Internal error' }, { status: 500 });
+    const msg = error instanceof Error ? error.message : 'Internal error';
+    return NextResponse.json({ success: false, message: msg }, { status: 500 });
   }
+}
+
+export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+  return PUT(req, ctx);
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+    const decoded = decodeURIComponent(id).trim();
     await connectToDatabase();
     const db = mongoose.connection.db;
 
     if (db) {
       const productsColl = db.collection('products');
+      const escaped = decoded.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+      const queryList: Record<string, unknown>[] = [
+        { _id: decoded },
+        { id: decoded },
+        { slug: decoded },
+        { slug: decoded.toLowerCase() },
+        { title: decoded },
+        { name: decoded },
+        { title: { $regex: new RegExp('^' + escaped + '$', 'i') } },
+        { name: { $regex: new RegExp('^' + escaped + '$', 'i') } },
+      ];
+      if (/^[0-9a-fA-F]{24}$/.test(decoded)) {
+        try {
+          queryList.push({ _id: new mongoose.Types.ObjectId(decoded) });
+        } catch {}
+      }
+
       await productsColl.deleteOne({
-        $or: [{ _id: id as any }, { id }, { slug: id }],
+        $or: queryList,
       });
     }
 
     return NextResponse.json({ success: true, message: 'Product deleted successfully' });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('API Product DELETE error:', error);
-    return NextResponse.json({ success: false, message: error.message || 'Internal error' }, { status: 500 });
+    const msg = error instanceof Error ? error.message : 'Internal error';
+    return NextResponse.json({ success: false, message: msg }, { status: 500 });
   }
 }

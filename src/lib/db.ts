@@ -2,21 +2,19 @@ import mongoose from 'mongoose';
 
 const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URI || '';
 
-if (!MONGODB_URI && typeof window === 'undefined') {
-  // Graceful log in serverless if env is missing
+interface MongooseCache {
+  conn: typeof mongoose | null;
+  promise: Promise<typeof mongoose> | null;
 }
 
-/**
- * Global is used here to maintain a cached connection across hot reloads
- * in development and serverless invocations.
- */
-let cached = (global as any).mongoose;
-
-if (!cached) {
-  cached = (global as any).mongoose = { conn: null, promise: null };
+declare global {
+  var mongooseCache: MongooseCache | undefined;
 }
 
-export async function connectToDatabase() {
+const cached: MongooseCache = globalThis.mongooseCache || { conn: null, promise: null };
+globalThis.mongooseCache = cached;
+
+export async function connectToDatabase(): Promise<typeof mongoose | null> {
   if (!MONGODB_URI) {
     return null;
   }
@@ -43,3 +41,5 @@ export async function connectToDatabase() {
 
   return cached.conn;
 }
+
+export default connectToDatabase;

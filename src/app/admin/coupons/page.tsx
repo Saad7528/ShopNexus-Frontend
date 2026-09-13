@@ -1,25 +1,20 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
 import { RoleGuard } from '@/components/auth/RoleGuard';
+
 import { showConfirmDialog, showAlertDialog } from '@/store/useDialogStore';
 import {
   Tag,
   Plus,
   Trash2,
   CheckCircle2,
-  Percent,
-  Calendar,
-  Zap,
   Clock,
-  ArrowLeft,
   X,
   ShoppingCart,
   Send,
-  Mail,
-  User,
 } from 'lucide-react';
+
 
 interface ICoupon {
   id: string;
@@ -126,16 +121,17 @@ export default function AdminCouponsPage() {
         if (!res.ok) return;
         const data = await res.json();
         if (data?.data?.coupons && Array.isArray(data.data.coupons)) {
-          const mapped: ICoupon[] = data.data.coupons.map((c: any) => ({
-            id: c._id,
-            code: c.code,
-            discountPercentage: c.discountValue || 10,
-            minOrderAmount: c.minPurchaseAmount || 0,
-            usageLimit: c.usageLimit || 500,
-            usedCount: c.usedCount || 0,
-            expiresAt: c.expiryDate ? new Date(c.expiryDate).toISOString().split('T')[0] : '2026-12-31',
+          const mapped: ICoupon[] = data.data.coupons.map((c: Record<string, unknown>) => ({
+            id: String(c._id || c.id || ''),
+            code: String(c.code || ''),
+            discountPercentage: Number(c.discountValue) || 10,
+            minOrderAmount: Number(c.minPurchaseAmount) || 0,
+            usageLimit: Number(c.usageLimit) || 500,
+            usedCount: Number(c.usedCount) || 0,
+            expiresAt: c.expiryDate ? new Date(String(c.expiryDate)).toISOString().split('T')[0] : '2026-12-31',
             isActive: c.isActive !== false,
           }));
+
 
           if (mapped.length > 0) {
             setCoupons((prev) => {

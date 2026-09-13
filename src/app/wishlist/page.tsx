@@ -7,26 +7,49 @@ import { useWishlistStore } from '@/store/useWishlistStore';
 import { useCartStore } from '@/store/useCartStore';
 import { useLanguageStore } from '@/store/useLanguageStore';
 import { formatCurrency, toBengaliNumber } from '@/lib/translations';
-import { Heart, ShoppingCart, Trash2, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Heart, ShoppingCart, Trash2, ArrowLeft, ArrowRight, AlertCircle } from 'lucide-react';
+import { useHydrated } from '@/lib/useHydrated';
+import { ALL_PRODUCTS, getProductByIdOrSlug } from '@/data/products';
 
 export default function WishlistPage() {
   const { items, removeFromWishlist, clearWishlist } = useWishlistStore();
   const addItem = useCartStore((state) => state.addItem);
   const { t, language } = useLanguageStore();
-  const [mounted, setMounted] = useState(false);
+  const mounted = useHydrated();
+  const [liveDbProducts, setLiveDbProducts] = useState<any[]>([]);
 
   useEffect(() => {
-    setMounted(true);
+    let isCancelled = false;
+    const fetchLiveCatalog = async () => {
+      try {
+        let res = await fetch('/api/products?limit=100').catch(() => null);
+        if ((!res || !res.ok) && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+          const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+          res = await fetch(`${API_URL}/products?limit=100`).catch(() => null);
+        }
+        if (!res || !res.ok) return;
+        const data = await res.json().catch(() => null);
+        const list = data?.data?.products || (Array.isArray(data?.data) ? data.data : null);
+        if (!isCancelled && list && Array.isArray(list)) {
+          setLiveDbProducts(list);
+        }
+      } catch {}
+    };
+    fetchLiveCatalog();
+    return () => {
+      isCancelled = true;
+    };
   }, []);
 
-  const handleMoveToCart = (item: (typeof items)[0]) => {
+  const handleMoveToCart = (item: (typeof items)[0], stockCount: number) => {
+    if (stockCount <= 0) return;
     addItem({
       productId: item.id,
       title: item.name,
       price: item.price,
       image: item.image,
       quantity: 1,
-      stock: 50,
+      stock: stockCount,
       vendorName: 'ShopNexus Official',
     });
     removeFromWishlist(item.id);
@@ -85,54 +108,81 @@ export default function WishlistPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {items.map((item) => (
-              <div
-                key={item.id}
-                className="group rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-white/10 hover:border-orange-500/40 p-4 transition-all duration-300 flex flex-col justify-between shadow-sm hover:shadow-xl backdrop-blur-xl"
-              >
-                <div>
-                  <div className="relative h-48 w-full rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 mb-4">
-                    <Image
-                      src={item.image}
-                      alt={item.name}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeFromWishlist(item.id)}
-                      className="absolute top-2.5 right-2.5 p-2 rounded-lg bg-black/60 hover:bg-rose-600 text-white transition-colors cursor-pointer"
-                      title={mounted && language === 'bn' ? 'মুছুন' : 'Remove'}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+            {items.map((item) => {
+              const liveProd = liveDbProducts.find((p) => p._id === item.id || p.slug === item.id || p.id === item.id);
+              const staticProd = getProductByIdOrSlug(item.id) || ALL_PRODUCTS.find((p) => p._id === item.id || p.slug === item.id);
+              const activeProd = liveProd || staticProd;
+              const availableStock = activeProd ? (Number(activeProd.stock) ?? 0) : (item.inStock === false ? 0 : 10);
+              const isOutOfStock = availableStock <= 0;
+
+              return (
+                <div
+                  key={item.id}
+                  className="group rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-white/10 hover:border-orange-500/40 p-4 transition-all duration-300 flex flex-col justify-between shadow-sm hover:shadow-xl backdrop-blur-xl"
+                >
+                  <div>
+                    <div className="relative h-48 w-full rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 mb-4">
+                      <Image
+                        src={item.image}
+                        alt={item.name}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      {isOutOfStock && (
+                        <div className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-lg bg-rose-600/95 backdrop-blur-xs text-white text-[10px] font-bold flex items-center gap-1 shadow-md">
+                          <AlertCircle className="w-3 h-3" />
+                          <span>{mounted && language === 'bn' ? 'স্টক শেষ' : 'Out of Stock'}</span>
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => removeFromWishlist(item.id)}
+                        className="absolute top-2.5 right-2.5 p-2 rounded-lg bg-black/60 hover:bg-rose-600 text-white transition-colors cursor-pointer"
+                        title={mounted && language === 'bn' ? 'মুছুন' : 'Remove'}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-orange-600 dark:text-orange-400">
+                      {item.category}
+                    </span>
+                    <Link href={`/products/${item.id}`}>
+                      <h3 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors line-clamp-2 mt-1">
+                        {item.name}
+                      </h3>
+                    </Link>
                   </div>
 
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-orange-600 dark:text-orange-400">
-                    {item.category}
-                  </span>
-                  <Link href={`/products/${item.id}`}>
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors line-clamp-2 mt-1">
-                      {item.name}
-                    </h3>
-                  </Link>
-                </div>
+                  <div className="mt-4 pt-4 border-t border-slate-100 dark:border-white/10 flex items-center justify-between">
+                    <span className="text-base font-black text-slate-900 dark:text-white font-mono">
+                      {mounted ? formatCurrency(item.price, language) : `৳${item.price.toLocaleString()}`}
+                    </span>
 
-                <div className="mt-4 pt-4 border-t border-slate-100 dark:border-white/10 flex items-center justify-between">
-                  <span className="text-base font-black text-slate-900 dark:text-white font-mono">
-                    {mounted ? formatCurrency(item.price, language) : `৳${item.price.toLocaleString()}`}
-                  </span>
-
-                  <button
-                    type="button"
-                    onClick={() => handleMoveToCart(item)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white text-xs font-semibold shadow-md shadow-orange-500/20 transition-all cursor-pointer"
-                  >
-                    <ShoppingCart className="w-3.5 h-3.5" /> {mounted ? t('btn_move_to_cart') : 'Move to Cart'}
-                  </button>
+                    {isOutOfStock ? (
+                      <button
+                        type="button"
+                        disabled
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 text-xs font-semibold cursor-not-allowed border border-slate-200 dark:border-slate-700 select-none opacity-80"
+                        title={mounted && language === 'bn' ? 'এই পণ্যটি বর্তমানে স্টকে নেই' : 'This product is currently out of stock'}
+                      >
+                        <AlertCircle className="w-3.5 h-3.5 text-rose-500" />
+                        <span>{mounted && language === 'bn' ? 'স্টক শেষ' : 'Out of Stock'}</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleMoveToCart(item, availableStock)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white text-xs font-semibold shadow-md shadow-orange-500/20 transition-all cursor-pointer active:scale-95"
+                      >
+                        <ShoppingCart className="w-3.5 h-3.5" />
+                        <span>{mounted ? t('btn_move_to_cart') : 'Move to Cart'}</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

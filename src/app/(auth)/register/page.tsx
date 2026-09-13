@@ -7,7 +7,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import {
   Mail,
   Lock,
-  User,
+  User as UserIcon,
   ArrowRight,
   Loader2,
   Sparkles,
@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { BrandLogo } from '@/components/common/BrandLogo';
 import { AuthBackground } from '@/components/auth/AuthBackground';
+import { User } from '@/types/user';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -55,10 +56,10 @@ export default function RegisterPage() {
         body: JSON.stringify(payload),
       });
 
-      let data: any = {};
+      let data: { message?: string; data?: { user: User; token: string } } = {};
       try {
         data = await res.json();
-      } catch (_jsonErr) {
+      } catch {
         throw new Error(`Server connection issue (${res.status} ${res.statusText || 'Error'}). Please verify API URL.`);
       }
 
@@ -66,13 +67,17 @@ export default function RegisterPage() {
         throw new Error(data.message || 'Registration failed');
       }
 
-      login(data.data.user, data.data.token);
+      if (data.data) {
+        login(data.data.user, data.data.token);
+      }
       setShowWelcomeModal(true);
-    } catch (err: any) {
-      setError(err.message || 'An error occurred during registration.');
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : 'An error occurred during registration.';
+      setError(errMsg);
     } finally {
       setIsLoading(false);
     }
+
   };
 
   const handleGoogleRegister = () => {
@@ -163,7 +168,7 @@ export default function RegisterPage() {
               Full Name
             </label>
             <div className="relative">
-              <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <UserIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
                 type="text"
                 required

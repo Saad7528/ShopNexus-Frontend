@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useCartStore } from '@/store/useCartStore';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useHydrated } from '@/lib/useHydrated';
 import {
   Zap,
   ArrowRight,
@@ -31,7 +32,7 @@ import {
 interface SlideData {
   id: number;
   tag: string;
-  tagIcon: any;
+  tagIcon: React.ComponentType<{ className?: string }>;
   title: string;
   titleHighlight: string;
   description: string;
@@ -141,39 +142,41 @@ const LIVE_NOTICES = [
 ];
 
 import { useLanguageStore } from '@/store/useLanguageStore';
-import { formatCurrency, toBengaliNumber } from '@/lib/translations';
+import { formatCurrency, toBengaliNumber, Language, TranslationKey, TRANSLATIONS } from '@/lib/translations';
 
 export const HeroSection: React.FC = () => {
   const router = useRouter();
-  const { t, language } = useLanguageStore();
-  const [mounted, setMounted] = useState(false);
+  const { language } = useLanguageStore();
+  const mounted = useHydrated();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [selectedColorIdx, setSelectedColorIdx] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
   const [noticeIndex, setNoticeIndex] = useState(0);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const isBn = mounted && language === 'bn';
+  const currentLang: Language = mounted ? language : 'bn';
+  const isBn = currentLang === 'bn';
   const slides = getHeroSlides(isBn);
 
+  const getTranslation = (key: TranslationKey, fallback?: string) => {
+    return TRANSLATIONS[currentLang]?.[key] || fallback || TRANSLATIONS.bn[key] || TRANSLATIONS.en[key] || String(key);
+  };
+  const t = getTranslation;
+
   const liveNotices = [
-    t('ticker_1'),
-    t('ticker_2'),
-    t('ticker_3'),
-    t('ticker_4'),
+    getTranslation('ticker_1'),
+    getTranslation('ticker_2'),
+    getTranslation('ticker_3'),
+    getTranslation('ticker_4'),
   ];
 
   const categoryChips = [
-    { label: t('cat_flash_deals'), href: '/flash-sales' },
-    { label: t('cat_audio'), href: '/products?category=Audio' },
-    { label: t('cat_wearables'), href: '/products?category=Wearables' },
-    { label: t('cat_peripherals'), href: '/products?category=Peripherals' },
-    { label: t('cat_smart_home'), href: '/products?category=Smart+Home' },
-    { label: t('cat_all_catalog'), href: '/products' },
+    { label: getTranslation('cat_flash_deals'), href: '/flash-sales' },
+    { label: getTranslation('cat_audio'), href: '/products?category=Audio' },
+    { label: getTranslation('cat_wearables'), href: '/products?category=Wearables' },
+    { label: getTranslation('cat_peripherals'), href: '/products?category=Peripherals' },
+    { label: getTranslation('cat_smart_home'), href: '/products?category=Smart+Home' },
+    { label: getTranslation('cat_all_catalog'), href: '/products' },
   ];
 
   // Auth & Real Coin System

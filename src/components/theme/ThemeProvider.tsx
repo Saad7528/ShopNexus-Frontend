@@ -4,7 +4,8 @@ import React, { useEffect } from 'react';
 import { useThemeStore } from '@/store/useThemeStore';
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { theme, setTheme } = useThemeStore();
+  const { theme } = useThemeStore();
+
 
   useEffect(() => {
     // Sync class on root html

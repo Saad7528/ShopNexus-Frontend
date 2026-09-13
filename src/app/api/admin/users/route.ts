@@ -21,8 +21,9 @@ export async function GET(_req: NextRequest) {
       .toArray();
 
     return NextResponse.json({ success: true, data: users });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Internal error';
     console.error('Fetch admin users error:', error);
-    return NextResponse.json({ success: false, message: error.message || 'Internal error' }, { status: 500 });
+    return NextResponse.json({ success: false, message }, { status: 500 });
   }
 }

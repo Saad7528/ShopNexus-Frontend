@@ -4,11 +4,31 @@ import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useCartStore } from '@/store/useCartStore';
-import { useVisitorAnalyticsStore } from '@/store/useVisitorAnalyticsStore';
+import { useVisitorAnalyticsStore, DeviceType } from '@/store/useVisitorAnalyticsStore';
 
 const INTERNAL_ROLES = ['admin', 'staff', 'manager', 'support', 'moderator', 'logistics', 'employee', 'care'];
 
-const getClientEnvironment = async () => {
+interface NavigatorUAData {
+  userAgentData?: {
+    getHighEntropyValues: (hints: string[]) => Promise<{
+      model?: string;
+      platform?: string;
+      platformVersion?: string;
+      architecture?: string;
+      brands?: Array<{ brand: string; version: string }>;
+    }>;
+  };
+}
+
+interface DetectedEnv {
+  device: DeviceType;
+  deviceModel: string;
+  os: string;
+  browser: string;
+}
+
+// 🧠 Advanced Hardware Fingerprinting & Exact Model Resolver
+const detectClientDevice = async (): Promise<DetectedEnv> => {
   if (typeof window === 'undefined') {
     return {
       device: 'Desktop' as const,
@@ -26,10 +46,11 @@ const getClientEnvironment = async () => {
   // Check Modern Chromium High-Entropy Client Hints API (Resolves Redmi / Xiaomi / Samsung / Pixel exact hardware model!)
   let clientHintModel = '';
   let clientHintPlatform = '';
-  let clientHintBrands: any[] = [];
-  if ((navigator as any).userAgentData?.getHighEntropyValues) {
+  let clientHintBrands: Array<{ brand: string; version: string }> = [];
+  const navWithUAData = navigator as unknown as NavigatorUAData;
+  if (navWithUAData.userAgentData?.getHighEntropyValues) {
     try {
-      const hints = await (navigator as any).userAgentData.getHighEntropyValues([
+      const hints = await navWithUAData.userAgentData.getHighEntropyValues([
         'model',
         'platform',
         'platformVersion',
@@ -176,7 +197,7 @@ export default function StorefrontTelemetryTracker() {
   const items = useCartStore((s) => s.items);
   const getTotals = useCartStore((s) => s.getTotals);
   const trackStorefrontVisit = useVisitorAnalyticsStore((s) => s.trackStorefrontVisit);
-  const cachedEnvRef = useRef<any>(null);
+  const cachedEnvRef = useRef<DetectedEnv | null>(null);
 
   const isInternalStaff = (role?: string) => {
     if (!role) return false;
@@ -206,9 +227,14 @@ export default function StorefrontTelemetryTracker() {
 
     const sendPing = async (isLeaving = false) => {
       if (!cachedEnvRef.current) {
-        cachedEnvRef.current = await getClientEnvironment();
+        cachedEnvRef.current = await detectClientDevice();
       }
-      const clientEnv = cachedEnvRef.current;
+      const clientEnv = cachedEnvRef.current || {
+        device: 'Desktop',
+        deviceModel: 'Personal Computer',
+        os: 'Unknown OS',
+        browser: 'Browser',
+      };
 
       const payload = {
         sessionId,
@@ -254,7 +280,7 @@ export default function StorefrontTelemetryTracker() {
     };
 
     // 1. Update local Zustand state
-    getClientEnvironment().then((clientEnv) => {
+    detectClientDevice().then((clientEnv: DetectedEnv) => {
       cachedEnvRef.current = clientEnv;
       trackStorefrontVisit({
         pathname,
