@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useWishlistStore } from '@/store/useWishlistStore';
 import { useCartStore } from '@/store/useCartStore';
+import { useProductStore } from '@/store/useProductStore';
 import { useLanguageStore } from '@/store/useLanguageStore';
 import { formatCurrency, toBengaliNumber } from '@/lib/translations';
 import { Heart, ShoppingCart, Trash2, ArrowLeft, ArrowRight, AlertCircle } from 'lucide-react';
@@ -14,37 +15,21 @@ import { ALL_PRODUCTS, getProductByIdOrSlug } from '@/data/products';
 export default function WishlistPage() {
   const { items, removeFromWishlist, clearWishlist } = useWishlistStore();
   const addItem = useCartStore((state) => state.addItem);
+  const { products: storeProducts, fetchProducts } = useProductStore();
   const { t, language } = useLanguageStore();
   const mounted = useHydrated();
-  const [liveDbProducts, setLiveDbProducts] = useState<any[]>([]);
 
+  // Background SWR revalidation
   useEffect(() => {
-    let isCancelled = false;
-    const fetchLiveCatalog = async () => {
-      try {
-        let res = await fetch('/api/products?limit=100').catch(() => null);
-        if ((!res || !res.ok) && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-          const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-          res = await fetch(`${API_URL}/products?limit=100`).catch(() => null);
-        }
-        if (!res || !res.ok) return;
-        const data = await res.json().catch(() => null);
-        const list = data?.data?.products || (Array.isArray(data?.data) ? data.data : null);
-        if (!isCancelled && list && Array.isArray(list)) {
-          setLiveDbProducts(list);
-        }
-      } catch {}
-    };
-    fetchLiveCatalog();
-    return () => {
-      isCancelled = true;
-    };
-  }, []);
+    fetchProducts();
+  }, [fetchProducts]);
+
+  const [addedCartId, setAddedCartId] = useState<string | null>(null);
 
   const handleMoveToCart = (item: (typeof items)[0], stockCount: number) => {
     if (stockCount <= 0) return;
     addItem({
-      productId: item.id,
+      productId: item.productId || item.id,
       title: item.name,
       price: item.price,
       image: item.image,
@@ -52,7 +37,10 @@ export default function WishlistPage() {
       stock: stockCount,
       vendorName: 'ShopNexus Official',
     });
-    removeFromWishlist(item.id);
+    setAddedCartId(item.id);
+    setTimeout(() => {
+      setAddedCartId(null);
+    }, 2000);
   };
 
   return (
@@ -109,11 +97,44 @@ export default function WishlistPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {items.map((item) => {
-              const liveProd = liveDbProducts.find((p) => p._id === item.id || p.slug === item.id || p.id === item.id);
-              const staticProd = getProductByIdOrSlug(item.id) || ALL_PRODUCTS.find((p) => p._id === item.id || p.slug === item.id);
-              const activeProd = liveProd || staticProd;
-              const availableStock = activeProd ? (Number(activeProd.stock) ?? 0) : (item.inStock === false ? 0 : 10);
+              const normalize = (str?: string) => (str || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+              const normItemTitle = normalize(item.name || item.title);
+              const normItemSlug = normalize(item.slug);
+              const normItemId = normalize(item.id || item.productId);
+
+              // 1. Check reactive real-time store products (instant from admin edits & cache)
+              const activeProd =
+                storeProducts.find((p) => {
+                  const normPTitle = normalize(p.title || (p as any).name);
+                  const normPSlug = normalize(p.slug);
+                  const normPId = normalize(p._id);
+                  return Boolean(
+                    (normItemId && (normItemId === normPId || normItemId === normPSlug)) ||
+                    (normItemSlug && (normItemSlug === normPSlug || normItemSlug === normPId)) ||
+                    (normItemTitle && normPTitle && (normItemTitle === normPTitle || normPTitle.includes(normItemTitle) || normItemTitle.includes(normPTitle)))
+                  );
+                }) ||
+                getProductByIdOrSlug(item.productId || item.slug || item.id) ||
+                ALL_PRODUCTS.find((p) => {
+                  const normPTitle = normalize(p.title || (p as any).title_en);
+                  const normPSlug = normalize(p.slug);
+                  const normPId = normalize(p._id);
+                  return Boolean(
+                    (normItemId && (normItemId === normPId || normItemId === normPSlug)) ||
+                    (normItemSlug && (normItemSlug === normPSlug || normItemSlug === normPId)) ||
+                    (normItemTitle && normPTitle && (normItemTitle === normPTitle || normPTitle.includes(normItemTitle) || normItemTitle.includes(normPTitle)))
+                  );
+                });
+
+              const availableStock = activeProd?.stock !== undefined
+                ? Number(activeProd.stock)
+                : typeof item.stock === 'number'
+                ? item.stock
+                : item.inStock === false
+                ? 0
+                : 10;
               const isOutOfStock = availableStock <= 0;
+              const isJustAdded = addedCartId === item.id;
 
               return (
                 <div
@@ -147,7 +168,7 @@ export default function WishlistPage() {
                     <span className="text-[11px] font-semibold uppercase tracking-wider text-orange-600 dark:text-orange-400">
                       {item.category}
                     </span>
-                    <Link href={`/products/${item.id}`}>
+                    <Link href={`/products/${item.slug || item.productId || item.id}`}>
                       <h3 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors line-clamp-2 mt-1">
                         {item.name}
                       </h3>
@@ -173,10 +194,18 @@ export default function WishlistPage() {
                       <button
                         type="button"
                         onClick={() => handleMoveToCart(item, availableStock)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white text-xs font-semibold shadow-md shadow-orange-500/20 transition-all cursor-pointer active:scale-95"
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-md transition-all cursor-pointer active:scale-95 ${
+                          isJustAdded
+                            ? 'bg-emerald-600 text-white shadow-emerald-600/25'
+                            : 'bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white shadow-orange-500/20'
+                        }`}
                       >
                         <ShoppingCart className="w-3.5 h-3.5" />
-                        <span>{mounted ? t('btn_move_to_cart') : 'Move to Cart'}</span>
+                        <span>
+                          {isJustAdded
+                            ? (mounted && language === 'bn' ? 'কার্টে যুক্ত হয়েছে!' : 'Added to Cart!')
+                            : (mounted ? t('btn_move_to_cart') : 'Move to Cart')}
+                        </span>
                       </button>
                     )}
                   </div>

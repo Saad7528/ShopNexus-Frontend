@@ -4,9 +4,18 @@ import React, { useState } from 'react';
 import { Mail, Send, CheckCircle2, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useLanguageStore } from '@/store/useLanguageStore';
+import { useHydrated } from '@/lib/useHydrated';
+import { TRANSLATIONS, TranslationKey, Language } from '@/lib/translations';
 
 export function NewsletterSection() {
-  const { t } = useLanguageStore();
+  const { language } = useLanguageStore();
+  const mounted = useHydrated();
+  const currentLang: Language = mounted ? language : 'bn';
+
+  const t = (key: TranslationKey, fallback?: string) => {
+    return TRANSLATIONS[currentLang]?.[key] || fallback || TRANSLATIONS.bn[key] || TRANSLATIONS.en[key] || String(key);
+  };
+
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [couponUnlocked, setCouponUnlocked] = useState(false);
 
@@ -25,10 +34,10 @@ export function NewsletterSection() {
             <Sparkles className="w-3.5 h-3.5" />
             <span>VIP Drop Alerts & Flash Codes</span>
           </div>
-          <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight mb-3">
+          <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight mb-3" suppressHydrationWarning>
             {t('newsletter_title')}
           </h2>
-          <p className="text-sm sm:text-base text-white/85 mb-6">
+          <p className="text-sm sm:text-base text-white/85 mb-6" suppressHydrationWarning>
             {t('newsletter_desc')}
           </p>
 
@@ -60,7 +69,7 @@ export function NewsletterSection() {
                 rightIcon={<Send className="w-4 h-4" />}
                 className="whitespace-nowrap rounded-xl shadow-lg"
               >
-                {t('btn_subscribe')}
+                <span suppressHydrationWarning>{t('btn_subscribe')}</span>
               </Button>
             </form>
           )}

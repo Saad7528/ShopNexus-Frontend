@@ -21,6 +21,7 @@ import { IInventoryItem, INITIAL_INVENTORY } from '@/data/inventory';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useLanguageStore } from '@/store/useLanguageStore';
+import { useProductStore } from '@/store/useProductStore';
 import { toBengaliNumber } from '@/lib/translations';
 
 function InventoryContent() {
@@ -115,32 +116,46 @@ function InventoryContent() {
   };
 
   const saveQuickStock = async (id: string) => {
+    const itemToUpdate = inventory.find((i) => i.id === id);
     // Optimistic UI update
     setInventory((prev) =>
       prev.map((item) => (item.id === id ? { ...item, stock: editStockValue } : item))
     );
     setEditingId(null);
-    showFeedback(isBn ? 'স্টক সংখ্যা তাৎক্ষণিকভাবে আপডেট করা হয়েছে!' : 'Stock quantity updated in real-time!', 'success');
+    showFeedback(isBn ? 'স্টক সফলভাবে আপডেট হয়েছে!' : 'Stock successfully updated!', 'success');
+
+    // Instant Global Cache Update for 0ms storefront sync
+    const lookupTarget = itemToUpdate?.slug || itemToUpdate?.name || id;
+    useProductStore.getState().updateProductStock(lookupTarget, editStockValue);
 
     // Async DB update
     try {
-      let res = await fetch(`/api/products/${id}`, {
+      const payload = {
+        stock: editStockValue,
+        name: itemToUpdate?.name,
+        title: itemToUpdate?.name,
+        slug: itemToUpdate?.slug,
+      };
+
+      const targetId = encodeURIComponent(itemToUpdate?.slug || itemToUpdate?.name || id);
+
+      let res = await fetch(`/api/products/${targetId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ stock: editStockValue }),
+        body: JSON.stringify(payload),
       }).catch(() => null);
 
       if ((!res || !res.ok) && API_URL && !API_URL.startsWith('/api') && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-        await fetch(`${API_URL}/products/${id}`, {
+        await fetch(`${API_URL}/products/${targetId}`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
-          body: JSON.stringify({ stock: editStockValue }),
+          body: JSON.stringify(payload),
         }).catch(() => null);
       }
     } catch (e) {
@@ -162,6 +177,10 @@ function InventoryContent() {
     if (isConfirmed) {
       setInventory((prev) => prev.filter((item) => item.id !== id));
       showFeedback(isBn ? `ক্যাটালগ থেকে "${name}" মুছে ফেলা হয়েছে।` : `Removed "${name}" from catalog.`, 'delete');
+
+      // Instant eviction from Global Product Store Cache
+      useProductStore.getState().removeProduct(id);
+      useProductStore.getState().removeProduct(name);
 
       // Async DB deletion
       try {
