@@ -373,7 +373,7 @@ export default function AdminCouponsPage() {
           ))}
         </div>
 
-        {/* 🛒 ABANDONED CART RECOVERY SECTION */}
+        {/* ABANDONED CART RECOVERY SECTION */}
         <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-6 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
             <div>
@@ -421,7 +421,7 @@ export default function AdminCouponsPage() {
                     <button
                       type="button"
                       onClick={() => handleSendRecovery(cart.id, cart.customerName)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-md shadow-orange-500/20 cursor-pointer"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-linear-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-md shadow-orange-500/20 cursor-pointer"
                     >
                       <Send className="w-3 h-3" /> {isBn ? `${toBengaliNumber('10')}% ভাউচার পাঠান` : 'Send 10% Voucher'}
                     </button>
@@ -432,7 +432,7 @@ export default function AdminCouponsPage() {
           </div>
         </div>
 
-        {/* Create Coupon Modal */}
+        {/* Create Coupon Modal  */}
         {isCreateModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
             <div className="relative w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-4">

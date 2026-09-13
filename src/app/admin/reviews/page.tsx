@@ -49,7 +49,6 @@ export default function AdminReviewsPage() {
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
-  // Fetch live reviews on mount
   React.useEffect(() => {
     const fetchLiveReviews = async () => {
       try {
