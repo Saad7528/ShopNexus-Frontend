@@ -30,7 +30,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const stockCount = product.stock ?? 0;
   const isOutOfStock = stockCount <= 0;
   const isLowStock = !isOutOfStock && stockCount <= 10;
-  const isFavorite = mounted && productId ? isInWishlist(productId) : false;
+  const isFavorite = mounted && productId
+    ? isInWishlist(product._id || '') || (product.slug ? isInWishlist(product.slug) : false) || (product.title ? isInWishlist(product.title) : false)
+    : false;
 
   const localized = mounted ? getLocalizedProduct(product, language) : null;
   const productTitle = localized ? localized.title : product.title;
@@ -50,12 +52,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     e.stopPropagation();
     if (!productId) return;
     toggleWishlist({
-      id: productId,
+      id: product._id || product.slug || product.title,
+      productId: product._id,
+      slug: product.slug,
       name: productTitle,
+      title: product.title,
       price: displayPrice,
       image: product.images?.[0] || defaultFallbackImage,
       category: product.category,
       inStock: !isOutOfStock,
+      stock: stockCount,
     });
   };
 
@@ -218,19 +224,37 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           </div>
         )}
 
-        {/* Loyalty Coins Badge for Combo */}
+        {/* Floating Heart / Wishlist Toggle Button (Always accessible) */}
+        <button
+          type="button"
+          onClick={handleToggleWishlist}
+          className={`absolute top-1.5 right-1.5 sm:top-2 sm:right-2 p-1.5 rounded-full backdrop-blur-md transition-all z-20 cursor-pointer shadow-sm ${
+            isFavorite
+              ? 'bg-rose-500 text-white shadow-rose-500/30 scale-105 ring-2 ring-white/60 dark:ring-slate-900/60'
+              : 'bg-white/85 dark:bg-slate-900/85 text-slate-500 dark:text-slate-300 hover:text-rose-500 hover:bg-white dark:hover:bg-slate-900 border border-slate-200/60 dark:border-slate-700/60 hover:scale-105'
+          }`}
+          title={
+            isFavorite
+              ? (mounted && language === 'bn' ? 'উইশলিস্ট থেকে মুছুন' : 'Remove from Wishlist')
+              : (mounted && language === 'bn' ? 'উইশলিস্টে রাখুন' : 'Add to Wishlist')
+          }
+        >
+          <Heart className={`w-3 h-3 sm:w-3.5 sm:h-3.5 transition-colors ${isFavorite ? 'fill-current text-white' : ''}`} />
+        </button>
+
+        {/* Loyalty Coins / Out of Stock / Low Stock Badges */}
         {isCombo ? (
-          <div className="absolute top-1 right-1 sm:top-2 sm:right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-400 dark:bg-amber-500 text-slate-950 font-black text-[8px] sm:text-[9px] shadow-md z-10">
+          <div className="absolute top-8 right-1.5 sm:top-9 sm:right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-400 dark:bg-amber-500 text-slate-950 font-black text-[8px] sm:text-[9px] shadow-md z-10">
             <Coins className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-slate-950" />
             <span>+{mounted && language === 'bn' ? toBengaliNumber(earnedLoyaltyPoints) : earnedLoyaltyPoints} {mounted && language === 'bn' ? 'পয়েন্ট' : 'pts'}</span>
           </div>
         ) : isOutOfStock ? (
-          <div className="absolute top-1 right-1 sm:top-2 sm:right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-600 text-white font-bold text-[8px] sm:text-[9px] shadow-md z-10 backdrop-blur-xs">
+          <div className="absolute bottom-1.5 left-1.5 sm:bottom-2 sm:left-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-600/95 text-white font-bold text-[8px] sm:text-[9px] shadow-md z-10 backdrop-blur-xs">
             <AlertCircle className="w-2.5 h-2.5" />
             <span>{mounted && language === 'bn' ? 'স্টক শেষ' : 'Out of Stock'}</span>
           </div>
         ) : isLowStock ? (
-          <div className="absolute top-1 right-1 sm:top-2 sm:right-2 px-1.5 py-0.5 rounded-md bg-amber-500 text-slate-950 text-[7.5px] sm:text-[9px] font-extrabold shadow-xs z-10">
+          <div className="absolute bottom-1.5 left-1.5 sm:bottom-2 sm:left-2 px-1.5 py-0.5 rounded-md bg-amber-500 text-slate-950 text-[7.5px] sm:text-[9px] font-extrabold shadow-xs z-10">
             {mounted && language === 'bn' ? `মাত্র ${toBengaliNumber(stockCount)}টি বাকি!` : `Only ${stockCount} left!`}
           </div>
         ) : null}

@@ -153,10 +153,10 @@ function ProfileContent() {
     }
   };
 
-  const handleMoveWishlistToCart = (item: { id: string; name: string; price: number; image: string; inStock?: boolean }, stockCount: number) => {
+  const handleMoveWishlistToCart = (item: { id: string; productId?: string; slug?: string; name: string; price: number; image: string; inStock?: boolean }, stockCount: number) => {
     if (stockCount <= 0 || item.inStock === false) return;
     addItem({
-      productId: item.id,
+      productId: item.productId || item.id,
       title: item.name,
       price: item.price,
       image: item.image,
@@ -164,7 +164,6 @@ function ProfileContent() {
       stock: stockCount,
       vendorName: 'ShopNexus Official Store',
     });
-    removeFromWishlist(item.id);
   };
 
 
@@ -609,7 +608,15 @@ function ProfileContent() {
             {wishlistItems && wishlistItems.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {wishlistItems.map((item) => {
-                  const staticProd = getProductByIdOrSlug(item.id) || ALL_PRODUCTS.find((p) => p._id === item.id || p.slug === item.id);
+                  const staticProd =
+                    getProductByIdOrSlug(item.productId || item.slug || item.id) ||
+                    ALL_PRODUCTS.find(
+                      (p) =>
+                        p._id === item.id ||
+                        p.slug === item.id ||
+                        (item.slug && p.slug === item.slug) ||
+                        (item.name && p.title.toLowerCase() === item.name.toLowerCase())
+                    );
                   const availableStock = staticProd ? (Number(staticProd.stock) ?? 0) : (item.inStock === false ? 0 : 10);
                   const isOutOfStock = availableStock <= 0;
 
@@ -630,7 +637,11 @@ function ProfileContent() {
                         </div>
                         <div className="min-w-0 flex-1">
                           <span className="text-[10px] font-bold uppercase tracking-wider text-orange-600 dark:text-orange-400 block">{item.category}</span>
-                          <h4 className="font-bold text-xs text-slate-900 dark:text-white truncate">{item.name}</h4>
+                          <Link href={`/products/${item.slug || item.productId || item.id}`}>
+                            <h4 className="font-bold text-xs text-slate-900 dark:text-white truncate hover:text-orange-600 dark:hover:text-orange-400 transition-colors">
+                              {item.name}
+                            </h4>
+                          </Link>
                           <span className="font-mono font-bold text-xs text-slate-900 dark:text-white block mt-1">
                             ৳{item.price.toLocaleString()}
                           </span>
