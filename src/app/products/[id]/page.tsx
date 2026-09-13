@@ -487,8 +487,8 @@ export default function ProductDetailPage() {
     originalPrice: rawProduct.price,
     rating: rawProduct.averageRating || 5.0,
     reviewCount: rawProduct.totalReviews || 18,
-    inStock: (rawProduct.stock ?? 10) > 0,
-    stockCount: rawProduct.stock ?? 12,
+    inStock: (rawProduct.stock ?? 0) > 0,
+    stockCount: rawProduct.stock ?? 0,
     category: localized ? localized.category : rawProduct.category,
     description: localized?.description || rawProduct.description,
     images: rawProduct.images && rawProduct.images.length > 0
@@ -626,7 +626,7 @@ export default function ProductDetailPage() {
                 </div>
 
                 {/* Rating & Stock Summary */}
-                <div className="flex items-center gap-3 text-xs sm:text-sm">
+                <div className="flex items-center gap-3 text-xs sm:text-sm flex-wrap">
                   <div className="flex items-center text-amber-500">
                     <Star className="w-4 h-4 fill-amber-500" />
                     <span className="ml-1 font-bold text-slate-800 dark:text-slate-200">
@@ -638,9 +638,19 @@ export default function ProductDetailPage() {
                     {localized ? localized.reviewsFormatted : product.reviewCount} {mounted && language === 'bn' ? 'ভেরিফাইড রিভিউ' : 'verified reviews'}
                   </span>
                   <span className="text-slate-300 dark:text-slate-700">•</span>
-                  <span className="inline-flex items-center text-emerald-600 dark:text-emerald-400 font-bold">
-                    <Check className="w-3.5 h-3.5 mr-1" /> {mounted && language === 'bn' ? 'স্টকে আছে' : 'In Stock'} ({mounted && language === 'bn' ? toBengaliNumber(product.stockCount) : product.stockCount})
-                  </span>
+                  {product.stockCount <= 0 ? (
+                    <span className="inline-flex items-center text-rose-600 dark:text-rose-400 font-bold bg-rose-500/10 px-2.5 py-0.5 rounded-full border border-rose-500/20">
+                      <AlertCircle className="w-3.5 h-3.5 mr-1" /> {mounted && language === 'bn' ? 'স্টক শেষ (Out of Stock)' : 'Out of Stock'}
+                    </span>
+                  ) : product.stockCount <= 10 ? (
+                    <span className="inline-flex items-center text-amber-600 dark:text-amber-400 font-bold bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20">
+                      <AlertCircle className="w-3.5 h-3.5 mr-1" /> {mounted && language === 'bn' ? `মাত্র ${toBengaliNumber(product.stockCount)}টি বাকি!` : `Only ${product.stockCount} left!`}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center text-emerald-600 dark:text-emerald-400 font-bold">
+                      <Check className="w-3.5 h-3.5 mr-1" /> {mounted && language === 'bn' ? 'স্টকে আছে' : 'In Stock'} ({mounted && language === 'bn' ? toBengaliNumber(product.stockCount) : product.stockCount})
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -677,60 +687,98 @@ export default function ProductDetailPage() {
                 {product.description}
               </p>
 
-              {/* Actions: Quantity + Add to Cart + Buy Now */}
+              {/* Actions: Out of stock Wishlist OR Regular Quantity + Add to Cart + Buy Now */}
               <div className="space-y-3 pt-2">
-                <div className="flex items-center gap-3">
-                  {/* Quantity Counter */}
-                  <div className="flex items-center border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 p-1">
+                {product.stockCount <= 0 ? (
+                  <div className="space-y-2">
+                    <div className="p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/40 text-rose-700 dark:text-rose-300 text-xs flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
+                      <span>
+                        {mounted && language === 'bn'
+                          ? 'এই প্রোডাক্টটি বর্তমানে স্টকে নেই। পুনরায় স্টকে আসলে নোটিফিকেশন পেতে উইশলিস্টে যুক্ত করে রাখুন।'
+                          : 'This item is currently out of stock. Add it to your wishlist to get notified when restocked.'}
+                      </span>
+                    </div>
                     <button
                       type="button"
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-black cursor-pointer text-sm"
+                      onClick={() =>
+                        toggleWishlist({
+                          id: product.id,
+                          name: product.name,
+                          price: product.price,
+                          image: product.images[0],
+                          category: product.category,
+                          inStock: false,
+                        })
+                      }
+                      className={`w-full py-3.5 px-6 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 shadow-md transition-all active:scale-95 cursor-pointer border ${
+                        isFavorite
+                          ? 'bg-rose-500 text-white border-rose-500 shadow-rose-500/25'
+                          : 'bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 hover:border-rose-400 text-slate-800 dark:text-slate-100 hover:text-rose-500'
+                      }`}
                     >
-                      -
-                    </button>
-                    <span className="w-8 text-center font-bold text-xs sm:text-sm">
-                      {mounted && language === 'bn' ? toBengaliNumber(quantity) : quantity}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setQuantity(Math.min(product.stockCount, quantity + 1))}
-                      className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-black cursor-pointer text-sm"
-                    >
-                      +
+                      <Heart className={`w-5 h-5 ${isFavorite ? 'fill-white text-white' : 'text-rose-500'}`} />
+                      <span>
+                        {isFavorite
+                          ? (mounted && language === 'bn' ? 'উইশলিস্টে যুক্ত করা হয়েছে' : 'Saved in Wishlist')
+                          : (mounted && language === 'bn' ? 'উইশলিস্টে সংরক্ষণ করুন' : 'Save to Wishlist')}
+                      </span>
                     </button>
                   </div>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    {/* Quantity Counter */}
+                    <div className="flex items-center border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 p-1">
+                      <button
+                        type="button"
+                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-black cursor-pointer text-sm"
+                      >
+                        -
+                      </button>
+                      <span className="w-8 text-center font-bold text-xs sm:text-sm">
+                        {mounted && language === 'bn' ? toBengaliNumber(quantity) : quantity}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setQuantity(Math.min(product.stockCount, quantity + 1))}
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-black cursor-pointer text-sm"
+                      >
+                        +
+                      </button>
+                    </div>
 
-                  {/* Add to Cart Button */}
-                  <button
-                    type="button"
-                    onClick={handleAddToCart}
-                    className={`flex-1 py-3 px-4 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition-all active:scale-95 cursor-pointer border ${
-                      isCartAdded
-                        ? 'bg-emerald-600 text-white shadow-emerald-600/30 border-emerald-600'
-                        : 'bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 border-orange-500/30'
-                    }`}
-                  >
-                    {isCartAdded ? (
-                      <>
-                        <Check className="w-4 h-4 stroke-[2.5]" /> {mounted ? t('btn_added') : 'Added to Cart!'}
-                      </>
-                    ) : (
-                      <>
-                        <ShoppingCart className="w-4 h-4" /> {mounted ? t('btn_add_to_cart') : 'Add to Cart'}
-                      </>
-                    )}
-                  </button>
+                    {/* Add to Cart Button */}
+                    <button
+                      type="button"
+                      onClick={handleAddToCart}
+                      className={`flex-1 py-3 px-4 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition-all active:scale-95 cursor-pointer border ${
+                        isCartAdded
+                          ? 'bg-emerald-600 text-white shadow-emerald-600/30 border-emerald-600'
+                          : 'bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 border-orange-500/30'
+                      }`}
+                    >
+                      {isCartAdded ? (
+                        <>
+                          <Check className="w-4 h-4 stroke-[2.5]" /> {mounted ? t('btn_added') : 'Added to Cart!'}
+                        </>
+                      ) : (
+                        <>
+                          <ShoppingCart className="w-4 h-4" /> {mounted ? t('btn_add_to_cart') : 'Add to Cart'}
+                        </>
+                      )}
+                    </button>
 
-                  {/* Direct Buy Now Button */}
-                  <button
-                    type="button"
-                    onClick={handleBuyNow}
-                    className="flex-1 py-3 px-5 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xl shadow-orange-500/25 bg-gradient-to-r from-[#ff4400] via-[#ff6600] to-[#ff4400] hover:from-[#e63d00] hover:to-[#ff5500] text-white transition-all active:scale-95 cursor-pointer hover:scale-[1.02]"
-                  >
-                    <Zap className="w-4 h-4 fill-white" /> {mounted ? t('btn_buy_now') : 'Buy Now'}
-                  </button>
-                </div>
+                    {/* Direct Buy Now Button */}
+                    <button
+                      type="button"
+                      onClick={handleBuyNow}
+                      className="flex-1 py-3 px-5 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xl shadow-orange-500/25 bg-gradient-to-r from-[#ff4400] via-[#ff6600] to-[#ff4400] hover:from-[#e63d00] hover:to-[#ff5500] text-white transition-all active:scale-95 cursor-pointer hover:scale-[1.02]"
+                    >
+                      <Zap className="w-4 h-4 fill-white" /> {mounted ? t('btn_buy_now') : 'Buy Now'}
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Dynamic Trust Badges */}

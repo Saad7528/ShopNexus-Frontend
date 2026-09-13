@@ -120,6 +120,7 @@ export const useCartStore = create<CartState>()(
       toggleDrawer: () => set((state) => ({ isOpen: !state.isOpen })),
 
       addItem: (newItem) => {
+        if (newItem.stock !== undefined && newItem.stock <= 0) return;
         set((state) => {
           const existingIndex = state.items.findIndex((item) => item.productId === newItem.productId);
           let newItems: CartItemType[];
