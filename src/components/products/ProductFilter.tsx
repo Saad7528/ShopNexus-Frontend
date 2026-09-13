@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useProductStore } from '@/store/useProductStore';
 import { useLanguageStore } from '@/store/useLanguageStore';
 import { getLocalizedCategory } from '@/lib/localizedProducts';
 import { formatCurrency, toBengaliNumber } from '@/lib/translations';
+import { useHydrated } from '@/lib/useHydrated';
 import { Filter, RotateCcw, Search, X } from 'lucide-react';
 
 const CATEGORIES = [
@@ -40,11 +41,7 @@ interface ProductFilterProps {
 
 export const ProductFilter: React.FC<ProductFilterProps> = ({ onClose }) => {
   const { t, language } = useLanguageStore();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useHydrated();
 
   const {
     search,

@@ -9,7 +9,8 @@ import { useCartStore } from '@/store/useCartStore';
 import { useLanguageStore } from '@/store/useLanguageStore';
 import { formatCurrency, toBengaliNumber } from '@/lib/translations';
 import { getLocalizedProduct } from '@/lib/localizedProducts';
-import { Star, Zap, Plus, Check, Coins, Sparkles } from 'lucide-react';
+import { useHydrated } from '@/lib/useHydrated';
+import { Star, Zap, Plus, Check, Coins } from 'lucide-react';
 
 interface ProductCardProps {
   product: Product;
@@ -20,11 +21,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const addItem = useCartStore((state) => state.addItem);
   const cartItems = useCartStore((state) => state.items);
   const { t, language } = useLanguageStore();
-  const [mounted, setMounted] = React.useState(false);
-
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useHydrated();
 
   const localized = mounted ? getLocalizedProduct(product, language) : null;
   const productTitle = localized ? localized.title : product.title;
@@ -47,7 +44,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       image: product.images[0] || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80',
       quantity: 1,
       stock: product.stock,
-      vendorName: product.vendorName,
+      vendorName: product.vendorName || 'ShopNexus Official Store',
     });
   };
 
@@ -61,7 +58,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       image: product.images[0] || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80',
       quantity: 1,
       stock: product.stock,
-      vendorName: product.vendorName,
+      vendorName: product.vendorName || 'ShopNexus Official Store',
     });
     router.push('/checkout');
   };
@@ -249,11 +246,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             <div className="flex items-center text-amber-500 dark:text-amber-400">
               <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-amber-500 dark:fill-amber-400" />
               <span className="ml-0.5 text-[9px] sm:text-[10px] font-bold text-slate-700 dark:text-slate-200">
-                {localized ? localized.ratingFormatted : product.averageRating.toFixed(1)}
+                {localized ? localized.ratingFormatted : (product.averageRating ?? 5.0).toFixed(1)}
               </span>
             </div>
             <span className="text-[8.5px] sm:text-[9px] text-slate-400 dark:text-slate-500">
-              ({localized ? localized.reviewsFormatted : product.totalReviews})
+              ({localized ? localized.reviewsFormatted : (product.totalReviews ?? 0)})
             </span>
           </div>
         </div>
