@@ -97,10 +97,15 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         { title: { $regex: new RegExp('^' + escaped + '$', 'i') } },
         { name: { $regex: new RegExp('^' + escaped + '$', 'i') } },
       ];
-      if (/^[0-9a-fA-F]{24}$/.test(decoded)) {
-        try {
-          queryList.push({ _id: new mongoose.Types.ObjectId(decoded) });
-        } catch {}
+      if (body.slug) {
+        queryList.push({ slug: body.slug });
+      }
+      if (body.title || body.name) {
+        const titleVal = (body.title || body.name).trim();
+        const escTitle = titleVal.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+        queryList.push({ title: titleVal });
+        queryList.push({ title: { $regex: new RegExp('^' + escTitle + '$', 'i') } });
+        queryList.push({ name: { $regex: new RegExp('^' + escTitle + '$', 'i') } });
       }
 
       await productsColl.updateOne(

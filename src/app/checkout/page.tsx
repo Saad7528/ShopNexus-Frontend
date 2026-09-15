@@ -700,24 +700,32 @@ function CheckoutContent() {
                 {items.length === 0 ? (
                   <p className="text-sm text-slate-500">{mounted && language === 'bn' ? 'কার্ট খালি।' : 'No items currently in cart.'}</p>
                 ) : (
-                  items.map((item) => (
-                    <div
-                      key={item.productId}
-                      className="flex items-center justify-between text-sm py-2 border-b border-slate-100 dark:border-slate-800 last:border-0"
-                    >
-                      <div className="min-w-0 flex-1 pr-2">
-                        <p className="font-semibold text-slate-900 dark:text-white truncate">{item.title}</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
-                          {mounted && language === 'bn'
-                            ? `পরিমাণ: ${toBengaliNumber(item.quantity)} × ${formatCurrency(item.price, language)}`
-                            : `Qty: ${item.quantity} × ${formatCurrency(item.price, 'en')}`}
-                        </p>
+                  items.map((item) => {
+                    const isItemLowStock = typeof item.stock === 'number' && item.stock <= 10 && item.stock > 0;
+                    return (
+                      <div
+                        key={item.productId}
+                        className="flex items-center justify-between text-sm py-2 border-b border-slate-100 dark:border-slate-800 last:border-0"
+                      >
+                        <div className="min-w-0 flex-1 pr-2">
+                          <p className="font-semibold text-slate-900 dark:text-white truncate">{item.title}</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">
+                            {mounted && language === 'bn'
+                              ? `পরিমাণ: ${toBengaliNumber(item.quantity)} × ${formatCurrency(item.price, language)}`
+                              : `Qty: ${item.quantity} × ${formatCurrency(item.price, 'en')}`}
+                          </p>
+                          {isItemLowStock && (
+                            <p className="text-[10px] sm:text-[11px] font-bold text-rose-600 dark:text-rose-400 mt-0.5 flex items-center gap-1">
+                              ⚠️ {mounted && language === 'bn' ? `মাত্র ${toBengaliNumber(item.stock as number)}টি পিস বাকি আছে! দ্রুত অর্ডার সম্পন্ন করুন।` : `Only ${item.stock} pcs left in stock! Order soon.`}
+                            </p>
+                          )}
+                        </div>
+                        <span className="font-mono font-bold text-slate-900 dark:text-white shrink-0">
+                          {mounted ? formatCurrency(item.price * item.quantity, language) : `৳${(item.price * item.quantity).toLocaleString()}`}
+                        </span>
                       </div>
-                      <span className="font-mono font-bold text-slate-900 dark:text-white shrink-0">
-                        {mounted ? formatCurrency(item.price * item.quantity, language) : `৳${(item.price * item.quantity).toLocaleString()}`}
-                      </span>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
 

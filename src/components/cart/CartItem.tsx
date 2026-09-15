@@ -16,7 +16,7 @@ export const CartItem: React.FC<CartItemProps> = ({ item }) => {
   const { updateQuantity, removeItem, closeDrawer } = useCartStore();
   const { language } = useLanguageStore();
   const isMaxStock = item.quantity >= item.stock;
-  const isLowStock = item.stock <= 5;
+  const isLowStock = typeof item.stock === 'number' && item.stock <= 10 && item.stock > 0;
 
   return (
     <div className="flex gap-3.5 py-3.5 border-b border-slate-100 dark:border-slate-800/80 items-center">
@@ -56,8 +56,8 @@ export const CartItem: React.FC<CartItemProps> = ({ item }) => {
         <div className="flex items-center gap-2 mt-0.5">
           <span className="text-[11px] text-slate-500 dark:text-slate-400">{item.vendorName}</span>
           {isLowStock && (
-            <span className="inline-flex items-center gap-0.5 text-[10px] text-amber-600 dark:text-amber-400 font-medium bg-amber-500/10 px-1.5 py-0.2 rounded border border-amber-500/20">
-              <AlertCircle className="w-2.5 h-2.5" /> {language === 'bn' ? `মাত্র ${toBengaliNumber(item.stock)}টি বাকি` : `Only ${item.stock} left`}
+            <span className="inline-flex items-center gap-0.5 text-[10px] text-rose-600 dark:text-rose-400 font-bold bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/20">
+              <AlertCircle className="w-2.5 h-2.5" /> {language === 'bn' ? `মাত্র ${toBengaliNumber(item.stock)}টি বাকি!` : `Only ${item.stock} left!`}
             </span>
           )}
         </div>

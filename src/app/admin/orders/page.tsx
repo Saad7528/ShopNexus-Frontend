@@ -462,11 +462,27 @@ export default function AdminOrdersPage() {
 
   const selectedOrdersList = orders.filter((o) => selectedOrderIds.includes(o.id));
 
+  const formatOrderDate = (dateStr: string) => {
+    if (!isBn) return dateStr;
+    return dateStr
+      .replace('Today', 'আজ')
+      .replace('Yesterday', 'গতকাল')
+      .replace(/\d+/g, (n) => toBengaliNumber(n));
+  };
+
   // Payment Badge Helper
   const renderPaymentBadge = (method: string) => {
     const m = (method || '').toLowerCase();
     let badgeStyle =
       'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700';
+
+    let methodLabel = method;
+    if (isBn) {
+      if (m.includes('cash') || m.includes('cod')) methodLabel = 'ক্যাশ অন ডেলিভারি (COD)';
+      else if (m.includes('bkash')) methodLabel = 'বিকাশ অনলাইন';
+      else if (m.includes('nagad')) methodLabel = 'নগদ ইন্সট্যান্ট';
+      else if (m.includes('card') || m.includes('visa') || m.includes('master') || m.includes('stripe')) methodLabel = 'কার্ড / স্ট্রাইপ';
+    }
 
     if (m.includes('bkash')) {
       badgeStyle = 'bg-pink-500/10 border-pink-500/30 text-pink-700 dark:text-pink-300';
@@ -483,7 +499,7 @@ export default function AdminOrdersPage() {
         className={`px-2.5 py-1 rounded-full text-[10px] font-bold border whitespace-nowrap inline-flex items-center gap-1.5 shadow-2xs ${badgeStyle}`}
       >
         <CreditCard className="w-3 h-3 shrink-0 opacity-80" />
-        <span>{method}</span>
+        <span>{methodLabel}</span>
       </span>
     );
   };
@@ -709,13 +725,13 @@ export default function AdminOrdersPage() {
                           {ord.orderNumber}
                         </span>
                         <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">
-                          {ord.createdAt}
+                          {formatOrderDate(ord.createdAt)}
                         </span>
                       </td>
                       <td className="px-4 py-3.5">
                         <div className="font-bold text-slate-900 dark:text-white">{ord.customerName}</div>
                         <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono block">
-                          {ord.customerPhone}
+                          {isBn ? toBengaliNumber(ord.customerPhone) : ord.customerPhone}
                         </span>
                         {ord.hasPastReturnAlert && (
                           <div className="mt-1 px-2 py-0.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-[9px] font-bold text-amber-700 dark:text-amber-300 inline-flex items-center gap-1">
@@ -782,10 +798,10 @@ export default function AdminOrdersPage() {
                               setIssueNote('');
                             }}
                             className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/30 font-bold text-[11px] transition-colors cursor-pointer"
-                            title="Report issue & message customer directly (WhatsApp/SMS)"
+                            title={isBn ? 'গ্রাহককে সরাসরি ইস্যু রিপোর্ট ও মেসেজ পাঠান (WhatsApp/SMS)' : 'Report issue & message customer directly (WhatsApp/SMS)'}
                           >
                             <MessageSquare className="w-3 h-3 text-amber-500" />
-                            <span>Report</span>
+                            <span>{isBn ? 'রিপোর্ট' : 'Report'}</span>
                           </button>
 
                           {/* 🖨️ Invoice View & Print Button */}
@@ -793,10 +809,10 @@ export default function AdminOrdersPage() {
                             type="button"
                             onClick={() => setSelectedInvoice(ord)}
                             className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-bold text-[11px] border border-slate-200 dark:border-slate-700 transition-all cursor-pointer shadow-2xs"
-                            title="View & Print Single Barcode Invoice"
+                            title={isBn ? 'একক বারকোড ইনভয়েস দেখুন ও প্রিন্ট করুন' : 'View & Print Single Barcode Invoice'}
                           >
                             <Printer className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
-                            <span>Invoice</span>
+                            <span>{isBn ? 'ইনভয়েস' : 'Invoice'}</span>
                           </button>
                         </div>
                       </td>
@@ -816,7 +832,7 @@ export default function AdminOrdersPage() {
               <div className="flex items-center justify-between border-b border-slate-200 pb-4 print:hidden">
                 <div className="flex items-center gap-2">
                   <FileText className="w-5 h-5 text-orange-600" />
-                  <h2 className="text-base font-black text-slate-900">Official Packing Slip & Invoice</h2>
+                  <h2 className="text-base font-black text-slate-900">{isBn ? 'অফিসিয়াল প্যাকিং স্লিপ ও চালান' : 'Official Packing Slip & Invoice'}</h2>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
@@ -824,7 +840,7 @@ export default function AdminOrdersPage() {
                     onClick={handlePrint}
                     className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-md cursor-pointer"
                   >
-                    <Printer className="w-4 h-4" /> Print Invoice Slip
+                    <Printer className="w-4 h-4" /> {isBn ? 'চালান প্রিন্ট করুন' : 'Print Invoice Slip'}
                   </button>
                   <button
                     type="button"
@@ -846,17 +862,17 @@ export default function AdminOrdersPage() {
                     <span className="text-xl font-black tracking-tight text-slate-900">ShopNexus Official</span>
                   </div>
                   <p className="text-[11px] text-slate-500 mt-1">
-                    Direct Official Hardware Ecosystem<br />
+                    {isBn ? 'ডাইরেক্ট অফিসিয়াল হার্ডওয়্যার ইকোসিস্টেম' : 'Direct Official Hardware Ecosystem'}<br />
                     Dhaka, Bangladesh • support@shopnexus.io
                   </p>
                 </div>
 
                 <div className="text-right">
                   <span className="text-xs font-mono font-black text-slate-900 block">{selectedInvoice.orderNumber}</span>
-                  <span className="text-[10px] text-slate-500">Date: {selectedInvoice.createdAt}</span>
+                  <span className="text-[10px] text-slate-500">{isBn ? 'তারিখ:' : 'Date:'} {formatOrderDate(selectedInvoice.createdAt)}</span>
                   <div className="mt-1">
                     <span className="px-2.5 py-0.5 rounded-full bg-orange-50 text-orange-700 text-[10px] font-bold border border-orange-200">
-                      Payment: {selectedInvoice.paymentMethod}
+                      {isBn ? 'পেমেন্ট:' : 'Payment:'} {selectedInvoice.paymentMethod}
                     </span>
                   </div>
                 </div>
@@ -865,16 +881,16 @@ export default function AdminOrdersPage() {
               {/* Recipient Box */}
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 grid grid-cols-2 gap-4 text-xs">
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Deliver To:</span>
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">{isBn ? 'প্রাপক:' : 'Deliver To:'}</span>
                   <div className="font-bold text-slate-900">{selectedInvoice.customerName}</div>
-                  <div className="text-slate-600">{selectedInvoice.customerPhone}</div>
+                  <div className="text-slate-600">{isBn ? toBengaliNumber(selectedInvoice.customerPhone) : selectedInvoice.customerPhone}</div>
                   <div className="text-slate-600 mt-0.5">{selectedInvoice.customerAddress}</div>
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Carrier Dispatch:</span>
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">{isBn ? 'কুরিয়ার ডিসপ্যাচ:' : 'Carrier Dispatch:'}</span>
                   <div className="font-bold text-slate-900">{selectedInvoice.courier}</div>
-                  <div className="font-mono text-slate-600">Tracking: {selectedInvoice.trackingCode}</div>
-                  <div className="text-emerald-600 font-semibold mt-0.5">Status: {selectedInvoice.status}</div>
+                  <div className="font-mono text-slate-600">{isBn ? 'ট্র্যাকিং:' : 'Tracking:'} {selectedInvoice.trackingCode}</div>
+                  <div className="text-emerald-600 font-semibold mt-0.5">{isBn ? 'স্ট্যাটাস:' : 'Status:'} {selectedInvoice.status}</div>
                 </div>
               </div>
 
@@ -1003,7 +1019,7 @@ export default function AdminOrdersPage() {
                       </div>
                       <div className="text-right">
                         <span className="font-mono font-black text-sm text-slate-900 block">{ord.orderNumber}</span>
-                        <span className="text-[10px] text-slate-500">{isBn ? 'তারিখ:' : 'Date:'} {ord.createdAt}</span>
+                        <span className="text-[10px] text-slate-500">{isBn ? 'তারিখ:' : 'Date:'} {formatOrderDate(ord.createdAt)}</span>
                         <div className="mt-1">
                           <span className="px-2 py-0.5 rounded-md bg-orange-50 text-orange-700 text-[10px] font-bold border border-orange-200">
                             {ord.paymentMethod}
@@ -1016,7 +1032,7 @@ export default function AdminOrdersPage() {
                       <div>
                         <span className="text-[10px] uppercase font-bold text-slate-400 block">{isBn ? 'প্রাপক:' : 'Deliver To:'}</span>
                         <div className="font-bold text-slate-900">{ord.customerName}</div>
-                        <div className="text-slate-600">{ord.customerPhone}</div>
+                        <div className="text-slate-600">{isBn ? toBengaliNumber(ord.customerPhone) : ord.customerPhone}</div>
                         <div className="text-slate-600 mt-0.5">{ord.customerAddress}</div>
                       </div>
                       <div>
@@ -1138,7 +1154,7 @@ export default function AdminOrdersPage() {
                         </td>
                         <td className="p-3">
                           <span className="font-bold text-slate-900 block">{ord.customerName}</span>
-                          <span className="font-mono text-[10px] text-slate-500">{ord.customerPhone}</span>
+                          <span className="font-mono text-[10px] text-slate-500">{isBn ? toBengaliNumber(ord.customerPhone) : ord.customerPhone}</span>
                         </td>
                         <td className="p-3 text-[11px] text-slate-600 max-w-xs truncate">{ord.customerAddress}</td>
                         <td className="p-3 text-right font-mono font-bold text-slate-900">
@@ -1153,10 +1169,10 @@ export default function AdminOrdersPage() {
 
               <div className="pt-8 grid grid-cols-2 gap-8 text-xs border-t border-slate-200">
                 <div className="border-t border-dashed border-slate-400 pt-2 text-center text-slate-500">
-                  ShopNexus Dispatch Officer Signature
+                  {isBn ? 'শপনেক্সাস ডিসপ্যাচ অফিসার স্বাক্ষর' : 'ShopNexus Dispatch Officer Signature'}
                 </div>
                 <div className="border-t border-dashed border-slate-400 pt-2 text-center text-slate-500">
-                  Courier Driver / Rider Signature & Seal
+                  {isBn ? 'কুরিয়ার ড্রাইভার / রাইডার স্বাক্ষর ও সিল' : 'Courier Driver / Rider Signature & Seal'}
                 </div>
               </div>
             </div>
@@ -1174,17 +1190,17 @@ export default function AdminOrdersPage() {
                   </div>
                   <div>
                     <h2 className="text-lg font-black text-slate-900 dark:text-white">
-                      Report Order Issue to Customer
+                      {isBn ? 'গ্রাহককে অর্ডার সংক্রান্ত ইস্যু রিপোর্ট করুন' : 'Report Order Issue to Customer'}
                     </h2>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                      Send direct issue reports & notifications to customer via WhatsApp or SMS
+                      {isBn ? 'WhatsApp বা SMS-এর মাধ্যমে সরাসরি গ্রাহককে নোটিফিকেশন পাঠান' : 'Send direct issue reports & notifications to customer via WhatsApp or SMS'}
                     </p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => setReportingOrder(null)}
-                  className="p-2 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  className="p-2 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:bg-slate-800 transition-colors cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -1193,29 +1209,29 @@ export default function AdminOrdersPage() {
               {/* Customer Snapshot */}
               <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 grid grid-cols-2 gap-3 text-xs">
                 <div>
-                  <span className="text-[10px] text-slate-400 font-bold uppercase block">Recipient:</span>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block">{isBn ? 'প্রাপক:' : 'Recipient:'}</span>
                   <div className="font-bold text-slate-900 dark:text-white">{reportingOrder.customerName}</div>
-                  <span className="font-mono text-[11px] text-slate-500">{reportingOrder.customerPhone}</span>
+                  <span className="font-mono text-[11px] text-slate-500">{isBn ? toBengaliNumber(reportingOrder.customerPhone) : reportingOrder.customerPhone}</span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 font-bold uppercase block">Order Invoice:</span>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block">{isBn ? 'অর্ডার ইনভয়েস:' : 'Order Invoice:'}</span>
                   <div className="font-mono font-bold text-orange-600 dark:text-orange-400">{reportingOrder.orderNumber}</div>
-                  <span className="text-[11px] text-emerald-600 font-semibold font-mono">৳{reportingOrder.total.toLocaleString()} BDT</span>
+                  <span className="text-[11px] text-emerald-600 font-semibold font-mono">{isBn ? `৳${toBengaliNumber(reportingOrder.total.toLocaleString('en-US'))} BDT` : `৳${reportingOrder.total.toLocaleString()} BDT`}</span>
                 </div>
               </div>
 
               {/* Issue Category Radio Selector */}
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider block">
-                  Select Issue Type:
+                  {isBn ? 'ইস্যুর ধরন নির্বাচন করুন:' : 'Select Issue Type:'}
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                   {[
-                    { id: 'address', label: '🏠 Incomplete Address / Phone' },
-                    { id: 'variant', label: '🎨 Color / Variant Change Request' },
-                    { id: 'delay', label: '🚚 Courier Transit Delay Notice' },
-                    { id: 'payment', label: '💳 Payment Verification Required' },
-                    { id: 'custom', label: '📝 Custom Inquiry / Dispute' },
+                    { id: 'address', label: isBn ? '🏠 অসম্পূর্ণ ঠিকানা / ফোন নম্বর' : '🏠 Incomplete Address / Phone' },
+                    { id: 'variant', label: isBn ? '🎨 কালার / ভ্যারিয়েন্ট পরিবর্তন অনুরোধ' : '🎨 Color / Variant Change Request' },
+                    { id: 'delay', label: isBn ? '🚚 কুরিয়ার ট্রানজিট বিলম্ব নোটিশ' : '🚚 Courier Transit Delay Notice' },
+                    { id: 'payment', label: isBn ? '💳 পেমেন্ট ভেরিফিকেশন প্রয়োজন' : '💳 Payment Verification Required' },
+                    { id: 'custom', label: isBn ? '📝 কাস্টম অনুসন্ধান / ডিসপিউট' : '📝 Custom Inquiry / Dispute' },
                   ].map((item) => (
                     <label
                       key={item.id}
@@ -1245,7 +1261,7 @@ export default function AdminOrdersPage() {
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-xs">
                   <label className="font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                    Message Preview / Template:
+                    {isBn ? 'মেসেজ প্রিভিউ / টেমপ্লেট:' : 'Message Preview / Template:'}
                   </label>
                   <button
                     type="button"
@@ -1258,7 +1274,7 @@ export default function AdminOrdersPage() {
                     className="text-orange-600 dark:text-orange-400 hover:underline flex items-center gap-1 font-semibold text-[11px] cursor-pointer"
                   >
                     <Copy className="w-3 h-3" />
-                    <span>{copiedFeedback ? 'Copied to Clipboard!' : 'Copy Text'}</span>
+                    <span>{copiedFeedback ? (isBn ? 'ক্লিপবোর্ডে কপি হয়েছে!' : 'Copied to Clipboard!') : (isBn ? 'টেক্সট কপি করুন' : 'Copy Text')}</span>
                   </button>
                 </div>
                 <textarea
@@ -1276,7 +1292,7 @@ export default function AdminOrdersPage() {
                   onClick={() => setReportingOrder(null)}
                   className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition-all cursor-pointer"
                 >
-                  Cancel
+                  {isBn ? 'বাতিল' : 'Cancel'}
                 </button>
 
                 <div className="flex flex-wrap items-center gap-2">
@@ -1287,7 +1303,7 @@ export default function AdminOrdersPage() {
                     className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-600/25 transition-all cursor-pointer hover:scale-105"
                   >
                     <MessageCircle className="w-4 h-4" />
-                    <span>Send WhatsApp & Flag</span>
+                    <span>{isBn ? 'WhatsApp পাঠান ও ফ্ল্যাগ করুন' : 'Send WhatsApp & Flag'}</span>
                   </button>
 
                   {/* SMS / System Flag */}
@@ -1297,7 +1313,7 @@ export default function AdminOrdersPage() {
                     className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-md shadow-orange-500/25 transition-all cursor-pointer hover:scale-105"
                   >
                     <Send className="w-4 h-4" />
-                    <span>Save Issue Flag & SMS</span>
+                    <span>{isBn ? 'ইস্যু ফ্ল্যাগ সেভ ও SMS পাঠান' : 'Save Issue Flag & SMS'}</span>
                   </button>
                 </div>
               </div>

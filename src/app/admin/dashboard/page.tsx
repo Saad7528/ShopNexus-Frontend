@@ -195,43 +195,64 @@ const RETURN_REGISTRY = [
     id: 'RET-001',
     orderId: 'ORD-8812',
     date: '26 Aug 2026',
+    dateBn: '২৬ আগস্ট ২০২৬',
     customer: 'Raihan Kabir',
+    customerBn: 'রায়হান কবির',
     phone: '01711-889922',
     product: 'Keychron Q1 Pro Mechanical Keyboard',
+    productBn: 'কিক্রন কিউ১ প্রো মেকানিক্যাল কিবোর্ড',
     amount: 21500,
     reason: 'Customer changed mind / Preferred brown switch over red',
+    reasonBn: 'গ্রাহক সিদ্ধান্ত পরিবর্তন করেছেন / রেড সুইচের বদলে ব্রাউন সুইচ চেয়েছিলেন',
     returnCount: 2,
     riskLevel: 'High Risk (Repeat Returns)',
+    riskLevelBn: 'উচ্চ ঝুঁকি (একাধিক রিটার্ন)',
     status: 'Returned & Restocked',
+    statusBn: 'ফেরত ও পুনঃমজুদ সম্পন্ন',
     reminderAlert: '⚠️ Repeat Return Customer - Require ৳150 Advance Courier Charge on future COD orders',
+    reminderAlertBn: '⚠️ একাধিকবার রিটার্নকারী গ্রাহক - পরবর্তী সিওডি অর্ডারে ৳১৫০ অগ্রিম কুরিয়ার চার্জ গ্রহণ করুন',
   },
   {
     id: 'RET-002',
     orderId: 'ORD-8740',
     date: '22 Aug 2026',
+    dateBn: '২২ আগস্ট ২০২৬',
     customer: 'Mehzabin Chowdhury',
+    customerBn: 'মেহজাবিন চৌধুরী',
     phone: '01822-445566',
     product: 'Apple Watch Ultra 2 Loop',
+    productBn: 'অ্যাপল ওয়াচ আল্ট্রা ২ লুপ',
     amount: 79900,
     reason: 'Wrist strap size mismatch (Requested M/L instead of S)',
+    reasonBn: 'রিস্ট স্ট্র্যাপ সাইজ অমিল (S সাইজের পরিবর্তে M/L প্রয়োজন ছিল)',
     returnCount: 1,
     riskLevel: 'Low Risk',
+    riskLevelBn: 'স্বল্প ঝুঁকি',
     status: 'Exchange Unit Dispatched',
+    statusBn: 'বিনিময় পণ্য পাঠানো হয়েছে',
     reminderAlert: '✅ Verified Size Exchange - No shipping penalty required',
+    reminderAlertBn: '✅ যাচাইকৃত সাইজ পরিবর্তন - কোনো অতিরিক্ত চার্জের প্রয়োজন নেই',
   },
   {
     id: 'RET-003',
     orderId: 'ORD-8699',
     date: '18 Aug 2026',
+    dateBn: '১৮ আগস্ট ২০২৬',
     customer: 'Shakib Al Amin',
+    customerBn: 'সাকিব আল আমিন',
     phone: '01933-778899',
     product: 'Sony WH-1000XM5 ANC',
+    productBn: 'সনি WH-1000XM5 ANC হেডফোন',
     amount: 32500,
     reason: 'Courier box seal damaged in transit',
+    reasonBn: 'কুরিয়ার পরিবহনে বক্সের সিল ক্ষতিগ্রস্ত হয়েছিল',
     returnCount: 1,
     riskLevel: 'Neutral (Courier Issue)',
+    riskLevelBn: 'নিরপেক্ষ (কুরিয়ার সমস্যা)',
     status: 'Insurance Reimbursed',
+    statusBn: 'বীমা ক্ষতিপূরণ পরিশোধিত',
     reminderAlert: '🛡️ Courier Packaging Issue - Customer account in good standing',
+    reminderAlertBn: '🛡️ কুরিয়ার প্যাকেজিং সমস্যা - গ্রাহক অ্যাকাউন্টের স্কোর চমৎকার',
   },
 ];
 
@@ -240,46 +261,70 @@ const STAFF_TIMESHEET = [
   {
     id: 'st-1',
     name: 'S.M. Amirul Islam Saad',
+    nameBn: 'এস.এম. আমিরুল ইসলাম সাদ',
     initials: 'S',
     role: 'Super Admin / Lead Architect',
+    roleBn: 'সুপার অ্যাডমিন / লিড আর্কিটেক্ট',
     clockIn: 'Today, 09:00 AM',
+    clockInBn: 'আজ, সকাল ০৯:০০',
     lastActive: 'Active Now',
+    lastActiveBn: 'এখন সক্রিয়',
     sessionDuration: '6h 12m',
+    sessionDurationBn: '৬ঘ ১২মি',
     actionsCount: 38,
     status: 'Online',
+    statusBn: 'অনলাইন',
   },
   {
     id: 'st-2',
     name: 'Tahmidur Rahman',
+    nameBn: 'তাহমিদুর রহমান',
     initials: 'T',
     role: 'Inventory & Catalog Manager',
+    roleBn: 'ইনভেন্টরি ও ক্যাটালগ ম্যানেজার',
     clockIn: 'Today, 09:30 AM',
+    clockInBn: 'আজ, সকাল ০৯:৩০',
     lastActive: '12m ago',
+    lastActiveBn: '১২ মি. আগে',
     sessionDuration: '5h 40m',
+    sessionDurationBn: '৫ঘ ৪০মি',
     actionsCount: 24,
     status: 'Online',
+    statusBn: 'অনলাইন',
   },
   {
     id: 'st-3',
     name: 'Farzana Yeasmin',
+    nameBn: 'ফারজানা ইয়াসমিন',
     initials: 'F',
     role: 'Customer Care Lead',
+    roleBn: 'কাস্টমার কেয়ার লিড',
     clockIn: 'Today, 10:15 AM',
+    clockInBn: 'আজ, সকাল ১০:১৫',
     lastActive: '35m ago',
+    lastActiveBn: '৩৫ মি. আগে',
     sessionDuration: '4h 55m',
+    sessionDurationBn: '৪ঘ ৫৫মি',
     actionsCount: 19,
     status: 'Idle',
+    statusBn: 'আইডল',
   },
   {
     id: 'st-4',
     name: 'Kamrul Hasan',
+    nameBn: 'কামরুল হাসান',
     initials: 'K',
     role: 'Logistics & Dispatch Officer',
+    roleBn: 'লজিস্টিকস ও ডিসপ্যাচ অফিসার',
     clockIn: 'Today, 08:45 AM',
+    clockInBn: 'আজ, সকাল ০৮:৪৫',
     lastActive: 'Active Now',
+    lastActiveBn: 'এখন সক্রিয়',
     sessionDuration: '6h 25m',
+    sessionDurationBn: '৬ঘ ২৫মি',
     actionsCount: 42,
     status: 'Online',
+    statusBn: 'অনলাইন',
   },
 ];
 
@@ -287,37 +332,57 @@ const AUDIT_LOGS = [
   {
     id: 'log-1',
     user: 'Saad (Super Admin)',
+    userBn: 'সাদ (সুপার অ্যাডমিন)',
     action: 'Published Flash Sale drop: Sony WH-1000XM5 (৳32,500)',
+    actionBn: 'ফ্ল্যাশ সেল ড্রপ প্রকাশ করেছেন: Sony WH-1000XM5 (৳৩২,৫০০)',
     time: '4 mins ago',
+    timeBn: '৪ মিনিট আগে',
     badge: 'Catalog',
+    badgeBn: 'ক্যাটালগ',
   },
   {
     id: 'log-2',
     user: 'Kamrul (Logistics)',
+    userBn: 'কামরুল (লজিস্টিকস)',
     action: 'Dispatched Order #ORD-9029 with Pathao Courier',
+    actionBn: 'পাঠাও কুরিয়ারের মাধ্যমে অর্ডার #ORD-9029 ডিসপ্যাচ করেছেন',
     time: '18 mins ago',
+    timeBn: '১৮ মিনিট আগে',
     badge: 'Logistics',
+    badgeBn: 'লজিস্টিকস',
   },
   {
     id: 'log-3',
     user: 'Farzana (Customer Support)',
+    userBn: 'ফারজানা (কাস্টমার সাপোর্ট)',
     action: 'Verified & Confirmed Customer Order #ORD-9028',
+    actionBn: 'গ্রাহকের অর্ডার #ORD-9028 যাচাই ও নিশ্চিত করেছেন',
     time: '35 mins ago',
+    timeBn: '৩৫ মিনিট আগে',
     badge: 'Orders',
+    badgeBn: 'অর্ডার',
   },
   {
     id: 'log-4',
     user: 'Tahmidur (Inventory)',
+    userBn: 'তাহমিদুর (ইনভেন্টরি)',
     action: 'Replenished Keychron Q1 Pro Stock (+25 units)',
+    actionBn: 'Keychron Q1 Pro স্টক রিফ্লেনিশ/যুক্ত করেছেন (+২৫ ইউনিট)',
     time: '1 hour ago',
+    timeBn: '১ ঘণ্টা আগে',
     badge: 'Stock',
+    badgeBn: 'স্টক',
   },
   {
     id: 'log-5',
     user: 'Saad (Super Admin)',
+    userBn: 'সাদ (সুপার অ্যাডমিন)',
     action: 'Configured Ramadan Mega Cashback Campaign (10%)',
+    actionBn: 'রমজান মেগা ক্যাশব্যাক ক্যাম্পেইন (১০%) কনফিগার করেছেন',
     time: '2 hours ago',
+    timeBn: '২ ঘণ্টা আগে',
     badge: 'Campaign',
+    badgeBn: 'ক্যাম্পেইন',
   },
 ];
 
@@ -686,14 +751,16 @@ export default function AdminDashboardPage() {
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <Activity className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Live Staff Audit Trail</h3>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                  {isBn ? 'লাইভ স্টাফ অডিট ট্রেইল' : 'Live Staff Audit Trail'}
+                </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setActiveModal('staff-logs')}
                 className="text-[11px] font-bold text-orange-600 dark:text-orange-400 hover:underline flex items-center gap-1 cursor-pointer"
               >
-                View Timesheet & Logs <ChevronRight className="w-3 h-3" />
+                {isBn ? 'টাইমশিট ও লগ দেখুন' : 'View Timesheet & Logs'} <ChevronRight className="w-3 h-3" />
               </button>
             </div>
 
@@ -705,13 +772,17 @@ export default function AdminDashboardPage() {
                   className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/80 space-y-1 hover:border-orange-500/40 transition-colors cursor-pointer"
                 >
                   <div className="flex items-center justify-between text-[11px]">
-                    <span className="font-bold text-slate-900 dark:text-white">{log.user}</span>
+                    <span className="font-bold text-slate-900 dark:text-white">
+                      {isBn ? log.userBn : log.user}
+                    </span>
                     <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 flex items-center gap-1">
                       <Clock className="w-3 h-3" />
-                      {log.time}
+                      {isBn ? log.timeBn : log.time}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-600 dark:text-slate-300">{log.action}</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-300">
+                    {isBn ? log.actionBn : log.action}
+                  </p>
                 </div>
               ))}
             </div>
@@ -728,8 +799,8 @@ export default function AdminDashboardPage() {
                     <Wallet className="w-5 h-5" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-black text-slate-900 dark:text-white">Revenue Inflow & Settlement Ledger</h2>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400">Transaction history with dates, payment gateways, and BDT amounts</p>
+                    <h2 className="text-lg font-black text-slate-900 dark:text-white">{isBn ? 'রাজস্ব প্রবাহ ও সেটেলমেন্ট লেজার' : 'Revenue Inflow & Settlement Ledger'}</h2>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">{isBn ? 'তারিখ, পেমেন্ট গেটওয়ে এবং টাকার পরিমাণসহ লেনদেনের ইতিহাস' : 'Transaction history with dates, payment gateways, and BDT amounts'}</p>
                   </div>
                 </div>
                 <button
@@ -993,10 +1064,12 @@ export default function AdminDashboardPage() {
               {/* Strategic Insights */}
               <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-slate-700 dark:text-slate-300 space-y-1">
                 <span className="font-bold text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4" /> AI Cross-Sell Optimization Active
+                  <Sparkles className="w-4 h-4" /> {isBn ? 'এআই ক্রস-সেল অপ্টিমাইজেশন সক্রিয়' : 'AI Cross-Sell Optimization Active'}
                 </span>
                 <p>
-                  Free delivery threshold set at ৳3,000 encourages customers to add accessories, boosting average cart size from ৳2,050 to ৳2,430.
+                  {isBn
+                    ? '৳৩,০০০ বা তদূর্ধ্ব অর্ডারে ফ্রি ডেলিভারি অফার থাকায় গ্রাহকরা অতিরিক্ত এক্সেসরিজ যুক্ত করছেন, যার ফলে গড় কার্ট সাইজ ৳২,০৫০ থেকে ৳২,৪৩০-এ বৃদ্ধি পেয়েছে।'
+                    : 'Free delivery threshold set at ৳3,000 encourages customers to add accessories, boosting average cart size from ৳2,050 to ৳2,430.'}
                 </p>
               </div>
 
@@ -1006,7 +1079,7 @@ export default function AdminDashboardPage() {
                   onClick={() => setActiveModal('none')}
                   className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition-all cursor-pointer"
                 >
-                  Close Analytics
+                  {isBn ? 'অ্যানালিটিক্স বন্ধ করুন' : 'Close Analytics'}
                 </button>
               </div>
             </div>
@@ -1023,8 +1096,12 @@ export default function AdminDashboardPage() {
                     <RotateCcw className="w-5 h-5" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-black text-slate-900 dark:text-white">Return Rate Registry & Customer Risk Profiles (0.8%)</h2>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400">Track returned items and automatically remind staff about past return customers</p>
+                    <h2 className="text-lg font-black text-slate-900 dark:text-white">
+                      {isBn ? `রিটার্ন রেট রেজিস্ট্রি ও গ্রাহক রিস্ক প্রোফাইল (${toBengaliNumber('0.8')}%)` : 'Return Rate Registry & Customer Risk Profiles (0.8%)'}
+                    </h2>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      {isBn ? 'ফেরত আসা পণ্য ট্র্যাকিং এবং পূর্বে রিটার্ন করা গ্রাহকদের ক্ষেত্রে স্টাফদের স্বয়ংক্রিয় সতর্কবার্তা' : 'Track returned items and automatically remind staff about past return customers'}
+                    </p>
                   </div>
                 </div>
                 <button
@@ -1039,26 +1116,26 @@ export default function AdminDashboardPage() {
               {/* Return Metrics Summary */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
-                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Return Rate</span>
-                  <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">0.8%</div>
-                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">12 items out of 1,420 orders</span>
+                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">{isBn ? 'রিটার্ন হার' : 'Return Rate'}</span>
+                  <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{isBn ? `${toBengaliNumber('0.8')}%` : '0.8%'}</div>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">{isBn ? `${toBengaliNumber('1,420')}টি অর্ডারের মধ্যে ${toBengaliNumber('12')}টি পণ্য` : '12 items out of 1,420 orders'}</span>
                 </div>
                 <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-                  <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Industry Standard</span>
-                  <div className="text-2xl font-black text-slate-900 dark:text-white mt-1">3.5%</div>
-                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">Healthy performance</span>
+                  <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{isBn ? 'ইন্ডাস্ট্রি গড় মান' : 'Industry Standard'}</span>
+                  <div className="text-2xl font-black text-slate-900 dark:text-white mt-1">{isBn ? `${toBengaliNumber('3.5')}%` : '3.5%'}</div>
+                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">{isBn ? 'উন্নত পারফরম্যান্স' : 'Healthy performance'}</span>
                 </div>
                 <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20">
-                  <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">Flagged Profiles</span>
-                  <div className="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">3 Accounts</div>
-                  <span className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold">Advance courier alert</span>
+                  <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">{isBn ? 'চিহ্নিত প্রোফাইল' : 'Flagged Profiles'}</span>
+                  <div className="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">{isBn ? `${toBengaliNumber('3')}টি অ্যাকাউন্ট` : '3 Accounts'}</div>
+                  <span className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold">{isBn ? 'অগ্রিম কুরিয়ার অ্যালার্ট' : 'Advance courier alert'}</span>
                 </div>
               </div>
 
               {/* Customer Return Case Cards with Automated Alert Flags */}
               <div className="space-y-3">
                 <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                  Detailed Customer Return Cases & Automated Alerts
+                  {isBn ? 'গ্রাহক রিটার্ন কেস ও স্বয়ংক্রিয় সতর্কবার্তার বিস্তারিত' : 'Detailed Customer Return Cases & Automated Alerts'}
                 </h4>
 
                 {RETURN_REGISTRY.map((ret) => (
@@ -1068,7 +1145,7 @@ export default function AdminDashboardPage() {
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-slate-900 dark:text-white text-sm">{ret.customer}</span>
+                        <span className="font-bold text-slate-900 dark:text-white text-sm">{isBn ? ret.customerBn : ret.customer}</span>
                         <span className="font-mono text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
                           <Phone className="w-3 h-3 text-orange-500" /> {ret.phone}
                         </span>
@@ -1076,39 +1153,41 @@ export default function AdminDashboardPage() {
                       <div className="flex items-center gap-2">
                         <span className="font-mono text-[10px] text-orange-600 dark:text-orange-400 font-bold">{ret.orderId}</span>
                         <span className="px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-[10px] font-semibold text-slate-700 dark:text-slate-300">
-                          {ret.date}
+                          {isBn ? ret.dateBn : ret.date}
                         </span>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                       <div>
-                        <span className="text-slate-500 dark:text-slate-400 text-[11px] block">Returned Product:</span>
-                        <span className="font-bold text-slate-900 dark:text-white">{ret.product} (৳{ret.amount.toLocaleString()})</span>
+                        <span className="text-slate-500 dark:text-slate-400 text-[11px] block">{isBn ? 'ফেরতকৃত পণ্য:' : 'Returned Product:'}</span>
+                        <span className="font-bold text-slate-900 dark:text-white">
+                          {isBn ? ret.productBn : ret.product} ({isBn ? `৳${toBengaliNumber(ret.amount.toLocaleString('en-US'))}` : `৳${ret.amount.toLocaleString()}`})
+                        </span>
                       </div>
                       <div>
-                        <span className="text-slate-500 dark:text-slate-400 text-[11px] block">Return Reason:</span>
-                        <span className="text-slate-700 dark:text-slate-300 font-semibold">{ret.reason}</span>
+                        <span className="text-slate-500 dark:text-slate-400 text-[11px] block">{isBn ? 'রিটার্নের কারণ:' : 'Return Reason:'}</span>
+                        <span className="text-slate-700 dark:text-slate-300 font-semibold">{isBn ? ret.reasonBn : ret.reason}</span>
                       </div>
                     </div>
 
                     {/* Automated Reminder / Risk Tag */}
                     <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs font-semibold text-amber-700 dark:text-amber-300 flex items-center gap-2">
                       <ShieldAlert className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
-                      <span>{ret.reminderAlert}</span>
+                      <span>{isBn ? ret.reminderAlertBn : ret.reminderAlert}</span>
                     </div>
                   </div>
                 ))}
               </div>
 
               <div className="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-800">
-                <span className="text-xs text-slate-500 dark:text-slate-400">Staff receives automated warning tag on checkout orders from these customers</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">{isBn ? 'এ সকল গ্রাহক পুনরায় চেকআউট করলে স্টাফদের স্ক্রিনে স্বয়ংক্রিয় সতর্কবার্তা প্রদর্শিত হয়' : 'Staff receives automated warning tag on checkout orders from these customers'}</span>
                 <button
                   type="button"
                   onClick={() => setActiveModal('none')}
                   className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition-all cursor-pointer"
                 >
-                  Close Registry
+                  {isBn ? 'রেজিস্ট্রি বন্ধ করুন' : 'Close Registry'}
                 </button>
               </div>
             </div>
@@ -1125,8 +1204,14 @@ export default function AdminDashboardPage() {
                     <Activity className="w-5 h-5" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-black text-slate-900 dark:text-white">Staff Timesheet & Live Audit Logs</h2>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400">Track clock-in times, session active hours, and real-time operational events</p>
+                    <h2 className="text-lg font-black text-slate-900 dark:text-white">
+                      {isBn ? 'স্টাফ টাইমশিট এবং লাইভ অডিট লগ' : 'Staff Timesheet & Live Audit Logs'}
+                    </h2>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      {isBn
+                        ? 'ক্লক-ইন সময়, সেশনের সক্রিয় কার্যকাল এবং রিয়েল-টাইম অপারেশনাল ইভেন্ট পর্যবেক্ষণ করুন'
+                        : 'Track clock-in times, session active hours, and real-time operational events'}
+                    </p>
                   </div>
                 </div>
                 <button
@@ -1163,7 +1248,7 @@ export default function AdminDashboardPage() {
                   }`}
                 >
                   {isBn
-                    ? `লাইভ অ্যাকশন ইভেন্ট লগ (${AUDIT_LOGS.length})`
+                    ? `লাইভ অ্যাকশন ইভেন্ট লগ (${toBengaliNumber(AUDIT_LOGS.length)})`
                     : `Live Action Event Logs (${AUDIT_LOGS.length})`}
                 </button>
               </div>
@@ -1175,12 +1260,12 @@ export default function AdminDashboardPage() {
                     <table className="w-full text-left text-xs">
                       <thead className="bg-slate-50 dark:bg-slate-950 text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
                         <tr>
-                          <th className="px-4 py-3">Staff Member</th>
-                          <th className="px-4 py-3">Clock-in Time</th>
-                          <th className="px-4 py-3">Last Active</th>
-                          <th className="px-4 py-3">Session Duration</th>
-                          <th className="px-4 py-3 text-right">Actions Logged</th>
-                          <th className="px-4 py-3 text-right">Status</th>
+                          <th className="px-4 py-3">{isBn ? 'স্টাফ সদস্য' : 'Staff Member'}</th>
+                          <th className="px-4 py-3">{isBn ? 'ক্লক-ইন সময়' : 'Clock-in Time'}</th>
+                          <th className="px-4 py-3">{isBn ? 'সর্বশেষ সক্রিয়' : 'Last Active'}</th>
+                          <th className="px-4 py-3">{isBn ? 'সেশনের সময়কাল' : 'Session Duration'}</th>
+                          <th className="px-4 py-3 text-right">{isBn ? 'সম্পাদিত অ্যাকশন' : 'Actions Logged'}</th>
+                          <th className="px-4 py-3 text-right">{isBn ? 'স্ট্যাটাস' : 'Status'}</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60 text-slate-700 dark:text-slate-300">
@@ -1191,21 +1276,25 @@ export default function AdminDashboardPage() {
                                 {staff.initials}
                               </div>
                               <div>
-                                <span className="font-bold text-slate-900 dark:text-white block">{staff.name}</span>
-                                <span className="text-[10px] text-slate-500 dark:text-slate-400">{staff.role}</span>
+                                <span className="font-bold text-slate-900 dark:text-white block">
+                                  {isBn ? staff.nameBn : staff.name}
+                                </span>
+                                <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                                  {isBn ? staff.roleBn : staff.role}
+                                </span>
                               </div>
                             </td>
                             <td className="px-4 py-3 font-semibold text-slate-900 dark:text-white font-mono text-[11px]">
-                              {staff.clockIn}
+                              {isBn ? staff.clockInBn : staff.clockIn}
                             </td>
                             <td className="px-4 py-3 text-slate-600 dark:text-slate-300 text-[11px]">
-                              {staff.lastActive}
+                              {isBn ? staff.lastActiveBn : staff.lastActive}
                             </td>
                             <td className="px-4 py-3 font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                              {staff.sessionDuration}
+                              {isBn ? staff.sessionDurationBn : staff.sessionDuration}
                             </td>
                             <td className="px-4 py-3 text-right font-mono font-bold text-slate-900 dark:text-white">
-                              {staff.actionsCount} actions
+                              {isBn ? `${toBengaliNumber(staff.actionsCount)}টি অ্যাকশন` : `${staff.actionsCount} actions`}
                             </td>
                             <td className="px-4 py-3 text-right">
                               <span
@@ -1217,7 +1306,7 @@ export default function AdminDashboardPage() {
                                     : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                                 }`}
                               >
-                                {staff.status}
+                                {isBn ? staff.statusBn : staff.status}
                               </span>
                             </td>
                           </tr>
@@ -1238,15 +1327,19 @@ export default function AdminDashboardPage() {
                     >
                       <div className="space-y-0.5">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-slate-900 dark:text-white text-xs">{log.user}</span>
+                          <span className="font-bold text-slate-900 dark:text-white text-xs">
+                            {isBn ? log.userBn : log.user}
+                          </span>
                           <span className="px-2 py-0.5 rounded-md bg-orange-500/10 text-orange-600 dark:text-orange-400 text-[10px] font-bold">
-                            {log.badge}
+                            {isBn ? log.badgeBn : log.badge}
                           </span>
                         </div>
-                        <p className="text-xs text-slate-600 dark:text-slate-300">{log.action}</p>
+                        <p className="text-xs text-slate-600 dark:text-slate-300">
+                          {isBn ? log.actionBn : log.action}
+                        </p>
                       </div>
                       <span className="text-[11px] font-mono text-slate-400 shrink-0 flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5" /> {log.time}
+                        <Clock className="w-3.5 h-3.5" /> {isBn ? log.timeBn : log.time}
                       </span>
                     </div>
                   ))}
@@ -1254,13 +1347,17 @@ export default function AdminDashboardPage() {
               )}
 
               <div className="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-800">
-                <span className="text-xs text-slate-500 dark:text-slate-400">All audit events encrypted & preserved for Bangladesh compliance audit</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">
+                  {isBn
+                    ? 'সমস্ত অডিট ইভেন্ট এনক্রিপ্ট করা এবং বাংলাদেশ কমপ্লায়েন্স অডিটের জন্য সংরক্ষিত'
+                    : 'All audit events encrypted & preserved for Bangladesh compliance audit'}
+                </span>
                 <button
                   type="button"
                   onClick={() => setActiveModal('none')}
                   className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition-all cursor-pointer"
                 >
-                  Close Timesheet
+                  {isBn ? 'টাইমশিট বন্ধ করুন' : 'Close Timesheet'}
                 </button>
               </div>
             </div>

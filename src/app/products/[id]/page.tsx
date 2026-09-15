@@ -195,7 +195,28 @@ export default function ProductDetailPage() {
   const productIdentifier = rawProduct?._id || productId;
   const isInCart = cartItems.some((item) => item.productId === productIdentifier);
   const isCartAdded = isInCart || addedSuccess;
-  const isFavorite = isInWishlist(productIdentifier);
+  const isFavorite = mounted
+    ? isInWishlist(productIdentifier) ||
+      (rawProduct?.slug ? isInWishlist(rawProduct.slug) : false) ||
+      (rawProduct?.title ? isInWishlist(rawProduct.title) : false) ||
+      (rawProduct?.title_en ? isInWishlist(rawProduct.title_en) : false) ||
+      isInWishlist(productId)
+    : false;
+
+  const handleToggleWishlist = () => {
+    toggleWishlist({
+      id: product?.id || productId,
+      productId: rawProduct?._id || product?.id || productId,
+      slug: rawProduct?.slug || productId,
+      name: product?.name || rawProduct?.title || '',
+      title: rawProduct?.title || product?.name || '',
+      price: product?.price || rawProduct?.price || 0,
+      image: product?.images?.[0] || rawProduct?.images?.[0] || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80',
+      category: product?.category || rawProduct?.category || 'Hardware',
+      inStock: (product?.stockCount ?? rawProduct?.stock ?? 0) > 0,
+      stock: product?.stockCount ?? rawProduct?.stock ?? 0,
+    });
+  };
 
   // Related products from the same category
   const relatedProducts = useMemo(() => {
@@ -608,17 +629,12 @@ export default function ProductDetailPage() {
                   </h1>
                   <button
                     type="button"
-                    onClick={() =>
-                      toggleWishlist({
-                        id: product.id,
-                        name: product.name,
-                        price: product.price,
-                        image: product.images[0],
-                        category: product.category,
-                        inStock: product.inStock,
-                      })
-                    }
-                    className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors shrink-0 cursor-pointer"
+                    onClick={handleToggleWishlist}
+                    className={`p-2.5 rounded-xl border transition-colors shrink-0 cursor-pointer ${
+                      isFavorite
+                        ? 'border-rose-500/40 bg-rose-500/10 text-rose-500 shadow-sm shadow-rose-500/20'
+                        : 'border-slate-200 dark:border-slate-800 text-slate-400 hover:text-rose-500 hover:bg-rose-500/10'
+                    }`}
                     title={isFavorite ? 'Remove from Wishlist' : 'Add to Wishlist'}
                   >
                     <Heart className={`w-5 h-5 ${isFavorite ? 'fill-rose-500 text-rose-500' : ''}`} />
@@ -707,16 +723,7 @@ export default function ProductDetailPage() {
                     </div>
                     <button
                       type="button"
-                      onClick={() =>
-                        toggleWishlist({
-                          id: product.id,
-                          name: product.name,
-                          price: product.price,
-                          image: product.images[0],
-                          category: product.category,
-                          inStock: product.stockCount > 0,
-                        })
-                      }
+                      onClick={handleToggleWishlist}
                       className={`w-full py-3.5 px-6 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 shadow-md transition-all active:scale-95 cursor-pointer border ${
                         isFavorite
                           ? 'bg-rose-500 text-white border-rose-500 shadow-rose-500/25'
