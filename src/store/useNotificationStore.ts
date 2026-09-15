@@ -25,6 +25,8 @@ interface NotificationState {
   toggleDrawer: () => void;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
+  clearAllNotifications: () => void;
+  removeNotification: (id: string) => void;
   addNotification: (notification: Omit<AppNotification, '_id' | 'createdAt' | 'isRead'>) => void;
 }
 
@@ -32,36 +34,24 @@ export const useNotificationStore = create<NotificationState>()(
   persist(
     (set, get) => ({
       isOpen: false,
-      notifications: [
-        {
-          _id: 'notif-1',
-          title: '🔥 15% Price Drop Alert!',
-          message: 'Sony WH-1000XM5 Noise-Canceling Headphones just dropped from $399.99 to $339.99!',
-          type: 'price_drop',
-          productId: 'prod-101',
-          oldPrice: 399.99,
-          newPrice: 339.99,
-          discountPercent: 15,
-          imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=150',
-          linkUrl: '/products/prod-101',
-          isRead: false,
-          createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-        },
-        {
-          _id: 'notif-2',
-          title: '⚡ Flash Deal Live!',
-          message: 'Exclusive weekend tech discount code "NEXUS20" is now active for extra 20% off.',
-          type: 'promo',
-          imageUrl: 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=150',
-          linkUrl: '/flash-sales',
-          isRead: false,
-          createdAt: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
-        },
-      ],
-      unreadCount: 2,
-      openDrawer: () => set({ isOpen: true }),
+      notifications: [],
+      unreadCount: 0,
+      openDrawer: () => {
+        // Automatically mark all as read upon opening so badge disappears
+        const currentNotifications = get().notifications;
+        const updated = currentNotifications.map((n) => ({ ...n, isRead: true }));
+        set({ isOpen: true, notifications: updated, unreadCount: 0 });
+      },
       closeDrawer: () => set({ isOpen: false }),
-      toggleDrawer: () => set((state) => ({ isOpen: !state.isOpen })),
+      toggleDrawer: () => {
+        const nextIsOpen = !get().isOpen;
+        if (nextIsOpen) {
+          const updated = get().notifications.map((n) => ({ ...n, isRead: true }));
+          set({ isOpen: true, notifications: updated, unreadCount: 0 });
+        } else {
+          set({ isOpen: false });
+        }
+      },
       markAsRead: (id: string) => {
         const updated = get().notifications.map((n) =>
           n._id === id ? { ...n, isRead: true } : n
@@ -73,10 +63,18 @@ export const useNotificationStore = create<NotificationState>()(
         const updated = get().notifications.map((n) => ({ ...n, isRead: true }));
         set({ notifications: updated, unreadCount: 0 });
       },
+      clearAllNotifications: () => {
+        set({ notifications: [], unreadCount: 0 });
+      },
+      removeNotification: (id: string) => {
+        const updated = get().notifications.filter((n) => n._id !== id);
+        const unread = updated.filter((n) => !n.isRead).length;
+        set({ notifications: updated, unreadCount: unread });
+      },
       addNotification: (notif) => {
         const newNotif: AppNotification = {
           ...notif,
-          _id: `notif-${Date.now()}`,
+          _id: `notif-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
           isRead: false,
           createdAt: new Date().toISOString(),
         };
