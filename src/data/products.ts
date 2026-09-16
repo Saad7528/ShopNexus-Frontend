@@ -1320,13 +1320,44 @@ export function getProductByIdOrSlug(idOrSlug: string): Product | undefined {
     }
   }
 
-  // 4. Map standalone numbers '1' -> 'p1'
+  // 4. Flash deals aliases & custom slugs
+  const flashAliases: Record<string, string> = {
+    'flash-1': 'p1',
+    'flash-2': 'p7',
+    'flash-3': 'p2',
+    'flash-4': 'p11',
+    'flash-5': 'p12',
+    'flash-6': 'p9',
+    'flash-7': 'p6',
+    'flash-8': 'p5',
+    'apple-watch-ultra-2': 'p7',
+    'sony-wh-1000xm5-anc-headphones': 'p1',
+    'keychron-q1-pro-mechanical-keyboard': 'p2',
+    'bose-qc-ultra-spatial-headphones': 'p11',
+    'razer-viper-v2-pro': 'p12',
+    'garmin-fenix-7x-solar': 'p9',
+    'shure-sm7b-dynamic-microphone': 'p6',
+    'anker-prime-27650mah-powerbank': 'p5',
+  };
+  if (flashAliases[decoded]) {
+    const aliasedProduct = ALL_PRODUCTS.find((p) => p._id.toLowerCase() === flashAliases[decoded]);
+    if (aliasedProduct) return aliasedProduct;
+  }
+  if (decoded.startsWith('flash-')) {
+    const flashProducts = ALL_PRODUCTS.filter((p) => p.isFlashSale);
+    const num = parseInt(decoded.replace('flash-', ''), 10);
+    if (!isNaN(num) && num >= 1 && num <= flashProducts.length) {
+      return flashProducts[num - 1];
+    }
+  }
+
+  // 5. Map standalone numbers '1' -> 'p1'
   if (/^\d+$/.test(decoded)) {
     const pMatch = ALL_PRODUCTS.find((p) => p._id.toLowerCase() === `p${decoded}`);
     if (pMatch) return pMatch;
   }
 
-  // 5. Fuzzy search in slug or title
+  // 6. Fuzzy search in slug or title
   return ALL_PRODUCTS.find(
     (p) =>
       (p.slug && p.slug.toLowerCase().includes(decoded)) ||
