@@ -262,11 +262,11 @@ function ProfileContent() {
                 </p>
                 <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center justify-center sm:justify-start gap-1.5 mb-1">
                   <Phone className="w-3.5 h-3.5" />
-                  {phoneNumber ? phoneNumber : <span className="italic text-slate-400">Phone not set</span>}
+                  {phoneNumber ? (isBn ? toBengaliNumber(phoneNumber) : phoneNumber) : <span className="italic text-slate-400">{isBn ? 'ফোন নম্বর দেওয়া হয়নি' : 'Phone not set'}</span>}
                 </p>
                 <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center justify-center sm:justify-start gap-1.5">
                   <MapPin className="w-3.5 h-3.5" />
-                  {address ? `${address}, ${city || 'Dhaka'}` : <span className="italic text-slate-400">Default address not set</span>}
+                  {address ? `${address}, ${city || (isBn ? 'ঢাকা' : 'Dhaka')}` : <span className="italic text-slate-400">{isBn ? 'ডিফল্ট ঠিকানা দেওয়া হয়নি' : 'Default address not set'}</span>}
                 </p>
               </div>
             </div>
@@ -279,13 +279,13 @@ function ProfileContent() {
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold text-slate-900 dark:text-white">Nexus Coins</span>
+                    <span className="text-xs font-bold text-slate-900 dark:text-white">{isBn ? 'নেক্সাস কয়েন' : 'Nexus Coins'}</span>
                     <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 px-1.5 py-0.2 rounded">
-                      🔥 দিন {user?.loginStreak || 1}
+                      {isBn ? `🔥 দিন ${toBengaliNumber(user?.loginStreak || 1)}` : `🔥 Day ${user?.loginStreak || 1}`}
                     </span>
                   </div>
                   <p className="font-mono text-sm font-black text-amber-600 dark:text-amber-400">
-                    {(user?.nexusCoins || 0).toLocaleString()} Coins
+                    {isBn ? `${toBengaliNumber(user?.nexusCoins || 0)} কয়েন` : `${(user?.nexusCoins || 0).toLocaleString()} Coins`}
                   </p>
                 </div>
               </div>
