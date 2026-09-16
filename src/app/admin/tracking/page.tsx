@@ -318,7 +318,16 @@ export default function AdminTrackingPage() {
                   <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">
                     {isBn ? 'সম্ভাব্য ডেলিভারি' : 'Estimated Delivery'}
                   </span>
-                  <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">{selectedParcel.estimatedDelivery}</span>
+                  <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                    {isBn
+                      ? selectedParcel.estimatedDelivery
+                          .replace('Today by 6:00 PM', 'আজ সন্ধ্যা ৬:০০ এর মধ্যে')
+                          .replace('Delivered', 'ডেলিভার্ড')
+                          .replace('Tomorrow, Aug 25', 'আগামীকাল, ২৫ আগস্ট')
+                          .replace('Aug 26, 2026', '২৬ আগস্ট ২০২৬')
+                          .replace('Within 24-48h', '২৪-৪৮ ঘণ্টার মধ্যে')
+                      : selectedParcel.estimatedDelivery}
+                  </span>
                 </div>
               </div>
 

@@ -3,12 +3,23 @@
 import React, { Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { CheckCircle, Package, ArrowRight, Home, ShieldCheck, Truck } from 'lucide-react';
+import { CheckCircle, ArrowRight, Truck } from 'lucide-react';
+import { useLanguageStore } from '@/store/useLanguageStore';
+import { useHydrated } from '@/lib/useHydrated';
+import { toBengaliNumber } from '@/lib/translations';
 
 function SuccessContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId') || 'NEX-892147';
   const total = searchParams.get('total') || '299.99';
+
+  const { language } = useLanguageStore();
+  const mounted = useHydrated();
+  const isBn = mounted && language === 'bn';
+
+  const formattedTotal = isBn
+    ? `৳${toBengaliNumber(Number(total).toLocaleString('en-US'))} টাকা`
+    : `৳${Number(total).toLocaleString()} BDT`;
 
   return (
     <div className="max-w-xl mx-auto p-8 rounded-3xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-white/10 shadow-xl backdrop-blur-2xl text-center space-y-6">
