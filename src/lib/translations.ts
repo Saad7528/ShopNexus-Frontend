@@ -279,7 +279,7 @@ export const TRANSLATIONS = {
     sort_price_desc: 'দাম: বেশি থেকে কম',
     sort_rating_desc: 'সর্বোচ্চ কাস্টমার রেটিং',
 
-    // Product Details Tabs & Badges
+    // Product Details Tabs & Badges section
     tab_overview: 'ওভারভিউ ও বৈশিষ্ট্য',
     tab_specs: 'টেকনিক্যাল স্পেসিফিকেশন',
     tab_reviews: 'ভেরিফাইড কাস্টমার রিভিউ',
