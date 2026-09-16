@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, Suspense } from 'react';
+import React, { useState, useMemo, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -64,6 +64,11 @@ function TrackingContent() {
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const mounted = useHydrated();
+
+  // Ensure page scrolls to top on navigation/mount
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [initialQuery]);
 
   const { orders } = useOrderStore();
   const { language } = useLanguageStore();
