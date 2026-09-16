@@ -836,7 +836,9 @@ function ProfileContent() {
                           >
                             <Minus className="w-3.5 h-3.5" />
                           </button>
-                          <span className="w-8 text-center text-xs font-bold font-mono">{cItem.quantity}</span>
+                          <span className="w-8 text-center text-xs font-bold font-mono">
+                            {isBn ? toBengaliNumber(cItem.quantity) : cItem.quantity}
+                          </span>
                           <button
                             type="button"
                             onClick={() => updateQuantity(cItem.productId, cItem.quantity + 1)}
@@ -847,14 +849,14 @@ function ProfileContent() {
                         </div>
 
                         <span className="font-mono font-black text-xs sm:text-sm text-slate-900 dark:text-white w-20 text-right">
-                          ৳{(cItem.price * cItem.quantity).toLocaleString()}
+                          {isBn ? `৳${toBengaliNumber(cItem.price * cItem.quantity)}` : `৳${(cItem.price * cItem.quantity).toLocaleString()}`}
                         </span>
 
                         <button
                           type="button"
                           onClick={() => removeItem(cItem.productId)}
                           className="p-2 rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors"
-                          title="Remove item"
+                          title={isBn ? 'পণ্য সরান' : 'Remove item'}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
