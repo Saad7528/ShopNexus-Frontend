@@ -767,18 +767,26 @@ export const HeroSection: React.FC = () => {
 
             <div className="space-y-1.5">
               <h3 className="text-lg font-black text-slate-900 dark:text-white">
-                ব্ল্যাক ফ্রাইডে VIP পাস আনলক
+                {isBn ? 'ব্ল্যাক ফ্রাইডে VIP পাস আনলক' : 'Unlock Black Friday VIP Pass'}
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                ভিআইপি মেম্বারশিপ সক্রিয় করতে আপনার অ্যাকাউন্টে মোট <strong>৫০০ Nexus Coins</strong> প্রয়োজন।
+                {isBn ? (
+                  <>ভিআইপি মেম্বারশিপ সক্রিয় করতে আপনার অ্যাকাউন্টে মোট <strong>৫০০ Nexus Coins</strong> প্রয়োজন।</>
+                ) : (
+                  <>You need a total of <strong>500 Nexus Coins</strong> in your account to activate VIP Membership.</>
+                )}
               </p>
             </div>
 
             {/* Coin Progress Bar */}
             <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2 text-left">
               <div className="flex items-center justify-between text-xs font-bold">
-                <span className="text-slate-600 dark:text-slate-400">বর্তমান ব্যালান্স:</span>
-                <span className="text-orange-600 dark:text-orange-400 font-mono">{vipModalInfo.currentCoins} Coins</span>
+                <span className="text-slate-600 dark:text-slate-400">
+                  {isBn ? 'বর্তমান ব্যালান্স:' : 'Current Balance:'}
+                </span>
+                <span className="text-orange-600 dark:text-orange-400 font-mono">
+                  {isBn ? toBengaliNumber(vipModalInfo.currentCoins) : vipModalInfo.currentCoins} Coins
+                </span>
               </div>
               <div className="w-full h-2.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
                 <div
@@ -787,21 +795,38 @@ export const HeroSection: React.FC = () => {
                 />
               </div>
               <div className="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
-                <span>প্রয়োজন: ৫০০ Coins</span>
-                <span className="text-rose-500 font-bold">আর প্রয়োজন {vipModalInfo.neededCoins} Coins</span>
+                <span>
+                  {isBn ? 'প্রয়োজন: ৫০০ Coins' : 'Required: 500 Coins'}
+                </span>
+                <span className="text-rose-500 font-bold">
+                  {isBn
+                    ? `আর প্রয়োজন ${toBengaliNumber(vipModalInfo.neededCoins)} Coins`
+                    : `${vipModalInfo.neededCoins} more Coins needed`}
+                </span>
               </div>
             </div>
 
             {/* How to earn streak info */}
             <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-[11px] text-amber-700 dark:text-amber-300 text-left space-y-1">
               <span className="font-black flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" /> প্রতিদিন কয়েন অর্জনের নিয়ম:
+                {isBn ? 'প্রতিদিন কয়েন অর্জনের নিয়ম:' : 'Daily Coin Earning Rules:'}
               </span>
               <ul className="list-disc list-inside text-[10px] space-y-0.5 text-slate-600 dark:text-slate-300">
-                <li>১ম দিন ১০ সেকেন্ড ভিজিট: <strong>+৫ Coins</strong></li>
-                <li>২য় দিন টানা ভিজিট: <strong>+১০ Coins</strong></li>
-                <li>৩য় দিন ও পরবর্তী টানা প্রতিদিন: <strong>+১৫ Coins</strong></li>
-                <li>একদিন গ্যাপ দিলে স্ট্রিক ১ম দিনে রিসেট হবে।</li>
+                {isBn ? (
+                  <>
+                    <li>১ম দিন ১০ সেকেন্ড ভিজিট: <strong>+৫ Coins</strong></li>
+                    <li>২য় দিন টানা ভিজিট: <strong>+১০ Coins</strong></li>
+                    <li>৩য় দিন ও পরবর্তী টানা প্রতিদিন: <strong>+১৫ Coins</strong></li>
+                    <li>একদিন গ্যাপ দিলে স্ট্রিক ১ম দিনে রিসেট হবে।</li>
+                  </>
+                ) : (
+                  <>
+                    <li>Day 1 (10s visit): <strong>+5 Coins</strong></li>
+                    <li>Day 2 (consecutive visit): <strong>+10 Coins</strong></li>
+                    <li>Day 3 and onwards daily: <strong>+15 Coins</strong></li>
+                    <li>Missing a day resets your streak back to Day 1.</li>
+                  </>
+                )}
               </ul>
             </div>
 
@@ -809,7 +834,7 @@ export const HeroSection: React.FC = () => {
               onClick={() => setVipModalInfo(null)}
               className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white font-bold text-xs shadow-md shadow-orange-500/25 cursor-pointer"
             >
-              বুঝেছি, প্রতিদিন ভিজিট করব!
+              {isBn ? 'বুঝেছি, প্রতিদিন ভিজিট করব!' : "Got it, I'll visit daily!"}
             </button>
           </div>
         </div>

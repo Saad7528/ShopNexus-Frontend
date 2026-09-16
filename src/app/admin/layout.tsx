@@ -329,8 +329,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 {isBn ? 'শপনেক্সাস অ্যাডমিন' : 'ShopNexus Admin'}
               </span>
               <span className="text-slate-300 dark:text-slate-700 hidden sm:inline">/</span>
-              <span className="text-orange-600 dark:text-orange-400 font-bold capitalize truncate">
-                {pathname.split('/')[2] === 'visitors' ? (isBn ? 'ভিজিটর ও ট্রাফিক' : 'Visitors') : pathname.split('/')[2] || (isBn ? 'ড্যাশবোর্ড' : 'Dashboard')}
+              <span className="text-orange-600 dark:text-orange-400 font-bold truncate">
+                {(() => {
+                  const seg = pathname.split('/')[2] || 'dashboard';
+                  switch (seg) {
+                    case 'dashboard': return isBn ? 'ড্যাশবোর্ড ও অ্যানালিটিক্স' : 'Dashboard & Analytics';
+                    case 'visitors': return isBn ? 'লাইভ ভিজিটর ও ট্রাফিক' : 'Live Visitors & Traffic';
+                    case 'inventory': return isBn ? 'প্রোডাক্ট ও ইনভেন্টরি' : 'Products & Inventory';
+                    case 'orders': return isBn ? 'অর্ডার ও ইনভয়েস' : 'Orders & Invoices';
+                    case 'abandoned-carts': return isBn ? 'পরিত্যক্ত কার্ট' : 'Abandoned Carts';
+                    case 'bundles-loyalty': return isBn ? 'বান্ডেল ও লয়্যালটি' : 'Bundles & Loyalty';
+                    case 'tracking': return isBn ? 'লাইভ পার্সেল ট্র্যাকিং' : 'Live Parcel Tracking';
+                    case 'coupons': return isBn ? 'কুপন ও প্রমোশন' : 'Coupons & Promotions';
+                    case 'reviews': return isBn ? 'কাস্টমার রিভিউ' : 'Customer Reviews';
+                    case 'staff': return isBn ? 'স্টাফ রোল ও সিকিউরিটি' : 'Staff Roles & Security';
+                    case 'customers': return isBn ? 'কাস্টমার ডিরেক্টরি' : 'Customer Directory';
+                    default: return seg;
+                  }
+                })()}
               </span>
             </div>
           </div>

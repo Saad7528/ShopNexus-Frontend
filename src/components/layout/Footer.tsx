@@ -92,6 +92,17 @@ export const Footer: React.FC = () => {
     }
   };
 
+  const handleScrollToSection = (targetId: string) => {
+    if (pathname === '/about') {
+      const elem = document.getElementById(targetId);
+      if (elem) {
+        elem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else if (targetId === 'about-hero' || targetId === 'top') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+  };
+
   return (
     <footer className="border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 mt-10 sm:mt-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-7 sm:py-9">
@@ -115,27 +126,46 @@ export const Footer: React.FC = () => {
             </h4>
             <ul className="space-y-1.5 text-xs">
               <li>
-                <Link href="/about" className="hover:text-orange-500 dark:hover:text-orange-400 transition-colors font-medium">
+                <Link
+                  href="/about#about-hero"
+                  onClick={() => handleScrollToSection('about-hero')}
+                  className="hover:text-orange-500 dark:hover:text-orange-400 transition-colors font-medium cursor-pointer"
+                >
                   {mounted ? (language === 'bn' ? 'আমাদের সম্পর্কে' : 'About ShopNexus') : 'About ShopNexus'}
                 </Link>
               </li>
               <li>
-                <Link href="/about" className="hover:text-orange-500 dark:hover:text-orange-400 transition-colors font-medium">
+                <Link
+                  href="/about#faq-section"
+                  onClick={() => handleScrollToSection('faq-section')}
+                  className="hover:text-orange-500 dark:hover:text-orange-400 transition-colors font-medium cursor-pointer"
+                >
                   {mounted ? (language === 'bn' ? 'সাধারণ জিজ্ঞাসাসমূহ (FAQ)' : 'Frequently Asked Questions (FAQ)') : 'FAQ'}
                 </Link>
               </li>
               <li>
-                <Link href="/about" className="hover:text-orange-500 dark:hover:text-orange-400 transition-colors">
-                  {mounted ? (language === 'bn' ? 'ডেলিভারি চার্জ (ঢাকা ৳৬০ / বাইরে ৳১২০)' : 'Delivery Rates (Inside Dhaka ৳60 / Outside ৳120)') : 'Delivery Rates'}
-                </Link>
-              </li>
-              <li>
-                <Link href="/track" className="hover:text-orange-500 dark:hover:text-orange-400 transition-colors">
+                <Link
+                  href="/track"
+                  onClick={() => {
+                    if (pathname === '/track') {
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                  }}
+                  className="hover:text-orange-500 dark:hover:text-orange-400 transition-colors cursor-pointer"
+                >
                   {mounted ? (language === 'bn' ? 'লাইভ অর্ডার ট্র্যাকিং' : 'Live Order Tracking') : 'Live Order Tracking'}
                 </Link>
               </li>
               <li>
-                <Link href="/about" className="hover:text-orange-500 dark:hover:text-orange-400 transition-colors">
+                <Link
+                  href="/return-policy"
+                  onClick={() => {
+                    if (pathname === '/return-policy' || pathname === '/replacement-policy') {
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                  }}
+                  className="hover:text-orange-500 dark:hover:text-orange-400 transition-colors cursor-pointer"
+                >
                   {mounted ? (language === 'bn' ? '৭ দিনের রিপ্লেসমেন্ট পলিসি' : '7-Day Replacement Policy') : '7-Day Replacement Policy'}
                 </Link>
               </li>
@@ -234,11 +264,19 @@ export const Footer: React.FC = () => {
         <div className="mt-7 pt-3.5 border-t border-slate-200 dark:border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs text-slate-500">
           <p>© {new Date().getFullYear()} ShopNexus Platform. {mounted ? t('footer_rights') : 'All rights reserved.'}</p>
           <div className="flex items-center gap-3">
-            <Link href="/about" className="hover:text-slate-700 dark:hover:text-slate-400 transition-colors">
+            <Link
+              href="/about#about-hero"
+              onClick={() => handleScrollToSection('about-hero')}
+              className="hover:text-slate-700 dark:hover:text-slate-400 transition-colors cursor-pointer"
+            >
               {mounted ? (language === 'bn' ? 'আমাদের সম্পর্কে' : 'About Us') : 'About Us'}
             </Link>
             <span>•</span>
-            <Link href="/about" className="hover:text-slate-700 dark:hover:text-slate-400 transition-colors">
+            <Link
+              href="/about#faq-section"
+              onClick={() => handleScrollToSection('faq-section')}
+              className="hover:text-slate-700 dark:hover:text-slate-400 transition-colors cursor-pointer"
+            >
               {mounted ? (language === 'bn' ? 'সহায়তা ও এফএকিউ' : 'FAQ & Help') : 'FAQ & Help'}
             </Link>
           </div>

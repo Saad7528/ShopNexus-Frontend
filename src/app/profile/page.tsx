@@ -30,8 +30,15 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { ALL_PRODUCTS, getProductByIdOrSlug } from '@/data/products';
+import { useLanguageStore } from '@/store/useLanguageStore';
+import { useHydrated } from '@/lib/useHydrated';
+import { toBengaliNumber } from '@/lib/translations';
 
 function ProfileContent() {
+  const { language } = useLanguageStore();
+  const isHydrated = useHydrated();
+  const isBn = isHydrated && language === 'bn';
+
   const searchParams = useSearchParams();
   const requestedTab = searchParams.get('tab');
 
@@ -86,10 +93,12 @@ function ProfileContent() {
 
     if (file.size > 5 * 1024 * 1024) {
       await showAlertDialog({
-        title: 'ছবির সাইজ সীমা অতিক্রম করেছে',
-        message: 'ছবির সাইজ সর্বোচ্চ ৫ মেগাবাইট (5MB) হতে পারে। অনুগ্রহ করে ছোট সাইজের ছবি নির্বাচন করুন।',
+        title: isBn ? 'ছবির সাইজ সীমা অতিক্রম করেছে' : 'Image Size Limit Exceeded',
+        message: isBn
+          ? 'ছবির সাইজ সর্বোচ্চ ৫ মেগাবাইট (5MB) হতে পারে। অনুগ্রহ করে ছোট সাইজের ছবি নির্বাচন করুন।'
+          : 'Image size can be at most 5MB. Please choose a smaller image file.',
         type: 'warning',
-        confirmText: 'ঠিক আছে',
+        confirmText: isBn ? 'ঠিক আছে' : 'OK',
       });
       return;
     }
@@ -168,7 +177,6 @@ function ProfileContent() {
     });
   };
 
-
   const getStepProgress = (status: UserOrder['status']) => {
     switch (status) {
       case 'PLACED':
@@ -183,6 +191,19 @@ function ProfileContent() {
         return 5;
       default:
         return 1;
+    }
+  };
+
+  const getStatusLabel = (st: string) => {
+    if (!isBn) return st;
+    switch (st) {
+      case 'PLACED': return 'অর্ডার গৃহীত';
+      case 'CONFIRMED': return 'নিশ্চিতকৃত';
+      case 'PACKAGING': return 'প্যাকেজিং';
+      case 'SHIPPED': return 'রওনা হয়েছে';
+      case 'DELIVERED': return 'ডেলিভারড';
+      case 'CANCELLED': return 'বাতিলকৃত';
+      default: return st;
     }
   };
 
@@ -220,7 +241,7 @@ function ProfileContent() {
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   className="absolute -bottom-1 -right-1 p-2.5 rounded-2xl bg-gradient-to-tr from-[#ff4400] to-[#ff7700] text-white shadow-lg shadow-orange-500/30 hover:scale-110 active:scale-95 transition-all cursor-pointer"
-                  title="Click to upload profile photo from device"
+                  title={isBn ? 'ডিভাইস থেকে প্রোফাইল ছবি আপলোড করতে ক্লিক করুন' : 'Click to upload profile photo from device'}
                 >
                   <Camera className="w-4 h-4" />
                 </button>
@@ -228,9 +249,11 @@ function ProfileContent() {
 
               <div>
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-1">
-                  <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">{name || 'Authenticated Customer'}</h1>
+                  <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+                    {name || (isBn ? 'নিবন্ধিত গ্রাহক' : 'Authenticated Customer')}
+                  </h1>
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20">
-                    {user?.role || 'Customer'}
+                    {user?.role || (isBn ? 'কাস্টমার' : 'Customer')}
                   </span>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center justify-center sm:justify-start gap-1.5 mb-1">
@@ -239,11 +262,11 @@ function ProfileContent() {
                 </p>
                 <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center justify-center sm:justify-start gap-1.5 mb-1">
                   <Phone className="w-3.5 h-3.5" />
-                  {phoneNumber ? phoneNumber : <span className="italic text-slate-400">Phone not set</span>}
+                  {phoneNumber ? (isBn ? toBengaliNumber(phoneNumber) : phoneNumber) : <span className="italic text-slate-400">{isBn ? 'ফোন নম্বর দেওয়া হয়নি' : 'Phone not set'}</span>}
                 </p>
                 <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center justify-center sm:justify-start gap-1.5">
                   <MapPin className="w-3.5 h-3.5" />
-                  {address ? `${address}, ${city || 'Dhaka'}` : <span className="italic text-slate-400">Default address not set</span>}
+                  {address ? `${address}, ${city || (isBn ? 'ঢাকা' : 'Dhaka')}` : <span className="italic text-slate-400">{isBn ? 'ডিফল্ট ঠিকানা দেওয়া হয়নি' : 'Default address not set'}</span>}
                 </p>
               </div>
             </div>
@@ -256,13 +279,13 @@ function ProfileContent() {
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold text-slate-900 dark:text-white">Nexus Coins</span>
+                    <span className="text-xs font-bold text-slate-900 dark:text-white">{isBn ? 'নেক্সাস কয়েন' : 'Nexus Coins'}</span>
                     <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 px-1.5 py-0.2 rounded">
-                      🔥 দিন {user?.loginStreak || 1}
+                      {isBn ? `🔥 দিন ${toBengaliNumber(user?.loginStreak || 1)}` : `🔥 Day ${user?.loginStreak || 1}`}
                     </span>
                   </div>
                   <p className="font-mono text-sm font-black text-amber-600 dark:text-amber-400">
-                    {(user?.nexusCoins || 0).toLocaleString()} Coins
+                    {isBn ? `${toBengaliNumber(user?.nexusCoins || 0)} কয়েন` : `${(user?.nexusCoins || 0).toLocaleString()} Coins`}
                   </p>
                 </div>
               </div>
@@ -272,15 +295,17 @@ function ProfileContent() {
                 <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-2 text-left">
                   <span className="text-xl">👑</span>
                   <div>
-                    <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 block">VIP Member</span>
-                    <span className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">৳200 First Order Perk Active</span>
+                    <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 block">{isBn ? 'ভিআইপি মেম্বার' : 'VIP Member'}</span>
+                    <span className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">{isBn ? '৳২০০ প্রথম অর্ডার সুবিধা সক্রিয়' : '৳200 First Order Perk Active'}</span>
                   </div>
                 </div>
               ) : (
                 <div className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-left space-y-1">
                   <div className="flex items-center justify-between text-[11px] font-bold">
-                    <span className="text-slate-600 dark:text-slate-400">VIP Pass Progress:</span>
-                    <span className="text-orange-600 dark:text-orange-400 font-mono">{user?.nexusCoins || 0}/500</span>
+                    <span className="text-slate-600 dark:text-slate-400">{isBn ? 'ভিআইপি পাস অগ্রগতি:' : 'VIP Pass Progress:'}</span>
+                    <span className="text-orange-600 dark:text-orange-400 font-mono">
+                      {isBn ? `${toBengaliNumber(user?.nexusCoins || 0)}/৫০০` : `${user?.nexusCoins || 0}/500`}
+                    </span>
                   </div>
                   <div className="w-28 h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
                     <div
@@ -297,7 +322,7 @@ function ProfileContent() {
                 className="px-4 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800/80 hover:bg-rose-500/10 hover:text-rose-500 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 transition-all flex items-center gap-2 cursor-pointer"
               >
                 <LogOut className="w-4 h-4" />
-                Sign Out
+                {isBn ? 'লগআউট' : 'Sign Out'}
               </button>
             </div>
           </div>
@@ -314,7 +339,7 @@ function ProfileContent() {
               }`}
             >
               <UserIcon className="w-3.5 h-3.5" />
-              Personal Information
+              {isBn ? 'ব্যক্তিগত তথ্য' : 'Personal Information'}
             </button>
 
             <button
@@ -327,10 +352,10 @@ function ProfileContent() {
               }`}
             >
               <Package className="w-3.5 h-3.5" />
-              Order History & Live Tracking
+              {isBn ? 'অর্ডার হিস্ট্রি ও লাইভ ট্র্যাকিং' : 'Order History & Live Tracking'}
               {userOrders && userOrders.length > 0 && (
                 <span className="w-4 h-4 rounded-full bg-white/20 text-white text-[10px] flex items-center justify-center">
-                  {userOrders.length}
+                  {isBn ? toBengaliNumber(userOrders.length) : userOrders.length}
                 </span>
               )}
             </button>
@@ -345,10 +370,10 @@ function ProfileContent() {
               }`}
             >
               <Heart className="w-3.5 h-3.5" />
-              My Wishlist
+              {isBn ? 'আমার উইশলিস্ট' : 'My Wishlist'}
               {wishlistItems && wishlistItems.length > 0 && (
                 <span className="w-4 h-4 rounded-full bg-rose-500 text-white text-[10px] flex items-center justify-center">
-                  {wishlistItems.length}
+                  {isBn ? toBengaliNumber(wishlistItems.length) : wishlistItems.length}
                 </span>
               )}
             </button>
@@ -363,10 +388,10 @@ function ProfileContent() {
               }`}
             >
               <ShoppingCart className="w-3.5 h-3.5" />
-              My Cart
+              {isBn ? 'আমার কার্ট' : 'My Cart'}
               {cartItems && cartItems.length > 0 && (
                 <span className="w-4 h-4 rounded-full bg-orange-500 text-white text-[10px] flex items-center justify-center">
-                  {cartItems.length}
+                  {isBn ? toBengaliNumber(cartItems.length) : cartItems.length}
                 </span>
               )}
             </button>
@@ -377,39 +402,49 @@ function ProfileContent() {
         {activeTab === 'profile' && (
           <form onSubmit={handleSaveProfile} className="rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-6 sm:p-8 backdrop-blur-2xl shadow-xl space-y-6">
             <div>
-              <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">General Information & Delivery Preferences</h3>
+              <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                {isBn ? 'সাধারণ তথ্য এবং ডেলিভারি পছন্দ' : 'General Information & Delivery Preferences'}
+              </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Update your personal contact information and default delivery destination for fast 1-click checkout.
+                {isBn
+                  ? 'দ্রুত ১-ক্লিক চেকআউটের জন্য আপনার যোগাযোগের তথ্য এবং ডিফল্ট ডেলিভারির ঠিকানা আপডেট করুন।'
+                  : 'Update your personal contact information and default delivery destination for fast 1-click checkout.'}
               </p>
             </div>
 
             {saveSuccess && (
               <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 shrink-0" />
-                Profile information and default shipping address updated successfully!
+                {isBn
+                  ? 'প্রোফাইল তথ্য ও ডিফল্ট ডেলিভারির ঠিকানা সফলভাবে আপডেট হয়েছে!'
+                  : 'Profile information and default shipping address updated successfully!'}
               </div>
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Full Name</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  {isBn ? 'পুরো নাম' : 'Full Name'}
+                </label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. S.M. Amirul Islam Saad"
+                  placeholder={isBn ? 'উদাঃ এস. এম. আমিরুল ইসলাম সাদ' : 'e.g. S.M. Amirul Islam Saad'}
                   className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-orange-500 shadow-inner"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Phone Number</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  {isBn ? 'ফোন নম্বর' : 'Phone Number'}
+                </label>
                 <input
                   type="tel"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
-                  placeholder="e.g. +880 1712-345678"
+                  placeholder={isBn ? 'উদাঃ ০১৭১২-৩৪৫৬৭৮' : 'e.g. +880 1712-345678'}
                   className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-orange-500 shadow-inner"
                 />
               </div>
@@ -419,54 +454,62 @@ function ProfileContent() {
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                   <MapPin className="w-3.5 h-3.5 text-orange-500" />
-                  Default Shipping Address
+                  {isBn ? 'ডিফল্ট শিপিং ঠিকানা' : 'Default Shipping Address'}
                 </div>
                 <span className="text-[11px] text-orange-600 dark:text-orange-400 font-semibold">
-                  📍 Auto-applied during checkout
+                  {isBn ? '📍 চেকআউটে স্বয়ংক্রিয়ভাবে যুক্ত হবে' : '📍 Auto-applied during checkout'}
                 </span>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Street Address</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  {isBn ? 'রাস্তা / বাসার ঠিকানা' : 'Street Address'}
+                </label>
                 <input
                   type="text"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  placeholder="e.g. House 42, Road 11, Block D"
+                  placeholder={isBn ? 'উদাঃ বাড়ি ৪২, রোড ১১, ব্লক ডি' : 'e.g. House 42, Road 11, Block D'}
                   className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-orange-500 shadow-inner"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">City / Division</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                    {isBn ? 'শহর / বিভাগ' : 'City / Division'}
+                  </label>
                   <input
                     type="text"
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
-                    placeholder="e.g. Dhaka"
+                    placeholder={isBn ? 'উদাঃ ঢাকা' : 'e.g. Dhaka'}
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-orange-500 shadow-inner"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Postal Code</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                    {isBn ? 'পোস্টাল কোড' : 'Postal Code'}
+                  </label>
                   <input
                     type="text"
                     value={zipCode}
                     onChange={(e) => setZipCode(e.target.value)}
-                    placeholder="e.g. 1213"
+                    placeholder={isBn ? 'উদাঃ ১২১৩' : 'e.g. 1213'}
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-orange-500 shadow-inner"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Country</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                    {isBn ? 'দেশ' : 'Country'}
+                  </label>
                   <input
                     type="text"
                     value={country}
                     onChange={(e) => setCountry(e.target.value)}
-                    placeholder="Bangladesh"
+                    placeholder={isBn ? 'বাংলাদেশ' : 'Bangladesh'}
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-orange-500 shadow-inner"
                   />
                 </div>
@@ -480,7 +523,9 @@ function ProfileContent() {
                 className="px-6 py-3 rounded-2xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/25 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
               >
                 <Save className="w-4 h-4" />
-                {isSaving ? 'Saving Changes...' : 'Save Profile Changes'}
+                {isSaving
+                  ? (isBn ? 'সংরক্ষণ করা হচ্ছে...' : 'Saving Changes...')
+                  : (isBn ? 'প্রোফাইল সংরক্ষণ করুন' : 'Save Profile Changes')}
               </button>
             </div>
           </form>
@@ -493,7 +538,9 @@ function ProfileContent() {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Orders List */}
                 <div className="lg:col-span-1 space-y-3">
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">Your Orders ({userOrders.length})</h3>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                    {isBn ? `আপনার অর্ডারসমূহ (${toBengaliNumber(userOrders.length)})` : `Your Orders (${userOrders.length})`}
+                  </h3>
                   {userOrders.map((ord) => (
                     <div
                       key={ord.id}
@@ -507,12 +554,14 @@ function ProfileContent() {
                       <div className="flex items-center justify-between text-xs mb-2">
                         <span className="font-mono font-bold text-slate-900 dark:text-white">#{ord.orderNumber || ord.id.slice(-6).toUpperCase()}</span>
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-orange-500/10 text-orange-600 dark:text-orange-400">
-                          {ord.status}
+                          {getStatusLabel(ord.status)}
                         </span>
                       </div>
                       <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-                        <span>{ord.date || 'Recent'}</span>
-                        <span className="font-mono font-bold text-slate-900 dark:text-white">৳{(ord.total || 0).toLocaleString()}</span>
+                        <span>{ord.date || (isBn ? 'সম্প্রতি' : 'Recent')}</span>
+                        <span className="font-mono font-bold text-slate-900 dark:text-white">
+                          {isBn ? `৳${toBengaliNumber(ord.total || 0)}` : `৳${(ord.total || 0).toLocaleString()}`}
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -524,20 +573,29 @@ function ProfileContent() {
                     <div className="rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-6 sm:p-8 backdrop-blur-2xl shadow-xl space-y-6">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800/80 pb-4">
                         <div>
-                          <span className="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider">Order Details</span>
+                          <span className="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider">
+                            {isBn ? 'অর্ডারের বিবরণ' : 'Order Details'}
+                          </span>
                           <h4 className="text-lg font-black text-slate-900 dark:text-white font-mono">#{selectedOrder.orderNumber || selectedOrder.id}</h4>
                         </div>
                         <div className="text-right">
-                          <span className="text-xs text-slate-500 dark:text-slate-400">Total Paid</span>
-                          <p className="text-lg font-black text-orange-600 dark:text-orange-400 font-mono">৳{(selectedOrder.total || 0).toLocaleString()}</p>
+                          <span className="text-xs text-slate-500 dark:text-slate-400">{isBn ? 'মোট পরিশোধিত' : 'Total Paid'}</span>
+                          <p className="text-lg font-black text-orange-600 dark:text-orange-400 font-mono">
+                            {isBn ? `৳${toBengaliNumber(selectedOrder.total || 0)}` : `৳${(selectedOrder.total || 0).toLocaleString()}`}
+                          </p>
                         </div>
                       </div>
 
                       {/* Step Progress Bar */}
                       <div>
-                        <h5 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-4">Parcel Journey Status</h5>
+                        <h5 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-4">
+                          {isBn ? 'পার্সেল ট্র্যাকিং স্ট্যাটাস' : 'Parcel Journey Status'}
+                        </h5>
                         <div className="grid grid-cols-5 gap-2 text-center text-[10px] font-bold">
-                          {['Placed', 'Confirmed', 'Packaging', 'Shipped', 'Delivered'].map((step, idx) => {
+                          {(isBn
+                            ? ['অর্ডার গৃহীত', 'নিশ্চিতকৃত', 'প্যাকেজিং', 'রওনা হয়েছে', 'ডেলিভারড']
+                            : ['Placed', 'Confirmed', 'Packaging', 'Shipped', 'Delivered']
+                          ).map((step, idx) => {
                             const isCompleted = getStepProgress(selectedOrder.status) >= idx + 1;
                             return (
                               <div key={step} className="space-y-1.5">
@@ -557,11 +615,13 @@ function ProfileContent() {
                       {selectedOrder.trackingNumber && (
                         <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
                           <div>
-                            <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">Courier Tracking ID</span>
+                            <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">
+                              {isBn ? 'কুরিয়ার ট্র্যাকিং আইডি' : 'Courier Tracking ID'}
+                            </span>
                             <p className="font-mono text-xs font-bold text-slate-900 dark:text-white">{selectedOrder.trackingNumber}</p>
                           </div>
                           <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                            <Truck className="w-4 h-4" /> Live Tracking Active
+                            <Truck className="w-4 h-4" /> {isBn ? 'লাইভ ট্র্যাকিং সক্রিয়' : 'Live Tracking Active'}
                           </span>
                         </div>
                       )}
@@ -574,15 +634,17 @@ function ProfileContent() {
                 <div className="w-16 h-16 rounded-3xl bg-orange-500/10 text-orange-500 flex items-center justify-center mx-auto">
                   <Package className="w-8 h-8" />
                 </div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white">No Orders Found Yet</h3>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">{isBn ? 'এখনও কোনো অর্ডার পাওয়া যায়নি' : 'No Orders Found Yet'}</h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
-                  You haven&apos;t placed any orders yet. Discover our curated official hardware and enjoy fast 24h delivery!
+                  {isBn
+                    ? 'আপনি এখনও কোনো অর্ডার করেননি। আমাদের প্রিমিয়াম অফিসিয়াল গ্যাজেট ব্রাউজ করুন এবং উপভোগ করুন দ্রুত ২৪ ঘণ্টার ডেলিভারি!'
+                    : 'You haven\'t placed any orders yet. Discover our curated official hardware and enjoy fast 24h delivery!'}
                 </p>
                 <Link
                   href="/products"
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white font-bold text-xs shadow-lg shadow-orange-500/25 cursor-pointer"
                 >
-                  Start Shopping <ArrowRight className="w-3.5 h-3.5" />
+                  {isBn ? 'শপিং শুরু করুন' : 'Start Shopping'} <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
             )}
@@ -596,14 +658,14 @@ function ProfileContent() {
               <div>
                 <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <Heart className="w-5 h-5 text-rose-500 fill-rose-500" />
-                  My Saved Wishlist ({wishlistItems.length})
+                  {isBn ? `সংরক্ষিত উইশলিস্ট (${toBengaliNumber(wishlistItems.length)})` : `My Saved Wishlist (${wishlistItems.length})`}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Products you saved for future purchases.
+                  {isBn ? 'ভবিষ্যতে কেনার জন্য আপনার সংরক্ষিত পণ্যসমূহ।' : 'Products you saved for future purchases.'}
                 </p>
               </div>
               <Link href="/products" className="text-xs font-bold text-orange-600 dark:text-orange-400 hover:underline flex items-center gap-1">
-                Explore More <ArrowRight className="w-3.5 h-3.5" />
+                {isBn ? 'আরও দেখুন' : 'Explore More'} <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
 
@@ -658,7 +720,7 @@ function ProfileContent() {
                           <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                           {isOutOfStock && (
                             <div className="absolute inset-x-0 bottom-0 py-0.5 bg-rose-600/90 text-[8px] font-bold text-white text-center">
-                              Out of Stock
+                              {isBn ? 'স্টক শেষ' : 'Out of Stock'}
                             </div>
                           )}
                         </div>
@@ -670,7 +732,7 @@ function ProfileContent() {
                             </h4>
                           </Link>
                           <span className="font-mono font-bold text-xs text-slate-900 dark:text-white block mt-1">
-                            ৳{item.price.toLocaleString()}
+                            {isBn ? `৳${toBengaliNumber(item.price)}` : `৳${item.price.toLocaleString()}`}
                           </span>
                         </div>
                       </div>
@@ -682,7 +744,7 @@ function ProfileContent() {
                             disabled
                             className="flex-1 py-2 px-3 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-bold text-xs flex items-center justify-center gap-1.5 cursor-not-allowed border border-slate-300 dark:border-slate-700 opacity-80 select-none"
                           >
-                            <AlertCircle className="w-3.5 h-3.5 text-rose-500" /> Out of Stock
+                            <AlertCircle className="w-3.5 h-3.5 text-rose-500" /> {isBn ? 'স্টক শেষ' : 'Out of Stock'}
                           </button>
                         ) : (
                           <button
@@ -690,14 +752,14 @@ function ProfileContent() {
                             onClick={() => handleMoveWishlistToCart(item, availableStock)}
                             className="flex-1 py-2 px-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer"
                           >
-                            <ShoppingBag className="w-3.5 h-3.5" /> Move to Cart
+                            <ShoppingBag className="w-3.5 h-3.5" /> {isBn ? 'কার্টে নিন' : 'Move to Cart'}
                           </button>
                         )}
                         <button
                           type="button"
                           onClick={() => removeFromWishlist(item.id)}
                           className="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 transition-all cursor-pointer"
-                          title="Remove from wishlist"
+                          title={isBn ? 'উইশলিস্ট থেকে সরান' : 'Remove from wishlist'}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -711,15 +773,17 @@ function ProfileContent() {
                 <div className="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center mx-auto">
                   <Heart className="w-6 h-6" />
                 </div>
-                <h4 className="text-sm font-bold text-slate-900 dark:text-white">Your Wishlist is Empty</h4>
+                <h4 className="text-sm font-bold text-slate-900 dark:text-white">{isBn ? 'আপনার উইশলিস্ট খালি' : 'Your Wishlist is Empty'}</h4>
                 <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
-                  Save your favorite hardware and audio gear to monitor price drops and stock availability.
+                  {isBn
+                    ? 'পছন্দের গ্যাজেট ও অ্যাক্সেসরিজ সংরক্ষণ করুন যাতে দাম কমলে বা স্টক আসলে সহজেই জানতে পারেন।'
+                    : 'Save your favorite hardware and audio gear to monitor price drops and stock availability.'}
                 </p>
                 <Link
                   href="/products"
                   className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-orange-500 text-white font-bold text-xs shadow-md shadow-orange-500/20"
                 >
-                  Discover Products <ArrowRight className="w-3.5 h-3.5" />
+                  {isBn ? 'পণ্য দেখুন' : 'Discover Products'} <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
             )}
@@ -733,14 +797,14 @@ function ProfileContent() {
               <div>
                 <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <ShoppingCart className="w-5 h-5 text-orange-500" />
-                  Active Shopping Cart ({cartItems.length} items)
+                  {isBn ? `শপিং কার্ট (${toBengaliNumber(cartItems.length)}টি পণ্য)` : `Active Shopping Cart (${cartItems.length} items)`}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Review your items and proceed to fast courier checkout.
+                  {isBn ? 'আপনার পণ্যগুলো যাচাই করে দ্রুত কুরিয়ার চেকআউটে এগিয়ে যান।' : 'Review your items and proceed to fast courier checkout.'}
                 </p>
               </div>
               <Link href="/products" className="text-xs font-bold text-orange-600 dark:text-orange-400 hover:underline flex items-center gap-1">
-                Add More Items <ArrowRight className="w-3.5 h-3.5" />
+                {isBn ? 'আরও পণ্য যোগ করুন' : 'Add More Items'} <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
 
@@ -757,7 +821,7 @@ function ProfileContent() {
                         <div className="min-w-0">
                           <h4 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white truncate max-w-xs">{cItem.title}</h4>
                           <span className="font-mono font-bold text-xs text-orange-600 dark:text-orange-400 block mt-0.5">
-                            ৳{cItem.price.toLocaleString()} each
+                            {isBn ? `৳${toBengaliNumber(cItem.price)} প্রতিটি` : `৳${cItem.price.toLocaleString()} each`}
                           </span>
                         </div>
                       </div>
@@ -772,7 +836,9 @@ function ProfileContent() {
                           >
                             <Minus className="w-3.5 h-3.5" />
                           </button>
-                          <span className="w-8 text-center text-xs font-bold font-mono">{cItem.quantity}</span>
+                          <span className="w-8 text-center text-xs font-bold font-mono">
+                            {isBn ? toBengaliNumber(cItem.quantity) : cItem.quantity}
+                          </span>
                           <button
                             type="button"
                             onClick={() => updateQuantity(cItem.productId, cItem.quantity + 1)}
@@ -783,14 +849,14 @@ function ProfileContent() {
                         </div>
 
                         <span className="font-mono font-black text-xs sm:text-sm text-slate-900 dark:text-white w-20 text-right">
-                          ৳{(cItem.price * cItem.quantity).toLocaleString()}
+                          {isBn ? `৳${toBengaliNumber(cItem.price * cItem.quantity)}` : `৳${(cItem.price * cItem.quantity).toLocaleString()}`}
                         </span>
 
                         <button
                           type="button"
                           onClick={() => removeItem(cItem.productId)}
                           className="p-2 rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors"
-                          title="Remove item"
+                          title={isBn ? 'পণ্য সরান' : 'Remove item'}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -802,9 +868,11 @@ function ProfileContent() {
                 {/* Subtotal & Checkout CTA Card */}
                 <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
                   <div>
-                    <span className="text-xs text-slate-500 dark:text-slate-400">Cart Total ({cartItems.length} items)</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">
+                      {isBn ? `কার্ট মোট (${toBengaliNumber(cartItems.length)}টি পণ্য)` : `Cart Total (${cartItems.length} items)`}
+                    </span>
                     <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-mono">
-                      ৳{cartTotals.subtotal.toLocaleString()} BDT
+                      {isBn ? `৳${toBengaliNumber(cartTotals.subtotal)} টাকা` : `৳${cartTotals.subtotal.toLocaleString()} BDT`}
                     </p>
                   </div>
 
@@ -812,7 +880,7 @@ function ProfileContent() {
                     href="/checkout"
                     className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/25 flex items-center justify-center gap-2 cursor-pointer transition-all"
                   >
-                    Proceed to 1-Click Checkout <ArrowRight className="w-4 h-4" />
+                    {isBn ? '১-ক্লিক চেকআউটে এগিয়ে যান' : 'Proceed to 1-Click Checkout'} <ArrowRight className="w-4 h-4" />
                   </Link>
                 </div>
               </div>
@@ -821,15 +889,15 @@ function ProfileContent() {
                 <div className="w-12 h-12 rounded-2xl bg-orange-500/10 text-orange-500 flex items-center justify-center mx-auto">
                   <ShoppingCart className="w-6 h-6" />
                 </div>
-                <h4 className="text-sm font-bold text-slate-900 dark:text-white">Your Cart is Currently Empty</h4>
+                <h4 className="text-sm font-bold text-slate-900 dark:text-white">{isBn ? 'আপনার কার্ট বর্তমানে খালি' : 'Your Cart is Currently Empty'}</h4>
                 <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
-                  Add items to your cart to enjoy fast 24h courier delivery across Bangladesh.
+                  {isBn ? 'সারা বাংলাদেশে দ্রুত ২৪ ঘণ্টার কুরিয়ার ডেলিভারি উপভোগ করতে কার্টে পণ্য যোগ করুন।' : 'Add items to your cart to enjoy fast 24h courier delivery across Bangladesh.'}
                 </p>
                 <Link
                   href="/products"
                   className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-orange-500 text-white font-bold text-xs shadow-md shadow-orange-500/20"
                 >
-                  Start Shopping <ArrowRight className="w-3.5 h-3.5" />
+                  {isBn ? 'শপিং শুরু করুন' : 'Start Shopping'} <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
             )}

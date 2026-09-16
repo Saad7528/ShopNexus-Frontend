@@ -56,79 +56,96 @@ export interface BlockedIPRecord {
 
 export interface CityBreakdown {
   city: string;
+  cityBn?: string;
   percentage: number;
   subdivision: string;
+  subdivisionBn?: string;
 }
 
 export interface CountryInfo {
   country: string;
+  countryBn?: string;
   code: string;
   flag: string;
   pct: number;
   isPrimaryMarket?: boolean;
 }
 
-export const COUNTRY_REGIONS_MAP: Record<string, { country: string; flag: string; cities: CityBreakdown[] }> = {
+export const COUNTRY_REGIONS_MAP: Record<
+  string,
+  {
+    country: string;
+    countryBn?: string;
+    flag: string;
+    cities: CityBreakdown[];
+  }
+> = {
   BD: {
     country: 'Bangladesh',
+    countryBn: 'বাংলাদেশ',
     flag: '🇧🇩',
     cities: [
-      { city: 'Dhaka (Metropolitan & Gulshan)', percentage: 62, subdivision: 'Capital Division' },
-      { city: 'Chittagong (Port City & Agrabad)', percentage: 19, subdivision: 'Chittagong Division' },
-      { city: 'Sylhet (Zindabazar & Shahjalal)', percentage: 9, subdivision: 'Sylhet Division' },
-      { city: 'Rajshahi (Shaheb Bazar)', percentage: 5, subdivision: 'Rajshahi Division' },
-      { city: 'Khulna (Shibbari & Daulatpur)', percentage: 5, subdivision: 'Khulna Division' },
+      { city: 'Dhaka (Metropolitan & Gulshan)', cityBn: 'ঢাকা (মেট্রোপলিটন ও গুলশান)', percentage: 62, subdivision: 'Capital Division', subdivisionBn: 'ঢাকা বিভাগ' },
+      { city: 'Chittagong (Port City & Agrabad)', cityBn: 'চট্টগ্রাম (পোর্ট সিটি ও আগ্রাবাদ)', percentage: 19, subdivision: 'Chittagong Division', subdivisionBn: 'চট্টগ্রাম বিভাগ' },
+      { city: 'Sylhet (Zindabazar & Shahjalal)', cityBn: 'সিলেট (জিন্দাবাজার ও শাহজালাল)', percentage: 9, subdivision: 'Sylhet Division', subdivisionBn: 'সিলেট বিভাগ' },
+      { city: 'Rajshahi (Shaheb Bazar)', cityBn: 'রাজশাহী (সাহেব বাজার)', percentage: 5, subdivision: 'Rajshahi Division', subdivisionBn: 'রাজশাহী বিভাগ' },
+      { city: 'Khulna (Shibbari & Daulatpur)', cityBn: 'খুলনা (শিববাড়ি ও দৌলতপুর)', percentage: 5, subdivision: 'Khulna Division', subdivisionBn: 'খুলনা বিভাগ' },
     ],
   },
   US: {
     country: 'United States',
+    countryBn: 'যুক্তরাষ্ট্র',
     flag: '🇺🇸',
     cities: [
-      { city: 'New York (Manhattan & Brooklyn)', percentage: 38, subdivision: 'New York (NY)' },
-      { city: 'California (Los Angeles & Silicon Valley)', percentage: 32, subdivision: 'California (CA)' },
-      { city: 'Texas (Dallas & Austin)', percentage: 16, subdivision: 'Texas (TX)' },
-      { city: 'Florida (Miami & Orlando)', percentage: 8, subdivision: 'Florida (FL)' },
-      { city: 'Washington (Seattle Metro)', percentage: 6, subdivision: 'Washington (WA)' },
+      { city: 'New York (Manhattan & Brooklyn)', cityBn: 'নিউ ইয়র্ক (ম্যানহাটন ও ব্রুকলিন)', percentage: 38, subdivision: 'New York (NY)', subdivisionBn: 'নিউ ইয়র্ক (NY)' },
+      { city: 'California (Los Angeles & Silicon Valley)', cityBn: 'ক্যালিফোর্নিয়া (লস অ্যাঞ্জেলেস ও সিলিকন ভ্যালি)', percentage: 32, subdivision: 'California (CA)', subdivisionBn: 'ক্যালিফোর্নিয়া (CA)' },
+      { city: 'Texas (Dallas & Austin)', cityBn: 'টেক্সাস (ডালাস ও অস্টিন)', percentage: 16, subdivision: 'Texas (TX)', subdivisionBn: 'টেক্সাস (TX)' },
+      { city: 'Florida (Miami & Orlando)', cityBn: 'ফ্লোরিডা (মায়ামি ও অরল্যান্ডো)', percentage: 8, subdivision: 'Florida (FL)', subdivisionBn: 'ফ্লোরিডা (FL)' },
+      { city: 'Washington (Seattle Metro)', cityBn: 'ওয়াশিংটন (সিয়াটল মেট্রো)', percentage: 6, subdivision: 'Washington (WA)', subdivisionBn: 'ওয়াশিংটন (WA)' },
     ],
   },
   GB: {
     country: 'United Kingdom',
+    countryBn: 'যুক্তরাজ্য',
     flag: '🇬🇧',
     cities: [
-      { city: 'London (Westminster & Soho)', percentage: 54, subdivision: 'Greater London' },
-      { city: 'Manchester (City Centre)', percentage: 22, subdivision: 'Greater Manchester' },
-      { city: 'Birmingham (Bullring Area)', percentage: 12, subdivision: 'West Midlands' },
-      { city: 'Edinburgh (Old Town)', percentage: 7, subdivision: 'Scotland' },
-      { city: 'Leeds (City Centre)', percentage: 5, subdivision: 'West Yorkshire' },
+      { city: 'London (Westminster & Soho)', cityBn: 'লন্ডন (ওয়েস্টমিনস্টার ও সোহো)', percentage: 54, subdivision: 'Greater London', subdivisionBn: 'গ্রেটার লন্ডন' },
+      { city: 'Manchester (City Centre)', cityBn: 'ম্যানচেস্টার (সিটি সেন্টার)', percentage: 22, subdivision: 'Greater Manchester', subdivisionBn: 'গ্রেটার ম্যানচেস্টার' },
+      { city: 'Birmingham (Bullring Area)', cityBn: 'বার্মিংহাম (বুলরিং এরিয়া)', percentage: 12, subdivision: 'West Midlands', subdivisionBn: 'ওয়েস্ট মিডল্যান্ডস' },
+      { city: 'Edinburgh (Old Town)', cityBn: 'এডিনবরা (ওল্ড টাউন)', percentage: 7, subdivision: 'Scotland', subdivisionBn: 'স্কটল্যান্ড' },
+      { city: 'Leeds (City Centre)', cityBn: 'লিডস (সিটি সেন্টার)', percentage: 5, subdivision: 'West Yorkshire', subdivisionBn: 'ওয়েস্ট ইয়র্কশায়ার' },
     ],
   },
   AE: {
     country: 'United Arab Emirates',
+    countryBn: 'সংযুক্ত আরব আমিরাত',
     flag: '🇦🇪',
     cities: [
-      { city: 'Dubai (Downtown & Marina)', percentage: 65, subdivision: 'Emirate of Dubai' },
-      { city: 'Abu Dhabi (Corniche & Al Reem)', percentage: 22, subdivision: 'Emirate of Abu Dhabi' },
-      { city: 'Sharjah (Al Majaz Area)', percentage: 9, subdivision: 'Emirate of Sharjah' },
-      { city: 'Ajman (Coastal Hub)', percentage: 4, subdivision: 'Emirate of Ajman' },
+      { city: 'Dubai (Downtown & Marina)', cityBn: 'দুবাই (ডাউনটাউন ও মেরিনা)', percentage: 65, subdivision: 'Emirate of Dubai', subdivisionBn: 'দুবাই আমিরাত' },
+      { city: 'Abu Dhabi (Corniche & Al Reem)', cityBn: 'আবুধাবি (কর্নিশ ও আল রিম)', percentage: 22, subdivision: 'Emirate of Abu Dhabi', subdivisionBn: 'আবুধাবি আমিরাত' },
+      { city: 'Sharjah (Al Majaz Area)', cityBn: 'শারজাহ (আল মাজাজ এরিয়া)', percentage: 9, subdivision: 'Emirate of Sharjah', subdivisionBn: 'শারজাহ আমিরাত' },
+      { city: 'Ajman (Coastal Hub)', cityBn: 'আজমান (কোস্টাল হাব)', percentage: 4, subdivision: 'Emirate of Ajman', subdivisionBn: 'আজমান আমিরাত' },
     ],
   },
   CA: {
     country: 'Canada',
+    countryBn: 'কানাডা',
     flag: '🇨🇦',
     cities: [
-      { city: 'Toronto (Downtown & GTA)', percentage: 48, subdivision: 'Ontario (ON)' },
-      { city: 'Vancouver (Metro Vancouver)', percentage: 26, subdivision: 'British Columbia (BC)' },
-      { city: 'Montreal (Ville-Marie)', percentage: 18, subdivision: 'Quebec (QC)' },
-      { city: 'Calgary (Downtown Beltline)', percentage: 8, subdivision: 'Alberta (AB)' },
+      { city: 'Toronto (Downtown & GTA)', cityBn: 'টরন্টো (ডাউনটাউন ও জিটিএ)', percentage: 48, subdivision: 'Ontario (ON)', subdivisionBn: 'অন্টারিও (ON)' },
+      { city: 'Vancouver (Metro Vancouver)', cityBn: 'ভ্যাঙ্কুভার (মেট্রো ভ্যাঙ্কুভার)', percentage: 26, subdivision: 'British Columbia (BC)', subdivisionBn: 'ব্রিটিশ কলাম্বিয়া (BC)' },
+      { city: 'Montreal (Ville-Marie)', cityBn: 'মন্ট্রিল (ভিল-মারি)', percentage: 18, subdivision: 'Quebec (QC)', subdivisionBn: 'কুইবেক (QC)' },
+      { city: 'Calgary (Downtown Beltline)', cityBn: 'ক্যালগারি (ডাউনটাউন বেল্টলাইন)', percentage: 8, subdivision: 'Alberta (AB)', subdivisionBn: 'আলবার্টা (AB)' },
     ],
   },
   UN: {
     country: 'Other International Regions',
+    countryBn: 'অন্যান্য আন্তর্জাতিক অঞ্চল',
     flag: '🌐',
     cities: [
-      { city: 'European Union (Frankfurt, Paris, Amsterdam)', percentage: 45, subdivision: 'Western Europe' },
-      { city: 'Asia-Pacific (Singapore, Tokyo, Sydney)', percentage: 35, subdivision: 'APAC Hub' },
-      { city: 'Middle East & Africa (Riyadh, Doha, Cairo)', percentage: 20, subdivision: 'MENA Region' },
+      { city: 'European Union (Frankfurt, Paris, Amsterdam)', cityBn: 'ইউরোপীয় ইউনিয়ন (ফ্রাঙ্কফুর্ট, প্যারিস, আমস্টারডাম)', percentage: 45, subdivision: 'Western Europe', subdivisionBn: 'পশ্চিম ইউরোপ' },
+      { city: 'Asia-Pacific (Singapore, Tokyo, Sydney)', cityBn: 'এশিয়া-প্যাসিফিক (সিঙ্গাপুর, টোকিও, সিডনি)', percentage: 35, subdivision: 'APAC Hub', subdivisionBn: 'এপ্যাক হাব' },
+      { city: 'Middle East & Africa (Riyadh, Doha, Cairo)', cityBn: 'মধ্যপ্রাচ্য ও আফ্রিকা (রিয়াদ, দোহা, কায়রো)', percentage: 20, subdivision: 'MENA Region', subdivisionBn: 'মেনা অঞ্চল' },
     ],
   },
 };
