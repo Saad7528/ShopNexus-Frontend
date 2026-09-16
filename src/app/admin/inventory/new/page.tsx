@@ -408,21 +408,21 @@ export default function AdminNewProductPage() {
                 <div className="flex items-center gap-2">
                   <Package className="w-4 h-4 text-orange-600 dark:text-orange-400" />
                   <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
-                    1. General Information & Identity
+                    {isBn ? '১. পণ্যের সাধারণ তথ্য ও পরিচিতি' : '1. General Information & Identity'}
                   </h2>
                 </div>
-                <span className="text-[10px] text-slate-400 uppercase font-mono">Storefront Catalog</span>
+                <span className="text-[10px] text-slate-400 uppercase font-mono">{isBn ? 'স্টোরফ্রন্ট ক্যাটালগ' : 'Storefront Catalog'}</span>
               </div>
 
               {/* Title */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                  Product Title / Name <span className="text-rose-500">*</span>
+                  {isBn ? 'পণ্যের নাম / টাইটেল' : 'Product Title / Name'} <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="Enter product title / name..."
+                  placeholder={isBn ? 'পণ্যের নাম বা টাইটেল লিখুন...' : 'Enter product title / name...'}
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-sm font-semibold focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-all"
@@ -433,11 +433,11 @@ export default function AdminNewProductPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                    Brand Name
+                    {isBn ? 'ব্র্যান্ডের নাম' : 'Brand Name'}
                   </label>
                   <input
                     type="text"
-                    placeholder="Enter brand name..."
+                    placeholder={isBn ? 'ব্র্যান্ডের নাম লিখুন...' : 'Enter brand name...'}
                     value={formData.brand}
                     onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none"
@@ -446,11 +446,11 @@ export default function AdminNewProductPage() {
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                    Vendor / Merchant Name
+                    {isBn ? 'ভেন্ডর / মার্চেন্ট' : 'Vendor / Merchant Name'}
                   </label>
                   <input
                     type="text"
-                    placeholder="Enter vendor name..."
+                    placeholder={isBn ? 'ভেন্ডর বা মার্চেন্ট নাম লিখুন...' : 'Enter vendor name...'}
                     value={formData.vendorName}
                     onChange={(e) => setFormData({ ...formData, vendorName: e.target.value })}
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none"
@@ -461,11 +461,11 @@ export default function AdminNewProductPage() {
               {/* Description */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                  Description & Key Specifications
+                  {isBn ? 'পণ্যের বিস্তারিত বিবরণ ও স্পেসিফিকেশন' : 'Description & Key Specifications'}
                 </label>
                 <textarea
                   rows={4}
-                  placeholder="Enter comprehensive product description, key specs, and highlights..."
+                  placeholder={isBn ? 'পণ্যের বিস্তারিত বিবরণ, ফিচার ও স্পেসিফিকেশন লিখুন...' : 'Enter comprehensive product description, key specs, and highlights...'}
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs leading-relaxed focus:border-orange-500 focus:bg-white dark:focus:bg-slate-950 focus:outline-none transition-all"
@@ -475,11 +475,11 @@ export default function AdminNewProductPage() {
               {/* Tags */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  Search & Recommendation Tags (Comma-separated)
+                  {isBn ? 'সার্চ ও রিকমেন্ডেশন ট্যাগ (কমা দিয়ে আলাদা করুন)' : 'Search & Recommendation Tags (Comma-separated)'}
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. wireless, anc, gaming, mechanical, official"
+                  placeholder={isBn ? 'যেমন: wireless, anc, gaming, mechanical, official' : 'e.g. wireless, anc, gaming, mechanical, official'}
                   value={formData.tags}
                   onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
                   className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none"
@@ -493,7 +493,7 @@ export default function AdminNewProductPage() {
                 <div className="flex items-center gap-2">
                   <ImageIcon className="w-4 h-4 text-orange-600 dark:text-orange-400" />
                   <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
-                    2. Product Images & Gallery Studio
+                    {isBn ? '২. প্রোডাক্ট ইমেজ ও গ্যালারি স্টুডিও' : '2. Product Images & Gallery Studio'}
                   </h2>
                 </div>
 
@@ -509,7 +509,7 @@ export default function AdminNewProductPage() {
                     }`}
                   >
                     <UploadCloud className="w-3.5 h-3.5" />
-                    <span>Upload from Device</span>
+                    <span>{isBn ? 'ডিভাইস থেকে আপলোড' : 'Upload from Device'}</span>
                   </button>
 
                   <button
@@ -522,7 +522,7 @@ export default function AdminNewProductPage() {
                     }`}
                   >
                     <ImageIcon className="w-3.5 h-3.5" />
-                    <span>Image URLs</span>
+                    <span>{isBn ? 'ইমেজ ইউআরএল (URL)' : 'Image URLs'}</span>
                   </button>
                 </div>
               </div>
@@ -557,10 +557,10 @@ export default function AdminNewProductPage() {
                     </div>
                     <div>
                       <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
-                        Click to browse or drag and drop images here
+                        {isBn ? 'ছবি সিলেক্ট করতে ক্লিক করুন অথবা এখানে ড্র্যাগ করুন' : 'Click to browse or drag and drop images here'}
                       </span>
                       <span className="text-[11px] text-slate-400">
-                        Supports high-resolution PNG, JPG, WebP (Multiple images allowed)
+                        {isBn ? 'উচ্চ রেজোলিউশনের PNG, JPG, WebP সমর্থিত (একাধিক ছবি গ্রহণযোগ্য)' : 'Supports high-resolution PNG, JPG, WebP (Multiple images allowed)'}
                       </span>
                     </div>
                   </div>
@@ -569,8 +569,8 @@ export default function AdminNewProductPage() {
                   {uploadedImages.length > 0 && (
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300">
-                        <span>Uploaded Images ({uploadedImages.length}):</span>
-                        <span className="text-[11px] text-slate-400 font-normal">First image will be the Primary Cover</span>
+                        <span>{isBn ? `আপলোডকৃত ছবি (${toBengaliNumber(uploadedImages.length)}):` : `Uploaded Images (${uploadedImages.length}):`}</span>
+                        <span className="text-[11px] text-slate-400 font-normal">{isBn ? 'প্রথম ছবিটি মূল কভার হিসেবে থাকবে' : 'First image will be the Primary Cover'}</span>
                       </div>
 
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -582,7 +582,7 @@ export default function AdminNewProductPage() {
                             <Image src={img} alt={`Upload ${idx + 1}`} fill className="object-cover" />
                             {idx === 0 && (
                               <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-orange-600 text-white text-[9px] font-black shadow-md z-10">
-                                COVER
+                                {isBn ? 'কভার' : 'COVER'}
                               </div>
                             )}
                             <button
@@ -592,7 +592,7 @@ export default function AdminNewProductPage() {
                                 handleRemoveUploadedImage(idx);
                               }}
                               className="absolute top-2 right-2 p-1.5 rounded-xl bg-rose-500/90 text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shadow-md hover:bg-rose-600"
-                              title="Delete Image"
+                              title={isBn ? 'ছবি মুছুন' : 'Delete Image'}
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -608,7 +608,7 @@ export default function AdminNewProductPage() {
                   {/* Primary Cover Image URL */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                      Primary Cover Image URL <span className="text-rose-500">*</span>
+                      {isBn ? 'মূল কভার ইমেজ ইউআরএল' : 'Primary Cover Image URL'} <span className="text-rose-500">*</span>
                     </label>
                     <input
                       type="url"
@@ -624,7 +624,7 @@ export default function AdminNewProductPage() {
                     <div key={idx} className="flex items-center gap-2">
                       <div className="flex-1">
                         <label className="block text-[11px] font-bold text-slate-500 mb-1">
-                          Gallery Image #{idx + 2} URL
+                          {isBn ? `গ্যালারি ইমেজ #${toBengaliNumber(idx + 2)} ইউআরএল` : `Gallery Image #${idx + 2} URL`}
                         </label>
                         <input
                           type="url"
@@ -638,7 +638,7 @@ export default function AdminNewProductPage() {
                         type="button"
                         onClick={() => handleRemoveExtraImageUrl(idx)}
                         className="mt-5 p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border border-rose-500/20 transition-colors cursor-pointer"
-                        title="Remove URL"
+                        title={isBn ? 'মুছুন' : 'Remove URL'}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -652,7 +652,7 @@ export default function AdminNewProductPage() {
                     className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-orange-500/10 text-slate-700 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 border border-slate-200 dark:border-slate-700 text-xs font-bold transition-colors cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" />
-                    <span>Add Another Image URL</span>
+                    <span>{isBn ? '+ আরও একটি ছবির লিঙ্ক যোগ করুন' : 'Add Another Image URL'}</span>
                   </button>
                 </div>
               )}
@@ -664,7 +664,7 @@ export default function AdminNewProductPage() {
                 <div className="flex items-center gap-2">
                   <Barcode className="w-4 h-4 text-orange-600 dark:text-orange-400" />
                   <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
-                    3. Inventory Barcode & SKU Codes
+                    {isBn ? '৩. ইনভেন্টরি বারকোড ও SKU কোড' : '3. Inventory Barcode & SKU Codes'}
                   </h2>
                 </div>
                 <button
@@ -672,14 +672,14 @@ export default function AdminNewProductPage() {
                   onClick={regenerateIdentifiers}
                   className="inline-flex items-center gap-1 text-[11px] font-bold text-orange-600 dark:text-orange-400 hover:underline cursor-pointer"
                 >
-                  <RefreshCw className="w-3 h-3" /> Auto-Generate
+                  <RefreshCw className="w-3 h-3" /> {isBn ? 'অটো-জেনারেট' : 'Auto-Generate'}
                 </button>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    SKU Code (Stock Keeping Unit)
+                    {isBn ? 'SKU কোড (স্টক কিপিং ইউনিট)' : 'SKU Code (Stock Keeping Unit)'}
                   </label>
                   <input
                     type="text"
@@ -691,7 +691,7 @@ export default function AdminNewProductPage() {
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    Barcode / EAN
+                    {isBn ? 'বারকোড / EAN' : 'Barcode / EAN'}
                   </label>
                   <input
                     type="text"
@@ -708,18 +708,18 @@ export default function AdminNewProductPage() {
               <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800/80 pb-3">
                 <Layers className="w-4 h-4 text-orange-600 dark:text-orange-400" />
                 <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
-                  4. Variants & Alert Thresholds
+                  {isBn ? '৪. ভ্যারিয়েন্ট ও লো-স্টক অ্যালার্ট' : '4. Variants & Alert Thresholds'}
                 </h2>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                    Color Variants
+                    {isBn ? 'কালার ভ্যারিয়েন্ট' : 'Color Variants'}
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. Space Gray, Silver, Deep Navy"
+                    placeholder={isBn ? 'যেমন: Space Gray, Silver, Midnight Black' : 'e.g. Space Gray, Silver, Deep Navy'}
                     value={formData.variantColor}
                     onChange={(e) => setFormData({ ...formData, variantColor: e.target.value })}
                     className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none"
@@ -728,11 +728,11 @@ export default function AdminNewProductPage() {
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                    Size / Edition Variant
+                    {isBn ? 'সাইজ / এডিশন ভ্যারিয়েন্ট' : 'Size / Edition Variant'}
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. Standard Unit, Creator Edition"
+                    placeholder={isBn ? 'যেমন: Standard Unit, Pro Edition' : 'e.g. Standard Unit, Creator Edition'}
                     value={formData.variantSize}
                     onChange={(e) => setFormData({ ...formData, variantSize: e.target.value })}
                     className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none"
@@ -741,7 +741,7 @@ export default function AdminNewProductPage() {
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                    Low Stock Alert Threshold
+                    {isBn ? 'লো-স্টক অ্যালার্ট লিমিট' : 'Low Stock Alert Threshold'}
                   </label>
                   <input
                     type="number"
