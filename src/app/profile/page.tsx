@@ -402,39 +402,49 @@ function ProfileContent() {
         {activeTab === 'profile' && (
           <form onSubmit={handleSaveProfile} className="rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-6 sm:p-8 backdrop-blur-2xl shadow-xl space-y-6">
             <div>
-              <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">General Information & Delivery Preferences</h3>
+              <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                {isBn ? 'সাধারণ তথ্য এবং ডেলিভারি পছন্দ' : 'General Information & Delivery Preferences'}
+              </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Update your personal contact information and default delivery destination for fast 1-click checkout.
+                {isBn
+                  ? 'দ্রুত ১-ক্লিক চেকআউটের জন্য আপনার যোগাযোগের তথ্য এবং ডিফল্ট ডেলিভারির ঠিকানা আপডেট করুন।'
+                  : 'Update your personal contact information and default delivery destination for fast 1-click checkout.'}
               </p>
             </div>
 
             {saveSuccess && (
               <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 shrink-0" />
-                Profile information and default shipping address updated successfully!
+                {isBn
+                  ? 'প্রোফাইল তথ্য ও ডিফল্ট ডেলিভারির ঠিকানা সফলভাবে আপডেট হয়েছে!'
+                  : 'Profile information and default shipping address updated successfully!'}
               </div>
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Full Name</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  {isBn ? 'পুরো নাম' : 'Full Name'}
+                </label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. S.M. Amirul Islam Saad"
+                  placeholder={isBn ? 'উদাঃ এস. এম. আমিরুল ইসলাম সাদ' : 'e.g. S.M. Amirul Islam Saad'}
                   className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-orange-500 shadow-inner"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Phone Number</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  {isBn ? 'ফোন নম্বর' : 'Phone Number'}
+                </label>
                 <input
                   type="tel"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
-                  placeholder="e.g. +880 1712-345678"
+                  placeholder={isBn ? 'উদাঃ ০১৭১২-৩৪৫৬৭৮' : 'e.g. +880 1712-345678'}
                   className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-orange-500 shadow-inner"
                 />
               </div>
@@ -444,54 +454,62 @@ function ProfileContent() {
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                   <MapPin className="w-3.5 h-3.5 text-orange-500" />
-                  Default Shipping Address
+                  {isBn ? 'ডিফল্ট শিপিং ঠিকানা' : 'Default Shipping Address'}
                 </div>
                 <span className="text-[11px] text-orange-600 dark:text-orange-400 font-semibold">
-                  📍 Auto-applied during checkout
+                  {isBn ? '📍 চেকআউটে স্বয়ংক্রিয়ভাবে যুক্ত হবে' : '📍 Auto-applied during checkout'}
                 </span>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Street Address</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  {isBn ? 'রাস্তা / বাসার ঠিকানা' : 'Street Address'}
+                </label>
                 <input
                   type="text"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  placeholder="e.g. House 42, Road 11, Block D"
+                  placeholder={isBn ? 'উদাঃ বাড়ি ৪২, রোড ১১, ব্লক ডি' : 'e.g. House 42, Road 11, Block D'}
                   className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-orange-500 shadow-inner"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">City / Division</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                    {isBn ? 'শহর / বিভাগ' : 'City / Division'}
+                  </label>
                   <input
                     type="text"
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
-                    placeholder="e.g. Dhaka"
+                    placeholder={isBn ? 'উদাঃ ঢাকা' : 'e.g. Dhaka'}
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-orange-500 shadow-inner"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Postal Code</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                    {isBn ? 'পোস্টাল কোড' : 'Postal Code'}
+                  </label>
                   <input
                     type="text"
                     value={zipCode}
                     onChange={(e) => setZipCode(e.target.value)}
-                    placeholder="e.g. 1213"
+                    placeholder={isBn ? 'উদাঃ ১২১৩' : 'e.g. 1213'}
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-orange-500 shadow-inner"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Country</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                    {isBn ? 'দেশ' : 'Country'}
+                  </label>
                   <input
                     type="text"
                     value={country}
                     onChange={(e) => setCountry(e.target.value)}
-                    placeholder="Bangladesh"
+                    placeholder={isBn ? 'বাংলাদেশ' : 'Bangladesh'}
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600 focus:outline-none focus:border-orange-500 shadow-inner"
                   />
                 </div>
