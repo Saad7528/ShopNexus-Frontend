@@ -30,8 +30,15 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { ALL_PRODUCTS, getProductByIdOrSlug } from '@/data/products';
+import { useLanguageStore } from '@/store/useLanguageStore';
+import { useHydrated } from '@/lib/useHydrated';
+import { toBengaliNumber } from '@/lib/translations';
 
 function ProfileContent() {
+  const { language } = useLanguageStore();
+  const isHydrated = useHydrated();
+  const isBn = isHydrated && language === 'bn';
+
   const searchParams = useSearchParams();
   const requestedTab = searchParams.get('tab');
 
@@ -86,10 +93,12 @@ function ProfileContent() {
 
     if (file.size > 5 * 1024 * 1024) {
       await showAlertDialog({
-        title: 'ছবির সাইজ সীমা অতিক্রম করেছে',
-        message: 'ছবির সাইজ সর্বোচ্চ ৫ মেগাবাইট (5MB) হতে পারে। অনুগ্রহ করে ছোট সাইজের ছবি নির্বাচন করুন।',
+        title: isBn ? 'ছবির সাইজ সীমা অতিক্রম করেছে' : 'Image Size Limit Exceeded',
+        message: isBn
+          ? 'ছবির সাইজ সর্বোচ্চ ৫ মেগাবাইট (5MB) হতে পারে। অনুগ্রহ করে ছোট সাইজের ছবি নির্বাচন করুন।'
+          : 'Image size can be at most 5MB. Please choose a smaller image file.',
         type: 'warning',
-        confirmText: 'ঠিক আছে',
+        confirmText: isBn ? 'ঠিক আছে' : 'OK',
       });
       return;
     }
