@@ -41,6 +41,8 @@ export const Navbar: React.FC = () => {
   const { items: wishlistItems } = useWishlistStore();
   const { unreadCount, openDrawer: openNotificationDrawer } = useNotificationStore();
   const { user, isAuthenticated, logout } = useAuthStore();
+  const searchStoreValue = useProductStore((state) => state.search);
+  const setSearchStore = useProductStore((state) => state.setSearch);
 
   // Local state
   const isMounted = useHydrated();
@@ -53,9 +55,15 @@ export const Navbar: React.FC = () => {
   }
 
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [visualSearchOpen, setVisualSearchOpen] = useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
+  const [searchQuery, setSearchQuery] = useState(searchStoreValue || '');
+  const [visualSearchOpen, setVisualSearchOpen] = useState(false);
+
+  useEffect(() => {
+    if (pathname === '/products') {
+      setSearchQuery(searchStoreValue);
+    }
+  }, [pathname, searchStoreValue]);
 
   useEffect(() => {
     const handleScroll = () => {
