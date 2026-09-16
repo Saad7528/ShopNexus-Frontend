@@ -12,6 +12,7 @@ import {
   Headphones,
 } from 'lucide-react';
 import { FaqAccordion } from '@/components/about/FaqAccordion';
+import { HashScrollHandler } from '@/components/about/HashScrollHandler';
 
 export const metadata: Metadata = {
   title: 'About ShopNexus & FAQ | 100% Genuine Hardware Ecosystem',
@@ -21,9 +22,11 @@ export const metadata: Metadata = {
 
 export default function AboutAndFAQPage() {
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f19] text-slate-900 dark:text-white">
-      {/* 1. HERO SECTION */}
-      <section className="relative overflow-hidden pt-12 pb-20 px-4 sm:px-6 lg:px-8 border-b border-slate-200 dark:border-slate-800">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f19] text-slate-900 dark:text-white scroll-smooth">
+      <HashScrollHandler />
+
+      {/* 1. HERO / ABOUT SECTION */}
+      <section id="about-hero" className="relative overflow-hidden pt-12 pb-20 px-4 sm:px-6 lg:px-8 border-b border-slate-200 dark:border-slate-800 scroll-mt-24">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-gradient-to-tr from-orange-500/15 via-amber-500/10 to-transparent blur-3xl rounded-full pointer-events-none" />
 
         <div className="relative max-w-5xl mx-auto text-center space-y-6">
