@@ -177,7 +177,6 @@ function ProfileContent() {
     });
   };
 
-
   const getStepProgress = (status: UserOrder['status']) => {
     switch (status) {
       case 'PLACED':
@@ -192,6 +191,19 @@ function ProfileContent() {
         return 5;
       default:
         return 1;
+    }
+  };
+
+  const getStatusLabel = (st: string) => {
+    if (!isBn) return st;
+    switch (st) {
+      case 'PLACED': return 'অর্ডার গৃহীত';
+      case 'CONFIRMED': return 'নিশ্চিতকৃত';
+      case 'PACKAGING': return 'প্যাকেজিং';
+      case 'SHIPPED': return 'রওনা হয়েছে';
+      case 'DELIVERED': return 'ডেলিভারড';
+      case 'CANCELLED': return 'বাতিলকৃত';
+      default: return st;
     }
   };
 
