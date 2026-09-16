@@ -1,12 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
 import {
   useVisitorAnalyticsStore,
   TimeFilter,
-  KpiFilterType,
-  GeoPolicyMode,
   VisitorSession,
   COUNTRY_REGIONS_MAP,
 } from '@/store/useVisitorAnalyticsStore';
@@ -14,7 +11,6 @@ import { useLanguageStore } from '@/store/useLanguageStore';
 import { toBengaliNumber } from '@/lib/translations';
 import {
   Activity,
-  Users,
   Eye,
   Clock,
   TrendingUp,
@@ -29,29 +25,20 @@ import {
   Filter,
   Download,
   RefreshCw,
-  ArrowUpRight,
-  ExternalLink,
-  MapPin,
   Compass,
   Layers,
-  Sparkles,
-  Zap,
   ShoppingBag,
   CheckCircle2,
-  AlertTriangle,
   Radio,
   ChevronRight,
   Ban,
   Unlock,
   X,
   Cpu,
-  Lock,
-  Flag,
   FileSpreadsheet,
   Printer,
   FileText,
   ChevronDown,
-  Phone,
 } from 'lucide-react';
 import { exportToBrandedExcel, printBrandedPDF } from '@/lib/exportUtils';
 
@@ -93,7 +80,6 @@ export default function VisitorAnalyticsPage() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [selectedIPToBlock, setSelectedIPToBlock] = useState<string | null>(null);
   const [blockReasonInput, setBlockReasonInput] = useState('');
-  const [liveDbUsers, setLiveDbUsers] = useState<any[]>([]);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -106,22 +92,10 @@ export default function VisitorAnalyticsPage() {
         if ((!resLiveTelemetry || !resLiveTelemetry.ok) && API_URL && !API_URL.startsWith('/api') && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
           resLiveTelemetry = await fetch(`${API_URL}/telemetry/live-sessions?range=${timeFilter}`).catch(() => null);
         }
-
-        let resUsers = await fetch('/api/admin/users').catch(() => null);
-        if ((!resUsers || !resUsers.ok) && API_URL && !API_URL.startsWith('/api') && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-          resUsers = await fetch(`${API_URL}/admin/users`).catch(() => null);
-        }
-
         if (resLiveTelemetry && resLiveTelemetry.ok) {
           const telemetryJson = await resLiveTelemetry.json();
           if (telemetryJson?.success && Array.isArray(telemetryJson.data)) {
             syncBackendSessions(telemetryJson.data);
-          }
-        }
-        if (resUsers && resUsers.ok) {
-          const usersData = await resUsers.json();
-          if (usersData?.data && Array.isArray(usersData.data)) {
-            setLiveDbUsers(usersData.data);
           }
         }
       } catch (e) {
@@ -420,6 +394,7 @@ export default function VisitorAnalyticsPage() {
       ? [
           {
             country: 'Bangladesh',
+            countryBn: 'বাংলাদেশ',
             code: 'BD',
             flag: '🇧🇩',
             count: countryCounts['BD'] || 0,
@@ -428,6 +403,7 @@ export default function VisitorAnalyticsPage() {
           },
           {
             country: 'United States',
+            countryBn: 'যুক্তরাষ্ট্র',
             code: 'US',
             flag: '🇺🇸',
             count: countryCounts['US'] || 0,
@@ -436,6 +412,7 @@ export default function VisitorAnalyticsPage() {
           },
           {
             country: 'United Kingdom',
+            countryBn: 'যুক্তরাজ্য',
             code: 'GB',
             flag: '🇬🇧',
             count: countryCounts['GB'] || 0,
@@ -444,12 +421,12 @@ export default function VisitorAnalyticsPage() {
           },
         ]
       : [
-          { country: 'Bangladesh', code: 'BD', flag: '🇧🇩', count: Math.round(liveVisitorCount * 0.76), pct: 76, isPrimary: true },
-          { country: 'United States', code: 'US', flag: '🇺🇸', count: Math.round(liveVisitorCount * 0.11), pct: 11, isPrimary: false },
-          { country: 'United Kingdom', code: 'GB', flag: '🇬🇧', count: Math.round(liveVisitorCount * 0.05), pct: 5, isPrimary: false },
-          { country: 'United Arab Emirates', code: 'AE', flag: '🇦🇪', count: Math.round(liveVisitorCount * 0.04), pct: 4, isPrimary: false },
-          { country: 'Canada', code: 'CA', flag: '🇨🇦', count: Math.round(liveVisitorCount * 0.02), pct: 2, isPrimary: false },
-          { country: 'Other Regions', code: 'UN', flag: '🌐', count: Math.round(liveVisitorCount * 0.02), pct: 2, isPrimary: false },
+          { country: 'Bangladesh', countryBn: 'বাংলাদেশ', code: 'BD', flag: '🇧🇩', count: Math.round(liveVisitorCount * 0.76), pct: 76, isPrimary: true },
+          { country: 'United States', countryBn: 'যুক্তরাষ্ট্র', code: 'US', flag: '🇺🇸', count: Math.round(liveVisitorCount * 0.11), pct: 11, isPrimary: false },
+          { country: 'United Kingdom', countryBn: 'যুক্তরাজ্য', code: 'GB', flag: '🇬🇧', count: Math.round(liveVisitorCount * 0.05), pct: 5, isPrimary: false },
+          { country: 'United Arab Emirates', countryBn: 'সংযুক্ত আরব আমিরাত', code: 'AE', flag: '🇦🇪', count: Math.round(liveVisitorCount * 0.04), pct: 4, isPrimary: false },
+          { country: 'Canada', countryBn: 'কানাডা', code: 'CA', flag: '🇨🇦', count: Math.round(liveVisitorCount * 0.02), pct: 2, isPrimary: false },
+          { country: 'Other Regions', countryBn: 'অন্যান্য আন্তর্জাতিক অঞ্চল', code: 'UN', flag: '🌐', count: Math.round(liveVisitorCount * 0.02), pct: 2, isPrimary: false },
         ];
 
   // Selected Country Info & City Matrix
@@ -460,12 +437,66 @@ export default function VisitorAnalyticsPage() {
 
   // Traffic Sources
   const trafficSources = [
-    { source: 'Google Organic Search', type: 'Search Engine', count: '44%', visitors: Math.round(liveVisitorCount * 0.44), color: 'bg-blue-500' },
-    { source: 'Direct URL / Bookmarks', type: 'Direct Traffic', count: '28%', visitors: Math.round(liveVisitorCount * 0.28), color: 'bg-emerald-500' },
-    { source: 'Facebook Ads & Storefront', type: 'Social Campaign', count: '14%', visitors: Math.round(liveVisitorCount * 0.14), color: 'bg-indigo-500' },
-    { source: 'Instagram Stories & Reels', type: 'Social Organic', count: '8%', visitors: Math.round(liveVisitorCount * 0.08), color: 'bg-rose-500' },
-    { source: 'YouTube Hardware Reviews', type: 'Video Referral', count: '4%', visitors: Math.round(liveVisitorCount * 0.04), color: 'bg-red-500' },
-    { source: 'Flash Sale Email Campaign', type: 'Email Referral', count: '2%', visitors: Math.round(liveVisitorCount * 0.02), color: 'bg-amber-500' },
+    {
+      source: 'Google Organic Search',
+      sourceBn: 'গুগল অর্গানিক সার্চ',
+      type: 'Search Engine',
+      typeBn: 'সার্চ ইঞ্জিন',
+      count: '44%',
+      countBn: '৪৪%',
+      visitors: Math.round(liveVisitorCount * 0.44),
+      color: 'bg-blue-500',
+    },
+    {
+      source: 'Direct URL / Bookmarks',
+      sourceBn: 'সরাসরি ইউআরএল / বুকমার্কস',
+      type: 'Direct Traffic',
+      typeBn: 'ডাইরেক্ট ট্রাফিক',
+      count: '28%',
+      countBn: '২৮%',
+      visitors: Math.round(liveVisitorCount * 0.28),
+      color: 'bg-emerald-500',
+    },
+    {
+      source: 'Facebook Ads & Storefront',
+      sourceBn: 'ফেসবুক অ্যাডস ও শপফ্রন্ট',
+      type: 'Social Campaign',
+      typeBn: 'সোশ্যাল ক্যাম্পেইন',
+      count: '14%',
+      countBn: '১৪%',
+      visitors: Math.round(liveVisitorCount * 0.14),
+      color: 'bg-indigo-500',
+    },
+    {
+      source: 'Instagram Stories & Reels',
+      sourceBn: 'ইনস্টাগ্রাম স্টোরিজ ও রিলস',
+      type: 'Social Organic',
+      typeBn: 'সোশ্যাল অর্গানিক',
+      count: '8%',
+      countBn: '৮%',
+      visitors: Math.round(liveVisitorCount * 0.08),
+      color: 'bg-rose-500',
+    },
+    {
+      source: 'YouTube Hardware Reviews',
+      sourceBn: 'ইউটিউব হার্ডওয়্যার রিভিউ',
+      type: 'Video Referral',
+      typeBn: 'ভিডিও রেফারেল',
+      count: '4%',
+      countBn: '৪%',
+      visitors: Math.round(liveVisitorCount * 0.04),
+      color: 'bg-red-500',
+    },
+    {
+      source: 'Flash Sale Email Campaign',
+      sourceBn: 'ফ্ল্যাশ সেল ইমেইল ক্যাম্পেইন',
+      type: 'Email Referral',
+      typeBn: 'ইমেইল রেফারেল',
+      count: '2%',
+      countBn: '২%',
+      visitors: Math.round(liveVisitorCount * 0.02),
+      color: 'bg-amber-500',
+    },
   ];
 
   return (
@@ -1252,7 +1283,7 @@ export default function VisitorAnalyticsPage() {
                     </p>
                   </div>
                   <span className="text-xs font-bold text-slate-500">
-                    {liveVisitorCount} {isBn ? 'সক্রিয়' : 'Active'}
+                    {isBn ? toBengaliNumber(liveVisitorCount) : liveVisitorCount} {isBn ? 'সক্রিয়' : 'Active'}
                   </span>
                 </div>
 
@@ -1276,7 +1307,7 @@ export default function VisitorAnalyticsPage() {
                           <div className="min-w-0">
                             <div className="flex items-center gap-2">
                               <span className="font-bold text-xs text-slate-900 dark:text-white truncate">
-                                {c.country}
+                                {isBn ? (c.countryBn || c.country) : c.country}
                               </span>
                               {c.isPrimary && (
                                 <span className="px-1.5 py-0.2 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[9px] font-bold">
@@ -1290,9 +1321,9 @@ export default function VisitorAnalyticsPage() {
                               )}
                             </div>
                             <div className="flex items-center gap-2 mt-1 text-[11px] font-mono text-slate-500">
-                              <span>{c.count} {isBn ? 'ভিজিটর' : 'visitors'}</span>
+                              <span>{isBn ? toBengaliNumber(c.count) : c.count} {isBn ? 'ভিজিটর' : 'visitors'}</span>
                               <span>•</span>
-                              <span className="font-bold text-slate-700 dark:text-slate-300">{c.pct}% {isBn ? 'মোট ট্রাফিকের' : 'of total traffic'}</span>
+                              <span className="font-bold text-slate-700 dark:text-slate-300">{isBn ? toBengaliNumber(c.pct) : c.pct}% {isBn ? 'মোট ট্রাফিকের' : 'of total traffic'}</span>
                             </div>
                           </div>
                         </div>
@@ -1334,16 +1365,16 @@ export default function VisitorAnalyticsPage() {
                   <div>
                     <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
                       <span className="text-xl">{activeCountryData.flag}</span>
-                      <span>{isBn ? `${activeCountryData.country} আঞ্চলিক বিভাজন` : `${activeCountryData.country} Regional Breakdown`}</span>
+                      <span>{isBn ? `${activeCountryData.countryBn || activeCountryData.country} আঞ্চলিক বিভাজন` : `${activeCountryData.country} Regional Breakdown`}</span>
                     </h3>
                     <p className="text-[11px] text-slate-500 mt-0.5">
                       {isBn
-                        ? `বিভাগীয় ও মহানগর ট্রাফিক ঘনত্ব (~${selectedCountryTotalVisitors} লাইভ সেশন • ${selectedCountryPct}%)`
+                        ? `বিভাগীয় ও মহানগর ট্রাফিক ঘনত্ব (~${toBengaliNumber(selectedCountryTotalVisitors)} লাইভ সেশন • ${toBengaliNumber(selectedCountryPct)}%)`
                         : `Subdivision & metropolitan city traffic density (~${selectedCountryTotalVisitors} live sessions • ${selectedCountryPct}%)`}
                     </p>
                   </div>
                   <span className="px-2.5 py-1 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-xs font-mono font-bold">
-                    {activeCountryData.cities.length} {isBn ? 'টি অঞ্চল' : 'Regions'}
+                    {isBn ? toBengaliNumber(activeCountryData.cities.length) : activeCountryData.cities.length} {isBn ? 'টি অঞ্চল' : 'Regions'}
                   </span>
                 </div>
 
@@ -1386,17 +1417,19 @@ export default function VisitorAnalyticsPage() {
                             />
                             <div>
                               <span className="text-xs font-bold text-slate-900 dark:text-white block">
-                                {cityObj.city}
+                                {isBn ? (cityObj.cityBn || cityObj.city) : cityObj.city}
                               </span>
                               <span className="text-[10px] text-slate-500 block">
-                                {cityObj.subdivision}
+                                {isBn ? (cityObj.subdivisionBn || cityObj.subdivision) : cityObj.subdivision}
                               </span>
                             </div>
                           </div>
                           <div className="flex items-center gap-2.5 text-xs font-mono font-bold">
-                            <span className="text-slate-500">{cityLiveCount} {isBn ? 'লাইভ' : 'live'}</span>
+                            <span className="text-slate-500">
+                              {isBn ? toBengaliNumber(cityLiveCount) : cityLiveCount} {isBn ? 'লাইভ' : 'live'}
+                            </span>
                             <span className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400">
-                              {cityPercentage}%
+                              {isBn ? `${toBengaliNumber(cityPercentage)}%` : `${cityPercentage}%`}
                             </span>
                           </div>
                         </div>
@@ -1437,7 +1470,7 @@ export default function VisitorAnalyticsPage() {
                           <span>{d.type === 'Mobile' ? (isBn ? 'মোবাইল' : 'Mobile') : d.type === 'Desktop' ? (isBn ? 'ডেস্কটপ' : 'Desktop') : (isBn ? 'ট্যাবলেট' : 'Tablet')}</span>
                         </div>
                         <span className="text-xs font-mono font-black text-slate-900 dark:text-white">
-                          {d.pct}% ({d.count} {isBn ? 'জন ইউজার' : 'users'})
+                          {isBn ? `${toBengaliNumber(d.pct)}% (${toBengaliNumber(d.count)} জন ইউজার)` : `${d.pct}% (${d.count} users)`}
                         </span>
                       </div>
                       <div className="h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
@@ -1462,7 +1495,9 @@ export default function VisitorAnalyticsPage() {
                 {osDistribution.map((item) => (
                   <div key={item.os} className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
                     <span className="font-semibold text-slate-700 dark:text-slate-300">{item.os}</span>
-                    <span className="font-mono font-bold text-slate-900 dark:text-white">{item.count}</span>
+                    <span className="font-mono font-bold text-slate-900 dark:text-white">
+                      {isBn ? toBengaliNumber(item.count) : item.count}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -1478,7 +1513,9 @@ export default function VisitorAnalyticsPage() {
                 {browserDistribution.map((item) => (
                   <div key={item.browser} className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
                     <span className="font-semibold text-slate-700 dark:text-slate-300">{item.browser}</span>
-                    <span className="font-mono font-bold text-slate-900 dark:text-white">{item.count}</span>
+                    <span className="font-mono font-bold text-slate-900 dark:text-white">
+                      {isBn ? toBengaliNumber(item.count) : item.count}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -1498,17 +1535,17 @@ export default function VisitorAnalyticsPage() {
                 <div key={src.source} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                      {src.type}
+                      {isBn ? src.typeBn : src.type}
                     </span>
                     <span className="px-2 py-0.5 rounded-md bg-orange-500/10 text-orange-600 dark:text-orange-400 font-mono font-bold text-xs">
-                      {src.count}
+                      {isBn ? src.countBn : src.count}
                     </span>
                   </div>
                   <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                    {src.source}
+                    {isBn ? src.sourceBn : src.source}
                   </h4>
                   <p className="text-[11px] font-mono text-slate-500">
-                    ~{src.visitors} {isBn ? 'লাইভ সক্রিয় সেশন' : 'live active sessions'}
+                    ~{isBn ? toBengaliNumber(src.visitors) : src.visitors} {isBn ? 'লাইভ সক্রিয় সেশন' : 'live active sessions'}
                   </p>
                 </div>
               ))}

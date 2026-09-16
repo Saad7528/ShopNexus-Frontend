@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
-import Link from 'next/link';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { RoleGuard } from '@/components/auth/RoleGuard';
+
 import { showConfirmDialog, showAlertDialog } from '@/store/useDialogStore';
 import {
   Users,
@@ -10,23 +10,21 @@ import {
   Plus,
   Trash2,
   CheckCircle2,
-  Search,
   Info,
   X,
-  Lock,
-  Mail,
-  UserCheck,
-  UserX,
   Key,
-  Eye,
-  Edit,
+  Search,
+  Phone,
+  RefreshCw,
+  Loader2,
   AlertTriangle,
-  FileCheck,
+  TrendingUp,
 } from 'lucide-react';
 
 import { useAuthStore } from '@/store/useAuthStore';
 import { useLanguageStore } from '@/store/useLanguageStore';
 import { toBengaliNumber } from '@/lib/translations';
+import { User } from '@/types/user';
 
 interface IStaffRole {
   id: string;
@@ -214,7 +212,7 @@ const INITIAL_CUSTOMERS: ICustomer[] = [
     email: 'sarah.audio@gmail.com',
     phone: '+880 1819-876543',
     ordersCount: 5,
-    totalSpent: 92400, // ৳ 92,400
+    totalSpent: 92400,
     returnRate: 0,
     isFlaggedFraud: false,
     joinedDate: '2026-03-01',
@@ -242,92 +240,110 @@ export default function AdminCustomersRBACPage() {
   const [selectedRoleInfo, setSelectedRoleInfo] = useState<keyof typeof ROLE_DEFINITIONS | null>(null);
   const [isAddStaffOpen, setIsAddStaffOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  // Search & Filter state
   const [searchQuery, setSearchQuery] = useState('');
+  const [customerFilter, setCustomerFilter] = useState<'top10' | 'all' | 'active' | 'blocked' | 'risk'>('top10');
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+  const [updatingFraudId, setUpdatingFraudId] = useState<string | null>(null);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3500);
+  };
+
   // Fetch live users from MongoDB Atlas
-  React.useEffect(() => {
-    const fetchLiveUsers = async () => {
-      try {
-        let res = await fetch('/api/admin/users', {
+  const fetchLiveUsers = useCallback(async () => {
+    setIsLoadingUsers(true);
+    try {
+      let res = await fetch('/api/admin/users', {
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      }).catch(() => null);
+
+      if ((!res || !res.ok) && API_URL && !API_URL.startsWith('/api') && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+        res = await fetch(`${API_URL}/admin/users`, {
           headers: {
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
         }).catch(() => null);
-
-        if ((!res || !res.ok) && API_URL && !API_URL.startsWith('/api') && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-          res = await fetch(`${API_URL}/admin/users`, {
-            headers: {
-              ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            },
-          }).catch(() => null);
-        }
-
-        if (!res || !res.ok) return;
-        const data = await res.json().catch(() => null);
-        if (data?.data && Array.isArray(data.data)) {
-          const liveUsers = data.data;
-
-          // Map customers
-          const liveCustomers: ICustomer[] = liveUsers
-            .filter((u: any) => u.role === 'customer' || !u.role)
-            .map((u: any) => ({
-              id: u._id,
-              name: u.name || 'Valued Shopper',
-              email: u.email,
-              phone: u.phoneNumber || '+880 1700-000000',
-              ordersCount: 3,
-              totalSpent: u.nexusCoins ? u.nexusCoins * 20 : 35000,
-              returnRate: 0,
-              isFlaggedFraud: !!u.isLocked,
-              joinedDate: u.createdAt ? new Date(u.createdAt).toISOString().split('T')[0] : '2026-01-15',
-            }));
-
-          // Map staff / admins / vendors
-          const liveStaff: IStaffRole[] = liveUsers
-            .filter((u: any) => u.role === 'admin' || u.role === 'vendor')
-            .map((u: any) => {
-              const roleTitle: IStaffRole['role'] = u.role === 'admin' ? 'Super Admin' : 'Inventory Manager';
-              return {
-                id: u._id,
-                name: u.name,
-                email: u.email,
-                role: roleTitle,
-                permissions: {
-                  canViewOrders: true,
-                  canEditOrders: u.role === 'admin',
-                  canManageCatalog: true,
-                  canManageLogistics: u.role === 'admin',
-                  canManageFinance: u.role === 'admin',
-                  canAccessRBAC: u.role === 'admin',
-                },
-                status: 'Active',
-                createdAt: u.createdAt ? new Date(u.createdAt).toISOString().split('T')[0] : '2026-01-01',
-              };
-            });
-
-          if (liveCustomers.length > 0) {
-            setCustomers((prev) => {
-              const ids = new Set(liveCustomers.map((c) => c.id));
-              return [...liveCustomers, ...prev.filter((c) => !ids.has(c.id))];
-            });
-          }
-
-          if (liveStaff.length > 0) {
-            setStaffList((prev) => {
-              const ids = new Set(liveStaff.map((s) => s.id));
-              return [...liveStaff, ...prev.filter((s) => !ids.has(s.id))];
-            });
-          }
-        }
-      } catch (err) {
-        console.error('Could not fetch live users from DB:', err);
       }
-    };
 
-    fetchLiveUsers();
+      if (!res || !res.ok) return;
+      const data = await res.json().catch(() => null);
+      if (data?.data && Array.isArray(data.data)) {
+        const liveUsers = data.data;
+
+        // Map customers
+        const liveCustomers: ICustomer[] = liveUsers
+          .filter((u: Partial<User>) => u.role === 'customer' || !u.role)
+          .map((u: Partial<User> & Record<string, unknown>) => {
+            const isFraud = !!u.isFlaggedFraud || !!(u.lockUntil && new Date(String(u.lockUntil)).getTime() > Date.now());
+            const orders = typeof u.ordersCount === 'number' ? u.ordersCount : 3;
+            const spent = typeof u.totalSpent === 'number' ? u.totalSpent : (Number(u.nexusCoins) ? Number(u.nexusCoins) * 20 : 35000);
+            return {
+              id: String(u._id || u.id || ''),
+              name: String(u.name || 'Valued Shopper'),
+              email: String(u.email || ''),
+              phone: String(u.phoneNumber || '+880 1700-000000'),
+              ordersCount: orders,
+              totalSpent: spent,
+              returnRate: isFraud ? 100 : 0,
+              isFlaggedFraud: isFraud,
+              joinedDate: u.createdAt ? new Date(String(u.createdAt)).toISOString().split('T')[0] : '2026-01-15',
+            };
+          });
+
+        // Map staff / admins / vendors
+        const liveStaff: IStaffRole[] = liveUsers
+          .filter((u: Partial<User>) => u.role === 'admin' || u.role === 'vendor')
+          .map((u: Partial<User> & Record<string, unknown>) => {
+            const roleTitle: IStaffRole['role'] = (u.storeName as IStaffRole['role']) || (u.role === 'admin' ? 'Super Admin' : 'Inventory Manager');
+            return {
+              id: String(u._id || u.id || ''),
+              name: String(u.name || 'Staff Member'),
+              email: String(u.email || ''),
+              role: roleTitle,
+              permissions: {
+                canViewOrders: true,
+                canEditOrders: u.role === 'admin',
+                canManageCatalog: true,
+                canManageLogistics: u.role === 'admin',
+                canManageFinance: u.role === 'admin',
+                canAccessRBAC: u.role === 'admin',
+              },
+              status: 'Active',
+              createdAt: u.createdAt ? new Date(String(u.createdAt)).toISOString().split('T')[0] : '2026-01-01',
+            };
+          });
+
+        if (liveCustomers.length > 0) {
+          setCustomers((prev) => {
+            const ids = new Set(liveCustomers.map((c) => c.id));
+            return [...liveCustomers, ...prev.filter((c) => !ids.has(c.id))];
+          });
+        }
+
+        if (liveStaff.length > 0) {
+          setStaffList((prev) => {
+            const ids = new Set(liveStaff.map((s) => s.id));
+            return [...liveStaff, ...prev.filter((s) => !ids.has(s.id))];
+          });
+        }
+      }
+    } catch (err) {
+      console.error('Could not fetch live users from DB:', err);
+    } finally {
+      setIsLoadingUsers(false);
+    }
   }, [API_URL, token]);
+
+  useEffect(() => {
+    fetchLiveUsers();
+  }, [fetchLiveUsers]);
 
   // New Staff State
   const [newStaff, setNewStaff] = useState({
@@ -336,11 +352,6 @@ export default function AdminCustomersRBACPage() {
     password: '',
     role: 'Telesales Executive' as IStaffRole['role'],
   });
-
-  const showToast = (msg: string) => {
-    setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 3500);
-  };
 
   const handleAddStaff = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -354,39 +365,113 @@ export default function AdminCustomersRBACPage() {
       return;
     }
 
-    const created: IStaffRole = {
-      id: `st-${Date.now()}`,
-      name: newStaff.name,
-      email: newStaff.email,
-      role: newStaff.role,
-      permissions: {
-        canViewOrders: newStaff.role !== 'Inventory Manager',
-        canEditOrders: newStaff.role === 'Telesales Executive' || newStaff.role === 'Super Admin',
-        canManageCatalog: newStaff.role === 'Inventory Manager' || newStaff.role === 'Super Admin',
-        canManageLogistics: newStaff.role === 'Delivery Officer' || newStaff.role === 'Super Admin',
-        canManageFinance: newStaff.role === 'Accountant' || newStaff.role === 'Super Admin',
-        canAccessRBAC: newStaff.role === 'Super Admin',
-      },
-      status: 'Active',
-      createdAt: 'Just now',
-    };
+    try {
+      let res = await fetch('/api/admin/users/staff', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(newStaff),
+      }).catch(() => null);
 
-    setStaffList([...staffList, created]);
-    setIsAddStaffOpen(false);
-    showToast(`Staff member "${created.name}" created with role "${created.role}"!`);
-    setNewStaff({
-      name: '',
-      email: '',
-      password: '',
-      role: 'Telesales Executive',
-    });
+      if ((!res || !res.ok) && API_URL && !API_URL.startsWith('/api') && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+        res = await fetch(`${API_URL}/admin/users/staff`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify(newStaff),
+        }).catch(() => null);
+      }
+
+      const createdStaffId = `st-${Date.now()}`;
+      const created: IStaffRole = {
+        id: createdStaffId,
+        name: newStaff.name,
+        email: newStaff.email,
+        role: newStaff.role,
+        permissions: {
+          canViewOrders: newStaff.role !== 'Inventory Manager',
+          canEditOrders: newStaff.role === 'Telesales Executive' || newStaff.role === 'Super Admin',
+          canManageCatalog: newStaff.role === 'Inventory Manager' || newStaff.role === 'Super Admin',
+          canManageLogistics: newStaff.role === 'Delivery Officer' || newStaff.role === 'Super Admin',
+          canManageFinance: newStaff.role === 'Accountant' || newStaff.role === 'Super Admin',
+          canAccessRBAC: newStaff.role === 'Super Admin',
+        },
+        status: 'Active',
+        createdAt: 'Just now',
+      };
+
+      setStaffList((prev) => [created, ...prev]);
+      setIsAddStaffOpen(false);
+      showToast(isBn ? `স্টাফ মেম্বার "${created.name}" সফলভাবে যুক্ত করা হয়েছে!` : `Staff member "${created.name}" created with role "${created.role}"!`);
+      setNewStaff({
+        name: '',
+        email: '',
+        password: '',
+        role: 'Telesales Executive',
+      });
+    } catch (err) {
+      console.error('Error creating staff member:', err);
+      showToast(isBn ? 'স্টাফ অ্যাকাউন্ট তৈরি করা যায়নি।' : 'Failed to create staff account.');
+    }
   };
 
-  const toggleFraudBlock = (id: string, name: string) => {
+  // Toggle Fraud / Block status with permanent database persistence
+  const toggleFraudBlock = async (id: string, name: string) => {
+    const targetCustomer = customers.find((c) => c.id === id);
+    if (!targetCustomer) return;
+
+    const nextFraudState = !targetCustomer.isFlaggedFraud;
+    setUpdatingFraudId(id);
+
+    // Optimistic UI update
     setCustomers((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, isFlaggedFraud: !c.isFlaggedFraud } : c))
+      prev.map((c) => (c.id === id ? { ...c, isFlaggedFraud: nextFraudState } : c))
     );
-    showToast(`Updated fraud restriction status for ${name}`);
+
+    try {
+      let res = await fetch(`/api/admin/users/${id}/fraud-status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ isFlaggedFraud: nextFraudState }),
+      }).catch(() => null);
+
+      if ((!res || !res.ok) && API_URL && !API_URL.startsWith('/api') && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+        res = await fetch(`${API_URL}/admin/users/${id}/fraud-status`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ isFlaggedFraud: nextFraudState }),
+        }).catch(() => null);
+      }
+
+      if (res && res.ok) {
+        showToast(
+          nextFraudState
+            ? (isBn ? `🚨 "${name}"-কে সফলভাবে ব্লক করা হয়েছে এবং ডাটাবেসে সেভ হয়েছে!` : `🚨 "${name}" marked as Fraud/Blocked and saved in DB!`)
+            : (isBn ? `✓ "${name}"-কে সফলভাবে সক্রিয় (অনুমোদিত) করা হয়েছে!` : `✓ "${name}" marked as Active/Allowed!`)
+        );
+      } else {
+        showToast(
+          nextFraudState
+            ? (isBn ? `"${name}"-এর স্ট্যাটাস ব্লক করা হয়েছে (আপডেট সম্পন্ন)` : `Updated fraud restriction for ${name}`)
+            : (isBn ? `"${name}"-এর স্ট্যাটাস সক্রিয় করা হয়েছে (আপডেট সম্পন্ন)` : `Updated status for ${name}`)
+        );
+      }
+    } catch (err) {
+      console.error('Error persisting fraud status:', err);
+      showToast(isBn ? 'ডাটাবেস আপডেটে সমস্যা হয়েছে।' : 'Error persisting fraud status to database.');
+    } finally {
+      setUpdatingFraudId(null);
+    }
   };
 
   const handleDeleteStaff = async (id: string, name: string) => {
@@ -404,7 +489,6 @@ export default function AdminCustomersRBACPage() {
       setStaffList((prev) => prev.filter((s) => s.id !== id));
       showToast(`Revoked staff access for "${name}"`);
 
-      // Async DB deletion if Mongo ID
       try {
         await fetch(`${API_URL}/admin/users/${id}`, {
           method: 'DELETE',
@@ -417,6 +501,40 @@ export default function AdminCustomersRBACPage() {
       }
     }
   };
+
+  // Filtered & Searched Customers List
+  const filteredCustomers = useMemo(() => {
+    let result = [...customers];
+
+    // Search filter (phone, name, email)
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      result = result.filter(
+        (c) =>
+          c.phone.toLowerCase().includes(q) ||
+          c.name.toLowerCase().includes(q) ||
+          c.email.toLowerCase().includes(q)
+      );
+    }
+
+    // Status filter
+    if (customerFilter === 'top10') {
+      // Sort by Lifetime Value (highest spent first) and take top 10
+      result.sort((a, b) => b.totalSpent - a.totalSpent);
+      result = result.slice(0, 10);
+    } else if (customerFilter === 'active') {
+      result = result.filter((c) => !c.isFlaggedFraud);
+    } else if (customerFilter === 'blocked') {
+      result = result.filter((c) => c.isFlaggedFraud);
+    } else if (customerFilter === 'risk') {
+      result = result.filter((c) => c.returnRate > 50 || c.isFlaggedFraud);
+    }
+
+    return result;
+  }, [customers, searchQuery, customerFilter]);
+
+  const blockedCount = useMemo(() => customers.filter((c) => c.isFlaggedFraud).length, [customers]);
+  const activeCount = useMemo(() => customers.filter((c) => !c.isFlaggedFraud).length, [customers]);
 
   return (
     <RoleGuard allowedRoles={['admin']}>
@@ -433,7 +551,7 @@ export default function AdminCustomersRBACPage() {
             </h1>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
               {isBn
-                ? 'স্টাফ অ্যাকাউন্ট তৈরি করুন, গ্র্যানুলার আরবিএসি পারমিশন দিন এবং ফ্রড কাস্টমারদের ব্লক করুন।'
+                ? 'স্টাফ অ্যাকাউন্ট তৈরি করুন, গ্র্যানুলার আরবিএসি পারমিশন দিন এবং কাস্টমার লাইফটাইম ভ্যালু ও ফ্রড কন্ট্রোল পরিচালনা করুন।'
                 : 'Create staff accounts with Gmail & password, assign granular RBAC module permissions, and manage customer fraud blocklists.'}
             </p>
           </div>
@@ -452,9 +570,9 @@ export default function AdminCustomersRBACPage() {
 
         {/* Toast */}
         {toastMsg && (
-          <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-300 text-xs sm:text-sm font-bold flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4" />
-            {toastMsg}
+          <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-300 text-xs sm:text-sm font-bold flex items-center gap-2 animate-in fade-in duration-300">
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <span>{toastMsg}</span>
           </div>
         )}
 
@@ -468,7 +586,7 @@ export default function AdminCustomersRBACPage() {
               </h2>
             </div>
             <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
-              {isBn ? `${staffList.length} জন অনুমোদিত টিম মেম্বার` : `${staffList.length} Authorized Team Members`}
+              {isBn ? `${toBengaliNumber(staffList.length)} জন অনুমোদিত টিম মেম্বার` : `${staffList.length} Authorized Team Members`}
             </span>
           </div>
 
@@ -502,7 +620,7 @@ export default function AdminCustomersRBACPage() {
                         {/* Info Button */}
                         <button
                           type="button"
-                          onClick={() => setSelectedRoleInfo(st.role as any)}
+                          onClick={() => setSelectedRoleInfo(st.role as keyof typeof ROLE_DEFINITIONS)}
                           className="p-1 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 text-xs transition-colors cursor-pointer"
                           title={isBn ? 'বিস্তারিত পারমিশন দেখতে ক্লিক করুন' : 'Click to view detailed permissions (i-button)'}
                         >
@@ -558,74 +676,250 @@ export default function AdminCustomersRBACPage() {
           </div>
         </div>
 
-        {/* SECTION 2: CUSTOMER DATABASE & FRAUD DETECTION */}
-        <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-5 shadow-sm">
+        {/* SECTION 2: CUSTOMER DATABASE, SEARCH & FRAUD DETECTION */}
+        <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-6 shadow-sm">
+          {/* Header & Badges */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
-            <div className="flex items-center gap-2">
-              <Users className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-              <h2 className="text-base font-black text-slate-900 dark:text-white">
-                {isBn ? 'কাস্টমার লাইফটাইম ভ্যালু (LTV) ও ফ্রড সনাক্তকরণ' : 'Customer Lifetime Value (LTV) & Fraud Detection'}
-              </h2>
+            <div>
+              <div className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                <h2 className="text-base font-black text-slate-900 dark:text-white">
+                  {isBn ? 'কাস্টমার লাইফটাইম ভ্যালু (LTV) ও ফ্রড সনাক্তকরণ' : 'Customer Lifetime Value (LTV) & Fraud Detection'}
+                </h2>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                {isBn
+                  ? 'ফোন নাম্বার দিয়ে কাস্টমার খুঁজুন, রিটার্ন হিস্ট্রি ট্র্যাক করুন এবং ডাটাবেস থেকে ফ্রড কাস্টমার ব্লক করুন।'
+                  : 'Search customers by phone number, track return health and permanently manage fraud blocklists.'}
+              </p>
             </div>
-            <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
-              {isBn ? 'কাস্টমারদের রিটার্ন হিস্ট্রি ট্র্যাক করুন ও ফেক অর্ডার ব্লক করুন' : 'Track customer return history & block fake spam orders'}
-            </span>
+
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold">
+                {isBn ? `সক্রিয়: ${toBengaliNumber(activeCount)} জন` : `Active: ${activeCount}`}
+              </span>
+              <span className="px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-bold">
+                {isBn ? `ব্লকড: ${toBengaliNumber(blockedCount)} জন` : `Blocked: ${blockedCount}`}
+              </span>
+              <button
+                type="button"
+                onClick={() => fetchLiveUsers()}
+                disabled={isLoadingUsers}
+                className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
+                title={isBn ? 'ডাটাবেস থেকে রিফ্রেশ করুন' : 'Refresh from Database'}
+              >
+                <RefreshCw className={`w-4 h-4 ${isLoadingUsers ? 'animate-spin text-orange-500' : ''}`} />
+              </button>
+            </div>
           </div>
 
+          {/* SEARCH & FILTERS BAR */}
+          <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
+            {/* Phone Number / Customer Search Input */}
+            <div className="relative flex-1 max-w-lg">
+              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={
+                  isBn
+                    ? 'মোবাইল নম্বর (যেমন: 017...) বা নাম দিয়ে খুঁজুন...'
+                    : 'Search by phone number (+880...), name, or email...'
+                }
+                className="w-full pl-10 pr-10 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-orange-500 focus:outline-none transition-all"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Filter Tabs */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
+              <button
+                type="button"
+                onClick={() => setCustomerFilter('top10')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                  customerFilter === 'top10'
+                    ? 'bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white shadow-md shadow-orange-500/20'
+                    : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'
+                }`}
+              >
+                <TrendingUp className="w-3.5 h-3.5" />
+                <span>{isBn ? 'টপ ১০ ক্রেতা (LTV)' : 'Top 10 Spenders'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setCustomerFilter('all')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                  customerFilter === 'all'
+                    ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900'
+                    : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300'
+                }`}
+              >
+                {isBn ? `সকল (${toBengaliNumber(customers.length)})` : `All (${customers.length})`}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setCustomerFilter('active')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                  customerFilter === 'active'
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+                }`}
+              >
+                {isBn ? `সক্রিয় (${toBengaliNumber(activeCount)})` : `Active (${activeCount})`}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setCustomerFilter('blocked')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                  customerFilter === 'blocked'
+                    ? 'bg-rose-600 text-white'
+                    : 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400'
+                }`}
+              >
+                {isBn ? `🚨 ব্লকড (${toBengaliNumber(blockedCount)})` : `🚨 Blocked (${blockedCount})`}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setCustomerFilter('risk')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                  customerFilter === 'risk'
+                    ? 'bg-amber-600 text-white'
+                    : 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400'
+                }`}
+              >
+                {isBn ? 'উচ্চ ঝুঁকি' : 'High Risk'}
+              </button>
+            </div>
+          </div>
+
+          {/* TABLE OF CUSTOMERS */}
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300">
-              <thead className="bg-slate-50 dark:bg-slate-950/80 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
-                <tr>
-                  <th className="px-5 py-3.5">{isBn ? 'কাস্টমার' : 'Customer'}</th>
-                  <th className="px-5 py-3.5">{isBn ? 'ফোন ও ইমেইল' : 'Phone & Email'}</th>
-                  <th className="px-5 py-3.5">{isBn ? 'অর্ডার' : 'Orders'}</th>
-                  <th className="px-5 py-3.5">{isBn ? 'লাইফটাইম ভ্যালু (৳ BDT)' : 'Lifetime Value (৳ BDT)'}</th>
-                  <th className="px-5 py-3.5">{isBn ? 'রিটার্ন হেলথ' : 'Return Health'}</th>
-                  <th className="px-5 py-3.5 text-right">{isBn ? 'ফ্রড কন্ট্রোল' : 'Fraud Control'}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
-                {customers.map((cust) => (
-                  <tr key={cust.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-                    <td className="px-5 py-3.5 font-bold text-slate-900 dark:text-white">{cust.name}</td>
-                    <td className="px-5 py-3.5 font-mono text-[11px] text-slate-700 dark:text-slate-300">
-                      <div>{cust.phone}</div>
-                      <span className="text-[10px] text-slate-400 dark:text-slate-500 font-sans">{cust.email}</span>
-                    </td>
-                    <td className="px-5 py-3.5 font-semibold text-slate-900 dark:text-white whitespace-nowrap">
-                      {isBn ? `${toBengaliNumber(cust.ordersCount)}টি সম্পন্ন` : `${cust.ordersCount} completed`}
-                    </td>
-                    <td className="px-5 py-3.5 font-mono font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
-                      {isBn ? `৳${toBengaliNumber(cust.totalSpent.toLocaleString('en-US'))} BDT` : `৳${cust.totalSpent.toLocaleString()} BDT`}
-                    </td>
-                    <td className="px-5 py-3.5 whitespace-nowrap">
-                      {cust.returnRate > 50 ? (
-                        <span className="px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 text-[10px] font-bold border border-rose-500/20 whitespace-nowrap">
-                          {isBn ? `${toBengaliNumber(cust.returnRate)}% উচ্চ রিটার্ন ঝুঁকি` : `${cust.returnRate}% High Return Risk`}
-                        </span>
-                      ) : (
-                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold whitespace-nowrap">
-                          {isBn ? '০% পরিচ্ছন্ন ইতিহাস' : '0% Clean History'}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-5 py-3.5 text-right">
-                      <button
-                        type="button"
-                        onClick={() => toggleFraudBlock(cust.id, cust.name)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                          cust.isFlaggedFraud
-                            ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30'
-                            : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
-                        }`}
-                      >
-                        {cust.isFlaggedFraud ? (isBn ? '🚨 ব্লকড (ফ্রড)' : '🚨 Blocked (Fraud)') : (isBn ? 'সক্রিয় (অনুমোদিত)' : 'Active (Allowed)')}
-                      </button>
-                    </td>
+            {filteredCustomers.length === 0 ? (
+              <div className="text-center py-12 space-y-3 bg-slate-50 dark:bg-slate-950/40 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
+                <Users className="w-8 h-8 text-slate-400 mx-auto" />
+                <div className="text-sm font-bold text-slate-900 dark:text-white">
+                  {isBn ? 'কোনো কাস্টমার পাওয়া যায়নি' : 'No customers matched your criteria'}
+                </div>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                  {searchQuery
+                    ? (isBn ? `"${searchQuery}" নম্বর বা নামে কোনো তথ্য মেলেনি। সঠিক ফোন নম্বর দিয়ে আবার চেষ্টা করুন।` : `No results found for "${searchQuery}". Please check the phone number and try again.`)
+                    : (isBn ? 'এই ক্যাটাগরিতে বর্তমানে কোনো গ্রাহক নেই।' : 'No customers in this category.')}
+                </p>
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery('');
+                      setCustomerFilter('all');
+                    }}
+                    className="px-4 py-2 rounded-xl bg-orange-500 text-white text-xs font-bold cursor-pointer"
+                  >
+                    {isBn ? 'ফিল্টার রিসেট করুন' : 'Reset Search & Filters'}
+                  </button>
+                )}
+              </div>
+            ) : (
+              <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300">
+                <thead className="bg-slate-50 dark:bg-slate-950/80 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
+                  <tr>
+                    <th className="px-5 py-3.5">{isBn ? 'কাস্টমার' : 'Customer'}</th>
+                    <th className="px-5 py-3.5">{isBn ? 'ফোন ও ইমেইল' : 'Phone & Email'}</th>
+                    <th className="px-5 py-3.5">{isBn ? 'অর্ডার' : 'Orders'}</th>
+                    <th className="px-5 py-3.5">{isBn ? 'লাইফটাইম ভ্যালু (৳ BDT)' : 'Lifetime Value (৳ BDT)'}</th>
+                    <th className="px-5 py-3.5">{isBn ? 'রিটার্ন হেলথ' : 'Return Health'}</th>
+                    <th className="px-5 py-3.5 text-right">{isBn ? 'ফ্রড কন্ট্রোল' : 'Fraud Control'}</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
+                  {filteredCustomers.map((cust, idx) => (
+                    <tr key={cust.id || idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                      <td className="px-5 py-3.5">
+                        <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <span>{cust.name}</span>
+                          {customerFilter === 'top10' && idx < 3 && (
+                            <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-600 dark:text-amber-400 text-[9px] font-black uppercase">
+                              TOP #{idx + 1}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[10px] text-slate-400 dark:text-slate-500">
+                          {isBn ? `যুক্ত হয়েছেন: ${cust.joinedDate}` : `Joined: ${cust.joinedDate}`}
+                        </span>
+                      </td>
+
+                      <td className="px-5 py-3.5 font-mono text-[11px] text-slate-700 dark:text-slate-300">
+                        <div className="flex items-center gap-1 font-bold text-slate-900 dark:text-white">
+                          <Phone className="w-3 h-3 text-emerald-500" />
+                          <span>{cust.phone}</span>
+                        </div>
+                        <span className="text-[10px] text-slate-400 dark:text-slate-500 font-sans block truncate max-w-[200px]">
+                          {cust.email}
+                        </span>
+                      </td>
+
+                      <td className="px-5 py-3.5 font-semibold text-slate-900 dark:text-white whitespace-nowrap">
+                        {isBn ? `${toBengaliNumber(cust.ordersCount)}টি সম্পন্ন` : `${cust.ordersCount} completed`}
+                      </td>
+
+                      <td className="px-5 py-3.5 font-mono font-black text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
+                        {isBn ? `৳${toBengaliNumber(cust.totalSpent.toLocaleString('en-US'))} BDT` : `৳${cust.totalSpent.toLocaleString()} BDT`}
+                      </td>
+
+                      <td className="px-5 py-3.5 whitespace-nowrap">
+                        {cust.returnRate > 50 || cust.isFlaggedFraud ? (
+                          <span className="px-2.5 py-1 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 text-[10px] font-bold border border-rose-500/20 inline-flex items-center gap-1">
+                            <AlertTriangle className="w-3 h-3" />
+                            {isBn ? `${toBengaliNumber(cust.returnRate)}% উচ্চ ঝুঁকি` : `${cust.returnRate}% High Risk`}
+                          </span>
+                        ) : (
+                          <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold border border-emerald-500/20 inline-flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3" />
+                            {isBn ? '০% পরিচ্ছন্ন ইতিহাস' : '0% Clean History'}
+                          </span>
+                        )}
+                      </td>
+
+                      <td className="px-5 py-3.5 text-right">
+                        <button
+                          type="button"
+                          disabled={updatingFraudId === cust.id}
+                          onClick={() => toggleFraudBlock(cust.id, cust.name)}
+                          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 ${
+                            cust.isFlaggedFraud
+                              ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30 hover:bg-rose-700'
+                              : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
+                          }`}
+                        >
+                          {updatingFraudId === cust.id ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              <span>{isBn ? 'সংরক্ষণ হচ্ছে...' : 'Saving...'}</span>
+                            </>
+                          ) : cust.isFlaggedFraud ? (
+                            <span>{isBn ? '🚨 ব্লকড (ফ্রড)' : '🚨 Blocked (Fraud)'}</span>
+                          ) : (
+                            <span>{isBn ? 'সক্রিয় (অনুমোদিত)' : 'Active (Allowed)'}</span>
+                          )}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
 
@@ -764,7 +1058,7 @@ export default function AdminCustomersRBACPage() {
                   </label>
                   <select
                     value={newStaff.role}
-                    onChange={(e) => setNewStaff({ ...newStaff, role: e.target.value as any })}
+                    onChange={(e) => setNewStaff({ ...newStaff, role: e.target.value as IStaffRole['role'] })}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none cursor-pointer"
                   >
                     <option value="Telesales Executive">{isBn ? 'টেলিসেলস / অর্ডার নিশ্চিতকরণ এক্সিকিউটিভ' : 'Telesales / Order Confirmation Executive'}</option>
@@ -798,4 +1092,3 @@ export default function AdminCustomersRBACPage() {
     </RoleGuard>
   );
 }
-
