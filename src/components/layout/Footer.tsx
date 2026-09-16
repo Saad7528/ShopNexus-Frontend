@@ -264,11 +264,19 @@ export const Footer: React.FC = () => {
         <div className="mt-7 pt-3.5 border-t border-slate-200 dark:border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs text-slate-500">
           <p>© {new Date().getFullYear()} ShopNexus Platform. {mounted ? t('footer_rights') : 'All rights reserved.'}</p>
           <div className="flex items-center gap-3">
-            <Link href="/about" className="hover:text-slate-700 dark:hover:text-slate-400 transition-colors">
+            <Link
+              href="/about#about-hero"
+              onClick={() => handleScrollToSection('about-hero')}
+              className="hover:text-slate-700 dark:hover:text-slate-400 transition-colors cursor-pointer"
+            >
               {mounted ? (language === 'bn' ? 'আমাদের সম্পর্কে' : 'About Us') : 'About Us'}
             </Link>
             <span>•</span>
-            <Link href="/about" className="hover:text-slate-700 dark:hover:text-slate-400 transition-colors">
+            <Link
+              href="/about#faq-section"
+              onClick={() => handleScrollToSection('faq-section')}
+              className="hover:text-slate-700 dark:hover:text-slate-400 transition-colors cursor-pointer"
+            >
               {mounted ? (language === 'bn' ? 'সহায়তা ও এফএকিউ' : 'FAQ & Help') : 'FAQ & Help'}
             </Link>
           </div>

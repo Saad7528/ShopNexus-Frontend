@@ -28,6 +28,7 @@ import { NotificationDrawer } from '@/components/notifications/NotificationDrawe
 import { BrandLogo } from '@/components/common/BrandLogo';
 import { LanguageToggle } from '@/components/common/LanguageToggle';
 import { useLanguageStore } from '@/store/useLanguageStore';
+import { useProductStore } from '@/store/useProductStore';
 import { toBengaliNumber } from '@/lib/translations';
 
 export const Navbar: React.FC = () => {
