@@ -111,10 +111,14 @@ export const Navbar: React.FC = () => {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/products?q=${encodeURIComponent(searchQuery.trim())}`);
-      setMobileMenuOpen(false);
+    const query = searchQuery.trim();
+    setSearchStore(query);
+    if (query) {
+      router.push(`/products?search=${encodeURIComponent(query)}`);
+    } else {
+      router.push('/products');
     }
+    setMobileMenuOpen(false);
   };
 
   const handleLogout = () => {
@@ -270,7 +274,7 @@ export const Navbar: React.FC = () => {
                 title={isMounted ? t('nav_notifications') : 'Notifications'}
               >
                 <Bell className="w-5 h-5" />
-                {isMounted && unreadCount > 0 && (
+                {isMounted && isAuthenticated && unreadCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-[10px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center animate-pulse shadow-xs">
                     {language === 'bn' ? toBengaliNumber(unreadCount) : unreadCount}
                   </span>
