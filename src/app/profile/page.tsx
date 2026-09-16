@@ -889,15 +889,15 @@ function ProfileContent() {
                 <div className="w-12 h-12 rounded-2xl bg-orange-500/10 text-orange-500 flex items-center justify-center mx-auto">
                   <ShoppingCart className="w-6 h-6" />
                 </div>
-                <h4 className="text-sm font-bold text-slate-900 dark:text-white">Your Cart is Currently Empty</h4>
+                <h4 className="text-sm font-bold text-slate-900 dark:text-white">{isBn ? 'আপনার কার্ট বর্তমানে খালি' : 'Your Cart is Currently Empty'}</h4>
                 <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
-                  Add items to your cart to enjoy fast 24h courier delivery across Bangladesh.
+                  {isBn ? 'সারা বাংলাদেশে দ্রুত ২৪ ঘণ্টার কুরিয়ার ডেলিভারি উপভোগ করতে কার্টে পণ্য যোগ করুন।' : 'Add items to your cart to enjoy fast 24h courier delivery across Bangladesh.'}
                 </p>
                 <Link
                   href="/products"
                   className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-orange-500 text-white font-bold text-xs shadow-md shadow-orange-500/20"
                 >
-                  Start Shopping <ArrowRight className="w-3.5 h-3.5" />
+                  {isBn ? 'শপিং শুরু করুন' : 'Start Shopping'} <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
             )}
