@@ -241,7 +241,7 @@ function ProfileContent() {
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   className="absolute -bottom-1 -right-1 p-2.5 rounded-2xl bg-gradient-to-tr from-[#ff4400] to-[#ff7700] text-white shadow-lg shadow-orange-500/30 hover:scale-110 active:scale-95 transition-all cursor-pointer"
-                  title="Click to upload profile photo from device"
+                  title={isBn ? 'ডিভাইস থেকে প্রোফাইল ছবি আপলোড করতে ক্লিক করুন' : 'Click to upload profile photo from device'}
                 >
                   <Camera className="w-4 h-4" />
                 </button>
@@ -249,9 +249,11 @@ function ProfileContent() {
 
               <div>
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-1">
-                  <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">{name || 'Authenticated Customer'}</h1>
+                  <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+                    {name || (isBn ? 'নিবন্ধিত গ্রাহক' : 'Authenticated Customer')}
+                  </h1>
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20">
-                    {user?.role || 'Customer'}
+                    {user?.role || (isBn ? 'কাস্টমার' : 'Customer')}
                   </span>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center justify-center sm:justify-start gap-1.5 mb-1">
