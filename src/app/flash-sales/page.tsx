@@ -1,164 +1,25 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ProductCard } from '@/components/products/ProductCard';
-import { Product } from '@/store/useProductStore';
+import { useProductStore } from '@/store/useProductStore';
+import { ALL_PRODUCTS } from '@/data/products';
 import { useLanguageStore } from '@/store/useLanguageStore';
 import { toBengaliNumber } from '@/lib/translations';
-import { Zap, Clock, Flame } from 'lucide-react';
-
-const FLASH_DEALS: Product[] = [
-  {
-    _id: 'flash-1',
-    title: 'Sony WH-1000XM5 Wireless Noise-Cancelling Headphones',
-    slug: 'sony-wh-1000xm5-anc-headphones',
-    description: 'Studio-grade spatial audio with 40-hour ultra battery life and pure titanium drivers.',
-    category: 'Audio',
-    brand: 'Sony',
-    price: 38500,
-    discountPrice: 28900,
-    stock: 7,
-    images: ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80'],
-    vendorName: 'ShopNexus Official',
-    isFlashSale: true,
-    flashSaleDiscountPercent: 25,
-    averageRating: 4.9,
-    totalReviews: 248,
-    tags: ['flash-sale', 'headphones', 'anc'],
-  },
-  {
-    _id: 'flash-2',
-    title: 'Apple Watch Ultra 2 Aerospace Titanium Smartwatch',
-    slug: 'apple-watch-ultra-2',
-    description: 'Precision aerospace titanium casing with continuous biometric health tracking and ECG.',
-    category: 'Wearables',
-    brand: 'Apple',
-    price: 88900,
-    discountPrice: 69900,
-    stock: 3,
-    images: ['https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80'],
-    vendorName: 'ShopNexus Official',
-    isFlashSale: true,
-    flashSaleDiscountPercent: 21,
-    averageRating: 4.9,
-    totalReviews: 184,
-    tags: ['flash-sale', 'smartwatch', 'titanium'],
-  },
-  {
-    _id: 'flash-3',
-    title: 'Keychron Q1 Pro Wireless Custom Mechanical Keyboard',
-    slug: 'keychron-q1-pro-mechanical-keyboard',
-    description: 'Full CNC aluminum body, hot-swappable tactile switches, and south-facing RGB lighting.',
-    category: 'Peripherals',
-    brand: 'Keychron',
-    price: 21500,
-    discountPrice: 15900,
-    stock: 5,
-    images: ['https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=800&q=80'],
-    vendorName: 'ShopNexus Official',
-    isFlashSale: true,
-    flashSaleDiscountPercent: 26,
-    averageRating: 4.8,
-    totalReviews: 112,
-    tags: ['flash-sale', 'mechanical', 'custom'],
-  },
-  {
-    _id: 'flash-4',
-    title: 'Bose QuietComfort Ultra Spatial Audio Headphones',
-    slug: 'bose-qc-ultra-spatial-headphones',
-    description: 'Breakthrough spatialized audio with custom tuned active noise cancellation.',
-    category: 'Audio',
-    brand: 'Bose',
-    price: 44500,
-    discountPrice: 34900,
-    stock: 4,
-    images: ['https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800&q=80'],
-    vendorName: 'ShopNexus Official',
-    isFlashSale: true,
-    flashSaleDiscountPercent: 21,
-    averageRating: 4.8,
-    totalReviews: 142,
-    tags: ['flash-sale', 'spatial-audio'],
-  },
-  {
-    _id: 'flash-5',
-    title: 'Razer Viper V2 Pro Ultra-Lightweight Wireless Gaming Mouse',
-    slug: 'razer-viper-v2-pro',
-    description: '58g ultra-lightweight design with Gen-3 Optical Switches and 30K DPI sensor.',
-    category: 'Gaming',
-    brand: 'Razer',
-    price: 15500,
-    discountPrice: 9900,
-    stock: 8,
-    images: ['https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=800&q=80'],
-    vendorName: 'ShopNexus Official',
-    isFlashSale: true,
-    flashSaleDiscountPercent: 36,
-    averageRating: 4.7,
-    totalReviews: 95,
-    tags: ['flash-sale', 'gaming', 'mouse'],
-  },
-  {
-    _id: 'flash-6',
-    title: 'Garmin Fenix 7X Sapphire Solar Multisport Smartwatch',
-    slug: 'garmin-fenix-7x-solar',
-    description: 'Solar charging lens with built-in LED flashlight and global topographic maps.',
-    category: 'Wearables',
-    brand: 'Garmin',
-    price: 94000,
-    discountPrice: 76500,
-    stock: 2,
-    images: ['https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=800&q=80'],
-    vendorName: 'ShopNexus Official',
-    isFlashSale: true,
-    flashSaleDiscountPercent: 18,
-    averageRating: 4.9,
-    totalReviews: 76,
-    tags: ['flash-sale', 'solar', 'fitness'],
-  },
-  {
-    _id: 'flash-7',
-    title: 'Shure SM7B Cardioid Dynamic Studio Microphone',
-    slug: 'shure-sm7b-dynamic-microphone',
-    description: 'The legendary vocal microphone for studio recording, podcasting, and streaming.',
-    category: 'Creator Gear',
-    brand: 'Shure',
-    price: 42000,
-    discountPrice: 33500,
-    stock: 6,
-    images: ['https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800&q=80'],
-    vendorName: 'ShopNexus Official',
-    isFlashSale: true,
-    flashSaleDiscountPercent: 20,
-    averageRating: 5.0,
-    totalReviews: 310,
-    tags: ['flash-sale', 'studio', 'mic'],
-  },
-  {
-    _id: 'flash-8',
-    title: 'Anker Prime 27,650mAh Power Bank (250W Multi-Port)',
-    slug: 'anker-prime-27650mah-powerbank',
-    description: 'Fast charge laptops, phones, and accessories simultaneously with smart digital display.',
-    category: 'Accessories',
-    brand: 'Anker',
-    price: 18500,
-    discountPrice: 12900,
-    stock: 11,
-    images: ['https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=800&q=80'],
-    vendorName: 'ShopNexus Official',
-    isFlashSale: true,
-    flashSaleDiscountPercent: 30,
-    averageRating: 4.8,
-    totalReviews: 154,
-    tags: ['flash-sale', 'charging', 'anker'],
-  },
-];
-
 import { useHydrated } from '@/lib/useHydrated';
+import { Flame, Zap, Sparkles } from 'lucide-react';
 
 export default function FlashSalesPage() {
   const { t, language } = useLanguageStore();
   const mounted = useHydrated();
+  const storeProducts = useProductStore((state) => state.products);
+
+  // Grab flash sale products from store or static baseline
+  const flashProducts = useMemo(() => {
+    const source = storeProducts && storeProducts.length > 0 ? storeProducts : ALL_PRODUCTS;
+    const items = source.filter((p) => p.isFlashSale);
+    return items.length > 0 ? items : ALL_PRODUCTS.filter((p) => p.isFlashSale);
+  }, [storeProducts]);
 
   const [timeLeft, setTimeLeft] = useState({
     hours: 8,
@@ -247,10 +108,10 @@ export default function FlashSalesPage() {
         </div>
       </div>
 
-      {/* Compact 4-Column Product Grid */}
+      {/* Compact Responsive Product Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-4">
-        {FLASH_DEALS.map((deal) => (
-          <ProductCard key={deal._id} product={deal} />
+        {flashProducts.map((product) => (
+          <ProductCard key={product._id} product={product} />
         ))}
       </div>
     </div>
