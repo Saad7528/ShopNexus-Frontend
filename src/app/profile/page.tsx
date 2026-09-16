@@ -295,15 +295,17 @@ function ProfileContent() {
                 <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-2 text-left">
                   <span className="text-xl">👑</span>
                   <div>
-                    <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 block">VIP Member</span>
-                    <span className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">৳200 First Order Perk Active</span>
+                    <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 block">{isBn ? 'ভিআইপি মেম্বার' : 'VIP Member'}</span>
+                    <span className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">{isBn ? '৳২০০ প্রথম অর্ডার সুবিধা সক্রিয়' : '৳200 First Order Perk Active'}</span>
                   </div>
                 </div>
               ) : (
                 <div className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-left space-y-1">
                   <div className="flex items-center justify-between text-[11px] font-bold">
-                    <span className="text-slate-600 dark:text-slate-400">VIP Pass Progress:</span>
-                    <span className="text-orange-600 dark:text-orange-400 font-mono">{user?.nexusCoins || 0}/500</span>
+                    <span className="text-slate-600 dark:text-slate-400">{isBn ? 'ভিআইপি পাস অগ্রগতি:' : 'VIP Pass Progress:'}</span>
+                    <span className="text-orange-600 dark:text-orange-400 font-mono">
+                      {isBn ? `${toBengaliNumber(user?.nexusCoins || 0)}/৫০০` : `${user?.nexusCoins || 0}/500`}
+                    </span>
                   </div>
                   <div className="w-28 h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
                     <div
@@ -320,7 +322,7 @@ function ProfileContent() {
                 className="px-4 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800/80 hover:bg-rose-500/10 hover:text-rose-500 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 transition-all flex items-center gap-2 cursor-pointer"
               >
                 <LogOut className="w-4 h-4" />
-                Sign Out
+                {isBn ? 'লগআউট' : 'Sign Out'}
               </button>
             </div>
           </div>
