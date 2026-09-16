@@ -797,14 +797,14 @@ function ProfileContent() {
               <div>
                 <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <ShoppingCart className="w-5 h-5 text-orange-500" />
-                  Active Shopping Cart ({cartItems.length} items)
+                  {isBn ? `শপিং কার্ট (${toBengaliNumber(cartItems.length)}টি পণ্য)` : `Active Shopping Cart (${cartItems.length} items)`}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Review your items and proceed to fast courier checkout.
+                  {isBn ? 'আপনার পণ্যগুলো যাচাই করে দ্রুত কুরিয়ার চেকআউটে এগিয়ে যান।' : 'Review your items and proceed to fast courier checkout.'}
                 </p>
               </div>
               <Link href="/products" className="text-xs font-bold text-orange-600 dark:text-orange-400 hover:underline flex items-center gap-1">
-                Add More Items <ArrowRight className="w-3.5 h-3.5" />
+                {isBn ? 'আরও পণ্য যোগ করুন' : 'Add More Items'} <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
 
@@ -821,7 +821,7 @@ function ProfileContent() {
                         <div className="min-w-0">
                           <h4 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white truncate max-w-xs">{cItem.title}</h4>
                           <span className="font-mono font-bold text-xs text-orange-600 dark:text-orange-400 block mt-0.5">
-                            ৳{cItem.price.toLocaleString()} each
+                            {isBn ? `৳${toBengaliNumber(cItem.price)} প্রতিটি` : `৳${cItem.price.toLocaleString()} each`}
                           </span>
                         </div>
                       </div>
