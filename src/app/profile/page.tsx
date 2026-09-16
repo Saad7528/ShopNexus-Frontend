@@ -658,14 +658,14 @@ function ProfileContent() {
               <div>
                 <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <Heart className="w-5 h-5 text-rose-500 fill-rose-500" />
-                  My Saved Wishlist ({wishlistItems.length})
+                  {isBn ? `সংরক্ষিত উইশলিস্ট (${toBengaliNumber(wishlistItems.length)})` : `My Saved Wishlist (${wishlistItems.length})`}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Products you saved for future purchases.
+                  {isBn ? 'ভবিষ্যতে কেনার জন্য আপনার সংরক্ষিত পণ্যসমূহ।' : 'Products you saved for future purchases.'}
                 </p>
               </div>
               <Link href="/products" className="text-xs font-bold text-orange-600 dark:text-orange-400 hover:underline flex items-center gap-1">
-                Explore More <ArrowRight className="w-3.5 h-3.5" />
+                {isBn ? 'আরও দেখুন' : 'Explore More'} <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
 
@@ -720,7 +720,7 @@ function ProfileContent() {
                           <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                           {isOutOfStock && (
                             <div className="absolute inset-x-0 bottom-0 py-0.5 bg-rose-600/90 text-[8px] font-bold text-white text-center">
-                              Out of Stock
+                              {isBn ? 'স্টক শেষ' : 'Out of Stock'}
                             </div>
                           )}
                         </div>
