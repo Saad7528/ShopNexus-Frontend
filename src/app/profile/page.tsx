@@ -339,7 +339,7 @@ function ProfileContent() {
               }`}
             >
               <UserIcon className="w-3.5 h-3.5" />
-              Personal Information
+              {isBn ? 'ব্যক্তিগত তথ্য' : 'Personal Information'}
             </button>
 
             <button
@@ -352,10 +352,10 @@ function ProfileContent() {
               }`}
             >
               <Package className="w-3.5 h-3.5" />
-              Order History & Live Tracking
+              {isBn ? 'অর্ডার হিস্ট্রি ও লাইভ ট্র্যাকিং' : 'Order History & Live Tracking'}
               {userOrders && userOrders.length > 0 && (
                 <span className="w-4 h-4 rounded-full bg-white/20 text-white text-[10px] flex items-center justify-center">
-                  {userOrders.length}
+                  {isBn ? toBengaliNumber(userOrders.length) : userOrders.length}
                 </span>
               )}
             </button>
