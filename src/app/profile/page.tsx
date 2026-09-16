@@ -732,7 +732,7 @@ function ProfileContent() {
                             </h4>
                           </Link>
                           <span className="font-mono font-bold text-xs text-slate-900 dark:text-white block mt-1">
-                            ৳{item.price.toLocaleString()}
+                            {isBn ? `৳${toBengaliNumber(item.price)}` : `৳${item.price.toLocaleString()}`}
                           </span>
                         </div>
                       </div>
@@ -744,7 +744,7 @@ function ProfileContent() {
                             disabled
                             className="flex-1 py-2 px-3 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-bold text-xs flex items-center justify-center gap-1.5 cursor-not-allowed border border-slate-300 dark:border-slate-700 opacity-80 select-none"
                           >
-                            <AlertCircle className="w-3.5 h-3.5 text-rose-500" /> Out of Stock
+                            <AlertCircle className="w-3.5 h-3.5 text-rose-500" /> {isBn ? 'স্টক শেষ' : 'Out of Stock'}
                           </button>
                         ) : (
                           <button
