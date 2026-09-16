@@ -144,8 +144,8 @@ export default function AboutAndFAQPage() {
             </p>
           </div>
 
-          {/* Feature 6 */}
-          <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 hover:border-cyan-500/40 shadow-sm backdrop-blur-xl transition-all space-y-3 group">
+          {/* Feature 6: Replacement Policy */}
+          <div id="replacement-policy" className="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 hover:border-cyan-500/40 shadow-sm backdrop-blur-xl transition-all space-y-3 group scroll-mt-28">
             <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-600 dark:text-cyan-400 flex items-center justify-center group-hover:scale-110 transition-transform">
               <ShieldCheck className="w-6 h-6" />
             </div>
@@ -160,7 +160,7 @@ export default function AboutAndFAQPage() {
       </section>
 
       {/* 3. TRACKING QUICK BANNER */}
-      <section className="py-8 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+      <section id="tracking-banner" className="py-8 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto scroll-mt-24">
         <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-orange-500/10 via-amber-500/5 to-transparent border border-orange-500/20 backdrop-blur-xl flex flex-col sm:flex-row items-center justify-between gap-6 shadow-lg">
           <div className="space-y-1.5 text-center sm:text-left">
             <span className="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider flex items-center justify-center sm:justify-start gap-1.5">
