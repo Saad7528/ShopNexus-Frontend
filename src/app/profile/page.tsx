@@ -554,12 +554,14 @@ function ProfileContent() {
                       <div className="flex items-center justify-between text-xs mb-2">
                         <span className="font-mono font-bold text-slate-900 dark:text-white">#{ord.orderNumber || ord.id.slice(-6).toUpperCase()}</span>
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-orange-500/10 text-orange-600 dark:text-orange-400">
-                          {ord.status}
+                          {getStatusLabel(ord.status)}
                         </span>
                       </div>
                       <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-                        <span>{ord.date || 'Recent'}</span>
-                        <span className="font-mono font-bold text-slate-900 dark:text-white">৳{(ord.total || 0).toLocaleString()}</span>
+                        <span>{ord.date || (isBn ? 'সম্প্রতি' : 'Recent')}</span>
+                        <span className="font-mono font-bold text-slate-900 dark:text-white">
+                          {isBn ? `৳${toBengaliNumber(ord.total || 0)}` : `৳${(ord.total || 0).toLocaleString()}`}
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -571,20 +573,29 @@ function ProfileContent() {
                     <div className="rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-6 sm:p-8 backdrop-blur-2xl shadow-xl space-y-6">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800/80 pb-4">
                         <div>
-                          <span className="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider">Order Details</span>
+                          <span className="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider">
+                            {isBn ? 'অর্ডারের বিবরণ' : 'Order Details'}
+                          </span>
                           <h4 className="text-lg font-black text-slate-900 dark:text-white font-mono">#{selectedOrder.orderNumber || selectedOrder.id}</h4>
                         </div>
                         <div className="text-right">
-                          <span className="text-xs text-slate-500 dark:text-slate-400">Total Paid</span>
-                          <p className="text-lg font-black text-orange-600 dark:text-orange-400 font-mono">৳{(selectedOrder.total || 0).toLocaleString()}</p>
+                          <span className="text-xs text-slate-500 dark:text-slate-400">{isBn ? 'মোট পরিশোধিত' : 'Total Paid'}</span>
+                          <p className="text-lg font-black text-orange-600 dark:text-orange-400 font-mono">
+                            {isBn ? `৳${toBengaliNumber(selectedOrder.total || 0)}` : `৳${(selectedOrder.total || 0).toLocaleString()}`}
+                          </p>
                         </div>
                       </div>
 
                       {/* Step Progress Bar */}
                       <div>
-                        <h5 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-4">Parcel Journey Status</h5>
+                        <h5 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-4">
+                          {isBn ? 'পার্সেল ট্র্যাকিং স্ট্যাটাস' : 'Parcel Journey Status'}
+                        </h5>
                         <div className="grid grid-cols-5 gap-2 text-center text-[10px] font-bold">
-                          {['Placed', 'Confirmed', 'Packaging', 'Shipped', 'Delivered'].map((step, idx) => {
+                          {(isBn
+                            ? ['অর্ডার গৃহীত', 'নিশ্চিতকৃত', 'প্যাকেজিং', 'রওনা হয়েছে', 'ডেলিভারড']
+                            : ['Placed', 'Confirmed', 'Packaging', 'Shipped', 'Delivered']
+                          ).map((step, idx) => {
                             const isCompleted = getStepProgress(selectedOrder.status) >= idx + 1;
                             return (
                               <div key={step} className="space-y-1.5">
