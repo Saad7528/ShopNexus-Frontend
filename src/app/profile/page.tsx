@@ -615,11 +615,13 @@ function ProfileContent() {
                       {selectedOrder.trackingNumber && (
                         <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
                           <div>
-                            <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">Courier Tracking ID</span>
+                            <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">
+                              {isBn ? 'কুরিয়ার ট্র্যাকিং আইডি' : 'Courier Tracking ID'}
+                            </span>
                             <p className="font-mono text-xs font-bold text-slate-900 dark:text-white">{selectedOrder.trackingNumber}</p>
                           </div>
                           <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                            <Truck className="w-4 h-4" /> Live Tracking Active
+                            <Truck className="w-4 h-4" /> {isBn ? 'লাইভ ট্র্যাকিং সক্রিয়' : 'Live Tracking Active'}
                           </span>
                         </div>
                       )}
@@ -632,15 +634,17 @@ function ProfileContent() {
                 <div className="w-16 h-16 rounded-3xl bg-orange-500/10 text-orange-500 flex items-center justify-center mx-auto">
                   <Package className="w-8 h-8" />
                 </div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white">No Orders Found Yet</h3>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">{isBn ? 'এখনও কোনো অর্ডার পাওয়া যায়নি' : 'No Orders Found Yet'}</h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
-                  You haven&apos;t placed any orders yet. Discover our curated official hardware and enjoy fast 24h delivery!
+                  {isBn
+                    ? 'আপনি এখনও কোনো অর্ডার করেননি। আমাদের প্রিমিয়াম অফিসিয়াল গ্যাজেট ব্রাউজ করুন এবং উপভোগ করুন দ্রুত ২৪ ঘণ্টার ডেলিভারি!'
+                    : 'You haven\'t placed any orders yet. Discover our curated official hardware and enjoy fast 24h delivery!'}
                 </p>
                 <Link
                   href="/products"
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white font-bold text-xs shadow-lg shadow-orange-500/25 cursor-pointer"
                 >
-                  Start Shopping <ArrowRight className="w-3.5 h-3.5" />
+                  {isBn ? 'শপিং শুরু করুন' : 'Start Shopping'} <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
             )}
