@@ -868,9 +868,11 @@ function ProfileContent() {
                 {/* Subtotal & Checkout CTA Card */}
                 <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
                   <div>
-                    <span className="text-xs text-slate-500 dark:text-slate-400">Cart Total ({cartItems.length} items)</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">
+                      {isBn ? `কার্ট মোট (${toBengaliNumber(cartItems.length)}টি পণ্য)` : `Cart Total (${cartItems.length} items)`}
+                    </span>
                     <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-mono">
-                      ৳{cartTotals.subtotal.toLocaleString()} BDT
+                      {isBn ? `৳${toBengaliNumber(cartTotals.subtotal)} টাকা` : `৳${cartTotals.subtotal.toLocaleString()} BDT`}
                     </p>
                   </div>
 
@@ -878,7 +880,7 @@ function ProfileContent() {
                     href="/checkout"
                     className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/25 flex items-center justify-center gap-2 cursor-pointer transition-all"
                   >
-                    Proceed to 1-Click Checkout <ArrowRight className="w-4 h-4" />
+                    {isBn ? '১-ক্লিক চেকআউটে এগিয়ে যান' : 'Proceed to 1-Click Checkout'} <ArrowRight className="w-4 h-4" />
                   </Link>
                 </div>
               </div>
