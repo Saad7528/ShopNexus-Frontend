@@ -20,6 +20,8 @@ export interface User {
   lastVisitDate?: string;
   isVipMember?: boolean;
   vipFirstOrderUsed?: boolean;
+  isFlaggedFraud?: boolean;
+  isLocked?: boolean;
   tier?: 'Bronze' | 'Silver' | 'Gold' | 'Platinum';
   createdAt?: string;
 }

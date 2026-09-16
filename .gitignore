@@ -31,8 +31,6 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files
-.env
-.env.local
 .env.*.local
 !.env.example
 
@@ -49,3 +47,4 @@ SETUP_REPORT.md
 SETUP_REPORT_BN.md
 .agents/
 *.rules.md
+config.bat
