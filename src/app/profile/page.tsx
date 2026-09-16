@@ -370,10 +370,10 @@ function ProfileContent() {
               }`}
             >
               <Heart className="w-3.5 h-3.5" />
-              My Wishlist
+              {isBn ? 'আমার উইশলিস্ট' : 'My Wishlist'}
               {wishlistItems && wishlistItems.length > 0 && (
                 <span className="w-4 h-4 rounded-full bg-rose-500 text-white text-[10px] flex items-center justify-center">
-                  {wishlistItems.length}
+                  {isBn ? toBengaliNumber(wishlistItems.length) : wishlistItems.length}
                 </span>
               )}
             </button>
@@ -388,10 +388,10 @@ function ProfileContent() {
               }`}
             >
               <ShoppingCart className="w-3.5 h-3.5" />
-              My Cart
+              {isBn ? 'আমার কার্ট' : 'My Cart'}
               {cartItems && cartItems.length > 0 && (
                 <span className="w-4 h-4 rounded-full bg-orange-500 text-white text-[10px] flex items-center justify-center">
-                  {cartItems.length}
+                  {isBn ? toBengaliNumber(cartItems.length) : cartItems.length}
                 </span>
               )}
             </button>
