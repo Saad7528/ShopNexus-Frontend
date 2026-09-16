@@ -523,7 +523,9 @@ function ProfileContent() {
                 className="px-6 py-3 rounded-2xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/25 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
               >
                 <Save className="w-4 h-4" />
-                {isSaving ? 'Saving Changes...' : 'Save Profile Changes'}
+                {isSaving
+                  ? (isBn ? 'সংরক্ষণ করা হচ্ছে...' : 'Saving Changes...')
+                  : (isBn ? 'প্রোফাইল সংরক্ষণ করুন' : 'Save Profile Changes')}
               </button>
             </div>
           </form>
@@ -536,7 +538,9 @@ function ProfileContent() {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Orders List */}
                 <div className="lg:col-span-1 space-y-3">
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">Your Orders ({userOrders.length})</h3>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                    {isBn ? `আপনার অর্ডারসমূহ (${toBengaliNumber(userOrders.length)})` : `Your Orders (${userOrders.length})`}
+                  </h3>
                   {userOrders.map((ord) => (
                     <div
                       key={ord.id}
