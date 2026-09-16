@@ -65,7 +65,7 @@ export default function AboutAndFAQPage() {
       </section>
 
       {/* 🌟 2. PILLARS / HIGHLIGHTS SECTION */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+      <section id="pillars" className="py-16 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto scroll-mt-24">
         <div className="text-center space-y-3 mb-12">
           <span className="text-xs font-bold uppercase tracking-wider text-orange-600 dark:text-orange-400">
             Why ShopNexus
@@ -92,8 +92,8 @@ export default function AboutAndFAQPage() {
             </p>
           </div>
 
-          {/* Feature 2 */}
-          <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 hover:border-emerald-500/40 shadow-sm backdrop-blur-xl transition-all space-y-3 group">
+          {/* Feature 2: Delivery Rates */}
+          <div id="delivery-rates" className="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 hover:border-emerald-500/40 shadow-sm backdrop-blur-xl transition-all space-y-3 group scroll-mt-28">
             <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
               <Truck className="w-6 h-6" />
             </div>
