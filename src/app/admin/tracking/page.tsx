@@ -308,7 +308,9 @@ export default function AdminTrackingPage() {
                   <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
                     {isBn ? 'কুরিয়ার ক্যারিয়ার:' : 'Carrier:'}{' '}
                     <span className="text-orange-600 dark:text-orange-400 font-semibold">{selectedParcel.courierPartner}</span> •{' '}
-                    {isBn ? `আপডেট: ${selectedParcel.lastUpdated}` : `Updated ${selectedParcel.lastUpdated}`}
+                    {isBn
+                      ? `আপডেট: ${selectedParcel.lastUpdated.replace('mins ago', 'মিনিট আগে').replace('hours ago', 'ঘণ্টা আগে').replace('Just now', 'এইমাত্র')}`
+                      : `Updated ${selectedParcel.lastUpdated}`}
                   </p>
                 </div>
 

@@ -185,7 +185,7 @@ export default function AboutAndFAQPage() {
       </section>
 
       {/* 4. FAQ ACCORDION SECTION */}
-      <section id="faq-section" className="py-16 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-8">
+      <section id="faq-section" className="py-16 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-8 scroll-mt-24">
         <div className="text-center space-y-3">
           <span className="text-xs font-bold uppercase tracking-wider text-orange-600 dark:text-orange-400">
             Frequently Asked Questions
