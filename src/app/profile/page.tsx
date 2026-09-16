@@ -752,14 +752,14 @@ function ProfileContent() {
                             onClick={() => handleMoveWishlistToCart(item, availableStock)}
                             className="flex-1 py-2 px-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer"
                           >
-                            <ShoppingBag className="w-3.5 h-3.5" /> Move to Cart
+                            <ShoppingBag className="w-3.5 h-3.5" /> {isBn ? 'কার্টে নিন' : 'Move to Cart'}
                           </button>
                         )}
                         <button
                           type="button"
                           onClick={() => removeFromWishlist(item.id)}
                           className="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 transition-all cursor-pointer"
-                          title="Remove from wishlist"
+                          title={isBn ? 'উইশলিস্ট থেকে সরান' : 'Remove from wishlist'}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -773,15 +773,17 @@ function ProfileContent() {
                 <div className="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center mx-auto">
                   <Heart className="w-6 h-6" />
                 </div>
-                <h4 className="text-sm font-bold text-slate-900 dark:text-white">Your Wishlist is Empty</h4>
+                <h4 className="text-sm font-bold text-slate-900 dark:text-white">{isBn ? 'আপনার উইশলিস্ট খালি' : 'Your Wishlist is Empty'}</h4>
                 <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
-                  Save your favorite hardware and audio gear to monitor price drops and stock availability.
+                  {isBn
+                    ? 'পছন্দের গ্যাজেট ও অ্যাক্সেসরিজ সংরক্ষণ করুন যাতে দাম কমলে বা স্টক আসলে সহজেই জানতে পারেন।'
+                    : 'Save your favorite hardware and audio gear to monitor price drops and stock availability.'}
                 </p>
                 <Link
                   href="/products"
                   className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-orange-500 text-white font-bold text-xs shadow-md shadow-orange-500/20"
                 >
-                  Discover Products <ArrowRight className="w-3.5 h-3.5" />
+                  {isBn ? 'পণ্য দেখুন' : 'Discover Products'} <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
             )}
