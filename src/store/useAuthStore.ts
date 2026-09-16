@@ -1,27 +1,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type UserRole = 'customer' | 'vendor' | 'admin';
+import { User, UserRole } from '@/types/user';
+export type { User, UserRole };
 
-export interface User {
-  _id: string;
-  name: string;
-  email: string;
-  role: UserRole;
-  avatar?: string;
-  phoneNumber?: string;
-  address?: string;
-  city?: string;
-  zipCode?: string;
-  country?: string;
-  storeName?: string;
-  storeDescription?: string;
-  nexusCoins?: number;
-  loginStreak?: number;
-  lastVisitDate?: string;
-  isVipMember?: boolean;
-  vipFirstOrderUsed?: boolean;
-}
 
 interface UserVaultData {
   nexusCoins: number;
@@ -39,7 +21,7 @@ const getStoredUserVault = (email: string): UserVaultData | null => {
     if (!raw) return null;
     const vaults = JSON.parse(raw);
     return vaults[email.toLowerCase()] || null;
-  } catch (_e) {
+  } catch {
     return null;
   }
 };
@@ -60,7 +42,7 @@ const saveStoredUserVault = (email: string, data: Partial<UserVaultData>) => {
       ...data,
     };
     localStorage.setItem('shopnexus_user_vaults', JSON.stringify(vaults));
-  } catch (_e) {
+  } catch {
     // Ignore storage quota errors
   }
 };
@@ -78,7 +60,7 @@ const syncWithBackend = async (data: Partial<User>, token: string | null) => {
       },
       body: JSON.stringify(data),
     });
-  } catch (_e) {
+  } catch {
     // Graceful offline fallback
   }
 };
@@ -96,6 +78,7 @@ interface AuthState {
   spendCoins: (coinsToSpend: number) => boolean;
   processDailyVisit: () => { rewarded: boolean; coinsAdded: number; streak: number };
   claimVipPass: () => { success: boolean; message: string };
+  consumeVipDiscount: () => void;
   useVipDiscount: () => void;
 }
 
@@ -175,7 +158,7 @@ export const useAuthStore = create<AuthState>()(
               channel.postMessage({ type: 'LOGIN', user: initializedUser, token, timestamp: Date.now() });
               channel.close();
             }
-          } catch (_e) {}
+          } catch {}
         }
 
         set({ user: initializedUser, token, isAuthenticated: true });
@@ -194,7 +177,7 @@ export const useAuthStore = create<AuthState>()(
               channel.close();
             }
             localStorage.setItem('shopnexus_auth_sync_event', JSON.stringify({ type: 'LOGOUT', timestamp: Date.now() }));
-          } catch (_e) {}
+          } catch {}
         }
 
         // User session clears, but their account coin vault remains permanently saved by email
@@ -319,7 +302,7 @@ export const useAuthStore = create<AuthState>()(
           message: '🎉 অভিনন্দন! আপনার ব্ল্যাক ফ্রাইডে VIP পাস সক্রিয় হয়েছে। প্রথম অর্ডারে পাবেন ২০০ টাকা ফ্ল্যাট ছাড়!',
         };
       },
-      useVipDiscount: () => {
+      consumeVipDiscount: () => {
         const state = get();
         if (!state.user) return;
 
@@ -332,6 +315,9 @@ export const useAuthStore = create<AuthState>()(
             vipFirstOrderUsed: true,
           },
         });
+      },
+      useVipDiscount: () => {
+        get().consumeVipDiscount();
       },
     }),
     {

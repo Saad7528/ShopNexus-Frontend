@@ -21,6 +21,7 @@ import {
   TrendingUp,
 } from 'lucide-react';
 
+
 import { useAuthStore } from '@/store/useAuthStore';
 import { useLanguageStore } from '@/store/useLanguageStore';
 import { toBengaliNumber } from '@/lib/translations';
@@ -626,6 +627,7 @@ export default function AdminCustomersRBACPage() {
                         >
                           <Info className="w-3.5 h-3.5" />
                         </button>
+
                       </div>
                     </td>
                     <td className="px-5 py-3.5">
@@ -1061,6 +1063,7 @@ export default function AdminCustomersRBACPage() {
                     onChange={(e) => setNewStaff({ ...newStaff, role: e.target.value as IStaffRole['role'] })}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none cursor-pointer"
                   >
+
                     <option value="Telesales Executive">{isBn ? 'টেলিসেলস / অর্ডার নিশ্চিতকরণ এক্সিকিউটিভ' : 'Telesales / Order Confirmation Executive'}</option>
                     <option value="Delivery Officer">{isBn ? 'ডেলিভারি ও ট্র্যাকিং অফিসার' : 'Delivery & Tracking Officer'}</option>
                     <option value="Inventory Manager">{isBn ? 'ক্যাটালগ / ইনভেন্টরি ম্যানেজার' : 'Catalog / Inventory Manager'}</option>

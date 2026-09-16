@@ -1,12 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { RoleGuard } from '@/components/auth/RoleGuard';
-import { showConfirmDialog, showAlertDialog } from '@/store/useDialogStore';
+import { showConfirmDialog } from '@/store/useDialogStore';
 import {
-  Boxes,
   Search,
   AlertTriangle,
   CheckCircle2,
@@ -15,39 +14,14 @@ import {
   Save,
   Plus,
   Trash2,
-  X,
-  Sparkles,
-  Package,
-  DollarSign,
-  Tag,
-  Layers,
-  Barcode,
-  Layers2,
-  Globe,
   Sliders,
-  Truck,
-  ShieldCheck,
-  RotateCcw,
-  Check,
 } from 'lucide-react';
 
 import { IInventoryItem, INITIAL_INVENTORY } from '@/data/inventory';
-
-const CATEGORIES = [
-  'Audio',
-  'Wearables',
-  'Peripherals',
-  'Gaming',
-  'Smart Home',
-  'Creator Gear',
-  'Accessories',
-  'Apparel',
-];
-
-import { Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useLanguageStore } from '@/store/useLanguageStore';
+import { useProductStore } from '@/store/useProductStore';
 import { toBengaliNumber } from '@/lib/translations';
 
 function InventoryContent() {
@@ -63,10 +37,7 @@ function InventoryContent() {
   );
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editStockValue, setEditStockValue] = useState<number>(0);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [editingProductModal, setEditingProductModal] = useState<IInventoryItem | null>(null);
   const [feedbackMsg, setFeedbackMsg] = useState<{ text: string; type: 'success' | 'delete' } | null>(null);
-  const [isSyncing, setIsSyncing] = useState(false);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -81,11 +52,25 @@ function InventoryContent() {
         if (!res || !res.ok) return;
         const data = await res.json().catch(() => null);
         if (data?.data?.products && Array.isArray(data.data.products) && data.data.products.length > 0) {
-          const mapped: IInventoryItem[] = data.data.products.map((p: any) => ({
-            id: p._id || p.id,
+          const mapped: IInventoryItem[] = data.data.products.map((p: {
+            _id?: string;
+            id?: string;
+            variants?: { sku?: string; name?: string }[];
+            title?: string;
+            name?: string;
+            category?: string;
+            brand?: string;
+            price?: number;
+            discountPrice?: number;
+            stock?: number;
+            images?: string[];
+            isFlashSale?: boolean;
+            slug?: string;
+          }) => ({
+            id: p._id || p.id || '',
             sku: p.variants?.[0]?.sku || `SKU-${p._id?.toString().slice(-4) || '101'}`,
             barcode: `BC-${p._id?.toString().slice(-6) || '202'}`,
-            name: p.title || p.name,
+            name: p.title || p.name || '',
             category: p.category || 'Audio',
             brand: p.brand || 'ShopNexus Official',
             costPrice: Math.round((p.price || 5000) * 0.7),
@@ -97,7 +82,7 @@ function InventoryContent() {
             image: p.images?.[0] || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&q=80',
             isFlashSale: !!p.isFlashSale,
             variantColor: p.variants?.[0]?.name || 'Standard',
-            slug: p.slug || p._id || p.id,
+            slug: p.slug || p._id || p.id || '',
             hasFastDelivery: true,
             hasWarranty: true,
             warrantyText: '১ বছরের অফিসিয়াল ওয়ারেন্টি',
@@ -112,47 +97,13 @@ function InventoryContent() {
             return [...mapped, ...remainingDefault];
           });
         }
-      } catch (_err) {
+      } catch {
         // Fallback gracefully without throwing unhandled exceptions
       }
     };
 
     fetchLiveProducts();
   }, [API_URL]);
-
-  // Sync with URL query param if user arrives via link
-  React.useEffect(() => {
-    if (searchParams.get('filter') === 'low-stock') {
-      setActiveFilter('low-stock');
-    }
-  }, [searchParams]);
-
-  // New Product Form State
-  const [newProduct, setNewProduct] = useState({
-    name: '',
-    sku: `SKU-${Date.now().toString().slice(-4)}`,
-    barcode: `BC-${Date.now().toString().slice(-6)}`,
-    category: 'Audio',
-    brand: '',
-    costPrice: '',
-    price: '',
-    discountPrice: '',
-    vatTaxPercent: '7.5',
-    stock: '25',
-    threshold: '5',
-    image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&q=80',
-    variantColor: 'Default Black',
-    metaTitle: '',
-    metaDescription: '',
-    isFlashSale: false,
-    description: '',
-    // Trust Badges & Guarantee Policies
-    hasFastDelivery: true,
-    hasWarranty: true,
-    warrantyText: '১ বছরের অফিসিয়াল ওয়ারেন্টি',
-    hasReturnPolicy: true,
-    isOfficialGenuine: true,
-  });
 
   const showFeedback = (text: string, type: 'success' | 'delete' = 'success') => {
     setFeedbackMsg({ text, type });
@@ -165,23 +116,48 @@ function InventoryContent() {
   };
 
   const saveQuickStock = async (id: string) => {
+    const itemToUpdate = inventory.find((i) => i.id === id);
     // Optimistic UI update
     setInventory((prev) =>
       prev.map((item) => (item.id === id ? { ...item, stock: editStockValue } : item))
     );
     setEditingId(null);
-    showFeedback(isBn ? 'স্টক সংখ্যা তাৎক্ষণিকভাবে আপডেট করা হয়েছে!' : 'Stock quantity updated in real-time!', 'success');
+    showFeedback(isBn ? 'স্টক সফলভাবে আপডেট হয়েছে!' : 'Stock successfully updated!', 'success');
+
+    // Instant Global Cache Update for 0ms storefront sync
+    const lookupTarget = itemToUpdate?.slug || itemToUpdate?.name || id;
+    useProductStore.getState().updateProductStock(lookupTarget, editStockValue);
 
     // Async DB update
     try {
-      await fetch(`${API_URL}/products/${id}`, {
+      const payload = {
+        stock: editStockValue,
+        name: itemToUpdate?.name,
+        title: itemToUpdate?.name,
+        slug: itemToUpdate?.slug,
+      };
+
+      const targetId = encodeURIComponent(itemToUpdate?.slug || itemToUpdate?.name || id);
+
+      let res = await fetch(`/api/products/${targetId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ stock: editStockValue }),
-      });
+        body: JSON.stringify(payload),
+      }).catch(() => null);
+
+      if ((!res || !res.ok) && API_URL && !API_URL.startsWith('/api') && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+        await fetch(`${API_URL}/products/${targetId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify(payload),
+        }).catch(() => null);
+      }
     } catch (e) {
       console.error('Failed to sync stock change with DB:', e);
     }
@@ -202,170 +178,30 @@ function InventoryContent() {
       setInventory((prev) => prev.filter((item) => item.id !== id));
       showFeedback(isBn ? `ক্যাটালগ থেকে "${name}" মুছে ফেলা হয়েছে।` : `Removed "${name}" from catalog.`, 'delete');
 
+      // Instant eviction from Global Product Store Cache
+      useProductStore.getState().removeProduct(id);
+      useProductStore.getState().removeProduct(name);
+
       // Async DB deletion
       try {
-        await fetch(`${API_URL}/products/${id}`, {
+        let res = await fetch(`/api/products/${id}`, {
           method: 'DELETE',
           headers: {
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
-        });
+        }).catch(() => null);
+
+        if ((!res || !res.ok) && API_URL && !API_URL.startsWith('/api') && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+          await fetch(`${API_URL}/products/${id}`, {
+            method: 'DELETE',
+            headers: {
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+          }).catch(() => null);
+        }
       } catch (e) {
         console.error('Failed to delete from live DB:', e);
       }
-    }
-  };
-
-  const handleOpenEditModal = (item: IInventoryItem) => {
-    setEditingProductModal({
-      ...item,
-      hasFastDelivery: item.hasFastDelivery ?? true,
-      hasWarranty: item.hasWarranty ?? true,
-      warrantyText: item.warrantyText || (isBn ? '১ বছরের অফিসিয়াল ওয়ারেন্টি' : '1 Year Official Warranty'),
-      hasReturnPolicy: item.hasReturnPolicy ?? true,
-      isOfficialGenuine: item.isOfficialGenuine ?? true,
-    });
-  };
-
-  const handleSaveFullEdit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingProductModal) return;
-
-    const updated = { ...editingProductModal };
-    setInventory((prev) =>
-      prev.map((item) => (item.id === updated.id ? updated : item))
-    );
-    showFeedback(isBn ? `পণ্য "${updated.name}" সফলভাবে আপডেট করা হয়েছে!` : `Product "${updated.name}" updated successfully!`, 'success');
-    setEditingProductModal(null);
-
-    // Async DB update
-    try {
-      await fetch(`${API_URL}/products/${updated.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          title: updated.name,
-          category: updated.category,
-          brand: updated.brand,
-          price: updated.price,
-          discountPrice: updated.discountPrice,
-          stock: updated.stock,
-          isFlashSale: updated.isFlashSale,
-        }),
-      });
-    } catch (err) {
-      console.error('Failed to sync edit with live DB:', err);
-    }
-  };
-
-  const handleAddProduct = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newProduct.name || !newProduct.price) {
-      await showAlertDialog({
-        title: isBn ? 'অসম্পূর্ণ তথ্য' : 'Incomplete Details',
-        message: isBn ? 'অনুগ্রহ করে পণ্যের নাম এবং বিক্রয়মূল্য প্রদান করুন।' : 'Please provide product title and sales price.',
-        type: 'warning',
-        confirmText: isBn ? 'ঠিক আছে' : 'OK',
-      });
-      return;
-    }
-
-    const itemToAdd: IInventoryItem = {
-      id: `inv-${Date.now()}`,
-      sku: newProduct.sku || `SKU-GEN-${Date.now().toString().slice(-3)}`,
-      barcode: newProduct.barcode || `BC-${Date.now().toString().slice(-6)}`,
-      name: newProduct.name,
-      category: newProduct.category,
-      brand: newProduct.brand || 'ShopNexus Official',
-      costPrice: parseFloat(newProduct.costPrice) || 5000,
-      price: parseFloat(newProduct.price) || 8500,
-      discountPrice: newProduct.discountPrice ? parseFloat(newProduct.discountPrice) : undefined,
-      vatTaxPercent: parseFloat(newProduct.vatTaxPercent) || 7.5,
-      stock: parseInt(newProduct.stock) || 20,
-      threshold: parseInt(newProduct.threshold) || 5,
-      image: newProduct.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80',
-      variantColor: newProduct.variantColor,
-      isFlashSale: newProduct.isFlashSale,
-      slug: newProduct.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-      hasFastDelivery: newProduct.hasFastDelivery,
-      hasWarranty: newProduct.hasWarranty,
-      warrantyText: newProduct.warrantyText,
-      hasReturnPolicy: newProduct.hasReturnPolicy,
-      isOfficialGenuine: newProduct.isOfficialGenuine,
-    };
-
-    setInventory([itemToAdd, ...inventory]);
-    setIsAddModalOpen(false);
-    showFeedback(`Product "${itemToAdd.name}" published to catalog in ৳ BDT!`, 'success');
-
-    // Reset Form
-    setNewProduct({
-      name: '',
-      sku: `SKU-${Date.now().toString().slice(-4)}`,
-      barcode: `BC-${Date.now().toString().slice(-6)}`,
-      category: 'Audio',
-      brand: '',
-      costPrice: '',
-      price: '',
-      discountPrice: '',
-      vatTaxPercent: '7.5',
-      stock: '25',
-      threshold: '5',
-      image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&q=80',
-      variantColor: 'Default Black',
-      metaTitle: '',
-      metaDescription: '',
-      isFlashSale: false,
-      description: '',
-      hasFastDelivery: true,
-      hasWarranty: true,
-      warrantyText: '১ বছরের অফিসিয়াল ওয়ারেন্টি',
-      hasReturnPolicy: true,
-      isOfficialGenuine: true,
-    });
-
-    // Async DB creation
-    try {
-      const res = await fetch(`${API_URL}/products`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          title: itemToAdd.name,
-          category: itemToAdd.category,
-          brand: itemToAdd.brand,
-          price: itemToAdd.price,
-          discountPrice: itemToAdd.discountPrice,
-          stock: itemToAdd.stock,
-          images: [itemToAdd.image],
-          description: newProduct.description || `${itemToAdd.name} - Genuine product with official warranty`,
-          isFlashSale: itemToAdd.isFlashSale,
-          variants: [
-            {
-              sku: itemToAdd.sku,
-              name: itemToAdd.variantColor || 'Standard',
-              price: itemToAdd.price,
-              stock: itemToAdd.stock,
-            },
-          ],
-        }),
-      });
-
-      if (res.ok) {
-        const resData = await res.json();
-        if (resData?.data?.product?._id) {
-          setInventory((prev) =>
-            prev.map((it) => (it.id === itemToAdd.id ? { ...it, id: resData.data.product._id } : it))
-          );
-        }
-      }
-    } catch (err) {
-      console.error('Failed to persist new product to DB:', err);
     }
   };
 
@@ -601,8 +437,12 @@ function InventoryContent() {
                         )}
                       </td>
                       <td className="px-5 py-3.5 whitespace-nowrap">
-                        {isLow ? (
+                        {item.stock <= 0 ? (
                           <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-600 dark:text-rose-400 bg-rose-500/10 px-2.5 py-0.5 rounded-full border border-rose-500/20 whitespace-nowrap">
+                            <AlertTriangle className="w-3 h-3 shrink-0" /> {isBn ? 'স্টক শেষ' : 'Out of Stock'}
+                          </span>
+                        ) : isLow ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20 whitespace-nowrap">
                             <AlertTriangle className="w-3 h-3 shrink-0" /> {isBn ? 'কম স্টক' : 'Low Stock'}
                           </span>
                         ) : (

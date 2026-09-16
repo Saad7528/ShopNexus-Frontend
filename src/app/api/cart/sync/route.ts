@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     const cartsCollection = db.collection('carts');
     const now = new Date();
 
-    const subtotal = (items || []).reduce((acc: number, i: any) => acc + (Number(i.price) || 0) * (Number(i.quantity) || 1), 0);
+    const subtotal = (items || []).reduce((acc: number, i: { price?: number; quantity?: number }) => acc + (Number(i.price) || 0) * (Number(i.quantity) || 1), 0);
     const tax = parseFloat((subtotal * 0.05).toFixed(2));
     const total = parseFloat(Math.max(0, subtotal - (Number(discount) || 0) + tax).toFixed(2));
 
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
       customerName: customerName || 'Guest Shopper',
       customerEmail: customerEmail || 'shopper@tempmail.io',
       customerPhone: customerPhone || '+880 1700-000000',
-      items: (items || []).map((i: any) => ({
+      items: (items || []).map((i: { productId?: string; id?: string; title?: string; price?: number; quantity?: number; image?: string; vendorName?: string; variant?: string }) => ({
         productId: i.productId || i.id || 'p-unknown',
         title: i.title || 'Product Item',
         price: Number(i.price) || 0,
@@ -52,8 +52,10 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ success: true, message: 'Cart synced to MongoDB Atlas' });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Cart sync error:', error);
-    return NextResponse.json({ success: false, message: error.message || 'Internal error' }, { status: 500 });
+    const msg = error instanceof Error ? error.message : 'Internal error';
+    return NextResponse.json({ success: false, message: msg }, { status: 500 });
   }
 }
+

@@ -2,14 +2,29 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
 import mongoose from 'mongoose';
 
+interface HeartbeatPayload {
+  sessionId?: string;
+  pathname?: string;
+  device?: string;
+  deviceModel?: string;
+  os?: string;
+  browser?: string;
+  userName?: string;
+  contactPhone?: string;
+  cartCount?: number;
+  cartTotal?: number;
+  referrer?: string;
+  status?: string;
+}
+
 export async function POST(req: NextRequest) {
   try {
-    let body: any = {};
+    let body: HeartbeatPayload = {};
     const text = await req.text();
     if (text) {
       try {
         body = JSON.parse(text);
-      } catch (_e) {
+      } catch {
         body = {};
       }
     }
@@ -83,7 +98,7 @@ export async function POST(req: NextRequest) {
       const isNewPage = existing.currentUrl !== pathname;
 
       // Update or append route navigation journey
-      let routeHistory: Array<{ path: string; durationSeconds: number; lastVisitedAt: string }> = Array.isArray(existing.routeHistory)
+      const routeHistory: Array<{ path: string; durationSeconds: number; lastVisitedAt: string }> = Array.isArray(existing.routeHistory)
         ? [...existing.routeHistory]
         : [{ path: existing.currentUrl || '/', durationSeconds: existing.durationSeconds || 1, lastVisitedAt: timeFormatted }];
 
@@ -164,8 +179,9 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ success: true, message: 'Telemetry heartbeat recorded' });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Internal error';
     console.error('Telemetry heartbeat error:', error);
-    return NextResponse.json({ success: false, message: error.message || 'Internal error' }, { status: 500 });
+    return NextResponse.json({ success: false, message }, { status: 500 });
   }
 }

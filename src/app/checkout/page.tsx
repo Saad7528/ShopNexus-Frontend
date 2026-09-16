@@ -11,8 +11,8 @@ import { formatCurrency, toBengaliNumber } from '@/lib/translations';
 import { AddressSelector, IShippingAddressForm, validateSmartShippingAddress } from '@/components/checkout/AddressSelector';
 import { PaymentMethodSelector, PaymentMethod } from '@/components/checkout/PaymentMethodSelector';
 import { MfsPaymentModal } from '@/components/checkout/MfsPaymentModal';
+import { useHydrated } from '@/lib/useHydrated';
 import {
-  ShieldCheck,
   CreditCard,
   MapPin,
   CheckCircle2,
@@ -23,26 +23,33 @@ import {
   Building2,
   Smartphone,
   MessageSquare,
-  AlertCircle,
-  UserCheck,
   Sparkles,
-  Percent,
   Tag,
   Check,
-  Clock,
-  Award,
   Coins,
   Crown,
 } from 'lucide-react';
+
+function createMockOrderId(): string {
+  return `NX-ORD-${Math.floor(1000 + Math.random() * 9000)}`;
+}
+
+function createTrackingNumber(): string {
+  return `TRK-NX-${Math.floor(10000 + Math.random() * 90000)}`;
+}
+
+function createOrderId(): string {
+  return `ord_${Date.now()}`;
+}
 
 function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { items, clearCart } = useCartStore();
-  const { user, isAuthenticated, spendCoins, addCoins, useVipDiscount } = useAuthStore();
+  const { user, spendCoins, addCoins, consumeVipDiscount } = useAuthStore();
   const orders = useOrderStore((state) => state.orders);
   const { t, language } = useLanguageStore();
-  const [mounted, setMounted] = useState(false);
+  const mounted = useHydrated();
   const [recoveryNotice, setRecoveryNotice] = useState<string | null>(null);
 
   // Subtotal calculation (Product rate only)
@@ -89,8 +96,22 @@ function CheckoutContent() {
   const isFirstOrder = orders.length === 0;
 
   // Coupon state for returning users
-  const [couponCode, setCouponCode] = useState('');
-  const [appliedCouponDiscount, setAppliedCouponDiscount] = useState(0);
+  const initialCodeParam = searchParams.get('code') || searchParams.get('coupon') || '';
+  const [couponCode, setCouponCode] = useState(initialCodeParam ? initialCodeParam.toUpperCase() : '');
+  const [appliedCouponDiscount, setAppliedCouponDiscount] = useState(() => {
+    if (!initialCodeParam) return 0;
+    const code = initialCodeParam.trim().toUpperCase();
+    if (code.startsWith('SAVE')) {
+      const amt = parseInt(code.replace('SAVE', ''), 10);
+      if (!isNaN(amt) && amt > 0) return amt;
+    } else if (code.startsWith('COMEBACK')) {
+      const pct = parseInt(code.replace('COMEBACK', ''), 10);
+      if (!isNaN(pct) && pct > 0) return Math.round((subtotal * pct) / 100);
+    } else if (code === 'FREESHIP') return 120;
+    else if (code === 'NEXUS10') return Math.round(subtotal * 0.10);
+    else if (code === 'SAVE15') return Math.round(subtotal * 0.15);
+    return 0;
+  });
   const [couponError, setCouponError] = useState<string | null>(null);
 
   const applyDiscountForCode = (codeStr: string, currentSubtotal: number) => {
@@ -123,7 +144,6 @@ function CheckoutContent() {
 
   // 🔄 1-Click WhatsApp Cart Recovery Auto-Restoration Engine
   React.useEffect(() => {
-    setMounted(true);
     const recoverId = searchParams.get('recoverCart') || searchParams.get('cartId');
     const codeParam = searchParams.get('code') || searchParams.get('coupon');
 
@@ -137,9 +157,10 @@ function CheckoutContent() {
             if (finalCode) {
               setCouponCode(finalCode);
               const computedSubtotal = data.data.items.reduce(
-                (sum: number, item: any) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 1),
+                (sum: number, item: { price?: number; quantity?: number }) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 1),
                 0
               );
+
               applyDiscountForCode(finalCode, computedSubtotal);
             }
             setRecoveryNotice(
@@ -150,10 +171,6 @@ function CheckoutContent() {
           }
         })
         .catch(() => {});
-    } else if (codeParam) {
-      const finalCode = codeParam.toUpperCase();
-      setCouponCode(finalCode);
-      applyDiscountForCode(finalCode, subtotal);
     }
   }, [searchParams]);
 
@@ -257,7 +274,7 @@ function CheckoutContent() {
   };
 
   const completeOrderFinal = (trxId: string) => {
-    const mockOrderId = `NX-ORD-${Math.floor(1000 + Math.random() * 9000)}`;
+    const mockOrderId = createMockOrderId();
 
     // Show simulated SMS alert
     setSmsNotificationToast({
@@ -267,7 +284,7 @@ function CheckoutContent() {
 
     // Persist order to useOrderStore for customer order history
     const newOrderObj = {
-      id: `ord_${Date.now()}`,
+      id: createOrderId(),
       orderNumber: mockOrderId,
       date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
       items: items.map((it, idx) => ({
@@ -289,7 +306,7 @@ function CheckoutContent() {
           : 'Stripe Card (PAID)',
       paymentStatus: (paymentMethod === 'cash_on_delivery' ? 'PENDING' : 'PAID') as 'PAID' | 'PENDING',
       status: 'CONFIRMED' as const,
-      trackingNumber: `TRK-NX-${Math.floor(10000 + Math.random() * 90000)}`,
+      trackingNumber: createTrackingNumber(),
       carrier: deliveryZone === 'inside_dhaka' ? 'Pathao Courier Express' : 'Steadfast Logistics',
       estimatedDelivery: deliveryZone === 'inside_dhaka' ? 'Tomorrow, within 24h' : 'Within 48-72h',
       shippingAddress: `${shippingAddress.streetAddress}, ${shippingAddress.city}, ${shippingAddress.country}`,
@@ -340,7 +357,7 @@ function CheckoutContent() {
 
     // Mark VIP welcome discount as used
     if (isVipEligible) {
-      useVipDiscount();
+      consumeVipDiscount();
     }
 
     setTimeout(() => {
@@ -423,7 +440,7 @@ function CheckoutContent() {
               <button
                 key={s.step}
                 type="button"
-                onClick={() => isDone && setCurrentStep(s.step as any)}
+                onClick={() => isDone && setCurrentStep(s.step as 1 | 2 | 3)}
                 className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center gap-1 cursor-pointer ${
                   isActive
                     ? 'border-orange-500 bg-orange-500/10 text-orange-600 dark:text-orange-400 font-bold shadow-md shadow-orange-500/10'
@@ -683,24 +700,32 @@ function CheckoutContent() {
                 {items.length === 0 ? (
                   <p className="text-sm text-slate-500">{mounted && language === 'bn' ? 'কার্ট খালি।' : 'No items currently in cart.'}</p>
                 ) : (
-                  items.map((item) => (
-                    <div
-                      key={item.productId}
-                      className="flex items-center justify-between text-sm py-2 border-b border-slate-100 dark:border-slate-800 last:border-0"
-                    >
-                      <div className="min-w-0 flex-1 pr-2">
-                        <p className="font-semibold text-slate-900 dark:text-white truncate">{item.title}</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
-                          {mounted && language === 'bn'
-                            ? `পরিমাণ: ${toBengaliNumber(item.quantity)} × ${formatCurrency(item.price, language)}`
-                            : `Qty: ${item.quantity} × ${formatCurrency(item.price, 'en')}`}
-                        </p>
+                  items.map((item) => {
+                    const isItemLowStock = typeof item.stock === 'number' && item.stock <= 10 && item.stock > 0;
+                    return (
+                      <div
+                        key={item.productId}
+                        className="flex items-center justify-between text-sm py-2 border-b border-slate-100 dark:border-slate-800 last:border-0"
+                      >
+                        <div className="min-w-0 flex-1 pr-2">
+                          <p className="font-semibold text-slate-900 dark:text-white truncate">{item.title}</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">
+                            {mounted && language === 'bn'
+                              ? `পরিমাণ: ${toBengaliNumber(item.quantity)} × ${formatCurrency(item.price, language)}`
+                              : `Qty: ${item.quantity} × ${formatCurrency(item.price, 'en')}`}
+                          </p>
+                          {isItemLowStock && (
+                            <p className="text-[10px] sm:text-[11px] font-bold text-rose-600 dark:text-rose-400 mt-0.5 flex items-center gap-1">
+                              ⚠️ {mounted && language === 'bn' ? `মাত্র ${toBengaliNumber(item.stock as number)}টি পিস বাকি আছে! দ্রুত অর্ডার সম্পন্ন করুন।` : `Only ${item.stock} pcs left in stock! Order soon.`}
+                            </p>
+                          )}
+                        </div>
+                        <span className="font-mono font-bold text-slate-900 dark:text-white shrink-0">
+                          {mounted ? formatCurrency(item.price * item.quantity, language) : `৳${(item.price * item.quantity).toLocaleString()}`}
+                        </span>
                       </div>
-                      <span className="font-mono font-bold text-slate-900 dark:text-white shrink-0">
-                        {mounted ? formatCurrency(item.price * item.quantity, language) : `৳${(item.price * item.quantity).toLocaleString()}`}
-                      </span>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
 

@@ -88,8 +88,9 @@ export const CouponApply: React.FC = () => {
       }
 
       throw new Error('Invalid coupon code. Click one of the available promo codes below.');
-    } catch (err: any) {
-      setError(err.message || 'Failed to apply coupon');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to apply coupon';
+      setError(message);
     } finally {
       setIsLoading(false);
     }

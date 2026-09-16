@@ -238,7 +238,7 @@ export async function GET(req: NextRequest) {
 
     if (db) {
       const productsColl = db.collection('products');
-      let query: any = {};
+      const query: Record<string, unknown> = {};
       if (category && category !== 'All') {
         query.category = new RegExp(category, 'i');
       }
@@ -270,7 +270,7 @@ export async function GET(req: NextRequest) {
         total: filtered.length,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('API Products GET error:', error);
     return NextResponse.json({
       success: true,
@@ -306,8 +306,10 @@ export async function POST(req: NextRequest) {
       message: 'Product created successfully',
       data: newProduct,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('API Products POST error:', error);
-    return NextResponse.json({ success: false, message: error.message || 'Failed to save product' }, { status: 500 });
+    const msg = error instanceof Error ? error.message : 'Failed to save product';
+    return NextResponse.json({ success: false, message: msg }, { status: 500 });
   }
 }
+

@@ -2,14 +2,48 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
 import mongoose from 'mongoose';
 import { ALL_PRODUCTS } from '@/data/products';
-import { INITIAL_INVENTORY } from '@/data/inventory';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 30;
+
+interface VisualCatalogItem {
+  _id: string;
+  id?: string;
+  slug?: string;
+  title?: string;
+  name?: string;
+  category?: string;
+  brand?: string;
+  price?: number;
+  discountPrice?: number;
+  images?: string[];
+  image?: string;
+  stock?: number;
+  description?: string;
+  tags?: string[];
+}
+
+interface VisualMatchedItem {
+  product: {
+    _id: string;
+    title: string;
+    category?: string;
+    brand?: string;
+    price?: number;
+    discountPrice?: number;
+    images?: string[];
+    stock?: number;
+  };
+  similarityScore: number;
+  matchLabel: string;
+  matchedFeatures: string[];
+}
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    let { imageBase64, imageUrl, language } = body;
+    const { imageUrl, language } = body;
+    let { imageBase64 } = body;
     const isBn = language === 'bn';
 
     if (!imageBase64 && !imageUrl) {
@@ -29,13 +63,13 @@ export async function POST(req: NextRequest) {
           const mimeType = imgRes.headers.get('content-type') || 'image/jpeg';
           imageBase64 = `data:${mimeType};base64,${buffer.toString('base64')}`;
         }
-      } catch (_imgFetchErr) {
+      } catch {
         console.warn('Failed to fetch imageUrl for base64 conversion:', imageUrl);
       }
     }
 
     // 🗄️ 2. Fetch live products from MongoDB Atlas (with fallback to ALL_PRODUCTS + INITIAL_INVENTORY)
-    let catalogProducts: any[] = [];
+    let catalogProducts: VisualCatalogItem[] = [];
     try {
       await connectToDatabase();
       const db = mongoose.connection.db;
@@ -46,11 +80,11 @@ export async function POST(req: NextRequest) {
             .filter((item) => item.title && !item.title.startsWith('sdfs') && !item.title.startsWith('ascasc'))
             .map((item) => ({
               ...item,
-              _id: item._id?.toString() || item.id || item.slug,
+              _id: item._id ? String(item._id) : (item.id || item.slug || 'prod-id'),
             }));
         }
       }
-    } catch (_dbErr) {
+    } catch {
       // Fallback to in-memory datasets
     }
 
@@ -200,25 +234,25 @@ Respond ONLY with a valid JSON object in this exact schema without any markdown 
                   aiMatchResult = parsed;
                   break;
                 }
-              } catch (_parseErr) {
+              } catch {
                 console.warn('JSON parse error from model:', textResponse);
               }
             }
           }
-        } catch (_visionErr) {
+        } catch {
           // Try next model
         }
       }
     }
 
     // 🎯 4. Build Final Matched Products List & Category Inference
-    let finalMatchedItems: any[] = [];
+    const finalMatchedItems: VisualMatchedItem[] = [];
     let detectedItemTitle = aiMatchResult?.detectedItem || (isBn ? 'শনাক্তকরণ সম্পন্ন' : 'Detected Visual Gear');
     let queryVisualTags: string[] = aiMatchResult?.visualTags || [];
-    let categoryType = aiMatchResult?.categoryType || 'tech_gadget';
+    const categoryType = aiMatchResult?.categoryType || 'tech_gadget';
     let isGadget = aiMatchResult?.isGadget ?? true;
     let isCatalogAvailable = aiMatchResult?.isCatalogAvailable ?? false;
-    let aiMessage = aiMatchResult?.aiMessage || '';
+    const aiMessage = aiMatchResult?.aiMessage || '';
     let detectedCategory = aiMatchResult?.detectedCategory || '';
 
     // Smart Category Inference if not explicitly returned by Gemini
@@ -249,18 +283,18 @@ Respond ONLY with a valid JSON object in this exact schema without any markdown 
         if (fullProd) {
           finalMatchedItems.push({
             product: {
-              _id: fullProd._id || fullProd.id,
-              title: fullProd.title || fullProd.name,
+              _id: fullProd._id,
+              title: fullProd.title || fullProd.name || 'Product',
               category: fullProd.category,
               brand: fullProd.brand,
               price: fullProd.price,
               discountPrice: fullProd.discountPrice,
-              images: fullProd.images || [fullProd.image],
-              stock: fullProd.stock ?? 15,
+              images: fullProd.images || (fullProd.image ? [fullProd.image] : []),
+              stock: fullProd.stock ?? 20,
             },
-            similarityScore: match.similarityScore || 0.9,
-            confidence: match.confidence || 'high',
-            matchedFeatures: match.matchedFeatures || [fullProd.category, fullProd.brand],
+            similarityScore: match.similarityScore || 0.95,
+            matchLabel: match.confidence || (isBn ? 'শনাক্তকৃত মিল' : 'Detected Match'),
+            matchedFeatures: match.matchedFeatures || [],
           });
         }
       }
@@ -278,7 +312,7 @@ Respond ONLY with a valid JSON object in this exact schema without any markdown 
           finalMatchedItems.push({
             product: {
               _id: prod._id,
-              title: prod.title,
+              title: prod.title || prod.name || 'Keychron Keyboard',
               category: prod.category,
               brand: prod.brand,
               price: prod.price,
@@ -287,7 +321,7 @@ Respond ONLY with a valid JSON object in this exact schema without any markdown 
               stock: prod.stock,
             },
             similarityScore: 0.96,
-            confidence: 'high',
+            matchLabel: isBn ? 'খুব কাছাকাছি ম্যাচ' : 'Strong Visual Match',
             matchedFeatures: ['Mechanical Switch', 'RGB Backlight', 'Peripherals'],
           });
           isCatalogAvailable = true;
@@ -302,7 +336,7 @@ Respond ONLY with a valid JSON object in this exact schema without any markdown 
           finalMatchedItems.push({
             product: {
               _id: prod._id,
-              title: prod.title,
+              title: prod.title || prod.name || 'Sony WH-1000XM5',
               category: prod.category,
               brand: prod.brand,
               price: prod.price,
@@ -311,7 +345,7 @@ Respond ONLY with a valid JSON object in this exact schema without any markdown 
               stock: prod.stock,
             },
             similarityScore: 0.97,
-            confidence: 'high',
+            matchLabel: isBn ? 'খুব কাছাকাছি ম্যাচ' : 'Strong Visual Match',
             matchedFeatures: ['Active Noise Cancellation', 'Spatial Audio'],
           });
           isCatalogAvailable = true;
@@ -321,7 +355,7 @@ Respond ONLY with a valid JSON object in this exact schema without any markdown 
     }
 
     // 💡 5. Fetch 2-4 Alternative Products if Gadget is Out of Stock or Not in Direct Catalog
-    let alternativeItems: any[] = [];
+    let alternativeItems: VisualMatchedItem[] = [];
     if (isGadget && finalMatchedItems.length === 0) {
       // Find products in the same category or relevant tags
       const categoryProds = catalogProducts.filter(
@@ -331,18 +365,18 @@ Respond ONLY with a valid JSON object in this exact schema without any markdown 
       const candidateList = categoryProds.length >= 2 ? categoryProds : catalogProducts;
       alternativeItems = candidateList.slice(0, 4).map((p, idx) => ({
         product: {
-          _id: p._id || p.id,
-          title: p.title || p.name,
+          _id: p._id,
+          title: p.title || p.name || 'Product',
           category: p.category,
           brand: p.brand,
           price: p.price,
           discountPrice: p.discountPrice,
-          images: p.images || [p.image],
+          images: p.images || (p.image ? [p.image] : []),
           stock: p.stock ?? 15,
         },
         similarityScore: Math.max(0.75, 0.90 - idx * 0.05),
         matchLabel: isBn ? 'বিকল্প পছন্দ' : 'Alternative Pick',
-        matchedFeatures: [p.category, p.brand].filter(Boolean),
+        matchedFeatures: [p.category, p.brand].filter((item): item is string => Boolean(item)),
       }));
     }
 
@@ -360,12 +394,13 @@ Respond ONLY with a valid JSON object in this exact schema without any markdown 
         alternativeItems,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Failed to process visual search request';
     console.error('AI Visual Search Endpoint Error:', error);
     return NextResponse.json(
       {
         success: false,
-        message: error?.message || 'Failed to process visual search request',
+        message,
       },
       { status: 500 }
     );

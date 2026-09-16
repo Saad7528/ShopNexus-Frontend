@@ -4,12 +4,14 @@ import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ProductFilter } from '@/components/products/ProductFilter';
 import { ProductCard } from '@/components/products/ProductCard';
-import { useProductStore, Product } from '@/store/useProductStore';
+import { useProductStore } from '@/store/useProductStore';
 import { useBundleStore, convertBundleToProduct } from '@/store/useBundleStore';
 import { useLanguageStore } from '@/store/useLanguageStore';
 import { getLocalizedCategory } from '@/lib/localizedProducts';
 import { toBengaliNumber } from '@/lib/translations';
 import { ALL_PRODUCTS } from '@/data/products';
+import { useHydrated } from '@/lib/useHydrated';
+import { Product } from '@/types/product';
 import { Sparkles, PackageSearch, RotateCcw, SlidersHorizontal } from 'lucide-react';
 
 const CATEGORIES_LIST = [
@@ -26,6 +28,8 @@ const CATEGORIES_LIST = [
 function ProductsContent() {
   const searchParams = useSearchParams();
   const {
+    products: storeProducts,
+    fetchProducts,
     search,
     category,
     brand,
@@ -39,84 +43,25 @@ function ProductsContent() {
   } = useProductStore();
 
   const { t, language } = useLanguageStore();
-  const [mounted, setMounted] = useState(false);
-  const [liveDbProducts, setLiveDbProducts] = useState<Product[]>([]);
+  const mounted = useHydrated();
   const rawBundles = useBundleStore((state) => state.bundles);
 
+  // Background SWR Revalidation: silently syncs latest stock & prices from MongoDB
   useEffect(() => {
-    let isCancelled = false;
-    const fetchDbProducts = async () => {
-      try {
-        let res = await fetch('/api/products?limit=100').catch(() => null);
-        if ((!res || !res.ok) && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-          const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-          res = await fetch(`${API_URL}/products?limit=100`).catch(() => null);
-        }
-        if (!res || !res.ok) return;
-        const data = await res.json().catch(() => null);
-        const productsList = data?.data?.products || (Array.isArray(data?.data) ? data.data : null);
-        if (!isCancelled && productsList && Array.isArray(productsList) && productsList.length > 0) {
-          const mapped: Product[] = productsList.map((p: any) => ({
-            _id: p._id || p.id,
-            title: p.title || p.name,
-            slug: p.slug || p._id || p.id,
-            description: p.description || '',
-            category: p.category || 'Audio',
-            brand: p.brand || 'ShopNexus Official',
-            price: p.price || 0,
-            discountPrice: p.discountPrice,
-            stock: p.stock ?? 20,
-            images: p.images?.length > 0 ? p.images : ['https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80'],
-            vendorName: p.vendorName || 'ShopNexus Official',
-            isFlashSale: !!p.isFlashSale,
-            flashSaleDiscountPercent: p.flashSaleDiscountPercent || (p.discountPrice && p.price ? Math.round(((p.price - p.discountPrice) / p.price) * 100) : 0),
-            averageRating: p.averageRating || 4.8,
-            totalReviews: p.totalReviews || 12,
-            tags: p.tags || ['popular', 'official'],
-          }));
-          setLiveDbProducts(mapped);
-        }
-      } catch (_err) {}
-    };
+    fetchProducts();
+  }, [fetchProducts]);
 
-    fetchDbProducts();
-    return () => {
-      isCancelled = true;
-    };
-  }, []);
-
-  // Merge custom dynamic bundles with live DB products and base products stably
+  // Merge custom dynamic bundles with cached products instantly (0ms instant render)
   const allCatalogProducts = React.useMemo(() => {
     const bundleProducts = rawBundles
       .filter((b) => b.status === 'Active')
       .map(convertBundleToProduct);
-    const nonCombos = ALL_PRODUCTS.filter((p) => p.category !== 'Combo Packages');
+    const nonCombos = storeProducts.filter((p) => p.category !== 'Combo Packages');
 
-    // Create a lookup for live DB updates to preserve stable list order
-    const liveMap = new Map<string, Product>();
-    liveDbProducts.forEach((p) => {
-      if (p._id) liveMap.set(p._id, p);
-      if (p.slug) liveMap.set(p.slug, p);
-    });
+    return [...bundleProducts, ...nonCombos];
+  }, [rawBundles, storeProducts]);
 
-    const catalogMerged = nonCombos.map((base) => {
-      const live = liveMap.get(base._id) || liveMap.get(base.slug);
-      return live ? { ...base, ...live } : base;
-    });
-
-    const baseIds = new Set(nonCombos.map((p) => p._id));
-    const baseSlugs = new Set(nonCombos.map((p) => p.slug));
-    const newDbProducts = liveDbProducts.filter((p) => !baseIds.has(p._id) && !baseSlugs.has(p.slug));
-
-    return [...bundleProducts, ...catalogMerged, ...newDbProducts];
-  }, [rawBundles, liveDbProducts]);
-
-  const [products, setProducts] = useState<Product[]>(allCatalogProducts);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     const q = searchParams.get('q');
@@ -125,7 +70,7 @@ function ProductsContent() {
     if (cat) setCategory(cat);
   }, [searchParams, setSearch, setCategory]);
 
-  useEffect(() => {
+  const products = React.useMemo(() => {
     let filtered = [...allCatalogProducts];
     if (search) {
       filtered = filtered.filter(
@@ -139,13 +84,13 @@ function ProductsContent() {
     if (brand) filtered = filtered.filter((p) => p.brand.toLowerCase() === brand.toLowerCase());
     if (isFlashSale) filtered = filtered.filter((p) => p.isFlashSale);
     if (maxPrice) filtered = filtered.filter((p) => (p.discountPrice || p.price) <= maxPrice);
-    if (minRating) filtered = filtered.filter((p) => p.averageRating >= minRating);
+    if (minRating) filtered = filtered.filter((p) => (p.averageRating ?? 0) >= minRating);
 
     if (sortBy === 'price_asc') filtered.sort((a, b) => (a.discountPrice || a.price) - (b.discountPrice || b.price));
     if (sortBy === 'price_desc') filtered.sort((a, b) => (b.discountPrice || b.price) - (a.discountPrice || a.price));
-    if (sortBy === 'rating') filtered.sort((a, b) => b.averageRating - a.averageRating);
+    if (sortBy === 'rating') filtered.sort((a, b) => (b.averageRating ?? 0) - (a.averageRating ?? 0));
 
-    setProducts(filtered);
+    return filtered;
   }, [search, category, brand, maxPrice, minRating, sortBy, isFlashSale, allCatalogProducts]);
 
   const activeFiltersCount = (category ? 1 : 0) + (brand ? 1 : 0) + (isFlashSale ? 1 : 0) + (minRating > 0 ? 1 : 0) + (search ? 1 : 0);

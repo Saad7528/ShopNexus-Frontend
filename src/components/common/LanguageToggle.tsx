@@ -4,6 +4,7 @@ import React from 'react';
 import { useLanguageStore } from '@/store/useLanguageStore';
 import { Globe } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
+import { useHydrated } from '@/lib/useHydrated';
 
 interface LanguageToggleProps {
   className?: string;
@@ -15,11 +16,7 @@ export const LanguageToggle: React.FC<LanguageToggleProps> = ({
   showIcon = true,
 }) => {
   const { language, toggleLanguage } = useLanguageStore();
-  const [mounted, setMounted] = React.useState(false);
-
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useHydrated();
 
   if (!mounted) {
     return (

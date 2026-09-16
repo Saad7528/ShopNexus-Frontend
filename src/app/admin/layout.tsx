@@ -8,7 +8,6 @@ import {
   Package,
   ShoppingCart,
   Tag,
-  BarChart3,
   ShieldCheck,
   Menu,
   X,
@@ -20,21 +19,23 @@ import {
   Truck,
   Users,
   LogOut,
-  User,
-  ExternalLink,
   MessageSquare,
   ShoppingBag,
   Gift,
-  Shield,
   Activity,
-  Radio,
 } from 'lucide-react';
 import { useThemeStore } from '@/store/useThemeStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useLanguageStore } from '@/store/useLanguageStore';
 import { LanguageToggle } from '@/components/common/LanguageToggle';
-import { useVisitorAnalyticsStore } from '@/store/useVisitorAnalyticsStore';
 import DevTelemetryToggle from '@/components/admin/DevTelemetryToggle';
+
+interface AdminNavItem {
+  title: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  badge?: string;
+}
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -44,7 +45,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { theme, toggleTheme } = useThemeStore();
   const { language } = useLanguageStore();
   const { user, logout } = useAuthStore();
-  const liveVisitorCount = useVisitorAnalyticsStore((s) => s.liveVisitorCount);
   const isBn = language === 'bn';
 
   // Detect screen size for initial mobile state
@@ -69,7 +69,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     router.push('/login');
   };
 
-  const navItems = [
+  const navItems: AdminNavItem[] = [
     {
       title: isBn ? 'ড্যাশবোর্ড ও অ্যানালিটিক্স' : 'Dashboard & Analytics',
       href: '/admin/dashboard',
@@ -226,7 +226,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-orange-600 dark:text-orange-400' : 'text-slate-400 dark:text-slate-500'}`} />
                     {(sidebarOpen || isMobile) && <span className="truncate">{item.title}</span>}
                   </div>
-                  {(sidebarOpen || isMobile) && (item as any).badge && (
+                  {(sidebarOpen || isMobile) && item.badge && (
                     <span className="px-1.5 py-0.5 rounded-md bg-emerald-500 text-white text-[9px] font-black uppercase tracking-wider animate-pulse shrink-0">
                       {item.badge}
                     </span>
@@ -329,8 +329,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 {isBn ? 'শপনেক্সাস অ্যাডমিন' : 'ShopNexus Admin'}
               </span>
               <span className="text-slate-300 dark:text-slate-700 hidden sm:inline">/</span>
-              <span className="text-orange-600 dark:text-orange-400 font-bold capitalize truncate">
-                {pathname.split('/')[2] === 'visitors' ? (isBn ? 'ভিজিটর ও ট্রাফিক' : 'Visitors') : pathname.split('/')[2] || (isBn ? 'ড্যাশবোর্ড' : 'Dashboard')}
+              <span className="text-orange-600 dark:text-orange-400 font-bold truncate">
+                {(() => {
+                  const seg = pathname.split('/')[2] || 'dashboard';
+                  switch (seg) {
+                    case 'dashboard': return isBn ? 'ড্যাশবোর্ড ও অ্যানালিটিক্স' : 'Dashboard & Analytics';
+                    case 'visitors': return isBn ? 'লাইভ ভিজিটর ও ট্রাফিক' : 'Live Visitors & Traffic';
+                    case 'inventory': return isBn ? 'প্রোডাক্ট ও ইনভেন্টরি' : 'Products & Inventory';
+                    case 'orders': return isBn ? 'অর্ডার ও ইনভয়েস' : 'Orders & Invoices';
+                    case 'abandoned-carts': return isBn ? 'পরিত্যক্ত কার্ট' : 'Abandoned Carts';
+                    case 'bundles-loyalty': return isBn ? 'বান্ডেল ও লয়্যালটি' : 'Bundles & Loyalty';
+                    case 'tracking': return isBn ? 'লাইভ পার্সেল ট্র্যাকিং' : 'Live Parcel Tracking';
+                    case 'coupons': return isBn ? 'কুপন ও প্রমোশন' : 'Coupons & Promotions';
+                    case 'reviews': return isBn ? 'কাস্টমার রিভিউ' : 'Customer Reviews';
+                    case 'staff': return isBn ? 'স্টাফ রোল ও সিকিউরিটি' : 'Staff Roles & Security';
+                    case 'customers': return isBn ? 'কাস্টমার ডিরেক্টরি' : 'Customer Directory';
+                    default: return seg;
+                  }
+                })()}
               </span>
             </div>
           </div>

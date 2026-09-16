@@ -189,7 +189,7 @@ export function getProductOrInventoryById(idOrSlug: string): (IInventoryItem | P
   if (!idOrSlug) return undefined;
   const decoded = decodeURIComponent(idOrSlug).trim().toLowerCase();
 
-  // 1. Direct match in INITIAL_INVENTORY
+  // 1. Direct match INITIAL_INVENTORY
   const invFound = INITIAL_INVENTORY.find(
     (item) =>
       item.id.toLowerCase() === decoded ||
@@ -202,7 +202,7 @@ export function getProductOrInventoryById(idOrSlug: string): (IInventoryItem | P
   const prodFound = ALL_PRODUCTS.find(
     (p) =>
       p._id.toLowerCase() === decoded ||
-      p.slug.toLowerCase() === decoded ||
+      (p.slug && p.slug.toLowerCase() === decoded) ||
       p.title.toLowerCase() === decoded
   );
   if (prodFound) return prodFound;
@@ -229,8 +229,8 @@ export function getProductOrInventoryById(idOrSlug: string): (IInventoryItem | P
   // 5. Fuzzy match by slug or title
   const fuzzyProd = ALL_PRODUCTS.find(
     (p) =>
-      p.slug.toLowerCase().includes(decoded) ||
-      decoded.includes(p.slug.toLowerCase()) ||
+      (p.slug && p.slug.toLowerCase().includes(decoded)) ||
+      (p.slug && decoded.includes(p.slug.toLowerCase())) ||
       p.title.toLowerCase().includes(decoded)
   );
   if (fuzzyProd) return fuzzyProd;

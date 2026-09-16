@@ -2,7 +2,8 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+import { useHydrated } from '@/lib/useHydrated';
 import { useCartStore } from '@/store/useCartStore';
 import { useOrderStore } from '@/store/useOrderStore';
 import { useLanguageStore } from '@/store/useLanguageStore';
@@ -33,12 +34,11 @@ function CartContent() {
   } = useCartStore();
 
   const { t, language } = useLanguageStore();
-  const [mounted, setMounted] = React.useState(false);
+  const mounted = useHydrated();
   const [recoveryNotice, setRecoveryNotice] = React.useState<string | null>(null);
 
   // 🔄 1-Click WhatsApp Cart Recovery Auto-Restoration Engine
   React.useEffect(() => {
-    setMounted(true);
     const recoverId = searchParams.get('recoverCart') || searchParams.get('cartId');
     const codeParam = searchParams.get('code') || searchParams.get('coupon');
 

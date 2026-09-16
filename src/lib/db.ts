@@ -1,25 +1,24 @@
 import mongoose from 'mongoose';
 
-const MONGODB_URI =
-  process.env.MONGODB_URI ||
-  process.env.MONGO_URI ||
-  'mongodb+srv://shopnexus:OY0pd4jFeL8Iojlw@sadasaad.pszei0q.mongodb.net/shopnexus?retryWrites=true&w=majority&appName=SadaSaad';
+const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URI || '';
 
-if (!MONGODB_URI) {
-  throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
+interface MongooseCache {
+  conn: typeof mongoose | null;
+  promise: Promise<typeof mongoose> | null;
 }
 
-/**
- * Global is used here to maintain a cached connection across hot reloads
- * in development and serverless invocations.
- */
-let cached = (global as any).mongoose;
-
-if (!cached) {
-  cached = (global as any).mongoose = { conn: null, promise: null };
+declare global {
+  var mongooseCache: MongooseCache | undefined;
 }
 
-export async function connectToDatabase() {
+const cached: MongooseCache = globalThis.mongooseCache || { conn: null, promise: null };
+globalThis.mongooseCache = cached;
+
+export async function connectToDatabase(): Promise<typeof mongoose | null> {
+  if (!MONGODB_URI) {
+    return null;
+  }
+
   if (cached.conn) {
     return cached.conn;
   }
@@ -42,3 +41,5 @@ export async function connectToDatabase() {
 
   return cached.conn;
 }
+
+export default connectToDatabase;

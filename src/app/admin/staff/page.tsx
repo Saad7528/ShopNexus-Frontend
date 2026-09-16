@@ -1,27 +1,17 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
 import { RoleGuard } from '@/components/auth/RoleGuard';
 import {
   ShieldCheck,
   Users,
   UserPlus,
   Lock,
-  Key,
   CheckCircle2,
-  XCircle,
-  Eye,
-  Edit,
-  Trash2,
   Search,
-  Sparkles,
-  ShieldAlert,
   Sliders,
   Check,
   X,
-  AlertCircle,
-  HelpCircle,
   BadgeCheck,
 } from 'lucide-react';
 import { useLanguageStore } from '@/store/useLanguageStore';
@@ -614,7 +604,7 @@ export default function AdminStaffRolesPage() {
                   </label>
                   <select
                     value={newStaffRole}
-                    onChange={(e) => setNewStaffRole(e.target.value as any)}
+                    onChange={(e) => setNewStaffRole(e.target.value as IStaffMember['role'])}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold focus:border-orange-500 focus:outline-none cursor-pointer"
                   >
                     <option value="Customer Care Lead">{isBn ? 'Customer Care Lead (অর্ডার প্রসেস ও কাস্টমার যোগাযোগ)' : 'Customer Care Lead (Order Processing & Comms)'}</option>

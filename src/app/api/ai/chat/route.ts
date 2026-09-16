@@ -3,6 +3,9 @@ import { connectToDatabase } from '@/lib/db';
 import mongoose from 'mongoose';
 import { ALL_PRODUCTS } from '@/data/products';
 
+export const dynamic = 'force-dynamic';
+export const maxDuration = 30;
+
 // Helper to convert Bengali numbers to English numbers
 function parseBengaliOrEnglishNumber(text: string): number | null {
   if (!text) return null;
@@ -26,36 +29,65 @@ function parseBengaliOrEnglishNumber(text: string): number | null {
   return null;
 }
 
+interface ChatProduct {
+  _id: string;
+  id?: string;
+  slug?: string;
+  title: string;
+  name?: string;
+  category: string;
+  brand?: string;
+  price: number;
+  discountPrice?: number;
+  rating?: number;
+  averageRating?: number;
+  stock?: number;
+  images?: string[];
+  image?: string;
+  description?: string;
+  description_bn?: string;
+  features?: string[];
+}
+
 // Module-level in-memory catalog cache for lightning fast sub-second responses
-let cachedCatalogProducts: any[] | null = null;
+let cachedCatalogProducts: ChatProduct[] | null = null;
 let lastCatalogCacheTime = 0;
 const CATALOG_CACHE_TTL = 5 * 60 * 1000; // 5 minutes TTL
 
-async function getCachedCatalogProducts(): Promise<any[]> {
+async function getCachedCatalogProducts(): Promise<ChatProduct[]> {
   const now = Date.now();
   if (cachedCatalogProducts && cachedCatalogProducts.length > 0 && now - lastCatalogCacheTime < CATALOG_CACHE_TTL) {
     return cachedCatalogProducts;
   }
 
-  let catalogProducts: any[] = [];
+  let catalogProducts: ChatProduct[] = [];
   try {
     await connectToDatabase();
     const db = mongoose.connection.db;
     if (db) {
       const dbItems = await db.collection('products').find({ isActive: { $ne: false } }).toArray();
       if (dbItems && dbItems.length > 0) {
-        const normalizedDbItems = dbItems.map((item) => ({
+        const normalizedDbItems: ChatProduct[] = dbItems.map((item) => ({
           ...item,
-          _id: item._id?.toString() || item.id || item.slug,
+          _id: item._id ? String(item._id) : (item.id || item.slug || 'prod-id'),
+          title: item.title || item.name || 'Product',
+          category: item.category || 'Audio',
+          price: Number(item.price) || 0,
         }));
 
         const dbKeySet = new Set(
-          normalizedDbItems.flatMap((item: any) => [item.slug, item._id, item.title?.toLowerCase()]).filter(Boolean)
+          normalizedDbItems.flatMap((item) => [item.slug, item._id, item.title.toLowerCase()]).filter(Boolean)
         );
 
-        const missingStatic = ALL_PRODUCTS.filter(
-          (p) => !dbKeySet.has(p.slug) && !dbKeySet.has(p._id) && !dbKeySet.has(p.title?.toLowerCase())
-        );
+        const missingStatic: ChatProduct[] = ALL_PRODUCTS.filter(
+          (p) => !dbKeySet.has(p.slug) && !dbKeySet.has(p._id) && !dbKeySet.has(p.title.toLowerCase())
+        ).map((p) => ({
+          ...p,
+          _id: p._id,
+          title: p.title,
+          category: p.category,
+          price: p.price,
+        }));
 
         catalogProducts = [...normalizedDbItems, ...missingStatic];
       }
@@ -108,23 +140,26 @@ export async function POST(req: NextRequest) {
 STRICT RULES & GUIDELINES:
 1. PRICING & CURRENCY:
    - Quote exact prices in Bangladeshi Taka (৳ BDT) based strictly on our catalog. NEVER use USD ($).
-2. LANGUAGE REQUIREMENT:
+2. LANGUAGE & TONE REQUIREMENT:
    - Selected Website Mode: ${isEnglish ? 'ENGLISH' : 'BANGLA (বাংলা)'}.
    ${
      isEnglish
        ? '- Respond in 100% natural, polite, fluent English. No Bangla script.'
        : '- Respond in 100% natural, warm, polite Bengali (বাংলা). Use natural conversational Bengali.'
    }
-3. LIVE CATALOG ANALYSIS & BRAND SPECIFICITY (CRITICAL):
-   - You MUST analyze the catalog carefully for specific brands and products requested by the user.
-   - Example 1 (Brand/Product Inquiry): If the customer asks "স্যামসাং এর ঘড়ি দেখাও" (Show me Samsung watches) or asks about Samsung products, check the catalog: We have "Samsung Galaxy Watch Ultra 47mm Titanium Gray (ID: p8)" for ৳56,000 BDT! State clearly all Samsung details accurately and recommend ID: p8.
-   - Example 2 (Budget Realism): If the customer asks for a product type (e.g. speaker) within a specific budget (e.g. 3000 BDT), and our store does not have speakers under 3000 BDT, state clearly that we don't have speakers under 3000 BDT and mention our Marshall Stanmore starts at ৳31,900 BDT. DO NOT recommend expensive headphones/speakers as budget items! Write [RECOMMENDED_IDS: none].
-   - Example 3 (Available Budget Matches): If the customer asks for items within a budget that exists in catalog (e.g. "১৫,০০০ টাকার মধ্যে কিবোর্ড"), recommend Keychron Q1 Pro or NuPhy Air75 V2 or HyperX mouse.
-4. STRUCTURED RECOMMENDATION TAG:
-   - At the VERY END of your response, on a new line, list the IDs of the products you specifically recommended for this customer in this exact format:
-     [RECOMMENDED_IDS: p8]
+3. CONCISE RESPONSES (CRITICAL):
+   - Keep your conversational reply concise, polite, and helpful (2 to 3 sentences max).
+   - DO NOT write long bulleted spec lists or repetitive product descriptions in text, because our interactive UI automatically renders rich product cards with high-res images, pricing, ratings, and instant purchase buttons directly below your reply!
+4. LIVE CATALOG GROUNDING:
+   - Carefully check the catalog before answering.
+   - If the user asks for a category (e.g. "কিবোর্ড দেখাও", "হেডফোন দেখাও", "স্মার্টওয়াচ"), warmly welcome them and mention 1-2 highlights from our stock.
+   - If the user mentions an impossible budget (e.g. "৩০০০ টাকার স্পিকার"), explain politely that our Marshall speaker starts at ৳31,900 BDT.
+5. STRUCTURED RECOMMENDATION TAG:
+   - At the VERY END of your response on a new line, list ONLY the exact product IDs of the items you recommend in this strict format:
+     [RECOMMENDED_IDS: p11, p13, p15]
    - If no products in the catalog fit the customer's budget/request, write:
      [RECOMMENDED_IDS: none]
+   - NEVER put product titles or Bengali words inside the [RECOMMENDED_IDS: ...] tag, ONLY alphanumeric IDs separated by commas.
    - Maximum 4 product IDs.
 
 OFFICIAL SHOPNEXUS CATALOG:
@@ -132,11 +167,11 @@ ${catalogContext}`;
 
     // ⚡ 3. Call Google Gemini API with fastest low-latency models first
     let aiReply: string | null = null;
-    let provider = 'gemini-flash-latest';
+    let provider = 'gemini-3.6-flash';
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
     if (GEMINI_API_KEY) {
-      const modelsToTry = ['gemini-flash-latest', 'gemini-3.5-flash', 'gemini-3.6-flash'];
+      const modelsToTry = ['gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-flash-latest', 'gemini-3.8-flash'];
 
       for (const model of modelsToTry) {
         if (aiReply) break;
@@ -159,7 +194,7 @@ ${catalogContext}`;
                 ],
                 generationConfig: {
                   temperature: 0.2,
-                  maxOutputTokens: 800,
+                  maxOutputTokens: 2048,
                 },
               }),
               signal: AbortSignal.timeout(12000),
@@ -168,17 +203,24 @@ ${catalogContext}`;
 
           if (geminiRes.ok) {
             const geminiData = await geminiRes.json();
-            const candidateText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (candidateText) {
-              aiReply = candidateText.trim();
+            const parts = (geminiData?.candidates?.[0]?.content?.parts || []) as Array<{ text?: string }>;
+            // Extract and concatenate ALL text parts (never take only parts[0] as multi-part responses slice text)
+            const fullText = parts
+              .map((p) => (typeof p.text === 'string' ? p.text : ''))
+              .join('')
+              .trim();
+
+            if (fullText) {
+              aiReply = fullText;
               provider = model;
               break;
             }
           } else {
             console.warn(`Gemini model ${model} responded with status ${geminiRes.status}`);
           }
-        } catch (err: any) {
-          console.warn(`Gemini model ${model} error:`, err?.message);
+        } catch (err: unknown) {
+          const errMsg = err instanceof Error ? err.message : 'Unknown error';
+          console.warn(`Gemini model ${model} error:`, errMsg);
         }
       }
     }
@@ -190,12 +232,10 @@ ${catalogContext}`;
       if (tagMatch) {
         const rawIds = tagMatch[1].trim();
         if (rawIds.toLowerCase() !== 'none') {
-          recommendedIds = rawIds
-            .split(',')
-            .map((id) => id.trim())
-            .filter((id) => id.length > 0 && id.toLowerCase() !== 'none');
+          const matched = rawIds.match(/p\d+|[a-zA-Z0-9_-]+/g) || [];
+          recommendedIds = matched.filter((id) => id.toLowerCase() !== 'none');
         }
-        aiReply = aiReply.replace(/\[RECOMMENDED_IDS:\s*[^\]]+\]/i, '').trim();
+        aiReply = aiReply.replace(/\[RECOMMENDED_IDS:\s*[^\]]*\]?/gi, '').trim();
       }
     }
 
@@ -316,20 +356,44 @@ ${catalogContext}`;
       }
     }
 
-    // 🎯 6. Fetch Matching Product Objects for UI Cards
-    let suggestedProducts: any[] = [];
+    // 🎯 6. Intelligent Fallback for Product Cards (Guarantees cards are populated even if model omitted tags)
+    if (recommendedIds.length === 0 && catalogProducts.length > 0) {
+      const combinedText = `${queryLower} ${(aiReply || '').toLowerCase()}`;
+      const isBudgetMismatch = extractedBudget && extractedBudget < 5000 && (combinedText.includes('স্পিকার') || combinedText.includes('speaker'));
+
+      if (!isBudgetMismatch) {
+        if (combinedText.includes('keyboard') || combinedText.includes('কিবোর্ড') || combinedText.includes('keychron') || combinedText.includes('nuphy')) {
+          recommendedIds = ['p11', 'p13', 'p15'];
+        } else if (combinedText.includes('mouse') || combinedText.includes('মাউস') || combinedText.includes('logitech') || combinedText.includes('master 3s')) {
+          recommendedIds = ['p12', 'p14'];
+        } else if (combinedText.includes('watch') || combinedText.includes('ঘড়ি') || combinedText.includes('ঘড়ি') || combinedText.includes('স্মার্টওয়াচ') || combinedText.includes('samsung') || combinedText.includes('স্যামসাং')) {
+          recommendedIds = combinedText.includes('samsung') || combinedText.includes('স্যামসাং') ? ['p8'] : ['p8', 'p10', 'p7'];
+        } else if (combinedText.includes('headphone') || combinedText.includes('হেডফোন') || combinedText.includes('sony') || combinedText.includes('bose') || combinedText.includes('airpods')) {
+          recommendedIds = ['p1', 'p2', 'p3'];
+        } else if (combinedText.includes('speaker') || combinedText.includes('স্পিকার') || combinedText.includes('marshall')) {
+          recommendedIds = ['p4', 'p5'];
+        } else if (combinedText.includes('mic') || combinedText.includes('মাইক') || combinedText.includes('shure')) {
+          recommendedIds = ['p6', 'p23'];
+        } else if (combinedText.includes('camera') || combinedText.includes('ক্যামেরা') || combinedText.includes('dji') || combinedText.includes('gimbal')) {
+          recommendedIds = ['p17', 'p21'];
+        }
+      }
+    }
+
+    // 🎯 7. Fetch Matching Product Objects for UI Cards
+    let suggestedProducts: ChatProduct[] = [];
     if (recommendedIds.length > 0) {
-      suggestedProducts = recommendedIds
+      suggestedProducts = (recommendedIds
         .map((recId) => {
           return catalogProducts.find(
             (p) =>
-              p._id?.toString() === recId ||
+              p._id === recId ||
               p.slug === recId ||
-              p.title?.toLowerCase().includes(recId.toLowerCase())
+              p.title.toLowerCase().includes(recId.toLowerCase())
           );
         })
         .filter(Boolean)
-        .slice(0, 4);
+        .slice(0, 4)) as ChatProduct[];
     }
 
     const responseTimeMs = Date.now() - startTime;
@@ -341,7 +405,7 @@ ${catalogContext}`;
         provider,
         responseTimeMs,
         suggestedProducts: suggestedProducts.map((p) => ({
-          _id: (p._id || p.slug || '').toString(),
+          _id: p._id || p.slug || '',
           title: p.title,
           price: p.price,
           discountPrice: p.discountPrice,
@@ -351,12 +415,13 @@ ${catalogContext}`;
         })),
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Internal AI Server Error';
     console.error('AI chat route error:', error);
     return NextResponse.json(
       {
         success: false,
-        message: error.message || 'Internal AI Server Error',
+        message,
       },
       { status: 500 }
     );

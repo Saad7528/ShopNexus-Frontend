@@ -6,6 +6,7 @@ import { Plus, Check, ShoppingBag, Sparkles, Tag, Coins } from 'lucide-react';
 import { useCartStore } from '@/store/useCartStore';
 import { useLanguageStore } from '@/store/useLanguageStore';
 import { formatCurrency, toBengaliNumber } from '@/lib/translations';
+import { useHydrated } from '@/lib/useHydrated';
 
 interface BundleProduct {
   _id: string;
@@ -25,11 +26,7 @@ export const FrequentlyBoughtTogether: React.FC<FrequentlyBoughtTogetherProps> =
   complementaryProducts,
 }) => {
   const { t, language } = useLanguageStore();
-  const [mounted, setMounted] = React.useState(false);
-
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useHydrated();
 
   const [selectedIds, setSelectedIds] = useState<string[]>([
     mainProduct._id,
