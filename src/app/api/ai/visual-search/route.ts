@@ -39,6 +39,14 @@ interface VisualMatchedItem {
   matchedFeatures: string[];
 }
 
+// In-Memory Visual Search Cache (0 Token Cost for repeated image searches in demos/viva)
+interface CachedVisualResponse {
+  data: Record<string, unknown>;
+  timestamp: number;
+}
+const visualSearchCache = new Map<string, CachedVisualResponse>();
+const VISUAL_CACHE_TTL = 30 * 60 * 1000; // 30 minutes TTL
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -68,7 +76,21 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 🗄️ 2. Fetch live products from MongoDB Atlas (with fallback to ALL_PRODUCTS + INITIAL_INVENTORY)
+    // Generate lightweight cache signature from image data or URL
+    const cacheKey = imageBase64
+      ? `${imageBase64.slice(0, 100)}_${imageBase64.slice(-100)}_${language || 'en'}`
+      : `${imageUrl}_${language || 'en'}`;
+
+    // ⚡ Tier 1: Check In-Memory Visual Cache (0 Token Cost)
+    const cachedVisual = visualSearchCache.get(cacheKey);
+    if (cachedVisual && Date.now() - cachedVisual.timestamp < VISUAL_CACHE_TTL) {
+      return NextResponse.json({
+        success: true,
+        data: cachedVisual.data,
+      });
+    }
+
+    // 🗄️ 2. Fetch live products from MongoDB Atlas (with fallback to ALL_PRODUCTS)
     let catalogProducts: VisualCatalogItem[] = [];
     try {
       await connectToDatabase();
@@ -108,7 +130,6 @@ export async function POST(req: NextRequest) {
       description: (p.description || '').slice(0, 150),
     }));
 
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     let aiMatchResult: {
       categoryType: 'human_or_selfie' | 'tech_gadget' | 'non_tech_object' | 'screenshot_or_ui';
       detectedCategory?: string;
@@ -125,8 +146,14 @@ export async function POST(req: NextRequest) {
       }>;
     } | null = null;
 
-    // ⚡ 3. Call Google Gemini Vision Multimodal API directly
-    if (GEMINI_API_KEY && imageBase64) {
+    // ⚡ 3. Multi-Key & Multi-Model Vision Cascade
+    const rawApiKeyEnv = process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEYS || '';
+    const apiKeys = rawApiKeyEnv
+      .split(/[,;\n]+/)
+      .map((k) => k.trim())
+      .filter((k) => k.length > 10);
+
+    if (apiKeys.length > 0 && imageBase64) {
       let mimeType = 'image/jpeg';
       let cleanBase64 = imageBase64;
 
@@ -187,60 +214,64 @@ Respond ONLY with a valid JSON object in this exact schema without any markdown 
   ]
 }`;
 
-      const visionModels = ['gemini-flash-latest', 'gemini-3.6-flash', 'gemini-3.5-flash'];
+      const visionModels = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-flash-latest', 'gemini-1.5-pro'];
 
-      for (const model of visionModels) {
+      for (const apiKey of apiKeys) {
         if (aiMatchResult) break;
-        try {
-          const geminiRes = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                contents: [
-                  {
-                    role: 'user',
-                    parts: [
-                      {
-                        inlineData: {
-                          mimeType: mimeType,
-                          data: cleanBase64,
-                        },
-                      },
-                      {
-                        text: visionPrompt,
-                      },
-                    ],
-                  },
-                ],
-                generationConfig: {
-                  temperature: 0.1,
-                  maxOutputTokens: 1024,
-                },
-              }),
-              signal: AbortSignal.timeout(15000),
-            }
-          );
 
-          if (geminiRes.ok) {
-            const geminiJson = await geminiRes.json();
-            const textResponse = geminiJson?.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (textResponse) {
-              try {
-                const cleaned = textResponse.replace(/```json|```/g, '').trim();
-                const parsed = JSON.parse(cleaned);
-                if (parsed.detectedItem && Array.isArray(parsed.visualTags)) {
-                  aiMatchResult = parsed;
-                  break;
+        for (const model of visionModels) {
+          if (aiMatchResult) break;
+          try {
+            const geminiRes = await fetch(
+              `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  contents: [
+                    {
+                      role: 'user',
+                      parts: [
+                        {
+                          inlineData: {
+                            mimeType: mimeType,
+                            data: cleanBase64,
+                          },
+                        },
+                        {
+                          text: visionPrompt,
+                        },
+                      ],
+                    },
+                  ],
+                  generationConfig: {
+                    temperature: 0.1,
+                    maxOutputTokens: 1024,
+                  },
+                }),
+                signal: AbortSignal.timeout(12000),
+              }
+            );
+
+            if (geminiRes.ok) {
+              const geminiJson = await geminiRes.json();
+              const textResponse = geminiJson?.candidates?.[0]?.content?.parts?.[0]?.text;
+              if (textResponse) {
+                try {
+                  const cleaned = textResponse.replace(/```json|```/g, '').trim();
+                  const parsed = JSON.parse(cleaned);
+                  if (parsed.detectedItem && Array.isArray(parsed.visualTags)) {
+                    aiMatchResult = parsed;
+                    break;
+                  }
+                } catch {
+                  console.warn('JSON parse error from vision model:', textResponse);
                 }
-              } catch {
-                console.warn('JSON parse error from model:', textResponse);
               }
             }
+          } catch (modelErr) {
+            console.warn(`Vision model attempt (${model}) error:`, modelErr);
           }
-        } catch {
-          // Try next model
         }
       }
     }
@@ -300,9 +331,9 @@ Respond ONLY with a valid JSON object in this exact schema without any markdown 
       }
     }
 
-    // ⚡ Fallback if AI was unavailable and sample image was used
-    if (!aiMatchResult && imageUrl) {
-      const sampleKeywords = imageUrl.toLowerCase();
+    // ⚡ Fallback if AI was offline/unavailable or sample image was used
+    if (!aiMatchResult && (imageUrl || imageBase64)) {
+      const sampleKeywords = (imageUrl || '').toLowerCase();
       if (sampleKeywords.includes('keyboard') || sampleKeywords.includes('keychron')) {
         detectedItemTitle = 'Keychron Mechanical Keyboard';
         detectedCategory = 'Peripherals';
@@ -357,7 +388,6 @@ Respond ONLY with a valid JSON object in this exact schema without any markdown 
     // 💡 5. Fetch 2-4 Alternative Products if Gadget is Out of Stock or Not in Direct Catalog
     let alternativeItems: VisualMatchedItem[] = [];
     if (isGadget && finalMatchedItems.length === 0) {
-      // Find products in the same category or relevant tags
       const categoryProds = catalogProducts.filter(
         (p) => p.category?.toLowerCase() === detectedCategory.toLowerCase()
       );
@@ -380,19 +410,27 @@ Respond ONLY with a valid JSON object in this exact schema without any markdown 
       }));
     }
 
+    const responsePayload = {
+      categoryType,
+      detectedCategory,
+      detectedItem: detectedItemTitle,
+      isGadget,
+      isCatalogAvailable: finalMatchedItems.length > 0,
+      aiMessage,
+      queryVisualTags: queryVisualTags.length > 0 ? queryVisualTags : ['visual-search', 'ai-vision'],
+      matchedItems: finalMatchedItems,
+      alternativeItems,
+    };
+
+    // Cache the visual response
+    visualSearchCache.set(cacheKey, {
+      data: responsePayload,
+      timestamp: Date.now(),
+    });
+
     return NextResponse.json({
       success: true,
-      data: {
-        categoryType,
-        detectedCategory,
-        detectedItem: detectedItemTitle,
-        isGadget,
-        isCatalogAvailable: finalMatchedItems.length > 0,
-        aiMessage,
-        queryVisualTags: queryVisualTags.length > 0 ? queryVisualTags : ['visual-search', 'ai-vision'],
-        matchedItems: finalMatchedItems,
-        alternativeItems,
-      },
+      data: responsePayload,
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to process visual search request';
