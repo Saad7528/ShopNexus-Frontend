@@ -12,6 +12,7 @@ import {
   Headphones,
 } from 'lucide-react';
 import { FaqAccordion } from '@/components/about/FaqAccordion';
+import { HashScrollHandler } from '@/components/about/HashScrollHandler';
 
 export const metadata: Metadata = {
   title: 'About ShopNexus & FAQ | 100% Genuine Hardware Ecosystem',
@@ -21,9 +22,11 @@ export const metadata: Metadata = {
 
 export default function AboutAndFAQPage() {
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f19] text-slate-900 dark:text-white">
-      {/* 1. HERO SECTION */}
-      <section className="relative overflow-hidden pt-12 pb-20 px-4 sm:px-6 lg:px-8 border-b border-slate-200 dark:border-slate-800">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f19] text-slate-900 dark:text-white scroll-smooth">
+      <HashScrollHandler />
+
+      {/* 1. HERO / ABOUT SECTION */}
+      <section id="about-hero" className="relative overflow-hidden pt-12 pb-20 px-4 sm:px-6 lg:px-8 border-b border-slate-200 dark:border-slate-800 scroll-mt-24">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-gradient-to-tr from-orange-500/15 via-amber-500/10 to-transparent blur-3xl rounded-full pointer-events-none" />
 
         <div className="relative max-w-5xl mx-auto text-center space-y-6">
@@ -62,7 +65,7 @@ export default function AboutAndFAQPage() {
       </section>
 
       {/* 🌟 2. PILLARS / HIGHLIGHTS SECTION */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+      <section id="pillars" className="py-16 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto scroll-mt-24">
         <div className="text-center space-y-3 mb-12">
           <span className="text-xs font-bold uppercase tracking-wider text-orange-600 dark:text-orange-400">
             Why ShopNexus
@@ -89,8 +92,8 @@ export default function AboutAndFAQPage() {
             </p>
           </div>
 
-          {/* Feature 2 */}
-          <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 hover:border-emerald-500/40 shadow-sm backdrop-blur-xl transition-all space-y-3 group">
+          {/* Feature 2: Delivery Rates */}
+          <div id="delivery-rates" className="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 hover:border-emerald-500/40 shadow-sm backdrop-blur-xl transition-all space-y-3 group scroll-mt-28">
             <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
               <Truck className="w-6 h-6" />
             </div>
@@ -141,8 +144,8 @@ export default function AboutAndFAQPage() {
             </p>
           </div>
 
-          {/* Feature 6 */}
-          <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 hover:border-cyan-500/40 shadow-sm backdrop-blur-xl transition-all space-y-3 group">
+          {/* Feature 6: Replacement Policy */}
+          <div id="replacement-policy" className="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 hover:border-cyan-500/40 shadow-sm backdrop-blur-xl transition-all space-y-3 group scroll-mt-28">
             <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-600 dark:text-cyan-400 flex items-center justify-center group-hover:scale-110 transition-transform">
               <ShieldCheck className="w-6 h-6" />
             </div>
@@ -157,7 +160,7 @@ export default function AboutAndFAQPage() {
       </section>
 
       {/* 3. TRACKING QUICK BANNER */}
-      <section className="py-8 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+      <section id="tracking-banner" className="py-8 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto scroll-mt-24">
         <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-orange-500/10 via-amber-500/5 to-transparent border border-orange-500/20 backdrop-blur-xl flex flex-col sm:flex-row items-center justify-between gap-6 shadow-lg">
           <div className="space-y-1.5 text-center sm:text-left">
             <span className="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider flex items-center justify-center sm:justify-start gap-1.5">
@@ -182,7 +185,7 @@ export default function AboutAndFAQPage() {
       </section>
 
       {/* 4. FAQ ACCORDION SECTION */}
-      <section id="faq-section" className="py-16 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-8">
+      <section id="faq-section" className="py-16 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-8 scroll-mt-24">
         <div className="text-center space-y-3">
           <span className="text-xs font-bold uppercase tracking-wider text-orange-600 dark:text-orange-400">
             Frequently Asked Questions

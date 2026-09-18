@@ -308,7 +308,9 @@ export default function AdminTrackingPage() {
                   <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
                     {isBn ? 'কুরিয়ার ক্যারিয়ার:' : 'Carrier:'}{' '}
                     <span className="text-orange-600 dark:text-orange-400 font-semibold">{selectedParcel.courierPartner}</span> •{' '}
-                    {isBn ? `আপডেট: ${selectedParcel.lastUpdated}` : `Updated ${selectedParcel.lastUpdated}`}
+                    {isBn
+                      ? `আপডেট: ${selectedParcel.lastUpdated.replace('mins ago', 'মিনিট আগে').replace('hours ago', 'ঘণ্টা আগে').replace('Just now', 'এইমাত্র')}`
+                      : `Updated ${selectedParcel.lastUpdated}`}
                   </p>
                 </div>
 
@@ -316,7 +318,16 @@ export default function AdminTrackingPage() {
                   <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">
                     {isBn ? 'সম্ভাব্য ডেলিভারি' : 'Estimated Delivery'}
                   </span>
-                  <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">{selectedParcel.estimatedDelivery}</span>
+                  <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                    {isBn
+                      ? selectedParcel.estimatedDelivery
+                          .replace('Today by 6:00 PM', 'আজ সন্ধ্যা ৬:০০ এর মধ্যে')
+                          .replace('Delivered', 'ডেলিভার্ড')
+                          .replace('Tomorrow, Aug 25', 'আগামীকাল, ২৫ আগস্ট')
+                          .replace('Aug 26, 2026', '২৬ আগস্ট ২০২৬')
+                          .replace('Within 24-48h', '২৪-৪৮ ঘণ্টার মধ্যে')
+                      : selectedParcel.estimatedDelivery}
+                  </span>
                 </div>
               </div>
 

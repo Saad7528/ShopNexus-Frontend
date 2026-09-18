@@ -6,7 +6,7 @@ import { useLanguageStore } from '@/store/useLanguageStore';
 import { getLocalizedCategory } from '@/lib/localizedProducts';
 import { formatCurrency, toBengaliNumber } from '@/lib/translations';
 import { useHydrated } from '@/lib/useHydrated';
-import { Filter, RotateCcw, Search, X } from 'lucide-react';
+import { Filter, RotateCcw, Search, X, Play, ArrowRight } from 'lucide-react';
 
 const CATEGORIES = [
   'All',
@@ -61,6 +61,33 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({ onClose }) => {
     setIsFlashSale,
     resetFilters,
   } = useProductStore();
+
+  const [localMin, setLocalMin] = React.useState<string>(minPrice > 0 ? String(minPrice) : '');
+  const [localMax, setLocalMax] = React.useState<string>(maxPrice < 150000 ? String(maxPrice) : '');
+
+  // Keep local inputs in sync with store changes (preset buttons, reset, slider, etc.)
+  React.useEffect(() => {
+    setLocalMin(minPrice > 0 ? String(minPrice) : '');
+  }, [minPrice]);
+
+  React.useEffect(() => {
+    setLocalMax(maxPrice < 150000 ? String(maxPrice) : '');
+  }, [maxPrice]);
+
+  const handleApplyCustomPrice = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const parsedMinNum = localMin.trim() === '' ? 0 : parseInt(localMin.replace(/[^0-9]/g, ''), 10);
+    const parsedMaxNum = localMax.trim() === '' ? 150000 : parseInt(localMax.replace(/[^0-9]/g, ''), 10);
+
+    const parsedMin = isNaN(parsedMinNum) ? 0 : Math.max(0, parsedMinNum);
+    const parsedMax = isNaN(parsedMaxNum) ? 150000 : Math.max(0, parsedMaxNum);
+
+    if (parsedMin > parsedMax) {
+      setPriceRange(parsedMax, parsedMin);
+    } else {
+      setPriceRange(parsedMin, parsedMax);
+    }
+  };
 
   return (
     <div className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 shadow-sm backdrop-blur-xl rounded-2xl p-5 space-y-6">
@@ -149,24 +176,69 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({ onClose }) => {
         </div>
       </div>
 
-      {/* Price Range Slider & Presets in Bangladeshi Taka (৳ BDT) */}
-      <div>
-        <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 mb-2">
+      {/* Price Range Slider, Presets & Custom Min-Max in Bangladeshi Taka (৳ BDT) */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
           <span className="font-semibold uppercase tracking-wider">{mounted ? t('filter_price_range') : 'Price Range'}</span>
-          <span className="font-bold text-orange-600 dark:text-orange-400 font-mono">
-            {mounted ? formatCurrency(maxPrice, language) : `৳${maxPrice.toLocaleString()}`}
+          <span className="font-bold text-orange-600 dark:text-orange-400 font-mono text-[11px] sm:text-xs">
+            {mounted
+              ? minPrice > 0 || maxPrice < 150000
+                ? `${formatCurrency(minPrice, language)} - ${formatCurrency(maxPrice, language)}`
+                : formatCurrency(maxPrice, language)
+              : minPrice > 0 || maxPrice < 150000
+              ? `৳${minPrice.toLocaleString()} - ৳${maxPrice.toLocaleString()}`
+              : `৳${maxPrice.toLocaleString()}`}
           </span>
         </div>
 
+        {/* Custom Min - Max Inputs Row with Theme Styled Arrow Submit Button */}
+        <form onSubmit={handleApplyCustomPrice} className="flex items-center gap-1.5">
+          <div className="relative flex-1">
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder={mounted && language === 'bn' ? 'মিনিমাম' : 'Min'}
+              value={localMin}
+              onChange={(e) => setLocalMin(e.target.value.replace(/[^0-9]/g, ''))}
+              className="w-full px-2.5 py-1.5 bg-slate-100 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white text-xs placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-orange-500 font-mono text-center"
+            />
+          </div>
+          <span className="text-slate-400 dark:text-slate-500 font-semibold text-xs select-none">-</span>
+          <div className="relative flex-1">
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder={mounted && language === 'bn' ? 'ম্যাক্সিমাম' : 'Max'}
+              value={localMax}
+              onChange={(e) => setLocalMax(e.target.value.replace(/[^0-9]/g, ''))}
+              className="w-full px-2.5 py-1.5 bg-slate-100 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-white text-xs placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-orange-500 font-mono text-center"
+            />
+          </div>
+          <button
+            type="submit"
+            aria-label="Apply price filter"
+            title={mounted && language === 'bn' ? 'ফিল্টার প্রয়োগ করুন' : 'Apply Price'}
+            className="flex-shrink-0 w-8 h-[30px] rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 active:scale-95 text-white flex items-center justify-center shadow-sm transition-all cursor-pointer border border-orange-400/40"
+          >
+            <Play className="w-3.5 h-3.5 fill-white text-white ml-0.5" />
+          </button>
+        </form>
+
         {/* Quick Budget Chips */}
-        <div className="grid grid-cols-4 gap-1 mb-2.5">
+        <div className="grid grid-cols-4 gap-1">
           {[10000, 25000, 50000, 150000].map((preset) => (
             <button
               key={preset}
               type="button"
-              onClick={() => setPriceRange(minPrice, preset)}
+              onClick={() => {
+                if (preset >= 150000) {
+                  setPriceRange(0, 150000);
+                } else {
+                  setPriceRange(0, preset);
+                }
+              }}
               className={`py-1 rounded-md text-[10px] font-semibold border transition-all cursor-pointer ${
-                maxPrice === preset
+                minPrice === 0 && maxPrice === preset
                   ? 'bg-orange-500/10 dark:bg-orange-500/20 border-orange-500 text-orange-600 dark:text-orange-300 font-bold'
                   : 'bg-slate-100 dark:bg-slate-950/40 border-slate-200 dark:border-slate-800/80 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
@@ -180,9 +252,9 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({ onClose }) => {
 
         <input
           type="range"
-          min="1000"
+          min="0"
           max="150000"
-          step="2500"
+          step="500"
           value={maxPrice}
           onChange={(e) => setPriceRange(minPrice, Number(e.target.value))}
           className="w-full accent-[#ff4400] bg-slate-200 dark:bg-slate-800 rounded-lg cursor-pointer"

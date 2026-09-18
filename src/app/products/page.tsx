@@ -33,6 +33,7 @@ function ProductsContent() {
     search,
     category,
     brand,
+    minPrice,
     maxPrice,
     minRating,
     sortBy,
@@ -44,46 +45,59 @@ function ProductsContent() {
 
   const { t, language } = useLanguageStore();
   const mounted = useHydrated();
-  const rawBundles = useBundleStore((state) => state.bundles);
 
-  // Background SWR Revalidation: silently syncs latest stock & prices from MongoDB
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
 
-  // Merge custom dynamic bundles with cached products instantly (0ms instant render)
+  const rawBundles = useBundleStore((state) => state.bundles);
+
+  // Merge dynamic custom bundles with products catalog
   const allCatalogProducts = React.useMemo(() => {
     const bundleProducts = rawBundles
       .filter((b) => b.status === 'Active')
       .map(convertBundleToProduct);
-    const nonCombos = storeProducts.filter((p) => p.category !== 'Combo Packages');
-
+    const source = storeProducts && storeProducts.length > 0 ? storeProducts : ALL_PRODUCTS;
+    const nonCombos = source.filter((p) => p.category !== 'Combo Packages');
     return [...bundleProducts, ...nonCombos];
   }, [rawBundles, storeProducts]);
 
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
+  // Sync with searchParams
   useEffect(() => {
-    const q = searchParams.get('q');
+    const q = searchParams.get('search') ?? searchParams.get('q');
     const cat = searchParams.get('category');
-    if (q) setSearch(q);
-    if (cat) setCategory(cat);
+    if (q !== null && q !== undefined) {
+      setSearch(q);
+    }
+    if (cat !== null && cat !== undefined) {
+      setCategory(cat);
+    }
   }, [searchParams, setSearch, setCategory]);
 
   const products = React.useMemo(() => {
     let filtered = [...allCatalogProducts];
-    if (search) {
+    if (search && search.trim()) {
+      const term = search.toLowerCase().trim();
       filtered = filtered.filter(
         (p) =>
-          p.title.toLowerCase().includes(search.toLowerCase()) ||
-          p.description.toLowerCase().includes(search.toLowerCase()) ||
-          p.brand.toLowerCase().includes(search.toLowerCase())
+          p.title?.toLowerCase().includes(term) ||
+          p.description?.toLowerCase().includes(term) ||
+          p.brand?.toLowerCase().includes(term) ||
+          p.category?.toLowerCase().includes(term) ||
+          (Array.isArray(p.tags) && p.tags.some((tag) => tag.toLowerCase().includes(term)))
       );
     }
     if (category) filtered = filtered.filter((p) => p.category.toLowerCase() === category.toLowerCase());
     if (brand) filtered = filtered.filter((p) => p.brand.toLowerCase() === brand.toLowerCase());
     if (isFlashSale) filtered = filtered.filter((p) => p.isFlashSale);
-    if (maxPrice) filtered = filtered.filter((p) => (p.discountPrice || p.price) <= maxPrice);
+    if (typeof minPrice === 'number' && minPrice > 0) {
+      filtered = filtered.filter((p) => (p.discountPrice || p.price) >= minPrice);
+    }
+    if (typeof maxPrice === 'number' && maxPrice < 150000) {
+      filtered = filtered.filter((p) => (p.discountPrice || p.price) <= maxPrice);
+    }
     if (minRating) filtered = filtered.filter((p) => (p.averageRating ?? 0) >= minRating);
 
     if (sortBy === 'price_asc') filtered.sort((a, b) => (a.discountPrice || a.price) - (b.discountPrice || b.price));
@@ -91,9 +105,15 @@ function ProductsContent() {
     if (sortBy === 'rating') filtered.sort((a, b) => (b.averageRating ?? 0) - (a.averageRating ?? 0));
 
     return filtered;
-  }, [search, category, brand, maxPrice, minRating, sortBy, isFlashSale, allCatalogProducts]);
+  }, [search, category, brand, minPrice, maxPrice, minRating, sortBy, isFlashSale, allCatalogProducts]);
 
-  const activeFiltersCount = (category ? 1 : 0) + (brand ? 1 : 0) + (isFlashSale ? 1 : 0) + (minRating > 0 ? 1 : 0) + (search ? 1 : 0);
+  const activeFiltersCount =
+    (category ? 1 : 0) +
+    (brand ? 1 : 0) +
+    (isFlashSale ? 1 : 0) +
+    (minRating > 0 ? 1 : 0) +
+    (search ? 1 : 0) +
+    (minPrice > 0 || (typeof maxPrice === 'number' && maxPrice < 150000) ? 1 : 0);
 
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10">
@@ -126,61 +146,54 @@ function ProductsContent() {
                 onClick={() => setCategory(cat === 'All' ? '' : cat)}
                 className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                   isSelected
-                    ? 'bg-orange-500 text-white shadow-md shadow-orange-500/30'
-                    : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    ? 'bg-orange-500 text-white shadow-md shadow-orange-500/25 scale-105'
+                    : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-orange-500/40'
                 }`}
               >
-                {mounted ? getLocalizedCategory(cat, language) : cat}
+                {cat === 'All' ? (mounted && language === 'bn' ? 'সকল বিভাগ' : 'All Categories') : (mounted ? getLocalizedCategory(cat, language) : cat)}
               </button>
             );
           })}
         </div>
 
-        <div className="flex items-center justify-between gap-3 pt-2">
-          <button
-            type="button"
-            onClick={() => setIsMobileFilterOpen(true)}
-            className="flex-1 py-2.5 px-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-orange-500/40 text-slate-900 dark:text-white text-xs font-bold flex items-center justify-center gap-2 shadow-sm cursor-pointer"
-          >
-            <SlidersHorizontal className="w-4 h-4 text-orange-500" />
-            <span>{mounted ? t('filter_title') : 'Filters & Refinements'}</span>
-            {activeFiltersCount > 0 && (
-              <span className="w-5 h-5 rounded-full bg-orange-500 text-white text-[10px] flex items-center justify-center font-black">
-                {mounted && language === 'bn' ? toBengaliNumber(activeFiltersCount) : activeFiltersCount}
-              </span>
-            )}
-          </button>
-
+        <button
+          onClick={() => setIsMobileFilterOpen(true)}
+          className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-xs font-bold text-slate-800 dark:text-white shadow-sm"
+        >
+          <SlidersHorizontal className="w-4 h-4 text-orange-500" />
+          <span>{mounted ? t('filter_title') : 'Filters & Refinements'}</span>
           {activeFiltersCount > 0 && (
-            <button
-              type="button"
-              onClick={resetFilters}
-              className="p-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-orange-500 text-xs font-bold cursor-pointer"
-              title={mounted ? t('filter_reset') : 'Reset Filters'}
-            >
-              <RotateCcw className="w-4 h-4" />
-            </button>
+            <span className="w-5 h-5 rounded-full bg-orange-500 text-white text-[10px] flex items-center justify-center font-bold">
+              {mounted && language === 'bn' ? toBengaliNumber(activeFiltersCount) : activeFiltersCount}
+            </span>
           )}
-        </div>
+        </button>
       </div>
 
-      {/* Main Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Desktop Sidebar Filters (Hidden on Mobile) */}
-        <aside className="hidden lg:block lg:col-span-3">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
+        {/* Desktop Sidebar Filters */}
+        <aside className="hidden lg:block lg:col-span-1 sticky top-24">
           <ProductFilter />
         </aside>
 
-        {/* Product Catalog Grid */}
-        <main className="lg:col-span-9">
-          <div className="flex items-center justify-between mb-4 sm:mb-6">
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-              {mounted ? t('filter_showing') : 'Showing'}{' '}
-              <span className="font-bold text-slate-900 dark:text-white">
-                {mounted && language === 'bn' ? toBengaliNumber(products.length) : products.length}
-              </span>{' '}
-              {mounted ? t('filter_products_found') : 'official items'}
-            </p>
+        {/* Product Grid Area */}
+        <main className="lg:col-span-3 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/70 dark:bg-slate-900/60 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 backdrop-blur-xl shadow-xs">
+            <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 font-medium">
+              <span>
+                {mounted ? t('filter_showing') : 'Showing'}{' '}
+                <strong className="text-orange-600 dark:text-orange-400 font-bold font-mono">
+                  {mounted && language === 'bn' ? toBengaliNumber(products.length) : products.length}
+                </strong>{' '}
+                {mounted ? t('filter_products_found') : 'products found'}
+              </span>
+              {search && (
+                <span className="px-2 py-0.5 rounded-md bg-orange-500/10 text-orange-600 dark:text-orange-400 font-semibold text-[11px]">
+                  &ldquo;{search}&rdquo;
+                </span>
+              )}
+            </div>
+
             {activeFiltersCount > 0 && (
               <button
                 onClick={resetFilters}
@@ -195,10 +208,22 @@ function ProductsContent() {
             <div className="flex flex-col items-center justify-center py-16 px-4 bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-3xl text-center shadow-sm">
               <PackageSearch className="w-12 h-12 text-slate-400 dark:text-slate-600 mb-3" />
               <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-1">
-                {mounted ? (language === 'bn' ? 'কোনো পণ্য পাওয়া যায়নি' : 'No matching products found') : 'No matching products found'}
+                {search
+                  ? mounted && language === 'bn'
+                    ? `"${search}" এর সাথে মিলে এমন কোনো পণ্য পাওয়া যায়নি`
+                    : `No products found matching "${search}"`
+                  : mounted && language === 'bn'
+                  ? 'কোনো পণ্য পাওয়া যায়নি'
+                  : 'No matching products found'}
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mb-5 leading-relaxed">
-                {mounted ? (language === 'bn' ? 'আপনার নির্বাচিত ফিল্টার বা বাজেটের সাথে কোনো পণ্য মেলেনি। অন্যান্য ফিল্টার দিয়ে চেষ্টা করুন।' : 'We couldn\'t find any items matching your budget or selected filters. Try broadening your criteria.') : 'We couldn\'t find any items matching your budget.'}
+                {search
+                  ? mounted && language === 'bn'
+                    ? 'আপনার সার্চ করা কিওয়ার্ডের কোনো প্রোডাক্ট এই মুহূর্তে আমাদের সার্ভার ক্যাটালগে নেই। বানান যাচাই করুন অথবা ফিল্টার রিসেট করুন।'
+                    : 'We could not find any products matching your search term in our official catalog. Check your spelling or try another keyword.'
+                  : mounted && language === 'bn'
+                  ? 'আপনার নির্বাচিত ফিল্টার বা বাজেটের সাথে কোনো পণ্য মেলেনি। অন্যান্য ফিল্টার দিয়ে চেষ্টা করুন।'
+                  : 'We could not find any items matching your budget or selected filters. Try broadening your criteria.'}
               </p>
               <button
                 onClick={resetFilters}
