@@ -66,7 +66,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/login-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'master_logout' }),
+      }).catch(() => null);
+    } catch {
+      // ignore
+    }
+
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('shopnexus_primary_master');
+      localStorage.removeItem('shopnexus_session_id');
+      localStorage.removeItem('shopnexus_session_expires_at');
+      localStorage.removeItem('shopnexus_session_duration');
+    }
+
     logout();
     router.push('/login');
   };
