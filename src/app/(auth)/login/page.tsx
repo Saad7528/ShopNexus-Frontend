@@ -84,16 +84,12 @@ export default function LoginPage() {
       try {
         const res = await fetch(`/api/auth/login-requests?requestId=${pendingChallenge.id}`);
         if (!res.ok) {
-          if (res.status === 404) {
-            // Expired or purged on server
-            setChallengeStatus('timeout');
-            if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-          }
+          // Do NOT prematurely abort on transient 404; allow the 60s countdown timer to govern timeout
           return;
         }
 
-        const json = await res.json();
-        if (json.success && json.data) {
+        const json = await res.json().catch(() => null);
+        if (json?.success && json.data) {
           const reqData: ILoginAuthRequest = json.data;
 
           if (reqData.status === 'approved') {
@@ -135,7 +131,7 @@ export default function LoginPage() {
           }
         }
       } catch {
-        // Ignore poll failures
+        // Ignore transient poll failures
       }
     }, 1500);
 

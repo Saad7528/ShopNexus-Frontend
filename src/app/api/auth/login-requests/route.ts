@@ -21,20 +21,35 @@ export interface ILoginAuthRequest {
   token?: string;
 }
 
-// In-memory registry of active login authorization requests & live master presence
+// In-memory fallback layer for local dev & instant cache
 let pendingLoginRequests: ILoginAuthRequest[] = [];
 let isMasterOnline: boolean = false;
 let masterLastHeartbeat: number = 0;
 let masterActiveEmail: string = 'saad0174742@gmail.com';
 
-// Purge any pending requests older than 60 seconds (1 minute TTL)
-function purgeExpiredRequests() {
+// Database helper
+async function getMongoCollections() {
+  try {
+    await connectToDatabase();
+    const db = mongoose.connection.db;
+    if (!db) return null;
+    return {
+      requests: db.collection('login_requests'),
+      presence: db.collection('admin_presences'),
+      users: db.collection('users'),
+    };
+  } catch {
+    return null;
+  }
+}
+
+// Purge in-memory list
+function purgeExpiredInMemoryRequests() {
   const now = Date.now();
   pendingLoginRequests = pendingLoginRequests.filter((r) => {
     if (r.status === 'approved') {
       return r.expiresAt === null || (r.expiresAt && r.expiresAt > now);
     }
-    // Strict 60-second limit for pending login challenges
     const ageMs = now - (r.createdAtTimestamp || 0);
     return ageMs <= 60000 && r.status === 'pending';
   });
@@ -90,7 +105,8 @@ function extractClientInfo(req: Request, body: Partial<ILoginAuthRequest>) {
 
 export async function GET(req: Request) {
   try {
-    purgeExpiredRequests();
+    purgeExpiredInMemoryRequests();
+    const cols = await getMongoCollections();
 
     const { searchParams } = new URL(req.url);
     const requestId = searchParams.get('requestId');
@@ -98,39 +114,90 @@ export async function GET(req: Request) {
     const status = searchParams.get('status');
     const checkMaster = searchParams.get('checkMaster');
 
-    // Instant Master Online Status Check (15s rolling window)
+    // 1. Instant Master Online Status Check (25s rolling window for network resilience)
     if (checkMaster === 'true') {
-      const active = isMasterOnline && (Date.now() - masterLastHeartbeat < 15000);
+      let active = false;
+      let targetEmail = masterActiveEmail;
+      let lastHb = masterLastHeartbeat;
+
+      if (cols) {
+        const pres = await cols.presence.findOne({ email: masterActiveEmail });
+        if (pres) {
+          lastHb = pres.lastHeartbeat || 0;
+          active = pres.isMasterOnline && (Date.now() - lastHb < 25000);
+          targetEmail = pres.email || masterActiveEmail;
+        }
+      } else {
+        active = isMasterOnline && (Date.now() - masterLastHeartbeat < 25000);
+      }
+
       return NextResponse.json({
         success: true,
         isMasterOnline: active,
-        masterEmail: masterActiveEmail,
-        lastHeartbeat: masterLastHeartbeat,
+        masterEmail: targetEmail,
+        lastHeartbeat: lastHb,
       });
     }
 
+    // 2. Query single request by requestId
     if (requestId) {
-      const found = pendingLoginRequests.find((r) => r.id === requestId);
-      if (!found) {
-        return NextResponse.json({ success: false, message: 'Request not found' }, { status: 404 });
+      if (cols) {
+        const found = (await cols.requests.findOne({ id: requestId })) as unknown as ILoginAuthRequest | null;
+        if (found) {
+          return NextResponse.json({ success: true, data: found });
+        }
       }
-      return NextResponse.json({ success: true, data: found });
+
+      // Memory fallback
+      const memFound = pendingLoginRequests.find((r) => r.id === requestId);
+      if (memFound) {
+        return NextResponse.json({ success: true, data: memFound });
+      }
+
+      return NextResponse.json({ success: false, message: 'Request not found' }, { status: 404 });
     }
 
+    // 3. Query list of requests (e.g. pending requests for primary admin)
+    if (cols) {
+      const now = Date.now();
+      const query: Record<string, unknown> = {};
+
+      if (status === 'pending') {
+        query.status = 'pending';
+        // Only return challenges created within the last 60 seconds
+        query.createdAtTimestamp = { $gte: now - 60000 };
+      } else if (status) {
+        query.status = status;
+      }
+
+      if (email) {
+        query.email = email.toLowerCase().trim();
+      }
+
+      const dbList = (await cols.requests.find(query).sort({ createdAtTimestamp: -1 }).limit(50).toArray()) as unknown as ILoginAuthRequest[];
+      
+      let isOnline = isMasterOnline && (Date.now() - masterLastHeartbeat < 25000);
+      const pres = await cols.presence.findOne({ email: masterActiveEmail });
+      if (pres) {
+        isOnline = pres.isMasterOnline && (Date.now() - (pres.lastHeartbeat || 0) < 25000);
+      }
+
+      return NextResponse.json({
+        success: true,
+        data: dbList,
+        isMasterOnline: isOnline,
+      });
+    }
+
+    // In-memory fallback if MongoDB connection is pending
     let filtered = [...pendingLoginRequests];
-
-    if (status) {
-      filtered = filtered.filter((r) => r.status === status);
-    }
-
-    if (email) {
-      filtered = filtered.filter((r) => r.email.toLowerCase() === email.toLowerCase());
-    }
+    if (status) filtered = filtered.filter((r) => r.status === status);
+    if (email) filtered = filtered.filter((r) => r.email.toLowerCase() === email.toLowerCase());
 
     return NextResponse.json({
       success: true,
       data: filtered,
-      isMasterOnline: isMasterOnline && (Date.now() - masterLastHeartbeat < 15000),
+      isMasterOnline: isMasterOnline && (Date.now() - masterLastHeartbeat < 25000),
     });
   } catch (error) {
     return NextResponse.json(
@@ -142,31 +209,62 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    purgeExpiredRequests();
+    purgeExpiredInMemoryRequests();
+    const cols = await getMongoCollections();
 
     const body = await req.json();
     const { action, requestId, email, password, duration, customMinutes } = body;
 
-    // Action 0A: Master Live Heartbeat Ping (keeps master online)
+    // Action 0A: Master Live Heartbeat Ping (keeps master online across all serverless instances)
     if (action === 'master_heartbeat') {
+      const targetEmail = (email || masterActiveEmail).toLowerCase().trim();
       isMasterOnline = true;
       masterLastHeartbeat = Date.now();
-      if (email) masterActiveEmail = email.toLowerCase().trim();
+      masterActiveEmail = targetEmail;
+
+      if (cols) {
+        await cols.presence.updateOne(
+          { email: targetEmail },
+          { $set: { email: targetEmail, isMasterOnline: true, lastHeartbeat: Date.now(), updatedAt: new Date() } },
+          { upsert: true }
+        ).catch(() => null);
+      }
+
       return NextResponse.json({ success: true, isMasterOnline: true });
     }
 
-    // Action 0B: Master Instant Logout (0 second delay, immediately frees master)
+    // Action 0B: Master Instant Logout (0-second sync, immediately marks master offline everywhere)
     if (action === 'master_logout') {
+      const targetEmail = (email || masterActiveEmail).toLowerCase().trim();
       isMasterOnline = false;
       masterLastHeartbeat = 0;
+
+      if (cols) {
+        await cols.presence.updateOne(
+          { email: targetEmail },
+          { $set: { isMasterOnline: false, lastHeartbeat: 0, updatedAt: new Date() } },
+          { upsert: true }
+        ).catch(() => null);
+      }
+
       return NextResponse.json({ success: true, isMasterOnline: false });
     }
 
     // Action 0C: Master Registered via TOTP
     if (action === 'master_register') {
+      const targetEmail = (email || masterActiveEmail).toLowerCase().trim();
       isMasterOnline = true;
       masterLastHeartbeat = Date.now();
-      if (email) masterActiveEmail = email.toLowerCase().trim();
+      masterActiveEmail = targetEmail;
+
+      if (cols) {
+        await cols.presence.updateOne(
+          { email: targetEmail },
+          { $set: { email: targetEmail, isMasterOnline: true, lastHeartbeat: Date.now(), updatedAt: new Date() } },
+          { upsert: true }
+        ).catch(() => null);
+      }
+
       return NextResponse.json({ success: true, isMasterOnline: true });
     }
 
@@ -182,6 +280,7 @@ export async function POST(req: Request) {
       // 1. Check in-memory hardcoded master passwords
       const validPasswords = [
         'Saad@752800',
+        'SAADNEXUS234567M',
         'Nexus@Admin2026!',
         'Admin@ShopNexus2026!',
         'saad752800',
@@ -191,21 +290,17 @@ export async function POST(req: Request) {
       let isPasswordCorrect = validPasswords.includes(reqPass);
 
       // 2. Cross-verify with MongoDB if available
-      if (!isPasswordCorrect) {
+      if (!isPasswordCorrect && cols) {
         try {
-          await connectToDatabase();
-          const db = mongoose.connection.db;
-          if (db) {
-            const user = await db.collection('users').findOne({ email: reqEmail });
-            if (user && user.passwordHash) {
-              if (user.passwordHash.includes(':')) {
-                const [salt, hash] = user.passwordHash.split(':');
-                const testHash = crypto.pbkdf2Sync(reqPass, salt, 1000, 64, 'sha512').toString('hex');
-                isPasswordCorrect = testHash === hash;
-              } else {
-                const sha256Hash = crypto.createHash('sha256').update(reqPass).digest('hex');
-                isPasswordCorrect = sha256Hash === user.passwordHash || reqPass === user.passwordHash;
-              }
+          const user = await cols.users.findOne({ email: reqEmail });
+          if (user && user.passwordHash) {
+            if (user.passwordHash.includes(':')) {
+              const [salt, hash] = user.passwordHash.split(':');
+              const testHash = crypto.pbkdf2Sync(reqPass, salt, 1000, 64, 'sha512').toString('hex');
+              isPasswordCorrect = testHash === hash;
+            } else {
+              const sha256Hash = crypto.createHash('sha256').update(reqPass).digest('hex');
+              isPasswordCorrect = sha256Hash === user.passwordHash || reqPass === user.passwordHash;
             }
           }
         } catch {
@@ -223,7 +318,14 @@ export async function POST(req: Request) {
         );
       }
 
-      const activeMaster = isMasterOnline && (Date.now() - masterLastHeartbeat < 15000);
+      let activeMaster = isMasterOnline && (Date.now() - masterLastHeartbeat < 25000);
+      if (cols) {
+        const pres = await cols.presence.findOne({ email: masterActiveEmail });
+        if (pres) {
+          activeMaster = pres.isMasterOnline && (Date.now() - (pres.lastHeartbeat || 0) < 25000);
+        }
+      }
+
       return NextResponse.json({
         success: true,
         message: 'Credentials valid',
@@ -234,10 +336,10 @@ export async function POST(req: Request) {
     // Action 1: Create a new login authorization challenge from remote/secondary device
     if (action === 'create_request') {
       const clientInfo = extractClientInfo(req, body);
-      const reqEmail = (email || 'saad0174742@gmail.com').toLowerCase();
+      const reqEmail = (email || 'saad0174742@gmail.com').toLowerCase().trim();
       const reqIp = body.ipAddress || clientInfo.ip;
 
-      // Remove or supersede any existing pending requests for this device/IP
+      // Remove or supersede any existing pending requests for this device/IP in memory
       pendingLoginRequests = pendingLoginRequests.filter(
         (r) => !(r.email === reqEmail && r.ipAddress === reqIp && r.status === 'pending')
       );
@@ -255,9 +357,14 @@ export async function POST(req: Request) {
         status: 'pending',
       };
 
-      // Limit in-memory history to last 50 requests
       pendingLoginRequests.unshift(newRequest);
       if (pendingLoginRequests.length > 50) pendingLoginRequests.pop();
+
+      // Persist directly in MongoDB collection
+      if (cols) {
+        await cols.requests.deleteMany({ email: reqEmail, ipAddress: reqIp, status: 'pending' }).catch(() => null);
+        await cols.requests.insertOne({ ...newRequest }).catch(() => null);
+      }
 
       return NextResponse.json({
         success: true,
@@ -269,57 +376,57 @@ export async function POST(req: Request) {
     // Action 2: Primary Admin approves / denies / denies & blocks with session validity duration
     if (action === 'respond' && requestId) {
       const decision = body.decision as 'approved' | 'denied' | 'denied_and_blocked';
-      const targetIndex = pendingLoginRequests.findIndex((r) => r.id === requestId);
+      const selectedDuration = (duration || '1h') as '20m' | '30m' | '1h' | 'until_revoked' | 'custom';
+      let minutes = 60;
 
-      if (targetIndex !== -1) {
-        const reqItem = pendingLoginRequests[targetIndex];
-        reqItem.status = decision;
+      if (selectedDuration === '20m') minutes = 20;
+      else if (selectedDuration === '30m') minutes = 30;
+      else if (selectedDuration === '1h') minutes = 60;
+      else if (selectedDuration === 'custom') minutes = Number(customMinutes) || 60;
+      else if (selectedDuration === 'until_revoked') minutes = -1;
 
-        if (decision === 'approved') {
-          const selectedDuration = (duration || '1h') as '20m' | '30m' | '1h' | 'until_revoked' | 'custom';
-          let minutes = 60;
+      const updateFields: Partial<ILoginAuthRequest> = {
+        status: decision,
+        duration: selectedDuration,
+        durationMinutes: minutes,
+        approvedAt: new Date().toISOString(),
+        expiresAt: minutes === -1 ? null : Date.now() + minutes * 60 * 1000,
+        token: `nexus-2fa-token-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      };
 
-          if (selectedDuration === '20m') minutes = 20;
-          else if (selectedDuration === '30m') minutes = 30;
-          else if (selectedDuration === '1h') minutes = 60;
-          else if (selectedDuration === 'custom') minutes = Number(customMinutes) || 60;
-          else if (selectedDuration === 'until_revoked') minutes = -1;
-
-          reqItem.duration = selectedDuration;
-          reqItem.durationMinutes = minutes;
-          reqItem.approvedAt = new Date().toISOString();
-          reqItem.expiresAt = minutes === -1 ? null : Date.now() + minutes * 60 * 1000;
-          reqItem.token = `nexus-2fa-token-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-          // Mark any other older approved sessions from the SAME ip + email as superseded
-          pendingLoginRequests.forEach((r) => {
-            if (r.id !== reqItem.id && r.email === reqItem.email && r.ipAddress === reqItem.ipAddress && r.status === 'approved') {
-              r.status = 'denied';
-            }
-          });
-        }
-
-        return NextResponse.json({
-          success: true,
-          message:
-            decision === 'approved'
-              ? `Login request approved with session duration: ${reqItem.duration}`
-              : decision === 'denied_and_blocked'
-              ? 'Login request denied and IP address permanently blocked in Fraud Shield.'
-              : 'Login request denied by Primary Admin.',
-          data: reqItem,
-        });
+      // 1. Update in MongoDB
+      if (cols) {
+        await cols.requests.updateOne({ id: requestId }, { $set: updateFields }).catch(() => null);
       }
 
-      return NextResponse.json(
-        { success: false, message: 'Authorization Request ID not found' },
-        { status: 404 }
-      );
+      // 2. Update in Memory
+      const targetIndex = pendingLoginRequests.findIndex((r) => r.id === requestId);
+      let resItem: ILoginAuthRequest | null = null;
+      if (targetIndex !== -1) {
+        pendingLoginRequests[targetIndex] = { ...pendingLoginRequests[targetIndex], ...updateFields };
+        resItem = pendingLoginRequests[targetIndex];
+      } else if (cols) {
+        resItem = (await cols.requests.findOne({ id: requestId })) as unknown as ILoginAuthRequest | null;
+      }
+
+      return NextResponse.json({
+        success: true,
+        message:
+          decision === 'approved'
+            ? `Login request approved with session duration: ${selectedDuration}`
+            : decision === 'denied_and_blocked'
+            ? 'Login request denied and IP address permanently blocked in Fraud Shield.'
+            : 'Login request denied by Primary Admin.',
+        data: resItem || updateFields,
+      });
     }
 
     // Action 3: Invalidate or Revoke an active approved session
     if (action === 'revoke' && (requestId || email)) {
       if (requestId) {
+        if (cols) {
+          await cols.requests.updateOne({ id: requestId }, { $set: { status: 'denied', expiresAt: Date.now() } }).catch(() => null);
+        }
         const targetIndex = pendingLoginRequests.findIndex((r) => r.id === requestId);
         if (targetIndex !== -1) {
           pendingLoginRequests[targetIndex].status = 'denied';
@@ -327,6 +434,10 @@ export async function POST(req: Request) {
         }
       }
       if (body.action === 'revoke_all' || action === 'terminate_all') {
+        const query = email ? { email: email.toLowerCase().trim() } : {};
+        if (cols) {
+          await cols.requests.updateMany(query, { $set: { status: 'denied', expiresAt: Date.now() } }).catch(() => null);
+        }
         pendingLoginRequests.forEach((r) => {
           if (!email || r.email.toLowerCase() === email.toLowerCase()) {
             r.status = 'denied';
