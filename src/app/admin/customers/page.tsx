@@ -1004,9 +1004,11 @@ export default function AdminCustomerDirectoryPage() {
             </div>
           )}
 
+          {/* Mobile Swipe Hint */}
           <div className="sm:hidden px-3.5 py-2 bg-slate-50 dark:bg-slate-950/60 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-medium">
             <span className="flex items-center gap-1.5">
               <span>👉</span>
+              <span>{isBn ? 'ডানে স্ক্রোল করে বিস্তারিত ডেটা ও অ্যাকশন দেখুন' : 'Swipe right for data & actions'}</span>
             </span>
             <span className="text-[10px] bg-slate-200 dark:bg-slate-800 px-2 py-0.5 rounded-full font-mono font-bold text-slate-700 dark:text-slate-300">
               {isBn ? toBengaliNumber(filteredCustomers.length) : filteredCustomers.length}
