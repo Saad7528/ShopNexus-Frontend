@@ -255,6 +255,7 @@ export async function POST(req: Request) {
         status: 'pending',
       };
 
+      // Limit in-memory history to last 50 requests
       pendingLoginRequests.unshift(newRequest);
       if (pendingLoginRequests.length > 50) pendingLoginRequests.pop();
 
