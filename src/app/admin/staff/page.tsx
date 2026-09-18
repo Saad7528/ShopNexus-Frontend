@@ -851,12 +851,23 @@ export default function AdminStaffRolesPage() {
       // 2. Fetch Active Sessions Telemetry
       let sessionsData: Record<string, any[]> = {};
       try {
-        const sessRes = await fetch('/api/admin/staff/sessions').catch(() => null);
+        const sessRes = await fetch('/api/admin/staff/sessions?email=saad0174742@gmail.com').catch(() => null);
         if (sessRes && sessRes.ok) {
           const sessJson = await sessRes.json().catch(() => null);
           if (sessJson?.success && Array.isArray(sessJson.data)) {
-            // Default mapped array for admin
+            sessionsData['saad0174742@gmail.com'] = sessJson.data;
             sessionsData['admin@shopnexus.io'] = sessJson.data;
+            sessionsData['st-0'] = sessJson.data;
+
+            // Direct live state update for Super Admin sessions
+            setStaffList((prev) =>
+              prev.map((s) => {
+                if (s.email.toLowerCase().trim() === 'saad0174742@gmail.com' || s.role === 'Super Admin') {
+                  return { ...s, sessions: sessJson.data };
+                }
+                return s;
+              })
+            );
           }
         }
       } catch {
@@ -937,7 +948,14 @@ export default function AdminStaffRolesPage() {
               ),
             ];
             // Ensure only saad0174742@gmail.com is Super Admin and comes first
-            return merged.filter((s) => s.email.toLowerCase().trim() !== 'admin@shopnexus.io');
+            return merged
+              .filter((s) => s.email.toLowerCase().trim() !== 'admin@shopnexus.io')
+              .map((s) => {
+                if (s.email.toLowerCase().trim() === 'saad0174742@gmail.com' && sessionsData['saad0174742@gmail.com']) {
+                  return { ...s, sessions: sessionsData['saad0174742@gmail.com'] };
+                }
+                return s;
+              });
           });
         }
       }
