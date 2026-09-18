@@ -284,28 +284,34 @@ export default function LoginPage() {
     }
   };
 
-  // ⚡ 1-Click Fast Admin Login
+  // ⚡ 1-Click Fast Admin Credentials Auto-Fill & 2FA Trigger
   const handleAdminQuickLogin = async () => {
     setIsLoading(true);
     setError(null);
     const targetEmail = MASTER_ADMIN_EMAIL;
+    const targetPass = 'Saad@752800';
     setEmail(targetEmail);
-    setPassword('Saad@752800');
-
-    const isPrimaryDevice =
-      typeof window !== 'undefined' && localStorage.getItem('shopnexus_primary_master') === 'authorized_master_root';
-
-    if (isPrimaryDevice) {
-      executeDirectAdminLogin(targetEmail);
-      setIsLoading(false);
-      return;
-    }
+    setPassword(targetPass);
 
     try {
-      const checkRes = await fetch('/api/auth/login-requests?checkMaster=true');
-      const checkData = await checkRes.json().catch(() => null);
+      const verifyRes = await fetch('/api/auth/login-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'verify_admin_credentials',
+          email: targetEmail,
+          password: targetPass,
+        }),
+      });
 
-      if (checkData?.isMasterOnline) {
+      const verifyData = await verifyRes.json().catch(() => null);
+      if (!verifyData || !verifyData.success) {
+        setError(verifyData?.message || 'অ্যাডমিন ক্রিডেনশিয়াল ভেরিফাই করা যায়নি।');
+        setIsLoading(false);
+        return;
+      }
+
+      if (verifyData.isMasterOnline) {
         // Master is online elsewhere -> Dispatch waiting challenge
         const challengeRes = await fetch('/api/auth/login-requests', {
           method: 'POST',
@@ -320,19 +326,18 @@ export default function LoginPage() {
         if (challengeData?.success && challengeData.data) {
           setPendingChallenge(challengeData.data);
           setChallengeStatus('waiting');
+          setIsLoading(false);
+          return;
         }
-      } else {
-        // No master online -> Direct TOTP modal
-        setShowTotpModal(true);
       }
-    } catch {
-      setShowTotpModal(true);
-    } finally {
-      setIsLoading(false);
-    }
 
-    executeDirectAdminLogin('admin@shopnexus.io');
-    setIsLoading(false);
+      // No other master is online -> Prompt for 6-digit Google Authenticator TOTP
+      setIsLoading(false);
+      setShowTotpModal(true);
+    } catch {
+      setIsLoading(false);
+      setShowTotpModal(true);
+    }
   };
 
   const handleGoogleLogin = () => {
