@@ -47,5 +47,8 @@ next-env.d.ts
 PROJECT_RULES.md
 SETUP_REPORT.md
 SETUP_REPORT_BN.md
+MASTER_SECURITY_CREDENTIALS.md
+*CREDENTIALS*.md
 .agents/
 *.rules.md
+
