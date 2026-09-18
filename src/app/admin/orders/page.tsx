@@ -508,12 +508,9 @@ export default function AdminOrdersPage() {
     <RoleGuard allowedRoles={['admin']}>
       <div className="space-y-6 max-w-7xl mx-auto pb-16">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider mb-2">
-              <ShoppingCart className="w-3.5 h-3.5" /> {isBn ? 'অর্ডার ফুলফিলমেন্ট পাইপলাইন ও ইনভয়েসিং' : 'Order Fulfillment Pipeline & Invoicing'}
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+            <h1 className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
               {isBn ? 'অর্ডার ও ব্যাচ ইনভয়েস ম্যানেজমেন্ট' : 'Orders & Batch Invoicing Management'}
             </h1>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
@@ -524,11 +521,11 @@ export default function AdminOrdersPage() {
           </div>
 
           {/* ⚡ 1-Click Quick Batch Extraction Action Buttons */}
-          <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto shrink-0">
             <button
               type="button"
               onClick={selectTodayConfirmedOrders}
-              className="inline-flex items-center justify-center gap-1.5 px-3 sm:px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white text-[11px] sm:text-xs font-bold shadow-md shadow-orange-500/25 transition-all cursor-pointer hover:scale-105 text-center"
+              className="inline-flex items-center justify-center gap-1.5 px-2.5 sm:px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white text-[11px] sm:text-xs font-bold shadow-md shadow-orange-500/25 transition-all cursor-pointer active:scale-95 text-center truncate"
               title={isBn ? "আজকের নিশ্চিতকৃত ও প্রক্রিয়াধীন সকল অর্ডার বাছাই করুন" : "Select all today's confirmed and processing orders"}
             >
               <span className="truncate">{isBn ? `আজকের নিশ্চিতকৃত (${toBengaliNumber(orders.filter((o) => o.isToday && (o.status === 'Confirmed' || o.status === 'Processing')).length)})` : `Today's Confirmed (${orders.filter((o) => o.isToday && (o.status === 'Confirmed' || o.status === 'Processing')).length})`}</span>
@@ -537,7 +534,7 @@ export default function AdminOrdersPage() {
             <button
               type="button"
               onClick={selectTodayAllOrders}
-              className="inline-flex items-center justify-center gap-1.5 px-3 sm:px-3.5 py-2 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 text-[11px] sm:text-xs font-bold transition-all cursor-pointer shadow-sm text-center"
+              className="inline-flex items-center justify-center gap-1.5 px-2.5 sm:px-3.5 py-2 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 text-[11px] sm:text-xs font-bold transition-all cursor-pointer shadow-sm text-center active:scale-95 truncate"
               title={isBn ? "স্ট্যাটাস নির্বিশেষে আজকের সকল অর্ডার বাছাই করুন" : "Select all today's orders regardless of status"}
             >
               <Calendar className="w-3.5 h-3.5 text-orange-500 shrink-0" />
@@ -547,7 +544,7 @@ export default function AdminOrdersPage() {
         </div>
 
         {/* 🔍 Advanced Filter Presets & Order Number Range Bar */}
-        <div className="p-3.5 sm:p-4 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3 backdrop-blur-xl">
+        <div className="p-3 sm:p-4 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3 backdrop-blur-xl">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4">
             {/* Status Filter Tabs */}
             <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
@@ -593,32 +590,36 @@ export default function AdminOrdersPage() {
           {/* 🔢 Order Range Filter Toolbar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-3 border-t border-slate-100 dark:border-slate-800/80 text-xs">
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-              <span className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1 text-[11px] sm:text-xs">
-                <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-500" /> {isBn ? 'অর্ডার রেঞ্জ:' : 'Range:'}
+              <span className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1 text-[11px] sm:text-xs shrink-0">
+                <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-500 shrink-0" /> {isBn ? 'রেঞ্জ:' : 'Range:'}
               </span>
               <div className="flex items-center gap-1 font-mono text-[11px] sm:text-xs">
-                <span className="text-slate-400 text-[10px]">NX-</span>
-                <input
-                  type="number"
-                  placeholder="9018"
-                  value={rangeStart}
-                  onChange={(e) => setRangeStart(e.target.value)}
-                  className="w-16 sm:w-20 px-1.5 py-1 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold text-xs focus:border-orange-500 focus:outline-none"
-                />
-                <span className="text-slate-400 font-sans font-bold text-[10px]">{isBn ? 'হতে' : 'to'}</span>
-                <span className="text-slate-400 text-[10px]">NX-</span>
-                <input
-                  type="number"
-                  placeholder="9032"
-                  value={rangeEnd}
-                  onChange={(e) => setRangeEnd(e.target.value)}
-                  className="w-16 sm:w-20 px-1.5 py-1 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold text-xs focus:border-orange-500 focus:outline-none"
-                />
+                <div className="flex items-center bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-1.5 py-0.5">
+                  <span className="text-slate-400 text-[10px] select-none">NX-</span>
+                  <input
+                    type="number"
+                    placeholder="9018"
+                    value={rangeStart}
+                    onChange={(e) => setRangeStart(e.target.value)}
+                    className="w-14 sm:w-16 bg-transparent text-slate-900 dark:text-white font-bold text-xs focus:outline-none pl-0.5"
+                  />
+                </div>
+                <span className="text-slate-400 font-sans font-bold text-[10px] px-0.5">{isBn ? 'হতে' : 'to'}</span>
+                <div className="flex items-center bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-1.5 py-0.5">
+                  <span className="text-slate-400 text-[10px] select-none">NX-</span>
+                  <input
+                    type="number"
+                    placeholder="9032"
+                    value={rangeEnd}
+                    onChange={(e) => setRangeEnd(e.target.value)}
+                    className="w-14 sm:w-16 bg-transparent text-slate-900 dark:text-white font-bold text-xs focus:outline-none pl-0.5"
+                  />
+                </div>
               </div>
               <button
                 type="button"
                 onClick={handleSelectRange}
-                className="px-2.5 py-1 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/30 font-bold text-[11px] sm:text-xs transition-colors cursor-pointer"
+                className="px-2.5 py-1.5 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/30 font-bold text-[11px] sm:text-xs transition-colors cursor-pointer shrink-0"
               >
                 {isBn ? 'সিলেক্ট করুন' : 'Select'}
               </button>
@@ -680,6 +681,15 @@ export default function AdminOrdersPage() {
 
         {/* Orders Table with Checkboxes & Report Issue Action */}
         <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 backdrop-blur-xl overflow-hidden shadow-sm">
+          <div className="sm:hidden px-4 py-2 bg-slate-50/80 dark:bg-slate-950/60 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+            <span className="flex items-center gap-1.5">
+              <span>👉</span>
+            </span>
+            <span className="text-[10px] bg-slate-200 dark:bg-slate-800 px-2 py-0.5 rounded-full font-mono font-bold text-slate-700 dark:text-slate-300">
+              {isBn ? toBengaliNumber(filteredOrders.length) : filteredOrders.length}
+            </span>
+          </div>
+
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300">
               <thead className="bg-slate-50 dark:bg-slate-950/80 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
