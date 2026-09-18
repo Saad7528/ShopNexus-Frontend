@@ -62,6 +62,8 @@ export function AdminSecurityListener() {
     }
   }, [user]);
 
+  const consecutive404Ref = useRef(0);
+
   // 1B. Primary Master Continuous Heartbeat Sync (Keeps Server aware that Master is Online)
   useEffect(() => {
     if (!user || user.role !== 'admin' || isTemporarySession) return;
@@ -75,7 +77,7 @@ export function AdminSecurityListener() {
     };
 
     sendHeartbeat();
-    const interval = setInterval(sendHeartbeat, 7000);
+    const interval = setInterval(sendHeartbeat, 5000);
     return () => clearInterval(interval);
   }, [user, isTemporarySession]);
 
@@ -129,19 +131,23 @@ export function AdminSecurityListener() {
         if (!res) return;
 
         if (res.status === 404) {
-          // Session deleted or revoked
-          isLoggingOutRef.current = true;
-          setIsSessionRevoked(true);
-          localStorage.removeItem('shopnexus_session_id');
-          localStorage.removeItem('shopnexus_session_expires_at');
-          localStorage.removeItem('shopnexus_session_duration');
-          setTimeout(() => {
-            handleRedirectToLogin();
-          }, 2500);
+          consecutive404Ref.current += 1;
+          // Require at least 4 consecutive 404s (8 seconds of verified deletion) before revoking
+          if (consecutive404Ref.current >= 4) {
+            isLoggingOutRef.current = true;
+            setIsSessionRevoked(true);
+            localStorage.removeItem('shopnexus_session_id');
+            localStorage.removeItem('shopnexus_session_expires_at');
+            localStorage.removeItem('shopnexus_session_duration');
+            setTimeout(() => {
+              handleRedirectToLogin();
+            }, 2500);
+          }
           return;
         }
 
         if (res.ok) {
+          consecutive404Ref.current = 0;
           const json = await res.json().catch(() => null);
           if (json?.data) {
             const status = json.data.status;
@@ -162,7 +168,7 @@ export function AdminSecurityListener() {
       }
     };
 
-    const interval = setInterval(checkRevocation, 1500);
+    const interval = setInterval(checkRevocation, 2000);
     return () => clearInterval(interval);
   }, [handleRedirectToLogin]);
 
