@@ -6,7 +6,7 @@ import { LoginAuthorizationPrompt, SessionDurationType } from '@/components/auth
 import { ILoginAuthRequest } from '@/app/api/auth/login-requests/route';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useLanguageStore } from '@/store/useLanguageStore';
-import { CheckCircle2, Clock, AlertTriangle, LogOut } from 'lucide-react';
+import { CheckCircle2, Clock, AlertTriangle, LogOut, Ban } from 'lucide-react';
 
 export function AdminSecurityListener() {
   const router = useRouter();
@@ -21,62 +21,122 @@ export function AdminSecurityListener() {
   const [isTemporarySession, setIsTemporarySession] = useState(false);
   const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
   const [isSessionExpired, setIsSessionExpired] = useState(false);
+  const [isSessionRevoked, setIsSessionRevoked] = useState(false);
   const isLoggingOutRef = useRef(false);
 
-  // 1. Determine Device Type (Primary Trusted Device vs Temporary 2FA Session)
+  // 1. Determine Device Type (Primary Master vs Secondary/Temporary 2FA Session)
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const expiresAtStr = localStorage.getItem('shopnexus_session_expires_at');
-    const isPrimaryFlag = localStorage.getItem('shopnexus_primary_device') === 'true';
+    const sessionId = localStorage.getItem('shopnexus_session_id');
 
-    // If this session has a temporary expiration timestamp, it is a SECONDARY / 2FA-authorized session
-    if (expiresAtStr && expiresAtStr !== 'until_revoked') {
+    // If this session was created via 2FA (has session_id or temporary expiration), it is a SECONDARY device
+    if (sessionId || (expiresAtStr && expiresAtStr !== 'until_revoked')) {
       setIsTemporarySession(true);
-      // Ensure it is NOT marked as primary
-      localStorage.removeItem('shopnexus_primary_device');
-    } else if (isPrimaryFlag || !expiresAtStr) {
-      // Primary admin device
+      localStorage.removeItem('shopnexus_primary_master');
+    } else if (user?.role === 'admin' && !sessionId) {
+      // Primary authenticated Master Admin device
       setIsTemporarySession(false);
-      localStorage.setItem('shopnexus_primary_device', 'true');
+      localStorage.setItem('shopnexus_primary_master', 'authorized_master_root');
+    } else {
+      // Unauthenticated / Incognito / Untrusted device
+      setIsTemporarySession(true);
+      localStorage.removeItem('shopnexus_primary_master');
     }
-  }, []);
+  }, [user]);
 
-  // 2. Secondary Device Live Expiration Countdown & Auto-Logout Watcher
+  // 2. Secondary Device: Live Expiration Countdown & Auto-Logout Watcher
   useEffect(() => {
-    if (typeof window === 'undefined' || !isTemporarySession || isLoggingOutRef.current) return;
-
-    const checkExpiration = () => {
+    if (typeof window !== 'undefined') {
       const expiresAtStr = localStorage.getItem('shopnexus_session_expires_at');
-      if (!expiresAtStr || expiresAtStr === 'until_revoked') return;
+      if (expiresAtStr && expiresAtStr !== 'until_revoked') {
+        const checkExpiration = () => {
+          if (isLoggingOutRef.current) return;
+          const currentExpStr = localStorage.getItem('shopnexus_session_expires_at');
+          if (!currentExpStr || currentExpStr === 'until_revoked') return;
 
-      const expiresAt = Number(expiresAtStr);
-      const diffMs = expiresAt - Date.now();
-      const secs = Math.max(0, Math.floor(diffMs / 1000));
+          const expiresAt = Number(currentExpStr);
+          const diffMs = expiresAt - Date.now();
+          const secs = Math.max(0, Math.floor(diffMs / 1000));
 
-      setRemainingSeconds(secs);
+          setRemainingSeconds(secs);
 
-      if (secs <= 0 && !isLoggingOutRef.current) {
-        isLoggingOutRef.current = true;
-        setIsSessionExpired(true);
+          if (secs <= 0 && !isLoggingOutRef.current) {
+            isLoggingOutRef.current = true;
+            setIsSessionExpired(true);
 
-        // Clear session
-        localStorage.removeItem('shopnexus_session_expires_at');
-        localStorage.removeItem('shopnexus_session_duration');
+            localStorage.removeItem('shopnexus_session_id');
+            localStorage.removeItem('shopnexus_session_expires_at');
+            localStorage.removeItem('shopnexus_session_duration');
 
-        setTimeout(() => {
-          logout();
-          router.push('/login');
-        }, 3000);
+            setTimeout(() => {
+              logout();
+              router.push('/login');
+            }, 3000);
+          }
+        };
+
+        checkExpiration();
+        const interval = setInterval(checkExpiration, 1000);
+        return () => clearInterval(interval);
+      }
+    }
+  }, [logout, router]);
+
+  // 3. Secondary Device: Active Revocation / Termination Poller (Checks if Primary Admin revoked session)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const sessionId = localStorage.getItem('shopnexus_session_id');
+    if (!sessionId) return;
+
+    const checkRevocation = async () => {
+      if (isLoggingOutRef.current) return;
+      try {
+        const res = await fetch(`/api/auth/login-requests?requestId=${sessionId}`).catch(() => null);
+        if (!res) return;
+
+        if (res.status === 404) {
+          // Session deleted or revoked
+          isLoggingOutRef.current = true;
+          setIsSessionRevoked(true);
+          localStorage.removeItem('shopnexus_session_id');
+          localStorage.removeItem('shopnexus_session_expires_at');
+          localStorage.removeItem('shopnexus_session_duration');
+          setTimeout(() => {
+            logout();
+            router.push('/login');
+          }, 3000);
+          return;
+        }
+
+        if (res.ok) {
+          const json = await res.json().catch(() => null);
+          if (json?.data) {
+            const status = json.data.status;
+            if (status === 'denied' || status === 'denied_and_blocked') {
+              isLoggingOutRef.current = true;
+              setIsSessionRevoked(true);
+              localStorage.removeItem('shopnexus_session_id');
+              localStorage.removeItem('shopnexus_session_expires_at');
+              localStorage.removeItem('shopnexus_session_duration');
+              setTimeout(() => {
+                logout();
+                router.push('/login');
+              }, 3000);
+            }
+          }
+        }
+      } catch {
+        // ignore network error
       }
     };
 
-    checkExpiration();
-    const interval = setInterval(checkExpiration, 1000);
+    const interval = setInterval(checkRevocation, 1500);
     return () => clearInterval(interval);
-  }, [isTemporarySession, logout, router]);
+  }, [logout, router]);
 
-  // 3. Primary Device: Poll for incoming pending login requests
+  // 4. Primary Device: Poll for incoming pending login requests (Runs across ALL pages)
   const checkPendingRequests = useCallback(async () => {
     if (!user || user.role !== 'admin' || isTemporarySession) return;
 
@@ -109,7 +169,7 @@ export function AdminSecurityListener() {
     return () => clearInterval(interval);
   }, [user, isTemporarySession, checkPendingRequests]);
 
-  // 4. Handle Decision Action by Primary Admin
+  // 5. Handle Decision Action by Primary Admin
   const handleDecision = async (
     requestId: string,
     decision: 'approved' | 'denied' | 'denied_and_blocked',
@@ -176,7 +236,7 @@ export function AdminSecurityListener() {
   return (
     <>
       {/* ⏱️ Floating Temporary Session Countdown Banner on Secondary Devices */}
-      {isTemporarySession && remainingSeconds !== null && !isSessionExpired && (
+      {isTemporarySession && remainingSeconds !== null && !isSessionExpired && !isSessionRevoked && (
         <div className="fixed top-2 left-1/2 -translate-x-1/2 z-[110] px-4 py-1.5 rounded-full bg-slate-900/90 dark:bg-slate-950/95 border border-orange-500/40 text-white shadow-xl backdrop-blur-md flex items-center gap-2 text-xs animate-in slide-in-from-top-4">
           <Clock className={`w-3.5 h-3.5 ${remainingSeconds < 60 ? 'text-rose-400 animate-ping' : 'text-orange-400 animate-pulse'}`} />
           <span className="font-semibold text-slate-300">
@@ -191,8 +251,31 @@ export function AdminSecurityListener() {
         </div>
       )}
 
+      {/* 🔴 Modal when Session is Terminated / Revoked Remotely by Primary Admin */}
+      {isSessionRevoked && (
+        <div className="fixed inset-0 z-[150] bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-4 animate-in fade-in">
+          <div className="max-w-md w-full p-6 sm:p-8 rounded-3xl bg-slate-900 border-2 border-rose-500 text-center space-y-4 shadow-2xl shadow-rose-500/30">
+            <div className="w-14 h-14 rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto">
+              <Ban className="w-8 h-8 animate-pulse" />
+            </div>
+            <h2 className="text-lg font-black text-white">
+              {isBn ? 'সেশন বন্ধ করা হয়েছে!' : 'Session Revoked by Admin!'}
+            </h2>
+            <p className="text-xs text-slate-300">
+              {isBn
+                ? 'প্রাইমারি অ্যাডমিন কর্তৃক আপনার এই ডিভাইসের এক্সেস তাৎক্ষণিকভাবে টার্মিনেট / বাতিল করা হয়েছে।'
+                : 'Your session on this device has been revoked remotely by the Primary Admin.'}
+            </p>
+            <div className="flex items-center justify-center gap-2 text-rose-400 text-xs font-bold pt-2">
+              <LogOut className="w-4 h-4 animate-spin" />
+              <span>{isBn ? 'লগইন পেজে রিডাইরেক্ট হচ্ছে...' : 'Redirecting to login...'}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 🔴 Modal when Temporary Session Expires */}
-      {isSessionExpired && (
+      {isSessionExpired && !isSessionRevoked && (
         <div className="fixed inset-0 z-[150] bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-4 animate-in fade-in">
           <div className="max-w-md w-full p-6 sm:p-8 rounded-3xl bg-slate-900 border-2 border-rose-500 text-center space-y-4 shadow-2xl shadow-rose-500/30">
             <div className="w-14 h-14 rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto">
@@ -203,7 +286,7 @@ export function AdminSecurityListener() {
             </h2>
             <p className="text-xs text-slate-300">
               {isBn
-                ? 'প্রাইমারি অ্যাডমিন কর্তৃক নির্ধারিত সময় পার হওয়ায় নিরাপত্তা স্বার্থে আপনাকে লগআউট করা হচ্ছে।'
+                ? 'প্রাইমারি অ্যাডমিন কর্তৃক নির্ধারিত সময় পার হওয়ায় নিরাপত্তার স্বার্থে আপনাকে লগআউট করা হচ্ছে।'
                 : 'Your authorized session duration has elapsed. Logging out for platform security.'}
             </p>
             <div className="flex items-center justify-center gap-2 text-rose-400 text-xs font-bold pt-2">

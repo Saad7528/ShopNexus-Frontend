@@ -113,19 +113,26 @@ export async function POST(req: Request) {
     // Action 1: Create a new login authorization challenge from remote/secondary device
     if (action === 'create_request') {
       const clientInfo = extractClientInfo(req, body);
+      const reqEmail = (email || 'admin@shopnexus.io').toLowerCase();
+      const reqIp = body.ipAddress || clientInfo.ip;
+
+      // Remove or supersede any existing pending requests for this device/IP
+      pendingLoginRequests = pendingLoginRequests.filter(
+        (r) => !(r.email === reqEmail && r.ipAddress === reqIp && r.status === 'pending')
+      );
+
       const newRequest: ILoginAuthRequest = {
         id: `auth-req-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
-        email: (email || 'admin@shopnexus.io').toLowerCase(),
+        email: reqEmail,
         device: body.device || clientInfo.device,
         os: body.os || clientInfo.os,
         browser: body.browser || clientInfo.browser,
-        ipAddress: body.ipAddress || clientInfo.ip,
+        ipAddress: reqIp,
         location: body.location || clientInfo.location,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         status: 'pending',
       };
 
-      // Limit in-memory history to last 50 requests
       pendingLoginRequests.unshift(newRequest);
       if (pendingLoginRequests.length > 50) pendingLoginRequests.pop();
 
@@ -160,6 +167,13 @@ export async function POST(req: Request) {
           reqItem.approvedAt = new Date().toISOString();
           reqItem.expiresAt = minutes === -1 ? null : Date.now() + minutes * 60 * 1000;
           reqItem.token = `nexus-2fa-token-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+          // Mark any other older approved sessions from the SAME ip + email as superseded
+          pendingLoginRequests.forEach((r) => {
+            if (r.id !== reqItem.id && r.email === reqItem.email && r.ipAddress === reqItem.ipAddress && r.status === 'approved') {
+              r.status = 'denied';
+            }
+          });
         }
 
         return NextResponse.json({
@@ -181,17 +195,26 @@ export async function POST(req: Request) {
     }
 
     // Action 3: Invalidate or Revoke an active approved session
-    if (action === 'revoke' && requestId) {
-      const targetIndex = pendingLoginRequests.findIndex((r) => r.id === requestId);
-      if (targetIndex !== -1) {
-        pendingLoginRequests[targetIndex].status = 'denied';
-        pendingLoginRequests[targetIndex].expiresAt = Date.now();
-        return NextResponse.json({
-          success: true,
-          message: 'Session revoked successfully.',
-          data: pendingLoginRequests[targetIndex],
+    if (action === 'revoke' && (requestId || email)) {
+      if (requestId) {
+        const targetIndex = pendingLoginRequests.findIndex((r) => r.id === requestId);
+        if (targetIndex !== -1) {
+          pendingLoginRequests[targetIndex].status = 'denied';
+          pendingLoginRequests[targetIndex].expiresAt = Date.now();
+        }
+      }
+      if (body.action === 'revoke_all' || action === 'terminate_all') {
+        pendingLoginRequests.forEach((r) => {
+          if (!email || r.email.toLowerCase() === email.toLowerCase()) {
+            r.status = 'denied';
+            r.expiresAt = Date.now();
+          }
         });
       }
+      return NextResponse.json({
+        success: true,
+        message: 'Session revoked successfully.',
+      });
     }
 
     return NextResponse.json(

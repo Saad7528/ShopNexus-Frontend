@@ -150,7 +150,7 @@ const INITIAL_STAFF: IStaffMember[] = [
   {
     id: 'st-1',
     name: 'S.M. Amirul Islam Saad',
-    email: 'saad@shopnexus.io',
+    email: 'saad0174742@gmail.com',
     phone: '+880 1711-000111',
     role: 'Super Admin',
     twoFactorEnabled: true,

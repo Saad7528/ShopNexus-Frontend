@@ -642,7 +642,7 @@ export default function AdminDashboardPage() {
                     {isBn ? 'সুপার অ্যাডমিন' : 'Super Admin'}
                   </span>
                 </div>
-                <p className="text-xs text-orange-600 dark:text-orange-400 font-mono mt-0.5">admin@shopnexus.io • ID: ADM-001</p>
+                <p className="text-xs text-orange-600 dark:text-orange-400 font-mono mt-0.5">saad0174742@gmail.com • ID: ADM-001</p>
                 <div className="flex items-center gap-3 mt-2 text-[11px] text-slate-500 dark:text-slate-400">
                   <span>{isBn ? 'ভূমিকা: লিড ফুল-স্ট্যাক আর্কিটেক্ট' : 'Role: Lead Full-Stack Architect'}</span>
                   <span>•</span>

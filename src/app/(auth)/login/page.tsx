@@ -17,11 +17,15 @@ import {
   Radio,
   XCircle,
   Ban,
+  KeyRound,
+  QrCode,
 } from 'lucide-react';
 import { BrandLogo } from '@/components/common/BrandLogo';
 import { AuthBackground } from '@/components/auth/AuthBackground';
 import { User } from '@/types/user';
 import { ILoginAuthRequest } from '@/app/api/auth/login-requests/route';
+import { GoogleAuthenticatorModal } from '@/components/auth/GoogleAuthenticatorModal';
+import { MASTER_ADMIN_EMAIL } from '@/lib/totp';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -37,6 +41,7 @@ export default function LoginPage() {
   // 🛡️ Live 2FA Secondary Device Approval State
   const [pendingChallenge, setPendingChallenge] = useState<ILoginAuthRequest | null>(null);
   const [challengeStatus, setChallengeStatus] = useState<'waiting' | 'approved' | 'denied' | 'denied_and_blocked'>('waiting');
+  const [showTotpModal, setShowTotpModal] = useState(false);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
@@ -66,8 +71,9 @@ export default function LoginPage() {
             setChallengeStatus('approved');
             if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
 
-            // Store approved session validity in localStorage
+            // Store approved session validity and ID in localStorage
             if (typeof window !== 'undefined') {
+              localStorage.setItem('shopnexus_session_id', reqData.id);
               localStorage.setItem(
                 'shopnexus_session_expires_at',
                 reqData.expiresAt ? String(reqData.expiresAt) : 'until_revoked'
@@ -78,7 +84,7 @@ export default function LoginPage() {
             // Perform login and redirect
             const approvedAdmin: User = {
               _id: 'usr-admin-01',
-              name: 'Nexus Lead Admin',
+              name: 'S.M. Amirul Islam Saad',
               email: reqData.email,
               role: 'admin',
               nexusCoins: 5000,
@@ -116,17 +122,29 @@ export default function LoginPage() {
     setError(null);
   };
 
-  const executeDirectAdminLogin = (adminEmail: string) => {
+  const executeDirectAdminLogin = (adminEmail: string, token: string = 'demo-admin-jwt-token') => {
     const fallbackAdmin: User = {
       _id: 'usr-admin-01',
-      name: 'Nexus Lead Admin',
+      name: 'S.M. Amirul Islam Saad',
       email: adminEmail,
       role: 'admin',
       nexusCoins: 5000,
       isVipMember: true,
     };
-    login(fallbackAdmin, 'demo-admin-jwt-token');
+    login(fallbackAdmin, token);
     router.push('/admin/dashboard');
+  };
+
+  // Google Authenticator TOTP Master Verification Success Handler
+  const handleTotpSuccess = (token: string) => {
+    setShowTotpModal(false);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('shopnexus_primary_master', 'authorized_master_root');
+      localStorage.removeItem('shopnexus_session_id');
+      localStorage.removeItem('shopnexus_session_expires_at');
+      localStorage.removeItem('shopnexus_session_duration');
+    }
+    executeDirectAdminLogin(email || MASTER_ADMIN_EMAIL, token);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -134,14 +152,16 @@ export default function LoginPage() {
     setError(null);
     setIsLoading(true);
 
+    const targetEmail = email.toLowerCase().trim();
     const isAdminAccount =
-      email.toLowerCase().includes('admin') ||
-      email.toLowerCase().includes('saad') ||
-      email.toLowerCase() === 'admin@shopnexus.io';
+      targetEmail.includes('admin') ||
+      targetEmail.includes('saad') ||
+      targetEmail === MASTER_ADMIN_EMAIL.toLowerCase() ||
+      targetEmail === 'admin@shopnexus.io';
 
-    // 🔒 Check if current device is the Primary Trusted Device or has an active approved session
+    // 🔒 Check if current device is the Primary Master Root Device or has an active approved session
     const isPrimaryDevice =
-      typeof window !== 'undefined' && localStorage.getItem('shopnexus_primary_device') === 'true';
+      typeof window !== 'undefined' && localStorage.getItem('shopnexus_primary_master') === 'authorized_master_root';
 
     const activeSessionExpiresAt =
       typeof window !== 'undefined' ? localStorage.getItem('shopnexus_session_expires_at') : null;
@@ -150,7 +170,7 @@ export default function LoginPage() {
       activeSessionExpiresAt === 'until_revoked' ||
       (activeSessionExpiresAt && Number(activeSessionExpiresAt) > Date.now());
 
-    // If attempting Admin login from a Secondary device/IP without an active approval window:
+    // If attempting Admin login from a Secondary device/IP/Incognito without an active approval window:
     if (isAdminAccount && !isPrimaryDevice && !isSessionStillValid) {
       try {
         const challengeRes = await fetch('/api/auth/login-requests', {
@@ -158,7 +178,7 @@ export default function LoginPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             action: 'create_request',
-            email,
+            email: targetEmail,
           }),
         });
 
@@ -178,7 +198,7 @@ export default function LoginPage() {
       const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: targetEmail, password }),
       }).catch(() => null);
 
       let data: { message?: string; data?: { user: User; token: string } } = {};
@@ -198,14 +218,14 @@ export default function LoginPage() {
 
       // If backend is local/demo or credentials matched admin
       if (isAdminAccount) {
-        executeDirectAdminLogin(email);
+        executeDirectAdminLogin(targetEmail);
         return;
       }
 
       throw new Error(data.message || 'Invalid email or password');
     } catch (err: unknown) {
       if (isAdminAccount) {
-        executeDirectAdminLogin(email);
+        executeDirectAdminLogin(targetEmail);
         return;
       }
       const errMsg = err instanceof Error ? err.message : 'An error occurred. Please try again.';
@@ -219,11 +239,12 @@ export default function LoginPage() {
   const handleAdminQuickLogin = async () => {
     setIsLoading(true);
     setError(null);
-    setEmail('admin@shopnexus.io');
+    const targetEmail = MASTER_ADMIN_EMAIL;
+    setEmail(targetEmail);
     setPassword('Admin@ShopNexus2026!');
 
     const isPrimaryDevice =
-      typeof window !== 'undefined' && localStorage.getItem('shopnexus_primary_device') === 'true';
+      typeof window !== 'undefined' && localStorage.getItem('shopnexus_primary_master') === 'authorized_master_root';
 
     const activeSessionExpiresAt =
       typeof window !== 'undefined' ? localStorage.getItem('shopnexus_session_expires_at') : null;
@@ -239,7 +260,7 @@ export default function LoginPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             action: 'create_request',
-            email: 'admin@shopnexus.io',
+            email: targetEmail,
           }),
         });
 
@@ -255,7 +276,7 @@ export default function LoginPage() {
       }
     }
 
-    executeDirectAdminLogin('admin@shopnexus.io');
+    executeDirectAdminLogin(targetEmail);
     setIsLoading(false);
   };
 
@@ -271,6 +292,14 @@ export default function LoginPage() {
   return (
     <AuthBackground>
       <BrandLogo size="lg" variant="white" className="mb-6 drop-shadow-2xl" />
+
+      {/* Google Authenticator Master TOTP Verification Modal */}
+      <GoogleAuthenticatorModal
+        email={email || MASTER_ADMIN_EMAIL}
+        isOpen={showTotpModal}
+        onSuccess={handleTotpSuccess}
+        onCancel={() => setShowTotpModal(false)}
+      />
 
       {/* Glassmorphic Container */}
       <div className="w-full max-w-md bg-slate-900/80 backdrop-blur-md border border-white/10 rounded-3xl p-7 sm:p-9 shadow-[0_20px_50px_rgba(0,0,0,0.6)] relative overflow-hidden space-y-5">
@@ -345,13 +374,25 @@ export default function LoginPage() {
               </div>
             )}
 
-            <button
-              type="button"
-              onClick={handleCancelChallenge}
-              className="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-xs transition-colors cursor-pointer"
-            >
-              অনুরোধ বাতিল করে ফিরে যান
-            </button>
+            {/* 🔑 Master Super Admin Emergency Override Option with Google Authenticator */}
+            <div className="pt-2 border-t border-white/10 space-y-2">
+              <button
+                type="button"
+                onClick={() => setShowTotpModal(true)}
+                className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-orange-600/30 to-amber-600/30 hover:from-orange-600/50 hover:to-amber-600/50 border border-orange-500/50 text-orange-300 hover:text-white font-bold text-xs transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm"
+              >
+                <QrCode className="w-4 h-4 text-orange-400" />
+                <span>আপনি কি মূল অ্যাডমিন? Google Authenticator দিয়ে আনলক করুন</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleCancelChallenge}
+                className="w-full py-2 px-4 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white font-bold text-xs transition-colors cursor-pointer"
+              >
+                অনুরোধ বাতিল করে ফিরে যান
+              </button>
+            </div>
           </div>
         ) : (
           <>
@@ -423,7 +464,7 @@ export default function LoginPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
+                    placeholder="saad0174742@gmail.com"
                     className="w-full pl-10 pr-4 py-2.5 bg-slate-950/50 border border-white/10 rounded-xl text-white placeholder-slate-500 text-xs focus:outline-none focus:border-orange-500/70 focus:ring-2 focus:ring-orange-500/20 transition-all duration-200"
                   />
                 </div>
@@ -480,7 +521,7 @@ export default function LoginPage() {
               </button>
 
               {/* ⚡ 1-Click Quick Admin Demo Access */}
-              <div className="pt-3 border-t border-white/10">
+              <div className="pt-3 border-t border-white/10 space-y-2">
                 <button
                   type="button"
                   onClick={handleAdminQuickLogin}
@@ -492,13 +533,23 @@ export default function LoginPage() {
                       <ShieldCheck className="w-4 h-4" />
                     </div>
                     <div className="text-left">
-                      <span className="block font-bold text-amber-300">1-Click Admin Access</span>
-                      <span className="block text-[10px] text-slate-400 font-normal">admin@shopnexus.io • Admin@ShopNexus2026!</span>
+                      <span className="block font-bold text-amber-300">1-Click Super Admin</span>
+                      <span className="block text-[10px] text-slate-400 font-normal truncate max-w-[200px]">saad0174742@gmail.com</span>
                     </div>
                   </div>
                   <span className="flex items-center gap-1 text-[11px] font-bold text-amber-400 group-hover:translate-x-0.5 transition-transform shrink-0">
                     Instant Login <ArrowRight className="w-3.5 h-3.5" />
                   </span>
+                </button>
+
+                {/* Direct Google Authenticator Master Unlock button */}
+                <button
+                  type="button"
+                  onClick={() => setShowTotpModal(true)}
+                  className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-slate-800/80 hover:bg-slate-700/90 border border-slate-700 text-slate-300 hover:text-white text-xs font-bold transition-all cursor-pointer"
+                >
+                  <KeyRound className="w-3.5 h-3.5 text-orange-400" />
+                  <span>Google Authenticator (TOTP) দিয়ে মাস্টার আনলক</span>
                 </button>
               </div>
             </form>
