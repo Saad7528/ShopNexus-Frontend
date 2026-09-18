@@ -13,13 +13,22 @@ import {
   Radio,
   AlertTriangle,
   Loader2,
+  Infinity as InfinityIcon,
+  Sliders,
 } from 'lucide-react';
 import { useLanguageStore } from '@/store/useLanguageStore';
 import { ILoginAuthRequest } from '@/app/api/auth/login-requests/route';
 
+export type SessionDurationType = '20m' | '30m' | '1h' | 'until_revoked' | 'custom';
+
 interface LoginAuthorizationPromptProps {
   request: ILoginAuthRequest;
-  onDecision: (requestId: string, decision: 'approved' | 'denied' | 'denied_and_blocked') => Promise<void> | void;
+  onDecision: (
+    requestId: string,
+    decision: 'approved' | 'denied' | 'denied_and_blocked',
+    duration?: SessionDurationType,
+    customMinutes?: number
+  ) => Promise<void> | void;
   onDismiss: () => void;
 }
 
@@ -31,11 +40,13 @@ export function LoginAuthorizationPrompt({
   const { language } = useLanguageStore();
   const isBn = language === 'bn';
   const [isProcessing, setIsProcessing] = useState<string | null>(null);
+  const [selectedDuration, setSelectedDuration] = useState<SessionDurationType>('1h');
+  const [customMinutes, setCustomMinutes] = useState<number>(45);
 
   const handleAction = async (decision: 'approved' | 'denied' | 'denied_and_blocked') => {
     setIsProcessing(decision);
     try {
-      await onDecision(request.id, decision);
+      await onDecision(request.id, decision, selectedDuration, customMinutes);
     } finally {
       setIsProcessing(null);
     }
@@ -43,7 +54,8 @@ export function LoginAuthorizationPrompt({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-lg animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 border-2 border-orange-500/50 dark:border-orange-500/60 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-orange-500/20 space-y-6 animate-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 border-2 border-orange-500/50 dark:border-orange-500/60 rounded-3xl p-6 sm:p-7 shadow-2xl shadow-orange-500/20 space-y-5 animate-in zoom-in-95 duration-200">
+        
         {/* Pulsing Security Header */}
         <div className="flex items-start justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
           <div className="flex items-center gap-3">
@@ -60,10 +72,10 @@ export function LoginAuthorizationPrompt({
             <div>
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 text-[10px] font-black uppercase tracking-wider mb-1">
                 <Radio className="w-3 h-3 animate-ping" />
-                {isBn ? 'রিয়েল-টাইম লগইন অথোরাইজেশন রিকোয়েস্ট' : 'Live Login Authorization Prompt'}
+                {isBn ? 'স্বয়ংক্রিয় রিয়েল-টাইম ২এফএ অনুমোদন' : 'Live 2FA Authorization Request'}
               </div>
               <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white leading-tight">
-                {isBn ? 'নতুন ডিভাইস থেকে লগইন চেষ্টা!' : 'New Login Attempt Detected!'}
+                {isBn ? 'অন্য ডিভাইস বা আইপি থেকে লগইন চেষ্টা!' : 'Login Attempt from Secondary Device!'}
               </h3>
             </div>
           </div>
@@ -78,24 +90,24 @@ export function LoginAuthorizationPrompt({
         </div>
 
         {/* Warning Callout */}
-        <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs flex items-center gap-2.5 font-medium">
+        <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs flex items-center gap-2.5 font-medium">
           <AlertTriangle className="w-4 h-4 shrink-0 text-amber-500" />
           <span>
             {isBn
-              ? `আপনার অ্যাকাউন্ট "${request.email}"-এ অন্য একটি কম্পিউটার বা শহর থেকে লগইন করার চেষ্টা করা হচ্ছে। এটি কি আপনি?`
-              : `Someone is attempting to log into "${request.email}" from a new location. Is this you?`}
+              ? `আপনার অ্যাকাউন্ট "${request.email}"-এ অন্য একটি ফোন/কম্পিউটার থেকে অ্যাক্সেস চাওয়া হচ্ছে।`
+              : `Access request for "${request.email}" detected from another device/IP.`}
           </span>
         </div>
 
         {/* Device & Location Details Card */}
-        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-3 text-xs">
+        <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2 text-xs">
           <div className="flex items-center justify-between">
             <span className="text-slate-400 flex items-center gap-1.5">
               <Laptop className="w-3.5 h-3.5 text-orange-500" />
-              {isBn ? 'ডিভাইস ও অপারেটিং সিস্টেম:' : 'Device & OS:'}
+              {isBn ? 'ডিভাইস ও ব্রাউজার:' : 'Device & Browser:'}
             </span>
             <span className="font-bold text-slate-900 dark:text-white">
-              {request.device} ({request.os})
+              {request.device} • <span className="text-slate-400 font-normal">{request.browser}</span>
             </span>
           </div>
 
@@ -120,9 +132,80 @@ export function LoginAuthorizationPrompt({
           </div>
         </div>
 
+        {/* ⏱️ Session Validity Duration Selector */}
+        <div className="space-y-2 bg-slate-100/70 dark:bg-slate-800/40 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700/60">
+          <div className="flex items-center justify-between text-xs font-bold text-slate-800 dark:text-slate-200">
+            <span className="flex items-center gap-1.5 text-orange-600 dark:text-orange-400">
+              <Clock className="w-3.5 h-3.5" />
+              {isBn ? 'লগইন অনুমোদনের সময়সীমা (Session Validity):' : 'Allowed Session Duration:'}
+            </span>
+            <span className="text-[10px] text-slate-500">
+              {isBn ? 'মেয়াদ শেষে পুনরায় অনুমোদন লাগবে' : 'Re-auth required on expiry'}
+            </span>
+          </div>
+
+          {/* Duration Pills */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 pt-1">
+            {[
+              { id: '20m', label: isBn ? '২০ মিনিট' : '20 Mins', icon: Clock },
+              { id: '30m', label: isBn ? '৩০ মিনিট' : '30 Mins', icon: Clock },
+              { id: '1h', label: isBn ? '১ ঘণ্টা' : '1 Hour', icon: Clock },
+              { id: 'until_revoked', label: isBn ? 'ব্লক না করা পর্যন্ত' : 'Until I Block', icon: InfinityIcon },
+            ].map((dur) => {
+              const DurIcon = dur.icon;
+              const isSelected = selectedDuration === dur.id;
+              return (
+                <button
+                  key={dur.id}
+                  type="button"
+                  onClick={() => setSelectedDuration(dur.id as SessionDurationType)}
+                  className={`py-2 px-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition-all cursor-pointer border ${
+                    isSelected
+                      ? 'bg-orange-600 text-white border-orange-600 shadow-md shadow-orange-500/20 scale-[1.02]'
+                      : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-orange-500/40'
+                  }`}
+                >
+                  <DurIcon className="w-3 h-3 shrink-0" />
+                  <span className="truncate">{dur.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Custom Duration Toggle & Input */}
+          <div className="pt-1 flex items-center justify-between gap-2">
+            <button
+              type="button"
+              onClick={() => setSelectedDuration('custom')}
+              className={`text-xs font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer border ${
+                selectedDuration === 'custom'
+                  ? 'bg-orange-600 text-white border-orange-600'
+                  : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+              }`}
+            >
+              <Sliders className="w-3 h-3" />
+              <span>{isBn ? 'কাস্টম সময় (মিনিট)' : 'Custom Minutes'}</span>
+            </button>
+
+            {selectedDuration === 'custom' && (
+              <div className="flex items-center gap-1.5 animate-in fade-in">
+                <input
+                  type="number"
+                  min="5"
+                  max="1440"
+                  value={customMinutes}
+                  onChange={(e) => setCustomMinutes(Math.max(5, parseInt(e.target.value) || 5))}
+                  className="w-20 px-2 py-1 bg-white dark:bg-slate-900 border border-orange-500 text-slate-900 dark:text-white rounded-lg text-xs font-bold text-center focus:outline-none focus:ring-1 focus:ring-orange-500"
+                />
+                <span className="text-[11px] font-semibold text-slate-500">{isBn ? 'মিনিট' : 'mins'}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* 3 Decision Actions */}
-        <div className="space-y-2.5 pt-1">
-          {/* Action 1: Approve */}
+        <div className="space-y-2 pt-1">
+          {/* Action 1: Approve with Duration */}
           <button
             type="button"
             disabled={!!isProcessing}
@@ -136,12 +219,28 @@ export function LoginAuthorizationPrompt({
             )}
             <span>
               {isBn
-                ? '✅ হ্যাঁ, এটি আমি — লগইন অনুমোদন করুন (Approve)'
-                : '✅ Yes, It’s Me — Approve Login'}
+                ? `✅ অনুমোদন করুন (${
+                    selectedDuration === 'until_revoked'
+                      ? 'ব্লক না করা পর্যন্ত'
+                      : selectedDuration === 'custom'
+                      ? `${customMinutes} মিনিট`
+                      : selectedDuration === '20m'
+                      ? '২০ মিনিট'
+                      : selectedDuration === '30m'
+                      ? '৩০ মিনিট'
+                      : '১ ঘণ্টা'
+                  })`
+                : `✅ Approve Access (${
+                    selectedDuration === 'until_revoked'
+                      ? 'Until I Block'
+                      : selectedDuration === 'custom'
+                      ? `${customMinutes} mins`
+                      : selectedDuration
+                  })`}
             </span>
           </button>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {/* Action 2: Deny */}
             <button
               type="button"
