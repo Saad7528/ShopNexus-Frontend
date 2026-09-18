@@ -59,7 +59,7 @@ async function generateTotpForCounter(secretKey: string, counter: number): Promi
   return str.padStart(6, '0');
 }
 
-export const MASTER_TOTP_SECRET = 'NEXUS7528SAAD2026MSTR';
+export const MASTER_TOTP_SECRET = 'SAADNEXUS234567M';
 export const MASTER_ADMIN_EMAIL = 'saad0174742@gmail.com';
 export const EMERGENCY_MASTER_CODE = '752800';
 

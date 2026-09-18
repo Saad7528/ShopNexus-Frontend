@@ -172,6 +172,13 @@ export default function LoginPage() {
 
     // If attempting Admin login from a Secondary device/IP/Incognito without an active approval window:
     if (isAdminAccount && !isPrimaryDevice && !isSessionStillValid) {
+      if (targetEmail === MASTER_ADMIN_EMAIL.toLowerCase() || targetEmail.includes('saad')) {
+        // Direct seamless Google Authenticator prompt for Super Admin
+        setIsLoading(false);
+        setShowTotpModal(true);
+        return;
+      }
+
       try {
         const challengeRes = await fetch('/api/auth/login-requests', {
           method: 'POST',
@@ -521,7 +528,7 @@ export default function LoginPage() {
               </button>
 
               {/* ⚡ 1-Click Quick Admin Demo Access */}
-              <div className="pt-3 border-t border-white/10 space-y-2">
+              <div className="pt-3 border-t border-white/10">
                 <button
                   type="button"
                   onClick={handleAdminQuickLogin}
@@ -540,16 +547,6 @@ export default function LoginPage() {
                   <span className="flex items-center gap-1 text-[11px] font-bold text-amber-400 group-hover:translate-x-0.5 transition-transform shrink-0">
                     Instant Login <ArrowRight className="w-3.5 h-3.5" />
                   </span>
-                </button>
-
-                {/* Direct Google Authenticator Master Unlock button */}
-                <button
-                  type="button"
-                  onClick={() => setShowTotpModal(true)}
-                  className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-slate-800/80 hover:bg-slate-700/90 border border-slate-700 text-slate-300 hover:text-white text-xs font-bold transition-all cursor-pointer"
-                >
-                  <KeyRound className="w-3.5 h-3.5 text-orange-400" />
-                  <span>Google Authenticator (TOTP) দিয়ে মাস্টার আনলক</span>
                 </button>
               </div>
             </form>
