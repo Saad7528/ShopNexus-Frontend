@@ -19,6 +19,7 @@ import {
   Ban,
   KeyRound,
   QrCode,
+  Clock,
 } from 'lucide-react';
 import { BrandLogo } from '@/components/common/BrandLogo';
 import { AuthBackground } from '@/components/auth/AuthBackground';
@@ -40,7 +41,8 @@ export default function LoginPage() {
 
   // 🛡️ Live 2FA Secondary Device Approval State
   const [pendingChallenge, setPendingChallenge] = useState<ILoginAuthRequest | null>(null);
-  const [challengeStatus, setChallengeStatus] = useState<'waiting' | 'approved' | 'denied' | 'denied_and_blocked'>('waiting');
+  const [challengeStatus, setChallengeStatus] = useState<'waiting' | 'approved' | 'denied' | 'denied_and_blocked' | 'timeout'>('waiting');
+  const [challengeCountdown, setChallengeCountdown] = useState<number>(60);
   const [showTotpModal, setShowTotpModal] = useState(false);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -54,6 +56,26 @@ export default function LoginPage() {
     };
   }, []);
 
+  // 60-Second Live Countdown for Login Challenge
+  useEffect(() => {
+    if (!pendingChallenge || challengeStatus !== 'waiting') return;
+    setChallengeCountdown(60);
+
+    const timer = setInterval(() => {
+      setChallengeCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+          setChallengeStatus('timeout');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [pendingChallenge, challengeStatus]);
+
   // Poll for Primary Admin Approval when in pendingChallenge mode
   useEffect(() => {
     if (!pendingChallenge || challengeStatus !== 'waiting') return;
@@ -61,7 +83,14 @@ export default function LoginPage() {
     pollIntervalRef.current = setInterval(async () => {
       try {
         const res = await fetch(`/api/auth/login-requests?requestId=${pendingChallenge.id}`);
-        if (!res.ok) return;
+        if (!res.ok) {
+          if (res.status === 404) {
+            // Expired or purged on server
+            setChallengeStatus('timeout');
+            if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+          }
+          return;
+        }
 
         const json = await res.json();
         if (json.success && json.data) {
@@ -119,6 +148,7 @@ export default function LoginPage() {
     if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
     setPendingChallenge(null);
     setChallengeStatus('waiting');
+    setChallengeCountdown(60);
     setError(null);
   };
 
@@ -386,9 +416,27 @@ export default function LoginPage() {
 
             {/* Status Feedback */}
             {challengeStatus === 'waiting' && (
-              <div className="flex items-center justify-center gap-2 text-xs text-amber-300 font-semibold py-2">
-                <Loader2 className="w-4 h-4 animate-spin text-orange-400" />
-                <span>লাইভ স্ট্যাটাস চেক করা হচ্ছে...</span>
+              <div className="flex flex-col items-center justify-center gap-1.5 py-2">
+                <div className="flex items-center gap-2 text-xs text-amber-300 font-semibold">
+                  <Loader2 className="w-4 h-4 animate-spin text-orange-400" />
+                  <span>লাইভ স্ট্যাটাস চেক করা হচ্ছে...</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-[11px] font-mono text-orange-400 font-bold bg-orange-500/10 px-3 py-1 rounded-full border border-orange-500/20">
+                  <Clock className="w-3 h-3 animate-pulse" />
+                  <span>সময় বাকি: {challengeCountdown} সেকেন্ড</span>
+                </div>
+              </div>
+            )}
+
+            {challengeStatus === 'timeout' && (
+              <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs text-center space-y-1.5 animate-in fade-in">
+                <div className="flex items-center justify-center gap-1.5 font-bold text-amber-400">
+                  <Clock className="w-4 h-4 text-amber-400" />
+                  <span>অনুরোধের সময়সীমা (১ মিনিট) সমাপ্ত</span>
+                </div>
+                <p className="text-[11px] text-slate-400">
+                  নির্ধারিত ৬০ সেকেন্ডের মধ্যে মাস্টার অনুমোদন না পাওয়ায় অনুরোধটি স্বয়ংক্রিয়ভাবে বাতিল করা হয়েছে।
+                </p>
               </div>
             )}
 

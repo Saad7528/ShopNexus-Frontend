@@ -16,6 +16,7 @@ export function AdminSecurityListener() {
 
   const [activeRequest, setActiveRequest] = useState<ILoginAuthRequest | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const dismissedRequestsRef = useRef<Set<string>>(new Set());
 
   // Secondary Session Expiration Timer & State
   const [isTemporarySession, setIsTemporarySession] = useState(false);
@@ -163,13 +164,26 @@ export function AdminSecurityListener() {
 
       const result = await res.json();
       if (result.success && Array.isArray(result.data) && result.data.length > 0) {
-        const latestPending = result.data[0];
-        setActiveRequest((prev) => {
-          if (!prev || prev.id !== latestPending.id) {
-            return latestPending;
-          }
-          return prev;
-        });
+        const now = Date.now();
+        // Strict filter: must be pending, not dismissed by admin, and younger than 60 seconds (1 minute TTL)
+        const validPending = result.data.filter(
+          (r: ILoginAuthRequest) =>
+            r.status === 'pending' &&
+            !dismissedRequestsRef.current.has(r.id) &&
+            now - (r.createdAtTimestamp || 0) <= 60000
+        );
+
+        if (validPending.length > 0) {
+          const latestPending = validPending[0];
+          setActiveRequest((prev) => {
+            if (!prev || prev.id !== latestPending.id) {
+              return latestPending;
+            }
+            return prev;
+          });
+        } else {
+          setActiveRequest(null);
+        }
       } else {
         setActiveRequest(null);
       }
@@ -193,6 +207,9 @@ export function AdminSecurityListener() {
     duration?: SessionDurationType,
     customMinutes?: number
   ) => {
+    dismissedRequestsRef.current.add(requestId);
+    setActiveRequest(null);
+
     try {
       const res = await fetch('/api/auth/login-requests', {
         method: 'POST',
@@ -207,7 +224,6 @@ export function AdminSecurityListener() {
       });
 
       await res.json().catch(() => null);
-      setActiveRequest(null);
 
       if (decision === 'approved') {
         const durationText =
@@ -329,7 +345,10 @@ export function AdminSecurityListener() {
         <LoginAuthorizationPrompt
           request={activeRequest}
           onDecision={handleDecision}
-          onDismiss={() => setActiveRequest(null)}
+          onDismiss={() => {
+            if (activeRequest) dismissedRequestsRef.current.add(activeRequest.id);
+            setActiveRequest(null);
+          }}
         />
       )}
     </>

@@ -541,6 +541,7 @@ export default function AdminStaffRolesPage() {
       ipAddress: '45.112.58.10',
       location: 'Chittagong, Bangladesh',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      createdAtTimestamp: Date.now(),
       status: 'pending',
     };
 

@@ -12,7 +12,8 @@ export interface ILoginAuthRequest {
   ipAddress: string;
   location: string;
   timestamp: string;
-  status: 'pending' | 'approved' | 'denied' | 'denied_and_blocked';
+  createdAtTimestamp: number;
+  status: 'pending' | 'approved' | 'denied' | 'denied_and_blocked' | 'expired';
   duration?: '20m' | '30m' | '1h' | 'until_revoked' | 'custom';
   durationMinutes?: number;
   expiresAt?: number | null; // timestamp in ms or null for until_revoked
@@ -25,6 +26,19 @@ let pendingLoginRequests: ILoginAuthRequest[] = [];
 let isMasterOnline: boolean = false;
 let masterLastHeartbeat: number = 0;
 let masterActiveEmail: string = 'saad0174742@gmail.com';
+
+// Purge any pending requests older than 60 seconds (1 minute TTL)
+function purgeExpiredRequests() {
+  const now = Date.now();
+  pendingLoginRequests = pendingLoginRequests.filter((r) => {
+    if (r.status === 'approved') {
+      return r.expiresAt === null || (r.expiresAt && r.expiresAt > now);
+    }
+    // Strict 60-second limit for pending login challenges
+    const ageMs = now - (r.createdAtTimestamp || 0);
+    return ageMs <= 60000 && r.status === 'pending';
+  });
+}
 
 // Helper to extract IP and location from request
 function extractClientInfo(req: Request, body: Partial<ILoginAuthRequest>) {
@@ -76,6 +90,8 @@ function extractClientInfo(req: Request, body: Partial<ILoginAuthRequest>) {
 
 export async function GET(req: Request) {
   try {
+    purgeExpiredRequests();
+
     const { searchParams } = new URL(req.url);
     const requestId = searchParams.get('requestId');
     const email = searchParams.get('email');
@@ -126,6 +142,8 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    purgeExpiredRequests();
+
     const body = await req.json();
     const { action, requestId, email, password, duration, customMinutes } = body;
 
@@ -233,6 +251,7 @@ export async function POST(req: Request) {
         ipAddress: reqIp,
         location: body.location || clientInfo.location,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        createdAtTimestamp: Date.now(),
         status: 'pending',
       };
 
