@@ -225,19 +225,11 @@ function InventoryContent() {
     <RoleGuard allowedRoles={['admin']}>
       <div className="space-y-6 sm:space-y-8 max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
           <div>
-            <div className="flex items-center gap-3">
-              <Link
-                href="/admin/dashboard"
-                className="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors shadow-sm"
-              >
-                <ArrowLeft className="w-4 h-4" />
-              </Link>
-              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-                {isBn ? 'পণ্য ও ইনভেন্টরি ম্যানেজার' : 'Products & Inventory Manager'}
-              </h1>
-            </div>
+            <h1 className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+              {isBn ? 'পণ্য ও ইনভেন্টরি ম্যানেজার' : 'Products & Inventory Manager'}
+            </h1>
             <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm mt-1">
               {isBn
                 ? 'বাংলাদেশি টাকায় (৳ BDT) পণ্যের ক্যাটালগ, লাভ মার্জিন, ভ্যারিয়েন্ট ও বারকোড যোগ ও পরিবর্তন করুন।'
@@ -245,30 +237,32 @@ function InventoryContent() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-3 shrink-0">
             {lowStockCount > 0 && (
               <button
                 type="button"
                 onClick={() => setActiveFilter((prev) => (prev === 'low-stock' ? 'all' : 'low-stock'))}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                className={`flex items-center justify-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl border text-[11px] sm:text-xs font-bold transition-all cursor-pointer truncate ${
                   activeFilter === 'low-stock'
                     ? 'bg-rose-500 text-white border-rose-500 shadow-md shadow-rose-500/20'
                     : 'bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20'
                 }`}
                 title={isBn ? 'কম স্টক ফিল্টার টগল করুন' : 'Toggle Low Stock Filter'}
               >
-                <AlertTriangle className="w-3.5 h-3.5" />
-                {lowStockCount} {isBn ? 'কম স্টক সতর্কতা' : 'Low Stock Alerts'}
+                <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">{lowStockCount} {isBn ? 'কম স্টক' : 'Low Stock'}</span>
               </button>
             )}
 
             <button
               type="button"
               onClick={() => router.push('/admin/inventory/new')}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/25 transition-all cursor-pointer hover:scale-105 active:scale-95"
+              className={`flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-[11px] sm:text-xs shadow-md shadow-orange-500/20 transition-all cursor-pointer active:scale-95 ${
+                lowStockCount === 0 ? 'col-span-2 sm:col-span-1' : ''
+              }`}
             >
-              <Plus className="w-4 h-4" />
-              <span>{isBn ? 'নতুন পণ্য যোগ করুন (৳)' : 'Add Product (৳ BDT)'}</span>
+              <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+              <span className="truncate">{isBn ? 'নতুন পণ্য (৳)' : 'Add Product (৳ BDT)'}</span>
             </button>
           </div>
         </div>
@@ -295,8 +289,6 @@ function InventoryContent() {
               <div>
                 <span className="text-xs font-bold text-slate-900 dark:text-white">
                   {isBn
-                    ? `${toBengaliNumber(filteredInventory.length)}টি কম স্টকের পণ্য ফিল্টার করা হয়েছে`
-                    : `Filtering ${filteredInventory.length} Low Stock Item(s)`}
                 </span>
                 <p className="text-[11px] text-amber-600 dark:text-amber-400">
                   {isBn
@@ -376,6 +368,14 @@ function InventoryContent() {
 
         {/* Inventory Table */}
         <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 backdrop-blur-xl overflow-hidden shadow-sm">
+          <div className="sm:hidden px-4 py-2 bg-slate-50/80 dark:bg-slate-950/60 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+            <span className="flex items-center gap-1.5">
+              <span>👉</span>
+            </span>
+            <span className="text-[10px] bg-slate-200 dark:bg-slate-800 px-2 py-0.5 rounded-full font-mono font-bold text-slate-700 dark:text-slate-300">
+            </span>
+          </div>
+
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300">
               <thead className="bg-slate-50 dark:bg-slate-950/80 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
