@@ -218,12 +218,14 @@ export default function LoginPage() {
 
         if (isAnotherMasterOnline) {
           // Another master device is currently online -> Dispatch 2FA waiting challenge
+          const timeZone = typeof Intl !== 'undefined' ? Intl.DateTimeFormat().resolvedOptions().timeZone : 'Asia/Dhaka';
           const challengeRes = await fetch('/api/auth/login-requests', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               action: 'create_request',
               email: targetEmail,
+              timeZone,
             }),
           });
 
@@ -309,12 +311,14 @@ export default function LoginPage() {
 
       if (verifyData.isMasterOnline) {
         // Master is online elsewhere -> Dispatch waiting challenge
+        const timeZone = typeof Intl !== 'undefined' ? Intl.DateTimeFormat().resolvedOptions().timeZone : 'Asia/Dhaka';
         const challengeRes = await fetch('/api/auth/login-requests', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             action: 'create_request',
             email: targetEmail,
+            timeZone,
           }),
         });
 

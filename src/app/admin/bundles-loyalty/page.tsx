@@ -186,61 +186,61 @@ export default function BundlesAndLoyaltyPage() {
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm max-w-md">
+        <div className="flex items-center gap-1.5 sm:gap-2 p-1 sm:p-1.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm max-w-md w-full">
           <button
             type="button"
             onClick={() => setActiveTab('bundles')}
-            className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+            className={`flex-1 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2 ${
               activeTab === 'bundles'
                 ? 'bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white shadow-md shadow-orange-500/25'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            <Gift className="w-4 h-4" />
-            <span>
-              {isBn ? 'বান্ডেল ও কম্বো ডিল' : 'Bundle & Combo Deals'} ({isBn ? toBengaliNumber(bundles.length) : bundles.length})
+            <Gift className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span className="truncate">
+              {isBn ? 'বান্ডেল ডিল' : 'Bundle Deals'} ({isBn ? toBengaliNumber(bundles.length) : bundles.length})
             </span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('loyalty')}
-            className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+            className={`flex-1 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2 ${
               activeTab === 'loyalty'
                 ? 'bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white shadow-md shadow-orange-500/25'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            <Crown className="w-4 h-4" />
-            <span>{isBn ? 'লয়্যালটি পয়েন্ট ও ভিআইপি' : 'Loyalty Points & VIP Tiers'}</span>
+            <Crown className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span className="truncate">{isBn ? 'লয়্যালটি পয়েন্ট' : 'Loyalty Points'}</span>
           </button>
         </div>
 
         {/* TAB 1: BUNDLE OFFERS */}
         {activeTab === 'bundles' && (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {bundles.map((deal) => (
                 <div
                   key={deal.id}
                   className="rounded-3xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800/80 shadow-sm hover:shadow-xl hover:border-orange-500/50 transition-all flex flex-col justify-between overflow-hidden group"
                 >
-                  <div className="p-5 space-y-4">
+                  <div className="p-4 sm:p-5 space-y-3.5 sm:space-y-4">
                     {/* Top Badges & Sales */}
                     <div className="flex items-start justify-between gap-2">
-                      <span className="px-2.5 py-0.5 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 font-bold text-[11px] border border-orange-500/20 inline-flex items-center gap-1">
+                      <span className="px-2.5 py-0.5 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 font-bold text-[10px] sm:text-[11px] border border-orange-500/20 inline-flex items-center gap-1">
                         {isBn ? (deal.badge_bn || deal.badge) : (deal.badge_en || deal.badge)}
                       </span>
                       <div className="flex items-center gap-1.5">
                         <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20 whitespace-nowrap">
-                          {isBn ? `${toBengaliNumber(deal.salesCount)} টি কম্বো বিক্রিত` : `${deal.salesCount} Combos Sold`}
+                          {isBn ? `${toBengaliNumber(deal.salesCount)} টি বিক্রিত` : `${deal.salesCount} Sold`}
                         </span>
                       </div>
                     </div>
 
                     {/* Title */}
                     <div>
-                      <h3 className="text-base font-black text-slate-900 dark:text-white group-hover:text-orange-500 transition-colors line-clamp-1">
+                      <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white group-hover:text-orange-500 transition-colors line-clamp-1">
                         {isBn ? (deal.title_bn || deal.title) : (deal.title_en || deal.title)}
                       </h3>
                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
@@ -250,22 +250,22 @@ export default function BundlesAndLoyaltyPage() {
 
                     {/* Included Products Visual List */}
                     <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800/60">
-                      <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                      <div className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
                         <span>
                           {isBn ? 'বান্ডেলের আইটেমসমূহ' : 'Items in Bundle'} ({isBn ? toBengaliNumber(deal.items.length) : deal.items.length})
                         </span>
-                        <span className="text-amber-500 font-semibold flex items-center gap-1 whitespace-nowrap">
+                        <span className="text-amber-500 font-semibold flex items-center gap-1 whitespace-nowrap text-[10px] sm:text-xs">
                           <Coins className="w-3 h-3" /> +{isBn ? toBengaliNumber(deal.rewardPoints) : deal.rewardPoints} {isBn ? 'পয়েন্ট' : 'Pts'}
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
                         {deal.items.map((item, idx) => (
                           <div
                             key={idx}
-                            className="p-2 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 flex items-center gap-2"
+                            className="p-1.5 sm:p-2 rounded-xl sm:rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 flex items-center gap-1.5 sm:gap-2"
                           >
-                            <div className="relative w-8 h-8 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800 shrink-0 bg-white dark:bg-slate-900">
+                            <div className="relative w-7 h-7 sm:w-8 sm:h-8 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800 shrink-0 bg-white dark:bg-slate-900">
                               <Image
                                 src={item.image}
                                 alt={item.title}
@@ -275,10 +275,10 @@ export default function BundlesAndLoyaltyPage() {
                               />
                             </div>
                             <div className="min-w-0">
-                              <div className="font-bold text-[10px] text-slate-900 dark:text-white truncate">
+                              <div className="font-bold text-[9px] sm:text-[10px] text-slate-900 dark:text-white truncate">
                                 {item.title}
                               </div>
-                              <div className="text-[9px] font-mono text-slate-400 whitespace-nowrap">
+                              <div className="text-[8px] sm:text-[9px] font-mono text-slate-400 whitespace-nowrap">
                                 {isBn ? `৳${toBengaliNumber(item.regularPrice.toLocaleString('en-US'))}` : `৳${item.regularPrice.toLocaleString()}`}
                               </div>
                             </div>
@@ -289,12 +289,12 @@ export default function BundlesAndLoyaltyPage() {
 
                     {/* Promo Code & Instructions */}
                     {(deal.promoCode || deal.purchaseInstruction) && (
-                      <div className="p-2.5 rounded-xl bg-orange-500/5 border border-orange-500/15 space-y-1">
+                      <div className="p-2 sm:p-2.5 rounded-xl bg-orange-500/5 border border-orange-500/15 space-y-1">
                         {deal.promoCode && (
-                          <div className="flex items-center gap-1.5 text-xs font-bold text-orange-600 dark:text-orange-400">
-                            <Tag className="w-3.5 h-3.5" />
+                          <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-orange-600 dark:text-orange-400">
+                            <Tag className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
                             <span>
-                              {isBn ? 'কুপন কোড: ' : 'Coupon Code: '}
+                              {isBn ? 'কুপন কোড: ' : 'Coupon: '}
                               <strong className="font-mono bg-orange-500/20 px-1.5 py-0.5 rounded uppercase tracking-wider">
                                 {deal.promoCode}
                               </strong>
@@ -302,7 +302,7 @@ export default function BundlesAndLoyaltyPage() {
                           </div>
                         )}
                         {deal.purchaseInstruction && (
-                          <p className="text-slate-600 dark:text-slate-400 text-[10px]">
+                          <p className="text-slate-600 dark:text-slate-400 text-[9px] sm:text-[10px]">
                             {deal.purchaseInstruction}
                           </p>
                         )}
@@ -312,16 +312,16 @@ export default function BundlesAndLoyaltyPage() {
                     {/* Pricing Breakdown */}
                     <div className="pt-2 flex items-baseline justify-between border-t border-slate-100 dark:border-slate-800/60">
                       <div>
-                        <span className="text-[11px] text-slate-400 line-through font-mono block whitespace-nowrap">
+                        <span className="text-[10px] sm:text-[11px] text-slate-400 line-through font-mono block whitespace-nowrap">
                           {isBn ? `৳${toBengaliNumber(deal.originalTotal.toLocaleString('en-US'))}` : `৳${deal.originalTotal.toLocaleString()}`}
                         </span>
-                        <div className="text-xl font-black text-slate-900 dark:text-white font-mono whitespace-nowrap">
+                        <div className="text-lg sm:text-xl font-black text-slate-900 dark:text-white font-mono whitespace-nowrap">
                           {isBn ? `৳${toBengaliNumber(deal.bundlePrice.toLocaleString('en-US'))}` : `৳${deal.bundlePrice.toLocaleString()}`}{' '}
                           <span className="text-xs text-orange-500">{isBn ? 'টাকা' : 'BDT'}</span>
                         </div>
                       </div>
                       <div className="text-right space-y-0.5">
-                        <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-lg inline-block whitespace-nowrap">
+                        <span className="text-[10px] sm:text-xs font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg inline-block whitespace-nowrap">
                           {isBn ? `সাশ্রয় ৳${toBengaliNumber(deal.savings.toLocaleString('en-US'))}` : `Save ৳${deal.savings.toLocaleString()}`}
                         </span>
                       </div>
@@ -329,9 +329,9 @@ export default function BundlesAndLoyaltyPage() {
                   </div>
 
                   {/* Card Bottom Bar with Actions */}
-                  <div className="p-3.5 bg-slate-50 dark:bg-slate-950/80 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+                  <div className="p-3 sm:p-3.5 bg-slate-50 dark:bg-slate-950/80 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
                     <span
-                      className={`font-bold flex items-center gap-1.5 text-[11px] ${
+                      className={`font-bold flex items-center gap-1 text-[10px] sm:text-[11px] ${
                         deal.status === 'Active'
                           ? 'text-emerald-600 dark:text-emerald-400'
                           : deal.status === 'Draft'
@@ -339,29 +339,31 @@ export default function BundlesAndLoyaltyPage() {
                           : 'text-rose-500'
                       }`}
                     >
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      {deal.status === 'Active'
-                        ? isBn
-                          ? 'স্টোরফ্রন্টে লাইভ'
-                          : 'Live on Storefront'
-                        : deal.status === 'Draft'
-                        ? isBn
-                          ? 'ড্রাফট (লুকানো)'
-                          : 'Draft (Hidden)'
-                        : isBn
-                        ? 'মেয়াদোত্তীর্ণ'
-                        : 'Expired'}
+                      <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+                      <span className="truncate">
+                        {deal.status === 'Active'
+                          ? isBn
+                            ? 'লাইভ'
+                            : 'Live'
+                          : deal.status === 'Draft'
+                          ? isBn
+                            ? 'ড্রাফট'
+                            : 'Draft'
+                          : isBn
+                          ? 'মেয়াদোত্তীর্ণ'
+                          : 'Expired'}
+                      </span>
                     </span>
 
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1 sm:gap-1.5">
                       {/* EDIT BUNDLE BUTTON - DEDICATED ROUTE */}
                       <Link
                         href={`/admin/bundles-loyalty/edit/${deal.id}`}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 font-bold text-xs border border-orange-500/20 transition-all cursor-pointer active:scale-95"
+                        className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 font-bold text-[11px] sm:text-xs border border-orange-500/20 transition-all cursor-pointer active:scale-95"
                         title="Edit Combo Bundle"
                       >
-                        <Edit2 className="w-3.5 h-3.5" />
-                        <span>{isBn ? 'সম্পাদনা' : 'Edit Bundle'}</span>
+                        <Edit2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+                        <span>{isBn ? 'সম্পাদনা' : 'Edit'}</span>
                       </Link>
 
                       {/* DELETE BUNDLE BUTTON */}
@@ -381,7 +383,7 @@ export default function BundlesAndLoyaltyPage() {
                             deleteBundle(deal.id);
                           }
                         }}
-                        className="p-1.5 rounded-xl hover:bg-rose-500/10 text-slate-400 hover:text-rose-500 transition-colors cursor-pointer"
+                        className="p-1 sm:p-1.5 rounded-xl hover:bg-rose-500/10 text-slate-400 hover:text-rose-500 transition-colors cursor-pointer"
                         title="Delete Combo"
                       >
                         <Trash2 className="w-3.5 h-3.5" />

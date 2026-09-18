@@ -15,7 +15,7 @@ export default function DevTelemetryToggle({ compact = false }: { compact?: bool
 
   return (
     <div
-      className={`inline-flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-900/95 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm dark:shadow-lg backdrop-blur-md text-[11px] font-semibold text-slate-700 dark:text-slate-300 transition-colors ${
+      className={`hidden lg:inline-flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-900/95 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm dark:shadow-lg backdrop-blur-md text-[11px] font-semibold text-slate-700 dark:text-slate-300 transition-colors ${
         compact ? 'scale-95' : ''
       }`}
     >

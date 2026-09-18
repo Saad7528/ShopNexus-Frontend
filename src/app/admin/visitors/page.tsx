@@ -564,87 +564,94 @@ export default function VisitorAnalyticsPage() {
             <button
               type="button"
               onClick={() => setIsExportMenuOpen(!isExportMenuOpen)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white text-xs font-bold shadow-md shadow-orange-500/20 transition-all cursor-pointer"
+              className="flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white text-xs font-bold shadow-md shadow-orange-500/20 transition-all cursor-pointer"
               title={isBn ? 'টেলিমেট্রি ও লিড রিপোর্ট এক্সপোর্ট' : 'Export Telemetry & Lead Reports'}
             >
-              <Download className="w-4 h-4" />
-              <span>{isBn ? 'রিপোর্ট এক্সপোর্ট' : 'Export Report'}</span>
-              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isExportMenuOpen ? 'rotate-180' : ''}`} />
+              <Download className="w-4 h-4 shrink-0" />
+              <span className="whitespace-nowrap">{isBn ? 'রিপোর্ট এক্সপোর্ট' : 'Export Report'}</span>
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform shrink-0 ${isExportMenuOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {isExportMenuOpen && (
-              <div
-                className="absolute right-0 mt-2 w-64 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-1.5 z-50 space-y-1 animate-in fade-in zoom-in-95 duration-150"
-                onMouseLeave={() => setIsExportMenuOpen(false)}
-              >
-                {/* 1. Branded Excel (.xlsx) */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    exportToBrandedExcel(filteredSessions, timeFilter, kpiFilter, liveVisitorCount);
-                    setIsExportMenuOpen(false);
-                    showToast(isBn ? 'লিড ফোন নম্বর সহ ব্র্যান্ডেড এক্সেল (.xlsx) রিপোর্ট তৈরি হয়েছে।' : 'Branded Excel (.xlsx) report generated with lead phone numbers.');
-                  }}
-                  className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-left transition-colors cursor-pointer group"
-                >
-                  <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform">
-                    <FileSpreadsheet className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <span className="font-bold text-xs text-slate-900 dark:text-white block">
-                      {isBn ? 'এক্সেলে এক্সপোর্ট (.xlsx)' : 'Export to Excel (.xlsx)'}
-                    </span>
-                    <span className="text-[10px] text-slate-500 block">
-                      {isBn ? 'কাস্টমার লিড ও কার্ট ৳ সহ ব্র্যান্ডেড শিট' : 'Branded sheet with customer leads & cart ৳'}
-                    </span>
-                  </div>
-                </button>
+              <>
+                {/* Mobile Backdrop to click outside and dismiss */}
+                <div
+                  className="fixed inset-0 z-40 bg-black/20 sm:hidden"
+                  onClick={() => setIsExportMenuOpen(false)}
+                />
 
-                {/* 2. Print / Export PDF */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    printBrandedPDF(filteredSessions, timeFilter, kpiFilter, liveVisitorCount);
-                    setIsExportMenuOpen(false);
-                    showToast(isBn ? 'ShopNexus ওয়াটারমার্ক সহ প্রিন্ট-রেডি পিডিএফ খোলা হচ্ছে।' : 'Opening print-ready PDF with ShopNexus watermark.');
-                  }}
-                  className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-orange-50 dark:hover:bg-orange-950/40 text-left transition-colors cursor-pointer group"
+                <div
+                  className="absolute left-0 sm:left-auto sm:right-0 mt-2 w-[calc(100vw-2.5rem)] max-w-[280px] sm:w-64 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-1.5 z-50 space-y-1 animate-in fade-in zoom-in-95 duration-150"
                 >
-                  <div className="p-2 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-400 group-hover:scale-110 transition-transform">
-                    <Printer className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <span className="font-bold text-xs text-slate-900 dark:text-white block">
-                      {isBn ? 'পিডিএফ প্রিন্ট / এক্সপোর্ট' : 'Print / Export PDF Report'}
-                    </span>
-                    <span className="text-[10px] text-slate-500 block">
-                      {isBn ? 'ShopNexus ওয়াটারমার্ক ও লেটারহেড' : 'ShopNexus watermark & letterhead'}
-                    </span>
-                  </div>
-                </button>
+                  {/* 1. Branded Excel (.xlsx) */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      exportToBrandedExcel(filteredSessions, timeFilter, kpiFilter, liveVisitorCount);
+                      setIsExportMenuOpen(false);
+                      showToast(isBn ? 'লিড ফোন নম্বর সহ ব্র্যান্ডেড এক্সেল (.xlsx) রিপোর্ট তৈরি হয়েছে।' : 'Branded Excel (.xlsx) report generated with lead phone numbers.');
+                    }}
+                    className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-left transition-colors cursor-pointer group"
+                  >
+                    <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform shrink-0">
+                      <FileSpreadsheet className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="font-bold text-xs text-slate-900 dark:text-white block">
+                        {isBn ? 'এক্সেলে এক্সপোর্ট (.xlsx)' : 'Export to Excel (.xlsx)'}
+                      </span>
+                      <span className="text-[10px] text-slate-500 block">
+                        {isBn ? 'কাস্টমার লিড ও কার্ট ৳ সহ ব্র্যান্ডেড শিট' : 'Branded sheet with customer leads & cart ৳'}
+                      </span>
+                    </div>
+                  </button>
 
-                {/* 3. Raw CSV File */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    handleExportCSV();
-                    setIsExportMenuOpen(false);
-                  }}
-                  className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors cursor-pointer group"
-                >
-                  <div className="p-2 rounded-lg bg-slate-500/10 text-slate-600 dark:text-slate-400 group-hover:scale-110 transition-transform">
-                    <FileText className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <span className="font-bold text-xs text-slate-900 dark:text-white block">
-                      {isBn ? 'র সিএসভি এক্সপোর্ট' : 'Export Raw CSV'}
-                    </span>
-                    <span className="text-[10px] text-slate-500 block">
-                      {isBn ? 'সাধারণ ডাটা টেবিল এক্সপোর্ট' : 'Plain data table export'}
-                    </span>
-                  </div>
-                </button>
-              </div>
+                  {/* 2. Print / Export PDF */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      printBrandedPDF(filteredSessions, timeFilter, kpiFilter, liveVisitorCount);
+                      setIsExportMenuOpen(false);
+                      showToast(isBn ? 'ShopNexus ওয়াটারমার্ক সহ প্রিন্ট-রেডি পিডিএফ খোলা হচ্ছে।' : 'Opening print-ready PDF with ShopNexus watermark.');
+                    }}
+                    className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-orange-50 dark:hover:bg-orange-950/40 text-left transition-colors cursor-pointer group"
+                  >
+                    <div className="p-2 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-400 group-hover:scale-110 transition-transform shrink-0">
+                      <Printer className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="font-bold text-xs text-slate-900 dark:text-white block">
+                        {isBn ? 'পিডিএফ প্রিন্ট / এক্সপোর্ট' : 'Print / Export PDF Report'}
+                      </span>
+                      <span className="text-[10px] text-slate-500 block">
+                        {isBn ? 'ShopNexus ওয়াটারমার্ক ও লেটারহেড' : 'ShopNexus watermark & letterhead'}
+                      </span>
+                    </div>
+                  </button>
+
+                  {/* 3. Raw CSV File */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleExportCSV();
+                      setIsExportMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors cursor-pointer group"
+                  >
+                    <div className="p-2 rounded-lg bg-slate-500/10 text-slate-600 dark:text-slate-400 group-hover:scale-110 transition-transform shrink-0">
+                      <FileText className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <span className="font-bold text-xs text-slate-900 dark:text-white block">
+                        {isBn ? 'র সিএসভি এক্সপোর্ট' : 'Export Raw CSV'}
+                      </span>
+                      <span className="text-[10px] text-slate-500 block">
+                        {isBn ? 'সাধারণ ডাটা টেবিল এক্সপোর্ট' : 'Plain data table export'}
+                      </span>
+                    </div>
+                  </button>
+                </div>
+              </>
             )}
           </div>
         </div>
