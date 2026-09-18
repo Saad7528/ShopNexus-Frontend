@@ -867,11 +867,19 @@ export default function AdminStaffRolesPage() {
       if (data?.data && Array.isArray(data.data)) {
         const liveUsers = data.data;
         const liveStaff: IStaffMember[] = liveUsers
-          .filter((u: Partial<User>) => u.role === 'admin' || u.role === 'vendor' || u.role === 'staff')
+          .filter((u: Partial<User>) => {
+            const uEmail = String(u.email || '').toLowerCase().trim();
+            const uName = String(u.name || '').toLowerCase().trim();
+            // Filter out old legacy admin@shopnexus.io / Nexus Lead Admin
+            if (uEmail === 'admin@shopnexus.io' || uName.includes('nexus lead admin')) {
+              return false;
+            }
+            return u.role === 'admin' || u.role === 'vendor' || u.role === 'staff';
+          })
           .map((u: Partial<User> & Record<string, unknown>) => {
             const roleTitle: StaffRoleType =
               (u.storeName as StaffRoleType) || (u.role === 'admin' ? 'Super Admin' : 'Inventory Manager');
-            const uEmail = String(u.email || '').toLowerCase();
+            const uEmail = String(u.email || '').toLowerCase().trim();
             
             const existingMember = INITIAL_STAFF.find(
               (init) => init.email.toLowerCase() === uEmail
@@ -918,14 +926,17 @@ export default function AdminStaffRolesPage() {
           setStaffList((prev) => {
             const liveEmails = new Set(liveStaff.map((s) => s.email.toLowerCase().trim()));
             const liveIds = new Set(liveStaff.map((s) => s.id));
-            return [
+            const merged = [
               ...liveStaff,
               ...prev.filter(
                 (s) =>
                   !liveIds.has(s.id) &&
-                  !liveEmails.has(s.email.toLowerCase().trim())
+                  !liveEmails.has(s.email.toLowerCase().trim()) &&
+                  s.email.toLowerCase().trim() !== 'admin@shopnexus.io'
               ),
             ];
+            // Ensure only saad0174742@gmail.com is Super Admin and comes first
+            return merged.filter((s) => s.email.toLowerCase().trim() !== 'admin@shopnexus.io');
           });
         }
       }
