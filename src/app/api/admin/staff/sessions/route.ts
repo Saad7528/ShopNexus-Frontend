@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { connectToDatabase } from '@/lib/db';
+import mongoose from 'mongoose';
 
 export interface IStaffSessionData {
   id: string;
@@ -16,44 +18,28 @@ export interface IStaffSessionData {
   expiresAt?: number | null; // timestamp in ms or null for permanent
 }
 
-// In-memory telemetry map keyed by staffId and email
+// In-memory fallback map keyed by staffId and email
 let staffSessionsMap: Record<string, IStaffSessionData[]> = {
   'st-0': [
     {
-      id: 'sess-lead-1',
-      device: 'MacBook Pro 16" (M3 Max)',
+      id: 'sess-saad-primary',
+      device: 'MacBook Pro (Primary Master Root)',
       os: 'macOS Sonoma 14.5',
       browser: 'Google Chrome 128.0',
       ipAddress: '103.145.74.22',
       location: 'Dhaka, Bangladesh',
       isCurrentSession: true,
-      loginAt: 'Today, 09:30 AM',
+      loginAt: 'Today, 10:00 AM',
       lastHeartbeat: 'Just now',
       riskScore: 'low',
-      validUntil: 'Permanent (Primary Device)',
-      expiresAt: null,
-    },
-  ],
-  'admin@shopnexus.io': [
-    {
-      id: 'sess-lead-1',
-      device: 'MacBook Pro 16" (M3 Max)',
-      os: 'macOS Sonoma 14.5',
-      browser: 'Google Chrome 128.0',
-      ipAddress: '103.145.74.22',
-      location: 'Dhaka, Bangladesh',
-      isCurrentSession: true,
-      loginAt: 'Today, 09:30 AM',
-      lastHeartbeat: 'Just now',
-      riskScore: 'low',
-      validUntil: 'Permanent (Primary Device)',
+      validUntil: 'Permanent (Primary Master Root)',
       expiresAt: null,
     },
   ],
   'saad0174742@gmail.com': [
     {
       id: 'sess-saad-primary',
-      device: 'MacBook Pro (Primary Master)',
+      device: 'MacBook Pro (Primary Master Root)',
       os: 'macOS Sonoma 14.5',
       browser: 'Google Chrome 128.0',
       ipAddress: '103.145.74.22',
@@ -68,63 +54,68 @@ let staffSessionsMap: Record<string, IStaffSessionData[]> = {
   ],
 };
 
+async function getMongoCollection() {
+  try {
+    await connectToDatabase();
+    const db = mongoose.connection.db;
+    if (!db) return null;
+    return db.collection('login_requests');
+  } catch {
+    return null;
+  }
+}
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const staffId = searchParams.get('staffId');
-    const email = searchParams.get('email')?.toLowerCase();
+    const email = searchParams.get('email')?.toLowerCase().trim();
 
-    // Check if there are active 2FA approved requests from /api/auth/login-requests
-    const protocol = req.headers.get('x-forwarded-proto') || 'http';
-    const host = req.headers.get('host') || 'localhost:3000';
+    const targetKey = email || staffId || 'saad0174742@gmail.com';
+    const now = Date.now();
+
+    // 1. Fetch active approved 2FA sessions directly from MongoDB
     let approved2FARequests: any[] = [];
+    const col = await getMongoCollection();
 
-    try {
-      const authRes = await fetch(`${protocol}://${host}/api/auth/login-requests`);
-      if (authRes.ok) {
-        const authData = await authRes.json();
-        if (authData.success && Array.isArray(authData.data)) {
-          approved2FARequests = authData.data.filter(
-            (r: any) =>
-              r.status === 'approved' &&
-              (r.expiresAt === null || Number(r.expiresAt) > Date.now())
-          );
-        }
+    if (col) {
+      const query: Record<string, unknown> = {
+        status: 'approved',
+        $or: [
+          { expiresAt: null },
+          { expiresAt: { $gt: now } },
+        ],
+      };
+
+      if (email && email !== 'admin@shopnexus.io') {
+        query.email = email;
       }
-    } catch {
-      // Ignore internal fetch error
+
+      approved2FARequests = await col.find(query).sort({ createdAtTimestamp: -1 }).toArray();
     }
 
-    // Build session list for requested staff
-    const targetKey = staffId || email || 'st-0';
-    let sessions = staffSessionsMap[targetKey] || staffSessionsMap[email || ''] || [
-      {
-        id: `sess-primary-${targetKey}`,
-        device: 'MacBook Pro 16" (Primary Trusted Device)',
-        os: 'macOS Sonoma 14.5',
-        browser: 'Google Chrome 128.0',
-        ipAddress: '103.145.74.22',
-        location: 'Dhaka, Bangladesh',
-        isCurrentSession: true,
-        loginAt: 'Today, 09:30 AM',
-        lastHeartbeat: 'Just now',
-        riskScore: 'low',
-        validUntil: 'Permanent (Primary Device)',
-        expiresAt: null,
-      },
-    ];
+    // 2. Base Primary Master Session
+    const primarySession: IStaffSessionData = {
+      id: `sess-primary-${targetKey}`,
+      device: 'MacBook Pro (Primary Trusted Device)',
+      os: 'macOS Sonoma 14.5',
+      browser: 'Google Chrome 128.0',
+      ipAddress: '103.145.74.22',
+      location: 'Dhaka, Bangladesh',
+      isCurrentSession: true,
+      loginAt: 'Today, 10:00 AM',
+      lastHeartbeat: 'Just now',
+      riskScore: 'low',
+      validUntil: 'Permanent (Primary Device)',
+      expiresAt: null,
+    };
 
-    // Merge in real approved 2FA sessions (e.g. from incognito, secondary browser, mobile)
-    const matchingApproved = approved2FARequests.filter((r) => {
-      if (!email && !staffId) return true;
-      if (email && r.email?.toLowerCase() === email) return true;
-      return true;
-    });
+    let sessions: IStaffSessionData[] = [primarySession];
 
-    // Deduplicate by IP address so 1 phone/IP = 1 active secondary session
+    // 3. Transform approved 2FA requests into session objects
     const seenIps = new Set<string>();
-    const uniqueApproved = matchingApproved.filter((r) => {
-      const ip = r.ipAddress || 'unknown';
+    const uniqueApproved = approved2FARequests.filter((r) => {
+      const ip = r.ipAddress || r.id;
       if (seenIps.has(ip)) return false;
       seenIps.add(ip);
       return true;
@@ -135,15 +126,15 @@ export async function GET(req: Request) {
       if (r.duration === 'until_revoked') durationStr = 'Until Blocked';
       else if (r.duration === '20m') durationStr = '20 Mins';
       else if (r.duration === '30m') durationStr = '30 Mins';
-      else if (r.duration === 'custom') durationStr = `${r.durationMinutes} Mins`;
+      else if (r.duration === 'custom') durationStr = `${r.durationMinutes || 60} Mins`;
 
       return {
         id: r.id,
         device: `${r.device || 'Secondary Device'} (2FA Authorized)`,
-        os: r.os || 'Unknown OS',
-        browser: r.browser || 'Unknown Browser',
-        ipAddress: r.ipAddress || '45.112.58.10',
-        location: r.location || 'Chittagong, Bangladesh',
+        os: r.os || 'Android / iOS',
+        browser: r.browser || 'Mobile / Desktop Browser',
+        ipAddress: r.ipAddress || '104.28.240.85',
+        location: r.location || 'Dhaka, Bangladesh',
         isCurrentSession: false,
         loginAt: r.timestamp || 'Just now',
         lastHeartbeat: 'Active now',
@@ -154,13 +145,8 @@ export async function GET(req: Request) {
       };
     });
 
-    // Deduplicate sessions against primary
-    const existingIds = new Set(sessions.map((s) => s.id));
     for (const appSess of approvedSessionObjects) {
-      if (!existingIds.has(appSess.id)) {
-        sessions = [sessions[0], appSess, ...sessions.slice(1)];
-        existingIds.add(appSess.id);
-      }
+      sessions.push(appSess);
     }
 
     return NextResponse.json({
@@ -179,25 +165,11 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { action, staffId, email, sessionId } = body;
-
-    const targetKey = staffId || email || 'st-0';
-    const protocol = req.headers.get('x-forwarded-proto') || 'http';
-    const host = req.headers.get('host') || 'localhost:3000';
+    const col = await getMongoCollection();
 
     if (action === 'revoke_session' && sessionId) {
-      // Invalidate in login-requests registry
-      try {
-        await fetch(`${protocol}://${host}/api/auth/login-requests`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'revoke', requestId: sessionId }),
-        });
-      } catch {
-        // ignore
-      }
-
-      if (staffSessionsMap[targetKey]) {
-        staffSessionsMap[targetKey] = staffSessionsMap[targetKey].filter((s) => s.id !== sessionId);
+      if (col) {
+        await col.updateOne({ id: sessionId }, { $set: { status: 'denied', expiresAt: Date.now() } }).catch(() => null);
       }
 
       return NextResponse.json({
@@ -207,19 +179,11 @@ export async function POST(req: Request) {
     }
 
     if (action === 'terminate_all_other') {
-      try {
-        await fetch(`${protocol}://${host}/api/auth/login-requests`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'terminate_all', email: email || 'admin@shopnexus.io' }),
-        });
-      } catch {
-        // ignore
+      const targetEmail = (email || 'saad0174742@gmail.com').toLowerCase().trim();
+      if (col) {
+        await col.updateMany({ email: targetEmail }, { $set: { status: 'denied', expiresAt: Date.now() } }).catch(() => null);
       }
 
-      if (staffSessionsMap[targetKey]) {
-        staffSessionsMap[targetKey] = staffSessionsMap[targetKey].filter((s) => s.isCurrentSession);
-      }
       return NextResponse.json({
         success: true,
         message: 'All other remote sessions have been terminated immediately.',

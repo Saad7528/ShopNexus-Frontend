@@ -468,77 +468,77 @@ export default function AbandonedCartsPage() {
         </div>
 
         {/* 3 Telemetry KPI Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="p-5 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm backdrop-blur-xl transition-all hover:border-orange-500/30">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-4">
+          <div className="p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm backdrop-blur-xl transition-all hover:border-orange-500/30">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                {isBn ? 'মোট পরিত্যক্ত মূল্য' : 'Total Abandoned Value'}
+              <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">
+                {isBn ? 'মোট পরিত্যক্ত মূল্য' : 'Abandoned Value'}
               </span>
-              <div className="p-1.5 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-400 font-bold text-xs">
+              <div className="p-1 sm:p-1.5 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-400 font-bold text-[10px] sm:text-xs">
                 ৳ BDT
               </div>
             </div>
-            <div className="mt-2 text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+            <div className="mt-1 sm:mt-2 text-lg sm:text-3xl font-black text-slate-900 dark:text-white truncate">
               {isBn ? `৳${toBengaliNumber(totalAbandonedValue.toLocaleString('en-US'))}` : `৳${totalAbandonedValue.toLocaleString()}`}
             </div>
-            <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 block">
-              {isBn ? `ডাটাবেজে মোট ${toBengaliNumber(carts.length)}টি সক্রিয় ড্রপ-অফ সেশন` : `Across ${carts.length} active drop-off sessions in database`}
+            <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 sm:mt-1 block truncate">
+              {isBn ? `মোট ${toBengaliNumber(carts.length)}টি সক্রিয় ড্রপ-অফ` : `Across ${carts.length} drop-offs`}
             </span>
           </div>
 
-          <div className="p-5 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm backdrop-blur-xl transition-all hover:border-emerald-500/30">
+          <div className="p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm backdrop-blur-xl transition-all hover:border-emerald-500/30">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                {isBn ? 'রিকভার হওয়া রেভিনিউ' : 'Recovered Revenue'}
+              <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">
+                {isBn ? 'রিকভার হওয়া রেভিনিউ' : 'Recovered'}
               </span>
-              <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
+              <div className="p-1 sm:p-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-[10px] sm:text-xs">
                 ৳ BDT
               </div>
             </div>
-            <div className="mt-2 text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400">
+            <div className="mt-1 sm:mt-2 text-lg sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 truncate">
               {isBn ? `৳${toBengaliNumber(recoveredValue.toLocaleString('en-US'))}` : `৳${recoveredValue.toLocaleString()}`}
             </div>
-            <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 mt-1 flex items-center gap-1">
+            <span className="text-[10px] sm:text-[11px] font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 sm:mt-1 flex items-center gap-1 truncate">
               {isBn
-                ? `+${toBengaliNumber(recoveryRate)}% রিকভারি রেট (${toBengaliNumber(recoveredCount)}টি অর্ডার সফলভাবে রিকভার্ড)`
-                : `+${recoveryRate}% Recovery Rate (${recoveredCount} orders recovered)`}{' '}
-              <ArrowUpRight className="w-3.5 h-3.5" />
+                ? `+${toBengaliNumber(recoveryRate)}% (${toBengaliNumber(recoveredCount)}টি রিকভার্ড)`
+                : `+${recoveryRate}% (${recoveredCount} recovered)`}{' '}
+              <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
             </span>
           </div>
 
-          <div className="p-5 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm backdrop-blur-xl transition-all hover:border-amber-500/30">
+          <div className="col-span-2 sm:col-span-1 p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm backdrop-blur-xl transition-all hover:border-amber-500/30">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                 {isBn ? 'মেসেজ না পাঠানো লিডস' : 'Uncontacted Leads'}
               </span>
-              <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-xs">
+              <div className="p-1 sm:p-1.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-[10px] sm:text-xs">
                 {isBn ? 'অপেক্ষমাণ' : 'Pending'}
               </div>
             </div>
-            <div className="mt-2 text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400">
+            <div className="mt-1 sm:mt-2 text-lg sm:text-3xl font-black text-amber-600 dark:text-amber-400">
               {isBn ? `${toBengaliNumber(uncontactedCount)} টি কার্ট` : `${uncontactedCount} Carts`}
             </div>
-            <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 block">
-              {isBn ? 'তাৎক্ষণিক WhatsApp অফার পাঠানোর জন্য প্রস্তুত' : 'Ready for immediate WhatsApp discount ping'}
+            <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 sm:mt-1 block">
+              {isBn ? 'তাৎক্ষণিক WhatsApp অফার প্রস্তুত' : 'Ready for WhatsApp ping'}
             </span>
           </div>
         </div>
 
         {/* Filter Toolbar & Search */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex flex-wrap gap-1.5 p-1 bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex flex-wrap gap-1 sm:gap-1.5 p-1 bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
             {[
-              { id: 'All', label: isBn ? `সব কার্ট (${toBengaliNumber(carts.length)})` : `All Abandoned (${carts.length})` },
+              { id: 'All', label: isBn ? `সব (${toBengaliNumber(carts.length)})` : `All (${carts.length})` },
               { id: 'Uncontacted', label: isBn ? `⏳ আনকন্টাক্টেড (${toBengaliNumber(uncontactedCount)})` : `⏳ Uncontacted (${uncontactedCount})` },
-              { id: 'WhatsApp', label: isBn ? `💬 WhatsApp প্রেরিত (${toBengaliNumber(carts.filter((c) => c.status === 'WhatsApp Sent').length)})` : `💬 WhatsApp Sent (${carts.filter((c) => c.status === 'WhatsApp Sent').length})` },
+              { id: 'WhatsApp', label: isBn ? `💬 WhatsApp (${toBengaliNumber(carts.filter((c) => c.status === 'WhatsApp Sent').length)})` : `💬 WhatsApp (${carts.filter((c) => c.status === 'WhatsApp Sent').length})` },
               { id: 'Recovered', label: isBn ? `✅ রিকভার্ড (${toBengaliNumber(recoveredCount)})` : `✅ Recovered (${recoveredCount})` },
-              { id: 'HighValue', label: isBn ? '💎 হাই ভ্যালু (>৳৫০k)' : '💎 High Value (>৳50k)' },
+              { id: 'HighValue', label: isBn ? '💎 হাই ভ্যালু (>৳৫০k)' : '💎 High Value' },
             ].map((tab) => (
               <button
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveFilter(tab.id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                className={`px-2.5 sm:px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer ${
                   activeFilter === tab.id
                     ? 'bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white shadow-md shadow-orange-500/25'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -549,29 +549,29 @@ export default function AbandonedCartsPage() {
             ))}
           </div>
 
-          <div className="max-w-xs w-full relative">
+          <div className="w-full sm:max-w-xs relative">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
             <input
               type="text"
               placeholder={isBn ? 'কাস্টমার, ফোন বা পণ্য সার্চ করুন...' : 'Search customer, phone, or item...'}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none shadow-sm"
+              className="w-full pl-10 pr-4 py-2 sm:py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none shadow-sm"
             />
           </div>
         </div>
 
-        {/* Abandoned Carts Table */}
-        <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 backdrop-blur-xl overflow-hidden shadow-sm">
+        {/* Abandoned Carts Responsive View (Cards on Mobile, Table on Desktop) */}
+        <div>
           {isLoading ? (
-            <div className="py-20 text-center">
+            <div className="py-20 text-center rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60">
               <RefreshCw className="w-8 h-8 text-orange-500 animate-spin mx-auto mb-3" />
               <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
                 {isBn ? 'MongoDB Atlas থেকে লাইভ কার্ট ডাটা লোড হচ্ছে...' : 'Loading live drop-off data from database...'}
               </p>
             </div>
           ) : filteredCarts.length === 0 ? (
-            <div className="py-16 text-center px-4">
+            <div className="py-16 text-center px-4 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60">
               <div className="w-14 h-14 rounded-2xl bg-orange-500/10 text-orange-500 flex items-center justify-center mx-auto mb-3">
                 <ShoppingBag className="w-7 h-7" />
               </div>
@@ -585,117 +585,202 @@ export default function AbandonedCartsPage() {
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300">
-                <thead className="bg-slate-50 dark:bg-slate-950/80 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
-                  <tr>
-                    <th className="px-5 py-3.5 whitespace-nowrap min-w-[150px]">{isBn ? 'কাস্টমার ও তথ্য' : 'Customer'}</th>
-                    <th className="px-5 py-3.5 min-w-[200px]">{isBn ? 'পরিত্যক্ত পণ্যসমূহ' : 'Cart Items'}</th>
-                    <th className="px-5 py-3.5 whitespace-nowrap min-w-[120px]">{isBn ? 'কার্ট ভ্যালু (৳)' : 'Cart Total (৳ BDT)'}</th>
-                    <th className="px-5 py-3.5 whitespace-nowrap min-w-[120px]">{isBn ? 'পরিত্যক্ত হওয়ার সময়' : 'Drop-off Time'}</th>
-                    <th className="px-5 py-3.5 whitespace-nowrap min-w-[130px]">{isBn ? 'রিকভারি স্ট্যাটাস' : 'Recovery Status'}</th>
-                    <th className="px-5 py-3.5 whitespace-nowrap min-w-[150px] text-right">{isBn ? 'রিকভারি অ্যাকশন' : 'Recovery Action'}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
-                  {filteredCarts.map((cart) => (
-                    <tr key={cart.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-                      <td className="px-5 py-3.5 whitespace-nowrap">
-                        <div className="font-bold text-slate-900 dark:text-white">{cart.customerName || (isBn ? 'গেস্ট ক্রেতা' : 'Guest Shopper')}</div>
+            <>
+              {/* 📱 Mobile Card Layout (Visible on Small / Mobile Screens) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 lg:hidden">
+                {filteredCarts.map((cart) => (
+                  <div
+                    key={cart.id}
+                    className="p-4 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <h4 className="font-bold text-slate-900 dark:text-white text-sm">
+                          {cart.customerName || (isBn ? 'গেস্ট ক্রেতা' : 'Guest Shopper')}
+                        </h4>
                         {cart.customerPhone ? (
                           <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-semibold mt-0.5">
-                            <Phone className="w-3 h-3 text-emerald-500" /> {cart.customerPhone}
+                            <Phone className="w-3 h-3 text-emerald-500 shrink-0" /> {cart.customerPhone}
                           </span>
                         ) : (
-                          <span className="text-[10px] text-amber-500/90 dark:text-amber-400 flex items-center gap-1 font-bold mt-0.5">
-                            <AlertCircle className="w-3 h-3 text-amber-500" /> {isBn ? 'ফোন নম্বর নেই' : 'No Phone Provided'}
+                          <span className="text-[10px] text-amber-500 flex items-center gap-1 font-bold mt-0.5">
+                            <AlertCircle className="w-3 h-3 text-amber-500 shrink-0" /> {isBn ? 'ফোন নম্বর নেই' : 'No Phone'}
                           </span>
                         )}
-                        <span className="text-[10px] text-slate-400 dark:text-slate-500 block mt-0.5">{cart.customerEmail || (isBn ? 'কোনো ইমেইল রেকর্ড নেই' : 'No email recorded')}</span>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <div className="space-y-1.5 max-w-xs">
-                          {(cart.items || []).map((item, idx) => (
-                            <div key={item.id || idx} className="flex items-center gap-2">
-                              <div className="relative w-8 h-8 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 shrink-0 bg-slate-100 dark:bg-slate-800">
-                                {item.image ? (
-                                  <Image src={item.image} alt={item.title || 'Cart Item'} fill className="object-cover" />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center text-[9px] font-bold text-slate-400">NX</div>
-                                )}
-                              </div>
-                              <div className="min-w-0">
-                                <div className="text-[11px] font-semibold text-slate-800 dark:text-slate-200 truncate">
-                                  <span className="whitespace-nowrap">{isBn ? toBengaliNumber(item.quantity) : item.quantity}x</span> {item.title}
-                                </div>
-                                {item.variant && (
-                                  <span className="text-[10px] text-slate-400 dark:text-slate-500 block truncate">
-                                    {isBn ? 'ভ্যারিয়েন্ট:' : 'Variant:'} {item.variant}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          ))}
+                      </div>
+
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-mono text-slate-500">
+                        <Clock className="w-2.5 h-2.5" /> {cart.timeAgo || (isBn ? 'সম্প্রতি' : 'Recently')}
+                      </span>
+                    </div>
+
+                    {/* Cart Items List */}
+                    <div className="space-y-1.5 py-2 border-y border-slate-100 dark:border-slate-800/80">
+                      {(cart.items || []).slice(0, 2).map((item, idx) => (
+                        <div key={item.id || idx} className="flex items-center gap-2">
+                          <div className="relative w-7 h-7 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 shrink-0 bg-slate-100 dark:bg-slate-800">
+                            {item.image ? (
+                              <Image src={item.image} alt={item.title || 'Cart Item'} fill className="object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-[8px] font-bold text-slate-400">NX</div>
+                            )}
+                          </div>
+                          <span className="text-xs text-slate-800 dark:text-slate-200 truncate flex-1">
+                            <span className="font-bold">{isBn ? toBengaliNumber(item.quantity) : item.quantity}x</span> {item.title}
+                          </span>
                         </div>
-                      </td>
-                      <td className="px-5 py-3.5 font-mono font-black text-slate-900 dark:text-white text-sm whitespace-nowrap">
-                        {isBn ? `৳${toBengaliNumber((cart.cartTotal || 0).toLocaleString('en-US'))}` : `৳${(cart.cartTotal || 0).toLocaleString()}`}
-                      </td>
-                      <td className="px-5 py-3.5 whitespace-nowrap">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-mono text-slate-600 dark:text-slate-400">
-                          <Clock className="w-3 h-3" /> {cart.timeAgo || (isBn ? 'সম্প্রতি' : 'Recently')}
+                      ))}
+                      {(cart.items || []).length > 2 && (
+                        <span className="text-[10px] text-slate-400 block">
+                          +{isBn ? toBengaliNumber(cart.items.length - 2) : cart.items.length - 2} {isBn ? 'আরও পণ্য' : 'more items'}
                         </span>
-                      </td>
-                      <td className="px-5 py-3.5 whitespace-nowrap">
-                        <div className="space-y-1">
-                          <select
-                            value={cart.status}
-                            onChange={(e) => handleUpdateStatus(cart.id, e.target.value as IAbandonedCart['status'])}
-                            className={`px-2.5 py-1 rounded-full text-[10px] font-bold border cursor-pointer outline-none transition-all ${
+                      )}
+                    </div>
 
-                              cart.status === 'Recovered'
-                                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                                : cart.status === 'WhatsApp Sent'
-                                ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20'
-                                : cart.status === 'Discount Emailed'
-                                ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20'
-                                : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
-                            }`}
-                          >
-                            <option value="Uncontacted">{isBn ? '⏳ আনকন্টাক্টেড' : '⏳ Uncontacted'}</option>
-                            <option value="WhatsApp Sent">{isBn ? '💬 WhatsApp প্রেরিত' : '💬 WhatsApp Sent'}</option>
-                            <option value="Discount Emailed">{isBn ? '✉️ ডিসকাউন্ট ইমেইলড' : '✉️ Discount Emailed'}</option>
-                            <option value="Recovered">{isBn ? '✅ রিকভার্ড' : '✅ Recovered'}</option>
-                          </select>
+                    {/* Bottom Total & Actions */}
+                    <div className="flex items-center justify-between gap-2 pt-1">
+                      <div>
+                        <span className="text-[10px] text-slate-400 block">{isBn ? 'কার্ট ভ্যালু' : 'Cart Total'}</span>
+                        <span className="font-mono font-black text-slate-900 dark:text-white text-base">
+                          {isBn ? `৳${toBengaliNumber((cart.cartTotal || 0).toLocaleString('en-US'))}` : `৳${(cart.cartTotal || 0).toLocaleString()}`}
+                        </span>
+                      </div>
 
-                          {cart.recoveryDiscountCode && (
-                            <span className="block text-[9px] font-mono font-bold text-orange-600 dark:text-orange-400">
-                              {isBn ? 'কোড:' : 'Code:'} {cart.recoveryDiscountCode}
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-5 py-3.5 text-right whitespace-nowrap">
+                      <div>
                         {cart.status === 'Recovered' ? (
                           <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1">
-                            <CheckCircle2 className="w-3.5 h-3.5" /> {isBn ? 'অর্ডার কনভার্টেড 🎉' : 'Order Converted 🎉'}
+                            <CheckCircle2 className="w-3.5 h-3.5" /> {isBn ? 'রিকভার্ড 🎉' : 'Converted 🎉'}
                           </span>
                         ) : (
                           <button
                             type="button"
                             onClick={() => handleOpenRecoveryModal(cart)}
-                            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-600/25 transition-all cursor-pointer hover:scale-105"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-600/25 transition-all cursor-pointer"
                           >
                             <MessageCircle className="w-3.5 h-3.5" />
-                            <span>{isBn ? 'WhatsApp রিকভারি' : 'WhatsApp Recovery'}</span>
+                            <span>{isBn ? 'WhatsApp রিকভারি' : 'WhatsApp'}</span>
                           </button>
                         )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* 💻 Desktop Table Layout (Visible on Large Screens) */}
+              <div className="hidden lg:block rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 backdrop-blur-xl overflow-hidden shadow-sm">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300">
+                    <thead className="bg-slate-50 dark:bg-slate-950/80 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
+                      <tr>
+                        <th className="px-5 py-3.5 whitespace-nowrap min-w-[150px]">{isBn ? 'কাস্টমার ও তথ্য' : 'Customer'}</th>
+                        <th className="px-5 py-3.5 min-w-[200px]">{isBn ? 'পরিত্যক্ত পণ্যসমূহ' : 'Cart Items'}</th>
+                        <th className="px-5 py-3.5 whitespace-nowrap min-w-[120px]">{isBn ? 'কার্ট ভ্যালু (৳)' : 'Cart Total (৳ BDT)'}</th>
+                        <th className="px-5 py-3.5 whitespace-nowrap min-w-[120px]">{isBn ? 'পরিত্যক্ত হওয়ার সময়' : 'Drop-off Time'}</th>
+                        <th className="px-5 py-3.5 whitespace-nowrap min-w-[130px]">{isBn ? 'রিকভারি স্ট্যাটাস' : 'Recovery Status'}</th>
+                        <th className="px-5 py-3.5 whitespace-nowrap min-w-[150px] text-right">{isBn ? 'রিকভারি অ্যাকশন' : 'Recovery Action'}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
+                      {filteredCarts.map((cart) => (
+                        <tr key={cart.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                          <td className="px-5 py-3.5 whitespace-nowrap">
+                            <div className="font-bold text-slate-900 dark:text-white">{cart.customerName || (isBn ? 'গেস্ট ক্রেতা' : 'Guest Shopper')}</div>
+                            {cart.customerPhone ? (
+                              <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-semibold mt-0.5">
+                                <Phone className="w-3 h-3 text-emerald-500" /> {cart.customerPhone}
+                              </span>
+                            ) : (
+                              <span className="text-[10px] text-amber-500/90 dark:text-amber-400 flex items-center gap-1 font-bold mt-0.5">
+                                <AlertCircle className="w-3 h-3 text-amber-500" /> {isBn ? 'ফোন নম্বর নেই' : 'No Phone Provided'}
+                              </span>
+                            )}
+                            <span className="text-[10px] text-slate-400 dark:text-slate-500 block mt-0.5">{cart.customerEmail || (isBn ? 'কোনো ইমেইল রেকর্ড নেই' : 'No email recorded')}</span>
+                          </td>
+                          <td className="px-5 py-3.5">
+                            <div className="space-y-1.5 max-w-xs">
+                              {(cart.items || []).map((item, idx) => (
+                                <div key={item.id || idx} className="flex items-center gap-2">
+                                  <div className="relative w-8 h-8 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 shrink-0 bg-slate-100 dark:bg-slate-800">
+                                    {item.image ? (
+                                      <Image src={item.image} alt={item.title || 'Cart Item'} fill className="object-cover" />
+                                    ) : (
+                                      <div className="w-full h-full flex items-center justify-center text-[9px] font-bold text-slate-400">NX</div>
+                                    )}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <div className="text-[11px] font-semibold text-slate-800 dark:text-slate-200 truncate">
+                                      <span className="whitespace-nowrap">{isBn ? toBengaliNumber(item.quantity) : item.quantity}x</span> {item.title}
+                                    </div>
+                                    {item.variant && (
+                                      <span className="text-[10px] text-slate-400 dark:text-slate-500 block truncate">
+                                        {isBn ? 'ভ্যারিয়েন্ট:' : 'Variant:'} {item.variant}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </td>
+                          <td className="px-5 py-3.5 font-mono font-black text-slate-900 dark:text-white text-sm whitespace-nowrap">
+                            {isBn ? `৳${toBengaliNumber((cart.cartTotal || 0).toLocaleString('en-US'))}` : `৳${(cart.cartTotal || 0).toLocaleString()}`}
+                          </td>
+                          <td className="px-5 py-3.5 whitespace-nowrap">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-mono text-slate-600 dark:text-slate-400">
+                              <Clock className="w-3 h-3" /> {cart.timeAgo || (isBn ? 'সম্প্রতি' : 'Recently')}
+                            </span>
+                          </td>
+                          <td className="px-5 py-3.5 whitespace-nowrap">
+                            <div className="space-y-1">
+                              <select
+                                value={cart.status}
+                                onChange={(e) => handleUpdateStatus(cart.id, e.target.value as IAbandonedCart['status'])}
+                                className={`px-2.5 py-1 rounded-full text-[10px] font-bold border cursor-pointer outline-none transition-all ${
+                                  cart.status === 'Recovered'
+                                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                                    : cart.status === 'WhatsApp Sent'
+                                    ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20'
+                                    : cart.status === 'Discount Emailed'
+                                    ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20'
+                                    : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
+                                }`}
+                              >
+                                <option value="Uncontacted">{isBn ? '⏳ আনকন্টাক্টেড' : '⏳ Uncontacted'}</option>
+                                <option value="WhatsApp Sent">{isBn ? '💬 WhatsApp প্রেরিত' : '💬 WhatsApp Sent'}</option>
+                                <option value="Discount Emailed">{isBn ? '✉️ ডিসকাউন্ট ইমেইলড' : '✉️ Discount Emailed'}</option>
+                                <option value="Recovered">{isBn ? '✅ রিকভার্ড' : '✅ Recovered'}</option>
+                              </select>
+
+                              {cart.recoveryDiscountCode && (
+                                <span className="block text-[9px] font-mono font-bold text-orange-600 dark:text-orange-400">
+                                  {isBn ? 'কোড:' : 'Code:'} {cart.recoveryDiscountCode}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-5 py-3.5 text-right whitespace-nowrap">
+                            {cart.status === 'Recovered' ? (
+                              <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1">
+                                <CheckCircle2 className="w-3.5 h-3.5" /> {isBn ? 'অর্ডার কনভার্টেড 🎉' : 'Order Converted 🎉'}
+                              </span>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => handleOpenRecoveryModal(cart)}
+                                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-600/25 transition-all cursor-pointer hover:scale-105"
+                              >
+                                <MessageCircle className="w-3.5 h-3.5" />
+                                <span>{isBn ? 'WhatsApp রিকভারি' : 'WhatsApp Recovery'}</span>
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
           )}
         </div>
 

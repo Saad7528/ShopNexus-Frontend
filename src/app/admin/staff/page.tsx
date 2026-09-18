@@ -851,12 +851,23 @@ export default function AdminStaffRolesPage() {
       // 2. Fetch Active Sessions Telemetry
       let sessionsData: Record<string, any[]> = {};
       try {
-        const sessRes = await fetch('/api/admin/staff/sessions').catch(() => null);
+        const sessRes = await fetch('/api/admin/staff/sessions?email=saad0174742@gmail.com').catch(() => null);
         if (sessRes && sessRes.ok) {
           const sessJson = await sessRes.json().catch(() => null);
           if (sessJson?.success && Array.isArray(sessJson.data)) {
-            // Default mapped array for admin
+            sessionsData['saad0174742@gmail.com'] = sessJson.data;
             sessionsData['admin@shopnexus.io'] = sessJson.data;
+            sessionsData['st-0'] = sessJson.data;
+
+            // Direct live state update for Super Admin sessions
+            setStaffList((prev) =>
+              prev.map((s) => {
+                if (s.email.toLowerCase().trim() === 'saad0174742@gmail.com' || s.role === 'Super Admin') {
+                  return { ...s, sessions: sessJson.data };
+                }
+                return s;
+              })
+            );
           }
         }
       } catch {
@@ -937,7 +948,14 @@ export default function AdminStaffRolesPage() {
               ),
             ];
             // Ensure only saad0174742@gmail.com is Super Admin and comes first
-            return merged.filter((s) => s.email.toLowerCase().trim() !== 'admin@shopnexus.io');
+            return merged
+              .filter((s) => s.email.toLowerCase().trim() !== 'admin@shopnexus.io')
+              .map((s) => {
+                if (s.email.toLowerCase().trim() === 'saad0174742@gmail.com' && sessionsData['saad0174742@gmail.com']) {
+                  return { ...s, sessions: sessionsData['saad0174742@gmail.com'] };
+                }
+                return s;
+              });
           });
         }
       }
@@ -1141,14 +1159,10 @@ export default function AdminStaffRolesPage() {
   return (
     <RoleGuard allowedRoles={['admin']}>
       <div className="space-y-8 max-w-7xl mx-auto pb-16">
-        {/* Top Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-600 dark:text-orange-400 text-xs font-bold uppercase tracking-wider mb-2">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              {isBn ? 'সিকিউরিটি ও রোল-বেসড অ্যাক্সেস কন্ট্রোল (RBAC)' : 'Security & Role-Based Access Control (RBAC)'}
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+            <h1 className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
               {isBn ? 'স্টাফ রোল ও গ্র্যানুলার অ্যাক্সেস কন্ট্রোল' : 'Staff Roles & Access Control Center'}
             </h1>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
@@ -1158,37 +1172,37 @@ export default function AdminStaffRolesPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5 flex-wrap">
+          <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-2.5 shrink-0">
             <button
               type="button"
               onClick={() => fetchLiveStaff()}
               disabled={isLoadingDB}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-orange-500/40 text-slate-700 dark:text-slate-300 font-bold text-xs shadow-sm transition-all cursor-pointer hover:scale-105"
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-2 sm:py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-orange-500/40 text-slate-700 dark:text-slate-300 font-bold text-xs shadow-xs transition-all cursor-pointer active:scale-95"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isLoadingDB ? 'animate-spin text-orange-500' : ''}`} />
-              <span>{isBn ? 'রিফ্রেশ' : 'Refresh'}</span>
+              <RefreshCw className={`w-3.5 h-3.5 shrink-0 ${isLoadingDB ? 'animate-spin text-orange-500' : ''}`} />
+              <span className="truncate">{isBn ? 'রিফ্রেশ' : 'Refresh'}</span>
             </button>
             <button
               type="button"
               onClick={() => setIsAddStaffOpen(true)}
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/25 transition-all cursor-pointer hover:scale-105"
+              className="inline-flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-md shadow-orange-500/20 transition-all cursor-pointer active:scale-95"
             >
-              <UserPlus className="w-4 h-4" />
-              <span>{isBn ? 'নতুন স্টাফ মেম্বার যোগ করুন' : 'Add New Staff Member'}</span>
+              <UserPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+              <span className="truncate">{isBn ? 'নতুন স্টাফ' : 'Add Staff'}</span>
             </button>
           </div>
         </div>
 
         {/* Toast Alert */}
         {toastMsg && (
-          <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-300 text-xs sm:text-sm font-bold flex items-center gap-2 animate-in fade-in duration-300">
+          <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-300 text-xs sm:text-sm font-bold flex items-center gap-2 animate-in fade-in duration-300">
             <CheckCircle2 className="w-4 h-4 shrink-0" />
             <span>{toastMsg}</span>
           </div>
         )}
 
-        {/* WORKABLE & REAL DYNAMIC KPI METRIC CARDS */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* WORKABLE & REAL DYNAMIC KPI METRIC CARDS (2-Columns on mobile) */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
           {/* Card 1: Authorized Staff (Real Online vs Offline) */}
           <button
             type="button"
@@ -1196,41 +1210,38 @@ export default function AdminStaffRolesPage() {
               setActiveTab('roster');
               setStaffStatusFilter('all');
             }}
-            className={`text-left p-5 rounded-3xl bg-white dark:bg-slate-900/80 border transition-all cursor-pointer group shadow-sm backdrop-blur-xl relative overflow-hidden ${
+            className={`text-left p-3 sm:p-5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 border transition-all cursor-pointer group shadow-sm backdrop-blur-xl relative overflow-hidden flex flex-col justify-between ${
               activeTab === 'roster' && staffStatusFilter === 'all'
                 ? 'border-orange-500 ring-2 ring-orange-500/40 shadow-lg shadow-orange-500/10'
-                : 'border-slate-200 dark:border-slate-800 hover:border-orange-500/40 hover:scale-[1.02]'
+                : 'border-slate-200 dark:border-slate-800 hover:border-orange-500/40'
             }`}
           >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            <div className="flex items-center justify-between gap-1">
+              <span className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">
                 {isBn ? 'অনুমোদিত স্টাফ' : 'Authorized Staff'}
               </span>
-              <div className="w-9 h-9 rounded-2xl bg-orange-500/10 text-orange-600 dark:text-orange-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Users className="w-4 h-4" />
+              <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl bg-orange-500/10 text-orange-600 dark:text-orange-400 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
             </div>
-            <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+            <div className="mt-2 sm:mt-3">
+              <span className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white block">
                 {isBn ? toBengaliNumber(totalStaffCount) : totalStaffCount}
               </span>
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
-                  {isBn ? `${toBengaliNumber(onlineStaffCount)} জন Online` : `${onlineStaffCount} Online`}
+              <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap mt-1">
+                <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[9px] sm:text-[10px] font-bold truncate">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping shrink-0" />
+                  <span>{isBn ? `${toBengaliNumber(onlineStaffCount)} Online` : `${onlineStaffCount} Online`}</span>
                 </span>
-                <span className="text-[10px] text-slate-400 font-semibold">
-                  {isBn ? `• ${toBengaliNumber(offlineStaffCount)} অফলাইন` : `• ${offlineStaffCount} Offline`}
+                <span className="text-[9px] sm:text-[10px] text-slate-400 font-semibold truncate">
+                  {isBn ? `• ${toBengaliNumber(offlineStaffCount)} Off` : `• ${offlineStaffCount} Off`}
                 </span>
               </div>
             </div>
-            <div className="mt-2 text-[11px] text-slate-500 flex items-center justify-between">
-              <span className="flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3 text-emerald-500" />
-                {isBn ? 'সেন্ট্রাল RBAC ডেটাবেস' : 'Central RBAC Database'}
-              </span>
-              <span className="text-[10px] text-orange-500 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
-                {isBn ? 'রোস্টার দেখুন →' : 'View Roster →'}
+            <div className="mt-2 text-[9px] sm:text-[11px] text-slate-500 flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-800/60">
+              <span className="flex items-center gap-1 truncate">
+                <CheckCircle2 className="w-3 h-3 text-emerald-500 shrink-0" />
+                <span className="truncate">{isBn ? 'RBAC ডেটাবেস' : 'Central RBAC'}</span>
               </span>
             </div>
           </button>
@@ -1242,35 +1253,32 @@ export default function AdminStaffRolesPage() {
               setActiveTab('roster');
               setStaffStatusFilter('2fa');
             }}
-            className={`text-left p-5 rounded-3xl bg-white dark:bg-slate-900/80 border transition-all cursor-pointer group shadow-sm backdrop-blur-xl relative overflow-hidden ${
+            className={`text-left p-3 sm:p-5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 border transition-all cursor-pointer group shadow-sm backdrop-blur-xl relative overflow-hidden flex flex-col justify-between ${
               activeTab === 'roster' && staffStatusFilter === '2fa'
                 ? 'border-emerald-500 ring-2 ring-emerald-500/40 shadow-lg shadow-emerald-500/10'
-                : 'border-slate-200 dark:border-slate-800 hover:border-emerald-500/40 hover:scale-[1.02]'
+                : 'border-slate-200 dark:border-slate-800 hover:border-emerald-500/40'
             }`}
           >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                {isBn ? '২এফএ সক্রিয় টিম' : '2FA Authenticated'}
+            <div className="flex items-center justify-between gap-1">
+              <span className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">
+                {isBn ? '২এফএ টিম' : '2FA Authenticated'}
               </span>
-              <div className="w-9 h-9 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <BadgeCheck className="w-4 h-4" />
+              <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                <BadgeCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
             </div>
-            <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+            <div className="mt-2 sm:mt-3">
+              <span className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white block">
                 {isBn ? toBengaliNumber(twoFaEnforcedCount) : twoFaEnforcedCount}
               </span>
-              <span className="text-xs text-emerald-600 dark:text-emerald-400 font-bold">
+              <span className="text-[9px] sm:text-xs text-emerald-600 dark:text-emerald-400 font-bold block mt-1">
                 {isBn ? '১০০% এনক্রিপ্টেড' : '100% Encrypted'}
               </span>
             </div>
-            <div className="mt-2 text-[11px] text-slate-500 flex items-center justify-between">
-              <span className="flex items-center gap-1">
-                <Lock className="w-3 h-3 text-emerald-500" />
-                {isBn ? 'দ্বি-স্তর বিশিষ্ট নিরাপত্তা' : 'Two-Factor Shield Active'}
-              </span>
-              <span className="text-[10px] text-emerald-500 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
-                {isBn ? 'ফিল্টার করুন →' : 'Filter 2FA →'}
+            <div className="mt-2 text-[9px] sm:text-[11px] text-slate-500 flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-800/60">
+              <span className="flex items-center gap-1 truncate">
+                <Lock className="w-3 h-3 text-emerald-500 shrink-0" />
+                <span className="truncate">{isBn ? 'দ্বি-স্তর নিরাপত্তা' : '2-Factor Active'}</span>
               </span>
             </div>
           </button>
@@ -1281,35 +1289,32 @@ export default function AdminStaffRolesPage() {
             onClick={() => {
               setActiveTab('matrix');
             }}
-            className={`text-left p-5 rounded-3xl bg-white dark:bg-slate-900/80 border transition-all cursor-pointer group shadow-sm backdrop-blur-xl relative overflow-hidden ${
+            className={`text-left p-3 sm:p-5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 border transition-all cursor-pointer group shadow-sm backdrop-blur-xl relative overflow-hidden flex flex-col justify-between ${
               activeTab === 'matrix'
                 ? 'border-indigo-500 ring-2 ring-indigo-500/40 shadow-lg shadow-indigo-500/10'
-                : 'border-slate-200 dark:border-slate-800 hover:border-indigo-500/40 hover:scale-[1.02]'
+                : 'border-slate-200 dark:border-slate-800 hover:border-indigo-500/40'
             }`}
           >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            <div className="flex items-center justify-between gap-1">
+              <span className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">
                 {isBn ? 'পারমিশন রুলস' : 'Active RBAC Rules'}
               </span>
-              <div className="w-9 h-9 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Sliders className="w-4 h-4" />
+              <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                <Sliders className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
             </div>
-            <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+            <div className="mt-2 sm:mt-3">
+              <span className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white block">
                 {isBn ? toBengaliNumber(permissions.length) : permissions.length}
               </span>
-              <span className="text-xs text-indigo-600 dark:text-indigo-400 font-bold">
+              <span className="text-[9px] sm:text-xs text-indigo-600 dark:text-indigo-400 font-bold block mt-1">
                 {isBn ? '৬টি ভূমিকা' : '6 Roles'}
               </span>
             </div>
-            <div className="mt-2 text-[11px] text-slate-500 flex items-center justify-between">
-              <span className="flex items-center gap-1">
-                <Layers className="w-3 h-3 text-indigo-500" />
-                {isBn ? 'ম্যাট্রিক্স এডিট করুন' : 'Edit Matrix'}
-              </span>
-              <span className="text-[10px] text-indigo-500 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
-                {isBn ? 'ম্যাট্রিক্স দেখুন →' : 'View Matrix →'}
+            <div className="mt-2 text-[9px] sm:text-[11px] text-slate-500 flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-800/60">
+              <span className="flex items-center gap-1 truncate">
+                <Layers className="w-3 h-3 text-indigo-500 shrink-0" />
+                <span className="truncate">{isBn ? 'ম্যাট্রিক্স এডিট' : 'Edit Matrix'}</span>
               </span>
             </div>
           </button>
@@ -1321,79 +1326,86 @@ export default function AdminStaffRolesPage() {
               setActiveTab('roster');
               setStaffStatusFilter('suspended');
             }}
-            className={`text-left p-5 rounded-3xl bg-white dark:bg-slate-900/80 border transition-all cursor-pointer group shadow-sm backdrop-blur-xl relative overflow-hidden ${
+            className={`text-left p-3 sm:p-5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 border transition-all cursor-pointer group shadow-sm backdrop-blur-xl relative overflow-hidden flex flex-col justify-between ${
               activeTab === 'roster' && staffStatusFilter === 'suspended'
                 ? 'border-amber-500 ring-2 ring-amber-500/40 shadow-lg shadow-amber-500/10'
-                : 'border-slate-200 dark:border-slate-800 hover:border-amber-500/40 hover:scale-[1.02]'
+                : 'border-slate-200 dark:border-slate-800 hover:border-amber-500/40'
             }`}
           >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            <div className="flex items-center justify-between gap-1">
+              <span className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">
                 {isBn ? 'স্থগিত অ্যাক্সেস' : 'Suspended Access'}
               </span>
-              <div className="w-9 h-9 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Power className="w-4 h-4" />
+              <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                <Power className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
             </div>
-            <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+            <div className="mt-2 sm:mt-3">
+              <span className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white block">
                 {isBn ? toBengaliNumber(suspendedStaffCount) : suspendedStaffCount}
               </span>
-              <span className="text-xs text-amber-600 dark:text-amber-400 font-bold">
+              <span className="text-[9px] sm:text-xs text-amber-600 dark:text-amber-400 font-bold block mt-1">
                 {isBn ? 'ইনঅ্যাক্টিভ' : 'Inactive'}
               </span>
             </div>
-            <div className="mt-2 text-[11px] text-slate-500 flex items-center justify-between">
-              <span className="flex items-center gap-1">
-                <AlertCircle className="w-3 h-3 text-amber-500" />
-                {isBn ? '১-ক্লিক সুইচ কন্ট্রোল' : '1-Click instant toggle'}
-              </span>
-              <span className="text-[10px] text-amber-500 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
-                {isBn ? 'ফিল্টার করুন →' : 'Filter Suspended →'}
+            <div className="mt-2 text-[9px] sm:text-[11px] text-slate-500 flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-800/60">
+              <span className="flex items-center gap-1 truncate">
+                <AlertCircle className="w-3 h-3 text-amber-500 shrink-0" />
+                <span className="truncate">{isBn ? '১-ক্লিক সুইচ' : '1-Click Toggle'}</span>
               </span>
             </div>
           </button>
         </div>
 
         {/* TAB SWITCHER */}
-        <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm max-w-lg">
+        <div className="flex items-center gap-1 sm:gap-2 p-1 sm:p-1.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm w-full sm:max-w-xl">
           <button
             type="button"
             onClick={() => setActiveTab('roster')}
-            className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+            className={`flex-1 min-w-0 py-2 sm:py-2.5 px-2 sm:px-3 rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1 sm:gap-1.5 ${
               activeTab === 'roster'
                 ? 'bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white shadow-md shadow-orange-500/25'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            <Users className="w-4 h-4" />
-            <span>{isBn ? `স্টাফ মেম্বার (${toBengaliNumber(staffList.length)})` : `Staff Members (${staffList.length})`}</span>
+            <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span className="truncate">
+              <span className="hidden sm:inline">{isBn ? 'স্টাফ মেম্বার' : 'Staff Members'}</span>
+              <span className="sm:hidden">{isBn ? 'স্টাফ' : 'Staff'}</span>{' '}
+              <span className="font-mono">({isBn ? toBengaliNumber(staffList.length) : staffList.length})</span>
+            </span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('matrix')}
-            className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+            className={`flex-1 min-w-0 py-2 sm:py-2.5 px-2 sm:px-3 rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1 sm:gap-1.5 ${
               activeTab === 'matrix'
                 ? 'bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white shadow-md shadow-orange-500/25'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            <Sliders className="w-4 h-4" />
-            <span>{isBn ? 'পারমিশন ম্যাট্রিক্স' : 'Permissions Matrix'}</span>
+            <Sliders className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span className="truncate">
+              <span className="hidden sm:inline">{isBn ? 'পারমিশন ' : 'Permissions '}</span>
+              <span>{isBn ? 'ম্যাট্রিক্স' : 'Matrix'}</span>
+            </span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('guide')}
-            className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+            className={`flex-1 min-w-0 py-2 sm:py-2.5 px-2 sm:px-3 rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1 sm:gap-1.5 ${
               activeTab === 'guide'
                 ? 'bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white shadow-md shadow-orange-500/25'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            <FileText className="w-4 h-4" />
-            <span>{isBn ? 'রোল গাইড' : 'Roles Guide'}</span>
+            <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span className="truncate">
+              <span className="hidden sm:inline">{isBn ? 'রোল গাইড' : 'Roles Guide'}</span>
+              <span className="sm:hidden">{isBn ? 'গাইড' : 'Guide'}</span>
+            </span>
           </button>
         </div>
 
@@ -1564,7 +1576,7 @@ export default function AdminStaffRolesPage() {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 {filteredStaff.map((member) => {
                   const roleDef = ROLE_DEFINITIONS[member.role] || ROLE_DEFINITIONS['Super Admin'];
                   const isSuspended = member.status === 'Suspended';
@@ -1573,145 +1585,136 @@ export default function AdminStaffRolesPage() {
                   return (
                     <div
                       key={member.id}
-                      className={`p-5 rounded-3xl bg-white dark:bg-slate-900/80 border ${
+                      className={`p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 border ${
                         presence.isOnline
                           ? 'border-emerald-500/40 shadow-emerald-500/5'
                           : isSuspended
                           ? 'border-rose-500/40 opacity-80'
                           : 'border-slate-200 dark:border-slate-800'
-                      } shadow-sm backdrop-blur-xl space-y-4 hover:border-orange-500/40 transition-all relative`}
+                      } shadow-sm backdrop-blur-xl space-y-3 sm:space-y-4 hover:border-orange-500/40 transition-all`}
                     >
-                      {/* Multi-Device Warning Ribbon or Online Pulse Indicator Ribbon */}
-                      {(member.sessions && member.sessions.length > 1) ? (
-                        <button
-                          type="button"
-                          onClick={() => handleOpenSessionsModal(member)}
-                          className="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold hover:scale-105 transition-transform cursor-pointer"
-                          title={isBn ? 'মাল্টি-ডিভাইস লগইন শনাক্ত হয়েছে - সেশন দেখুন' : 'Multi-device login detected - Inspect sessions'}
-                        >
-                          <AlertTriangle className="w-3 h-3 text-amber-500 animate-bounce" />
-                          <span>{isBn ? `${toBengaliNumber(member.sessions.length)}টি ডিভাইসে সক্রিয়` : `${member.sessions.length} Devices Active`}</span>
-                        </button>
-                      ) : presence.isOnline ? (
-                        <button
-                          type="button"
-                          onClick={() => handleOpenSessionsModal(member)}
-                          className="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold hover:scale-105 transition-transform cursor-pointer"
-                          title={isBn ? 'সক্রিয় সেশন ও ডিভাইস দেখুন' : 'View active sessions and telemetry'}
-                        >
-                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                          <span>{presence.presenceLabel}</span>
-                        </button>
-                      ) : null}
-
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-center gap-3">
-                          <div className="relative shrink-0">
-                            <div
-                              className={`w-12 h-12 rounded-2xl bg-gradient-to-tr ${member.avatarColor} text-white font-black text-base flex items-center justify-center shadow-md`}
-                            >
-                              {member.name.slice(0, 2).toUpperCase()}
-                            </div>
-                            {/* Avatar Presence Dot */}
-                            <span
-                              className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-slate-900 ${
-                                presence.isOnline ? 'bg-emerald-500' : 'bg-slate-400'
-                              }`}
-                              title={presence.presenceLabel}
-                            />
-                          </div>
-
-                          <div>
-                            <div className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-1.5">
-                              <span>{member.name}</span>
-                              {member.twoFactorEnabled && (
-                                <span title={isBn ? '২এফএ ভেরিফাইড' : '2FA Authenticated'}>
-                                  <BadgeCheck className="w-4 h-4 text-emerald-500 shrink-0" />
-                                </span>
-                              )}
-                            </div>
-                            <span className="text-xs text-slate-500 dark:text-slate-400 block">{member.email}</span>
-                            <span className="text-[11px] font-mono text-slate-400">{member.phone}</span>
-                          </div>
+                      {/* Top Header Row with Presence & Role Badge */}
+                      <div className="flex flex-wrap items-center justify-between gap-1.5 border-b border-slate-100 dark:border-slate-800/60 pb-2">
+                        <div className="flex items-center gap-1.5">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${roleDef.badgeBg}`}>
+                            {isBn ? roleDef.title.bn : member.role}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedRoleInfo(member.role)}
+                            className="p-1 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 transition-colors cursor-pointer"
+                            title={isBn ? 'রোল পারমিশন তথ্য' : 'Role Information'}
+                          >
+                            <Info className="w-3 h-3" />
+                          </button>
                         </div>
 
-                        {!presence.isOnline && (!member.sessions || member.sessions.length <= 1) && (
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${roleDef.badgeBg}`}>
-                              {isBn ? roleDef.title.bn : member.role}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => setSelectedRoleInfo(member.role)}
-                              className="p-1 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 transition-colors cursor-pointer"
-                              title={isBn ? 'রোল পারমিশন তথ্য' : 'Role Information'}
-                            >
-                              <Info className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
+                        {/* Multi-Device Warning Ribbon or Online Pulse Indicator */}
+                        {(member.sessions && member.sessions.length > 1) ? (
+                          <button
+                            type="button"
+                            onClick={() => handleOpenSessionsModal(member)}
+                            className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold hover:scale-105 transition-transform cursor-pointer"
+                            title={isBn ? 'মাল্টি-ডিভাইস লগইন শনাক্ত হয়েছে - সেশন দেখুন' : 'Multi-device login detected - Inspect sessions'}
+                          >
+                            <AlertTriangle className="w-3 h-3 text-amber-500 animate-bounce" />
+                            <span>{isBn ? `${toBengaliNumber(member.sessions.length)}টি ডিভাইসে সক্রিয়` : `${member.sessions.length} Devices`}</span>
+                          </button>
+                        ) : presence.isOnline ? (
+                          <button
+                            type="button"
+                            onClick={() => handleOpenSessionsModal(member)}
+                            className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold hover:scale-105 transition-transform cursor-pointer"
+                            title={isBn ? 'সক্রিয় সেশন ও ডিভাইস দেখুন' : 'View active sessions and telemetry'}
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            <span>{presence.presenceLabel}</span>
+                          </button>
+                        ) : (
+                          <span className="text-[10px] text-slate-400">
+                            {isBn ? `⚪ অফলাইন` : `⚪ Offline`}
+                          </span>
                         )}
                       </div>
 
-                      {/* Permissions Tag Cloud & Role pill if online */}
-                      <div className="flex items-center gap-1.5 flex-wrap pt-2">
-                        {(presence.isOnline || (member.sessions && member.sessions.length > 1)) && (
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${roleDef.badgeBg} mr-1`}>
-                            {isBn ? roleDef.title.bn : member.role}
-                          </span>
-                        )}
+                      {/* Avatar & User Details */}
+                      <div className="flex items-center gap-3">
+                        <div className="relative shrink-0">
+                          <div
+                            className={`w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-tr ${member.avatarColor} text-white font-black text-sm sm:text-base flex items-center justify-center shadow-md`}
+                          >
+                            {member.name.slice(0, 2).toUpperCase()}
+                          </div>
+                          {/* Avatar Presence Dot */}
+                          <span
+                            className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white dark:border-slate-900 ${
+                              presence.isOnline ? 'bg-emerald-500' : 'bg-slate-400'
+                            }`}
+                            title={presence.presenceLabel}
+                          />
+                        </div>
 
+                        <div className="min-w-0 flex-1">
+                          <div className="font-bold text-slate-900 dark:text-white text-xs sm:text-sm flex items-center gap-1 truncate">
+                            <span className="truncate">{member.name}</span>
+                            {member.twoFactorEnabled && (
+                              <span title={isBn ? '২এফএ ভেরিফাইড' : '2FA Authenticated'}>
+                                <BadgeCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 block truncate">{member.email}</span>
+                          <span className="text-[10px] sm:text-[11px] font-mono text-slate-400 block">{member.phone}</span>
+                        </div>
+                      </div>
+
+                      {/* Permissions Tag Cloud */}
+                      <div className="flex items-center gap-1 flex-wrap pt-0.5">
                         {member.customPermissions?.canManageCatalog && (
-                          <span className="px-2 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[9px] font-bold">
+                          <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[9px] font-bold">
                             {isBn ? 'ক্যাটালগ' : 'Catalog'}
                           </span>
                         )}
                         {member.customPermissions?.canEditOrders && (
-                          <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] font-bold">
+                          <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] font-bold">
                             {isBn ? 'অর্ডার' : 'Orders'}
                           </span>
                         )}
                         {member.customPermissions?.canManageLogistics && (
-                          <span className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[9px] font-bold">
+                          <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[9px] font-bold">
                             {isBn ? 'লজিস্টিকস' : 'Logistics'}
                           </span>
                         )}
                         {member.customPermissions?.canManageFinance && (
-                          <span className="px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 text-[9px] font-bold">
+                          <span className="px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 text-[9px] font-bold">
                             {isBn ? 'ফাইন্যান্স' : 'Finance'}
                           </span>
                         )}
                         {member.customPermissions?.canAccessRBAC && (
-                          <span className="px-2 py-0.5 rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 text-[9px] font-bold">
+                          <span className="px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 text-[9px] font-bold">
                             {isBn ? 'মাস্টার আরবিএসি' : 'Master RBAC'}
                           </span>
                         )}
                       </div>
 
                       {/* Footer Actions */}
-                      <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500 flex-wrap gap-2">
-                        <div className="flex items-center gap-2">
-                          <span className="text-slate-400">
-                            {isBn ? 'সেশন:' : 'Presence:'}{' '}
-                            <strong className={presence.isOnline ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-400'}>
-                              {presence.isOnline ? (isBn ? '🟢 অনলাইন (Online)' : '🟢 Online') : (isBn ? `⚪ অফলাইন (${member.lastActive})` : `⚪ Offline (${member.lastActive})`)}
-                            </strong>
-                          </span>
-                          <span className="text-slate-600">•</span>
-                          <span className={isSuspended ? 'text-rose-600 font-bold' : 'text-slate-400'}>
+                      <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500 flex-wrap gap-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className={`text-[10px] ${isSuspended ? 'text-rose-600 font-bold' : 'text-slate-400'}`}>
                             {isSuspended ? (isBn ? 'লকড' : 'Suspended') : (isBn ? 'অনুমোদিত' : 'Allowed')}
                           </span>
                         </div>
 
                         {/* Action buttons */}
-                        <div className="flex items-center gap-1.5 flex-wrap">
+                        <div className="flex items-center gap-1 flex-wrap">
                           {/* Active Sessions Inspector Trigger */}
                           <button
                             type="button"
                             onClick={() => handleOpenSessionsModal(member)}
-                            className="px-2.5 py-1 rounded-xl text-[10px] font-bold bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 transition-all cursor-pointer flex items-center gap-1"
+                            className="px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg text-[9px] sm:text-[10px] font-bold bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 transition-all cursor-pointer flex items-center gap-1"
                             title={isBn ? 'সক্রিয় সেশন ও ডিভাইস নিরাপত্তা দেখুন' : 'Inspect Active Sessions & Remote Logout'}
                           >
-                            <Laptop className="w-3 h-3" />
+                            <Laptop className="w-3 h-3 shrink-0" />
                             <span>{isBn ? `সেশন (${toBengaliNumber(member.sessions?.length || 1)})` : `Sessions (${member.sessions?.length || 1})`}</span>
                           </button>
 
@@ -1720,35 +1723,35 @@ export default function AdminStaffRolesPage() {
                             <button
                               type="button"
                               onClick={() => handleInstantFreezeAccount(member.id, member.name)}
-                              className={`px-2.5 py-1 rounded-xl text-[10px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                              className={`px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg text-[9px] sm:text-[10px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
                                 isSuspended
                                   ? 'bg-emerald-600 text-white hover:bg-emerald-700'
                                   : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20'
                               }`}
                               title={isSuspended ? (isBn ? 'অ্যাকাউন্ট আনফ্রিজ করুন' : 'Unfreeze Account') : (isBn ? 'ইনস্ট্যান্ট একাউন্ট ফ্রিজ' : 'Instant Freeze Account')}
                             >
-                              <Snowflake className="w-3 h-3" />
-                              <span>{isSuspended ? (isBn ? 'সক্রিয় করুন' : 'Unfreeze') : (isBn ? 'ফ্রিজ' : 'Freeze')}</span>
+                              <Snowflake className="w-3 h-3 shrink-0" />
+                              <span>{isSuspended ? (isBn ? 'সক্রিয়' : 'Unfreeze') : (isBn ? 'ফ্রিজ' : 'Freeze')}</span>
                             </button>
                           )}
 
                           <button
                             type="button"
                             onClick={() => setEditingStaff(member)}
-                            className="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
+                            className="p-1 sm:p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
                             title={isBn ? 'রোল ও পারমিশন এডিট' : 'Edit Role & Permissions'}
                           >
-                            <Edit className="w-3.5 h-3.5" />
+                            <Edit className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                           </button>
 
                           {member.role !== 'Super Admin' && (
                             <button
                               type="button"
                               onClick={() => handleDeleteStaff(member.id, member.name)}
-                              className="p-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 transition-colors cursor-pointer"
+                              className="p-1 sm:p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 transition-colors cursor-pointer"
                               title={isBn ? 'অ্যাক্সেস চিরতরে বাতিল' : 'Revoke Credentials'}
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <Trash2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                             </button>
                           )}
                         </div>
@@ -1763,7 +1766,7 @@ export default function AdminStaffRolesPage() {
 
         {/* TAB 2: GRANULAR PERMISSIONS MATRIX */}
         {activeTab === 'matrix' && (
-          <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 backdrop-blur-xl overflow-hidden shadow-sm space-y-4 p-6">
+          <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 backdrop-blur-xl overflow-hidden shadow-sm space-y-4 p-4 sm:p-6">
             <div>
               <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
                 <Sliders className="w-4 h-4 text-orange-500" />
@@ -1774,6 +1777,11 @@ export default function AdminStaffRolesPage() {
                   ? 'প্রতিটি প্রশাসনিক রোলের জন্য মডিউল অ্যাক্সেস তাৎক্ষণিকভাবে অন/অফ করুন।'
                   : 'Toggle permissions to immediately grant or revoke module access for each administrative staff role.'}
               </p>
+            </div>
+
+            {/* Mobile Swipe Hint */}
+            <div className="sm:hidden px-3 py-1.5 bg-slate-50 dark:bg-slate-950/60 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center text-[11px] text-slate-500 dark:text-slate-400">
+              <span>👉 {isBn ? 'ডানে স্ক্রোল করে সকল রোলের পারমিশন দেখুন' : 'Swipe right to view permissions for all roles'}</span>
             </div>
 
             <div className="overflow-x-auto">

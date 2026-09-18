@@ -345,25 +345,25 @@ export default function AdminReviewsPage() {
             filteredReviews.map((rev) => (
               <div
                 key={rev.id}
-                className="p-6 rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 transition-all"
+                className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3.5 sm:space-y-4 transition-all"
               >
                 {/* Header Row */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800/80 pb-3.5">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 text-white font-bold text-sm flex items-center justify-center shadow-md shadow-orange-500/20">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 border-b border-slate-100 dark:border-slate-800/80 pb-3">
+                  <div className="flex items-start sm:items-center gap-2.5 sm:gap-3">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 text-white font-bold text-xs sm:text-sm flex items-center justify-center shadow-md shadow-orange-500/20 shrink-0 mt-0.5 sm:mt-0">
                       {rev.author.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-sm text-slate-900 dark:text-white">
+                      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                        <span className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white">
                           {rev.author}
                         </span>
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
-                          <Check className="w-2.5 h-2.5" /> {isBn ? 'ভেরিফাইড ক্রেতা' : 'Verified Buyer'}
+                        <span className="px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                          <Check className="w-2.5 h-2.5" /> {isBn ? 'ভেরিফাইড' : 'Verified'}
                         </span>
                         {/* Status Badge */}
                         <span
-                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                          className={`px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold ${
                             rev.status === 'APPROVED'
                               ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
                               : rev.status === 'PENDING'
@@ -384,19 +384,18 @@ export default function AdminReviewsPage() {
                             : 'Rejected'}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-400 font-medium">
-                        {isBn ? 'পণ্য:' : 'Product:'}{' '}
+                      <p className="text-[11px] sm:text-xs text-slate-400 font-medium mt-0.5">
                         <span className="text-slate-700 dark:text-slate-300 font-semibold">{rev.productName}</span> • {rev.date}
                       </p>
                     </div>
                   </div>
 
                   {/* Rating */}
-                  <div className="flex items-center gap-1 text-amber-400">
+                  <div className="flex items-center gap-1 text-amber-400 self-start sm:self-auto">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <Star
                         key={star}
-                        className={`w-4 h-4 ${
+                        className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${
                           rev.rating >= star
                             ? 'fill-amber-400 text-amber-400'
                             : 'text-slate-300 dark:text-slate-700'
@@ -416,11 +415,11 @@ export default function AdminReviewsPage() {
 
                 {/* Photos */}
                 {rev.images && rev.images.length > 0 && (
-                  <div className="flex flex-wrap items-center gap-2.5 pt-1">
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
                     {rev.images.map((imgSrc, imgIdx) => (
                       <div
                         key={imgIdx}
-                        className="relative w-16 h-16 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-950 shadow-sm"
+                        className="relative w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-950 shadow-sm"
                       >
                         <Image
                           src={imgSrc}
@@ -435,10 +434,10 @@ export default function AdminReviewsPage() {
 
                 {/* Seller Reply Box */}
                 {rev.sellerReply && (
-                  <div className="p-4 rounded-2xl bg-orange-500/5 dark:bg-orange-500/10 border border-orange-500/20 space-y-1.5">
-                    <div className="flex items-center justify-between">
+                  <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-orange-500/5 dark:bg-orange-500/10 border border-orange-500/20 space-y-1.5">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="flex items-center gap-1.5">
-                        <MessageSquare className="w-3.5 h-3.5 text-orange-500" />
+                        <MessageSquare className="w-3.5 h-3.5 text-orange-500 shrink-0" />
                         <span className="text-xs font-bold text-slate-900 dark:text-white">
                           {rev.sellerReply.author}
                         </span>
@@ -446,22 +445,22 @@ export default function AdminReviewsPage() {
                           {rev.sellerReply.role}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 text-[10px] sm:text-[11px]">
                         <button
                           type="button"
                           onClick={() => {
                             setReplyingReviewId(rev.id);
                             setReplyText(rev.sellerReply?.comment || '');
                           }}
-                          className="text-[11px] font-semibold text-blue-500 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-1 cursor-pointer"
+                          className="font-semibold text-blue-500 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-1 cursor-pointer"
                         >
-                          <Sliders className="w-3 h-3" /> {isBn ? 'রিপ্লাই এডিট' : 'Edit Reply'}
+                          <Sliders className="w-3 h-3" /> {isBn ? 'রিপ্লাই এডিট' : 'Edit'}
                         </button>
                         <span className="text-slate-300 dark:text-slate-700">•</span>
                         <button
                           type="button"
                           onClick={() => deleteSellerReply(rev.id)}
-                          className="text-[11px] font-semibold text-rose-500 hover:text-rose-600 dark:hover:text-rose-400 flex items-center gap-1 cursor-pointer"
+                          className="font-semibold text-rose-500 hover:text-rose-600 dark:hover:text-rose-400 flex items-center gap-1 cursor-pointer"
                         >
                           <Trash2 className="w-3 h-3" /> {isBn ? 'মুছুন' : 'Delete'}
                         </button>
@@ -475,7 +474,7 @@ export default function AdminReviewsPage() {
 
                 {/* Inline Reply Form (when active) */}
                 {replyingReviewId === rev.id && (
-                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2.5">
+                  <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2.5">
                     <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
                       {isBn ? 'অফিশিয়াল রিপ্লাই লিখুন:' : 'Write Official Response:'}
                     </label>
@@ -488,7 +487,7 @@ export default function AdminReviewsPage() {
                           ? 'গ্রাহকের জন্য অফিশিয়াল ধন্যবাদ বা মতামত লিখুন...'
                           : 'Type official response or gratitude for customer...'
                       }
-                      className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs focus:outline-none focus:border-orange-500 text-slate-900 dark:text-white"
+                      className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs focus:outline-none focus:border-orange-500 text-slate-900 dark:text-white"
                     />
                     <div className="flex items-center justify-end gap-2">
                       <button
@@ -504,32 +503,32 @@ export default function AdminReviewsPage() {
                       <button
                         type="button"
                         onClick={() => handleSendReply(rev.id)}
-                        className="px-4 py-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-orange-500/20 cursor-pointer"
+                        className="px-3.5 py-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-orange-500/20 cursor-pointer"
                       >
-                        <Send className="w-3 h-3" /> {isBn ? 'রিপ্লাই পোস্ট করুন' : 'Post Reply'}
+                        <Send className="w-3 h-3" /> {isBn ? 'রিপ্লাই পোস্ট' : 'Post Reply'}
                       </button>
                     </div>
                   </div>
                 )}
 
                 {/* Footer Action Buttons */}
-                <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100 dark:border-slate-800/80">
-                  <span className="text-[11px] text-slate-400 flex items-center gap-1">
-                    <ThumbsUp className="w-3 h-3 text-orange-500" />
+                <div className="flex flex-wrap items-center justify-between gap-2.5 pt-3 border-t border-slate-100 dark:border-slate-800/80">
+                  <span className="text-[10px] sm:text-[11px] text-slate-400 flex items-center gap-1">
+                    <ThumbsUp className="w-3 h-3 text-orange-500 shrink-0" />
                     {isBn
-                      ? `${toBengaliNumber(rev.helpfulVotes?.length || 0)} জন সহায়ক বলেছেন`
-                      : `${rev.helpfulVotes?.length || 0} found this helpful`}
+                      ? `${toBengaliNumber(rev.helpfulVotes?.length || 0)} সহায়ক ভোট`
+                      : `${rev.helpfulVotes?.length || 0} helpful`}
                   </span>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                     {/* Approve button */}
                     {rev.status !== 'APPROVED' && (
                       <button
                         type="button"
                         onClick={() => handleApprove(rev.id)}
-                        className="px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs flex items-center gap-1 shadow-sm transition-all cursor-pointer"
+                        className="px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[11px] sm:text-xs flex items-center gap-1 shadow-sm transition-all cursor-pointer"
                       >
-                        <CheckCircle2 className="w-3.5 h-3.5" /> {isBn ? 'অনুমোদন করুন' : 'Approve'}
+                        <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> <span>{isBn ? 'অনুমোদন' : 'Approve'}</span>
                       </button>
                     )}
 
@@ -538,9 +537,9 @@ export default function AdminReviewsPage() {
                       <button
                         type="button"
                         onClick={() => handleReject(rev.id)}
-                        className="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-rose-500/10 hover:text-rose-500 text-slate-600 dark:text-slate-300 font-bold text-xs flex items-center gap-1 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer"
+                        className="px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-rose-500/10 hover:text-rose-500 text-slate-600 dark:text-slate-300 font-bold text-[11px] sm:text-xs flex items-center gap-1 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer"
                       >
-                        <XCircle className="w-3.5 h-3.5" /> {isBn ? 'বাতিল করুন' : 'Reject'}
+                        <XCircle className="w-3.5 h-3.5 shrink-0" /> <span>{isBn ? 'বাতিল' : 'Reject'}</span>
                       </button>
                     )}
 
@@ -548,16 +547,16 @@ export default function AdminReviewsPage() {
                     <button
                       type="button"
                       onClick={() => setReplyingReviewId(rev.id)}
-                      className="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-orange-500/10 hover:text-orange-500 text-slate-600 dark:text-slate-300 font-bold text-xs flex items-center gap-1 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer"
+                      className="px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-orange-500/10 hover:text-orange-500 text-slate-600 dark:text-slate-300 font-bold text-[11px] sm:text-xs flex items-center gap-1 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer"
                     >
-                      <MessageSquare className="w-3.5 h-3.5" /> {isBn ? 'অফিশিয়াল রিপ্লাই' : 'Official Reply'}
+                      <MessageSquare className="w-3.5 h-3.5 shrink-0" /> <span>{isBn ? 'রিপ্লাই' : 'Reply'}</span>
                     </button>
 
                     {/* Delete button */}
                     <button
                       type="button"
                       onClick={() => handleDelete(rev.id, rev.userId)}
-                      className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-rose-600 hover:text-white text-rose-500 font-bold text-xs flex items-center justify-center border border-slate-200 dark:border-slate-700 transition-all cursor-pointer"
+                      className="p-1.5 sm:p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-rose-600 hover:text-white text-rose-500 font-bold text-xs flex items-center justify-center border border-slate-200 dark:border-slate-700 transition-all cursor-pointer"
                       title={isBn ? 'স্থায়ীভাবে মুছুন' : 'Delete Review'}
                     >
                       <Trash2 className="w-3.5 h-3.5" />

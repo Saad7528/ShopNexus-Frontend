@@ -55,8 +55,8 @@ function purgeExpiredInMemoryRequests() {
   });
 }
 
-// Helper to extract IP and location from request
-function extractClientInfo(req: Request, body: Partial<ILoginAuthRequest>) {
+// Helper to extract IP and dynamic location from request
+async function extractClientInfoAsync(req: Request, body: Partial<ILoginAuthRequest>) {
   const headers = req.headers;
   const forwardedFor = headers.get('x-forwarded-for');
   const realIp = headers.get('x-real-ip');
@@ -94,12 +94,51 @@ function extractClientInfo(req: Request, body: Partial<ILoginAuthRequest>) {
     else if (/edg/i.test(userAgent)) detectedBrowser = 'Microsoft Edge';
   }
 
+  // 1. Check Vercel & Cloudflare Geo-IP Headers
+  let detectedLocation = body.location;
+  const vercelCity = headers.get('x-vercel-ip-city');
+  const vercelCountry = headers.get('x-vercel-ip-country');
+  const cfCity = headers.get('cf-ipcity');
+  const cfCountry = headers.get('cf-ipcountry');
+
+  const city = vercelCity || cfCity;
+  const countryCode = vercelCountry || cfCountry;
+  const countryName = countryCode === 'BD' ? 'Bangladesh' : countryCode || 'Bangladesh';
+
+  if (!detectedLocation && city) {
+    detectedLocation = `${decodeURIComponent(city)}, ${countryName}`;
+  }
+
+  // 2. Fast server-side GeoIP lookup fallback
+  if (!detectedLocation) {
+    try {
+      if (detectedIp && !detectedIp.startsWith('127.') && !detectedIp.startsWith('192.168.') && detectedIp !== '::1') {
+        const geoRes = await fetch(`http://ip-api.com/json/${detectedIp}?fields=status,city,regionName,country`, {
+          signal: AbortSignal.timeout(1200),
+        }).catch(() => null);
+
+        if (geoRes && geoRes.ok) {
+          const geoData = await geoRes.json().catch(() => null);
+          if (geoData && geoData.status === 'success' && geoData.city) {
+            detectedLocation = `${geoData.city}, ${geoData.country || 'Bangladesh'}`;
+          }
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  if (!detectedLocation) {
+    detectedLocation = 'Dhaka, Bangladesh';
+  }
+
   return {
     ip: detectedIp,
     os: detectedOS,
     browser: detectedBrowser,
     device: detectedDevice,
-    location: body.location || (detectedIp.startsWith('103.') ? 'Dhaka, Bangladesh' : 'Chittagong, Bangladesh'),
+    location: detectedLocation,
   };
 }
 
@@ -335,7 +374,7 @@ export async function POST(req: Request) {
 
     // Action 1: Create a new login authorization challenge from remote/secondary device
     if (action === 'create_request') {
-      const clientInfo = extractClientInfo(req, body);
+      const clientInfo = await extractClientInfoAsync(req, body);
       const reqEmail = (email || 'saad0174742@gmail.com').toLowerCase().trim();
       const reqIp = body.ipAddress || clientInfo.ip;
 

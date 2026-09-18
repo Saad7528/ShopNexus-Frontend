@@ -23,6 +23,7 @@ export function AdminSecurityListener() {
   const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
   const [isSessionExpired, setIsSessionExpired] = useState(false);
   const [isSessionRevoked, setIsSessionRevoked] = useState(false);
+  const [isTimerExpanded, setIsTimerExpanded] = useState(false);
   const isLoggingOutRef = useRef(false);
 
   const handleRedirectToLogin = useCallback(() => {
@@ -286,19 +287,46 @@ export function AdminSecurityListener() {
 
   return (
     <>
-      {/* ⏱️ Floating Temporary Session Countdown Banner on Secondary Devices */}
+      {/* ⏱️ Sleek Collapsible Floating 2FA Session Timer Widget on Secondary Devices */}
       {isTemporarySession && remainingSeconds !== null && !isSessionExpired && !isSessionRevoked && (
-        <div className="fixed top-2 left-1/2 -translate-x-1/2 z-[110] px-4 py-1.5 rounded-full bg-slate-900/90 dark:bg-slate-950/95 border border-orange-500/40 text-white shadow-xl backdrop-blur-md flex items-center gap-2 text-xs animate-in slide-in-from-top-4">
-          <Clock className={`w-3.5 h-3.5 ${remainingSeconds < 60 ? 'text-rose-400 animate-ping' : 'text-orange-400 animate-pulse'}`} />
-          <span className="font-semibold text-slate-300">
-            {isBn ? 'সাময়িক ২এফএ সেশন:' : 'Temporary 2FA Session:'}
-          </span>
-          <span className={`font-mono font-black ${remainingSeconds < 60 ? 'text-rose-400' : 'text-amber-300'}`}>
-            {formatSeconds(remainingSeconds)}
-          </span>
-          <span className="text-[10px] text-slate-400">
-            {isBn ? 'বাকি' : 'left'}
-          </span>
+        <div className="fixed bottom-5 right-4 z-[100] md:top-2.5 md:bottom-auto md:right-4 animate-in fade-in slide-in-from-bottom-3 md:slide-in-from-top-2">
+          {!isTimerExpanded ? (
+            <button
+              type="button"
+              onClick={() => setIsTimerExpanded(true)}
+              className="group flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/90 dark:bg-slate-950/95 border border-orange-500/50 hover:border-orange-500 text-white shadow-2xl backdrop-blur-xl cursor-pointer text-xs transition-all hover:scale-105 active:scale-95 ring-1 ring-orange-500/20"
+              title={isBn ? 'সেশনের বিস্তারিত দেখতে ক্লিক করুন' : 'Click to view session details'}
+            >
+              <Clock className={`w-3.5 h-3.5 ${remainingSeconds < 60 ? 'text-rose-400 animate-ping' : 'text-orange-400 animate-pulse'}`} />
+              <span className={`font-mono font-black ${remainingSeconds < 60 ? 'text-rose-400' : 'text-amber-300'}`}>
+                {formatSeconds(remainingSeconds)}
+              </span>
+              <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
+            </button>
+          ) : (
+            <div
+              onClick={() => setIsTimerExpanded(false)}
+              className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-slate-900/95 dark:bg-slate-950/95 border border-orange-500/60 text-white shadow-2xl backdrop-blur-2xl text-xs cursor-pointer animate-in zoom-in-95 transition-all hover:border-orange-400"
+            >
+              <div className="flex items-center gap-2">
+                <Clock className={`w-4 h-4 ${remainingSeconds < 60 ? 'text-rose-400 animate-ping' : 'text-orange-400 animate-pulse'}`} />
+                <div>
+                  <span className="font-bold text-slate-200 block text-[11px] leading-tight">
+                    {isBn ? 'সাময়িক ২এফএ সেশন' : 'Temporary 2FA Session'}
+                  </span>
+                  <span className="text-[10px] text-slate-400">
+                    {isBn ? 'বাকি সময়:' : 'Time Left:'}{' '}
+                    <strong className={`font-mono font-black ${remainingSeconds < 60 ? 'text-rose-400' : 'text-amber-300'}`}>
+                      {formatSeconds(remainingSeconds)}
+                    </strong>
+                  </span>
+                </div>
+              </div>
+              <span className="text-[10px] text-slate-400 bg-white/10 px-1.5 py-0.5 rounded-md hover:bg-white/20">
+                ✕
+              </span>
+            </div>
+          )}
         </div>
       )}
 

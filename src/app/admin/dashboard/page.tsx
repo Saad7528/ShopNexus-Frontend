@@ -497,32 +497,32 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* 5 Enterprise KPI Cards Grid (Every Card is Fully Interactive & Clickable!) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-4">
           {/* 1. Total Revenue Card (Click to open Revenue Ledger) */}
           <button
             type="button"
             onClick={() => setActiveModal('revenue')}
-            className="group bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 hover:border-emerald-500/60 dark:hover:border-emerald-500/60 rounded-2xl p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 backdrop-blur-xl text-left cursor-pointer block"
+            className="group bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 hover:border-emerald-500/60 dark:hover:border-emerald-500/60 rounded-2xl p-3 sm:p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 backdrop-blur-xl text-left cursor-pointer block"
             title="Click to view full Revenue Breakdown & Transaction Ledger"
           >
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+              <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                 {isBn ? 'মোট আয়' : 'Revenue'}
               </span>
-              <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs group-hover:scale-110 transition-transform">
+              <div className="p-1 sm:p-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-[10px] sm:text-xs group-hover:scale-110 transition-transform">
                 ৳ BDT
               </div>
             </div>
-            <div className="mt-2.5 flex items-baseline justify-between">
-              <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+            <div className="mt-1.5 sm:mt-2.5 flex items-baseline justify-between">
+              <span className="text-base sm:text-2xl font-black text-slate-900 dark:text-white truncate">
                 {isBn ? `৳${toBengaliNumber(currentData.totalRevenue.toLocaleString('en-US'))}` : `৳${currentData.totalRevenue.toLocaleString()}`}
               </span>
-              <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity">
+              <span className="hidden sm:inline-block text-[10px] font-bold text-emerald-600 dark:text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity">
                 {isBn ? 'লেজার →' : 'Ledger →'}
               </span>
             </div>
-            <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 mt-1">
-              {isBn ? currentData.growth.replace('vs last week', 'গত সপ্তাহের তুলনায়').replace('vs last month', 'গত মাসের তুলনায়').replace('vs prev 6mo', 'পূর্ববর্তী ৬ মাসের তুলনায়').replace('YoY Annual', 'বার্ষিক প্রবৃদ্ধি') : currentData.growth} <ArrowUpRight className="w-3 h-3" />
+            <span className="text-[9px] sm:text-[10px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-0.5 sm:gap-1 mt-1 truncate">
+              {isBn ? currentData.growth.replace('vs last week', 'গত সপ্তাহের তুলনায়').replace('vs last month', 'গত মাসের তুলনায়').replace('vs prev 6mo', 'পূর্ববর্তী ৬ মাসের তুলনায়').replace('YoY Annual', 'বার্ষিক প্রবৃদ্ধি') : currentData.growth} <ArrowUpRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
             </span>
           </button>
 
@@ -530,27 +530,27 @@ export default function AdminDashboardPage() {
           <button
             type="button"
             onClick={() => setActiveModal('orders')}
-            className="group bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 hover:border-orange-500/60 dark:hover:border-orange-500/60 rounded-2xl p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 backdrop-blur-xl text-left cursor-pointer block"
+            className="group bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 hover:border-orange-500/60 dark:hover:border-orange-500/60 rounded-2xl p-3 sm:p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 backdrop-blur-xl text-left cursor-pointer block"
             title="Click to view all live orders & amounts"
           >
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+              <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
                 {isBn ? 'মোট অর্ডার' : 'Orders'}
               </span>
-              <div className="p-1.5 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-400 group-hover:scale-110 transition-transform">
-                <Package className="w-4 h-4" />
+              <div className="p-1 sm:p-1.5 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-400 group-hover:scale-110 transition-transform">
+                <Package className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
             </div>
-            <div className="mt-2.5 flex items-baseline justify-between">
-              <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+            <div className="mt-1.5 sm:mt-2.5 flex items-baseline justify-between">
+              <span className="text-base sm:text-2xl font-black text-slate-900 dark:text-white truncate">
                 {isBn ? `${toBengaliNumber(currentData.totalOrders.toLocaleString('en-US'))}টি` : currentData.totalOrders.toLocaleString()}
               </span>
-              <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400 opacity-0 group-hover:opacity-100 transition-opacity">
+              <span className="hidden sm:inline-block text-[10px] font-bold text-orange-600 dark:text-orange-400 opacity-0 group-hover:opacity-100 transition-opacity">
                 {isBn ? 'দেখুন →' : 'View →'}
               </span>
             </div>
-            <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400 flex items-center gap-1 mt-1">
-              {isBn ? `${toBengaliNumber('99.2')}% সরবরাহ সম্পন্ন` : '99.2% Fulfillment'}
+            <span className="text-[9px] sm:text-[10px] font-bold text-orange-600 dark:text-orange-400 flex items-center gap-0.5 sm:gap-1 mt-1 truncate">
+              {isBn ? `${toBengaliNumber('99.2')}% সম্পন্ন` : '99.2% Fulfillment'}
             </span>
           </button>
 
@@ -558,112 +558,131 @@ export default function AdminDashboardPage() {
           <button
             type="button"
             onClick={() => setActiveModal('aov')}
-            className="group bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 hover:border-violet-500/60 dark:hover:border-violet-500/60 rounded-2xl p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 backdrop-blur-xl text-left cursor-pointer block"
+            className="group bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 hover:border-violet-500/60 dark:hover:border-violet-500/60 rounded-2xl p-3 sm:p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 backdrop-blur-xl text-left cursor-pointer block"
             title="Click to view Average Basket & Customer AOV Analytics"
           >
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
-                {isBn ? 'গড় অর্ডার মান (AOV)' : 'Average AOV'}
+              <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
+                {isBn ? 'গড় অর্ডার (AOV)' : 'Average AOV'}
               </span>
-              <div className="p-1.5 rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-400 group-hover:scale-110 transition-transform">
-                <TrendingUp className="w-4 h-4" />
+              <div className="p-1 sm:p-1.5 rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-400 group-hover:scale-110 transition-transform">
+                <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
             </div>
-            <div className="mt-2.5 flex items-baseline justify-between">
-              <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+            <div className="mt-1.5 sm:mt-2.5 flex items-baseline justify-between">
+              <span className="text-base sm:text-2xl font-black text-slate-900 dark:text-white truncate">
                 {isBn ? `৳${toBengaliNumber(currentData.aov.toLocaleString('en-US'))}` : `৳${currentData.aov.toLocaleString()}`}
               </span>
-              <span className="text-[10px] font-bold text-violet-600 dark:text-violet-400 opacity-0 group-hover:opacity-100 transition-opacity">
+              <span className="hidden sm:inline-block text-[10px] font-bold text-violet-600 dark:text-violet-400 opacity-0 group-hover:opacity-100 transition-opacity">
                 {isBn ? 'বিশ্লেষণ →' : 'Analysis →'}
               </span>
             </div>
-            <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 block mt-1">{isBn ? 'প্রতি কার্ট ট্রানজ্যাকশন' : 'Per cart transaction'}</span>
+            <span className="text-[9px] sm:text-[10px] font-semibold text-slate-500 dark:text-slate-400 block mt-1 truncate">{isBn ? 'প্রতি কার্ট ট্রানজ্যাকশন' : 'Per cart transaction'}</span>
           </button>
 
           {/* 4. Return Rate Card (Click to open Return Registry & Customer History) */}
           <button
             type="button"
             onClick={() => setActiveModal('returns')}
-            className="group bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 hover:border-teal-500/60 dark:hover:border-teal-500/60 rounded-2xl p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 backdrop-blur-xl text-left cursor-pointer block"
+            className="group bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 hover:border-teal-500/60 dark:hover:border-teal-500/60 rounded-2xl p-3 sm:p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 backdrop-blur-xl text-left cursor-pointer block"
             title="Click to view Return Cases & Customer Reminder Alerts"
           >
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
+              <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
                 {isBn ? 'রিটার্ন হার' : 'Return Rate'}
               </span>
-              <div className="p-1.5 rounded-lg bg-teal-500/10 text-teal-600 dark:text-teal-400 group-hover:scale-110 transition-transform">
-                <RotateCcw className="w-4 h-4" />
+              <div className="p-1 sm:p-1.5 rounded-lg bg-teal-500/10 text-teal-600 dark:text-teal-400 group-hover:scale-110 transition-transform">
+                <RotateCcw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
             </div>
-            <div className="mt-2.5 flex items-baseline justify-between">
-              <span className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400">{isBn ? `${toBengaliNumber('0.8')}%` : '0.8%'}</span>
-              <span className="text-[10px] font-bold text-teal-600 dark:text-teal-400 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="mt-1.5 sm:mt-2.5 flex items-baseline justify-between">
+              <span className="text-base sm:text-2xl font-black text-emerald-600 dark:text-emerald-400">{isBn ? `${toBengaliNumber('0.8')}%` : '0.8%'}</span>
+              <span className="hidden sm:inline-block text-[10px] font-bold text-teal-600 dark:text-teal-400 opacity-0 group-hover:opacity-100 transition-opacity">
                 {isBn ? 'রেজিস্ট্রি →' : 'Registry →'}
               </span>
             </div>
-            <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 block mt-1">{isBn ? `${toBengaliNumber('12')}টি ফেরত পণ্য` : '12 returned items'}</span>
+            <span className="text-[9px] sm:text-[10px] font-semibold text-slate-500 dark:text-slate-400 block mt-1 truncate">{isBn ? `${toBengaliNumber('12')}টি ফেরত` : '12 returned items'}</span>
           </button>
 
           {/* 5. Stock Alerts (Interactive Link to Low Stock Inventory) */}
           <Link
             href="/admin/inventory?filter=low-stock"
-            className="group bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 hover:border-amber-500/60 dark:hover:border-amber-500/60 rounded-2xl p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 backdrop-blur-xl block cursor-pointer"
+            className="col-span-2 lg:col-span-1 group bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 hover:border-amber-500/60 dark:hover:border-amber-500/60 rounded-2xl p-3 sm:p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 backdrop-blur-xl block cursor-pointer"
             title="Click to view all low stock items"
           >
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+              <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
                 {isBn ? 'কম স্টক' : 'Low Stock'}
               </span>
-              <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform">
-                <AlertTriangle className="w-4 h-4" />
+              <div className="p-1 sm:p-1.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform">
+                <AlertTriangle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
             </div>
-            <div className="mt-2.5 flex items-baseline justify-between">
-              <span className="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400">{isBn ? `${toBengaliNumber('3')}টি পণ্য` : '3 items'}</span>
-              <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="mt-1.5 sm:mt-2.5 flex items-baseline justify-between">
+              <span className="text-base sm:text-2xl font-black text-amber-600 dark:text-amber-400">{isBn ? `${toBengaliNumber('3')}টি পণ্য` : '3 items'}</span>
+              <span className="hidden sm:inline-block text-[10px] font-bold text-amber-600 dark:text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity">
                 {isBn ? 'দেখুন →' : 'View →'}
               </span>
             </div>
-            <span className="text-[10px] font-semibold text-amber-600/80 dark:text-amber-400/80 block mt-1">{isBn ? `থ্রেশহোল্ড ≤ ${toBengaliNumber('5')} ইউনিট` : 'Threshold ≤ 5 units'}</span>
+            <span className="text-[9px] sm:text-[10px] font-semibold text-amber-600/80 dark:text-amber-400/80 block mt-1 truncate">{isBn ? `থ্রেশহোল্ড ≤ ${toBengaliNumber('5')} ইউনিট` : 'Threshold ≤ 5 units'}</span>
           </Link>
         </div>
 
         {/* Super Admin Profile Card & System Telemetry */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <div className="md:col-span-2 p-6 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 shadow-sm">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#ff4400] to-[#ff7700] flex items-center justify-center text-white text-2xl font-black shadow-lg shadow-orange-500/25">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
+          <div className="md:col-span-2 p-4 sm:p-6 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 flex flex-col justify-between gap-4 sm:gap-5 shadow-sm backdrop-blur-xl hover:border-orange-500/30 transition-all">
+            <div className="flex items-start sm:items-center gap-3.5 sm:gap-4">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-[#ff4400] to-[#ff7700] flex items-center justify-center text-white text-xl sm:text-2xl font-black shadow-lg shadow-orange-500/25 shrink-0">
                 S
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-lg font-black text-slate-900 dark:text-white">S.M. Amirul Islam Saad</h2>
-                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-wider">
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white truncate">
+                    S.M. Amirul Islam Saad
+                  </h2>
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-wider">
                     {isBn ? 'সুপার অ্যাডমিন' : 'Super Admin'}
                   </span>
                 </div>
-                <p className="text-xs text-orange-600 dark:text-orange-400 font-mono mt-0.5">saad0174742@gmail.com • ID: ADM-001</p>
-                <div className="flex items-center gap-3 mt-2 text-[11px] text-slate-500 dark:text-slate-400">
-                  <span>{isBn ? 'ভূমিকা: লিড ফুল-স্ট্যাক আর্কিটেক্ট' : 'Role: Lead Full-Stack Architect'}</span>
-                  <span>•</span>
-                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{isBn ? '২এফএ সক্রিয়' : '2FA Enforced'}</span>
+                <p className="text-[11px] sm:text-xs text-orange-600 dark:text-orange-400 font-mono mt-0.5 truncate">
+                  saad0174742@gmail.com • ID: ADM-001
+                </p>
+                <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                  <span className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] sm:text-[11px] font-medium">
+                    {isBn ? 'লিড ফুল-স্ট্যাক আর্কিটেক্ট' : 'Lead Full-Stack Architect'}
+                  </span>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] sm:text-[11px] font-bold border border-emerald-500/20">
+                    <ShieldCheck className="w-3 h-3" />
+                    <span>{isBn ? '২এফএ সুরক্ষিত' : '2FA Enforced'}</span>
+                  </span>
                 </div>
               </div>
             </div>
 
-            <div className="flex flex-col sm:items-end gap-2 text-xs">
-              <span className="text-slate-500 dark:text-slate-400">{isBn ? 'স্ট্যাটাস:' : 'Status:'} <span className="text-emerald-600 dark:text-emerald-400 font-bold">{isBn ? 'অ্যাক্টিভ মাস্টার সেশন' : 'Active Master Session'}</span></span>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-slate-100 dark:border-slate-800/80">
+              <div className="flex items-center gap-2 text-xs">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                <span className="text-slate-500 dark:text-slate-400 text-[11px] sm:text-xs">
+                  {isBn ? 'স্ট্যাটাস:' : 'Status:'}{' '}
+                  <strong className="text-emerald-600 dark:text-emerald-400">
+                    {isBn ? 'অ্যাক্টিভ মাস্টার সেশন' : 'Active Master Session'}
+                  </strong>
+                </span>
+              </div>
               <Link
                 href="/admin/inventory"
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-md shadow-orange-500/25 transition-all cursor-pointer"
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-md shadow-orange-500/20 transition-all cursor-pointer active:scale-95 text-center"
               >
-                {isBn ? 'ক্যাটালগ আপলোড ও পরিচালনা' : 'Upload & Manage Catalog'}
+                <Package className="w-3.5 h-3.5 shrink-0" />
+                <span>{isBn ? 'ক্যাটালগ আপলোড ও পরিচালনা' : 'Upload & Manage Catalog'}</span>
               </Link>
             </div>
           </div>
 
-          <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 flex flex-col justify-between space-y-3 shadow-sm">
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{isBn ? 'প্ল্যাটফর্ম হেলথ ও টেলিমেট্রি' : 'Platform Health & Telemetry'}</span>
+          <div className="p-4 sm:p-6 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 flex flex-col justify-between space-y-3 shadow-sm backdrop-blur-xl">
+            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              {isBn ? 'প্ল্যাটফর্ম হেলথ ও টেলিমেট্রি' : 'Platform Health & Telemetry'}
+            </span>
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-slate-600 dark:text-slate-400">{isBn ? 'অ্যাটলাস ক্লাউড ডেটাবেস' : 'Atlas Cloud Database'}</span>
