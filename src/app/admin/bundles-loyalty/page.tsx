@@ -229,7 +229,7 @@ export default function BundlesAndLoyaltyPage() {
                     {/* Top Badges & Sales */}
                     <div className="flex items-start justify-between gap-2">
                       <span className="px-2.5 py-0.5 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 font-bold text-[11px] border border-orange-500/20 inline-flex items-center gap-1">
-                        {deal.badge}
+                        {isBn ? (deal.badge_bn || deal.badge) : (deal.badge_en || deal.badge)}
                       </span>
                       <div className="flex items-center gap-1.5">
                         <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20 whitespace-nowrap">
@@ -241,10 +241,10 @@ export default function BundlesAndLoyaltyPage() {
                     {/* Title */}
                     <div>
                       <h3 className="text-base font-black text-slate-900 dark:text-white group-hover:text-orange-500 transition-colors line-clamp-1">
-                        {deal.title}
+                        {isBn ? (deal.title_bn || deal.title) : (deal.title_en || deal.title)}
                       </h3>
                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
-                        {deal.description}
+                        {isBn ? (deal.description_bn || deal.description) : (deal.description_en || deal.description)}
                       </p>
                     </div>
 

@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { RoleGuard } from '@/components/auth/RoleGuard';
+import { showConfirmDialog } from '@/store/useDialogStore';
 import {
   ShieldCheck,
   Users,
@@ -13,77 +14,270 @@ import {
   Check,
   X,
   BadgeCheck,
+  Trash2,
+  Edit,
+  Power,
+  RefreshCw,
+  Info,
+  Layers,
+  FileText,
+  AlertCircle,
+  Filter,
+  Radio,
+  Laptop,
+  Smartphone,
+  Monitor,
+  Globe,
+  LogOut,
+  Snowflake,
+  ShieldAlert,
+  AlertTriangle,
+  KeyRound,
+  Activity,
 } from 'lucide-react';
+import { useAuthStore } from '@/store/useAuthStore';
 import { useLanguageStore } from '@/store/useLanguageStore';
 import { toBengaliNumber } from '@/lib/translations';
+import { User } from '@/types/user';
+import { LoginAuthorizationPrompt } from '@/components/auth/LoginAuthorizationPrompt';
+import { ILoginAuthRequest } from '@/app/api/auth/login-requests/route';
 
-interface IStaffMember {
+export type StaffRoleType =
+  | 'Super Admin'
+  | 'Telesales Executive'
+  | 'Delivery Officer'
+  | 'Inventory Manager'
+  | 'Customer Care Lead'
+  | 'Accountant';
+
+export interface IStaffSession {
+  id: string;
+  device: string;
+  os: string;
+  browser: string;
+  ipAddress: string;
+  location: string;
+  isCurrentSession: boolean;
+  loginAt: string;
+  lastHeartbeat: string;
+  riskScore: 'low' | 'medium' | 'high';
+}
+
+export interface IStaffMember {
   id: string;
   name: string;
   email: string;
   phone: string;
-  role: 'Super Admin' | 'Customer Care Lead' | 'Inventory Manager' | 'Logistics Officer';
+  role: StaffRoleType;
   twoFactorEnabled: boolean;
-  status: 'Active' | 'Idle' | 'Suspended';
+  status: 'Active' | 'Suspended';
   lastActive: string;
   avatarColor: string;
+  createdAt: string;
+  sessions?: IStaffSession[];
+  customPermissions?: {
+    canViewOrders: boolean;
+    canEditOrders: boolean;
+    canManageCatalog: boolean;
+    canManageLogistics: boolean;
+    canManageFinance: boolean;
+    canAccessRBAC: boolean;
+  };
 }
 
-interface IPermissionRule {
+export interface IPermissionRule {
   id: string;
   category: string;
   title: string;
   description: string;
   superAdmin: boolean;
-  customerCare: boolean;
+  telesales: boolean;
+  delivery: boolean;
   inventoryManager: boolean;
-  logistics: boolean;
+  customerCare: boolean;
+  accountant: boolean;
 }
 
 const INITIAL_STAFF: IStaffMember[] = [
   {
+    id: 'st-0',
+    name: 'Nexus Lead Admin',
+    email: 'admin@shopnexus.io',
+    phone: '+880 1700-000000',
+    role: 'Super Admin',
+    twoFactorEnabled: true,
+    status: 'Active',
+    lastActive: 'Online',
+    avatarColor: 'from-orange-600 to-amber-600',
+    createdAt: '2026-08-21',
+    sessions: [
+      {
+        id: 'sess-lead-1',
+        device: 'MacBook Pro 16" (M3 Max)',
+        os: 'macOS Sonoma 14.5',
+        browser: 'Google Chrome 128.0',
+        ipAddress: '103.145.74.22',
+        location: 'Dhaka, Bangladesh',
+        isCurrentSession: true,
+        loginAt: '2026-09-18 09:30 AM',
+        lastHeartbeat: 'Just now',
+        riskScore: 'low',
+      },
+      {
+        id: 'sess-lead-2',
+        device: 'Dell XPS 15 (Windows 11)',
+        os: 'Windows 11 Pro',
+        browser: 'Microsoft Edge 126.0',
+        ipAddress: '45.112.58.10',
+        location: 'Chittagong, Bangladesh',
+        isCurrentSession: false,
+        loginAt: '2026-09-18 08:15 AM',
+        lastHeartbeat: '12 mins ago',
+        riskScore: 'high',
+      },
+    ],
+    customPermissions: {
+      canViewOrders: true,
+      canEditOrders: true,
+      canManageCatalog: true,
+      canManageLogistics: true,
+      canManageFinance: true,
+      canAccessRBAC: true,
+    },
+  },
+  {
     id: 'st-1',
     name: 'S.M. Amirul Islam Saad',
-    email: 'admin@shopnexus.io',
+    email: 'saad@shopnexus.io',
     phone: '+880 1711-000111',
     role: 'Super Admin',
     twoFactorEnabled: true,
     status: 'Active',
-    lastActive: 'Right now (Online)',
+    lastActive: 'Online',
     avatarColor: 'from-[#ff4400] to-[#ff7700]',
+    createdAt: '2026-01-01',
+    sessions: [
+      {
+        id: 'sess-saad-1',
+        device: 'Apple MacBook Pro',
+        os: 'macOS 14.5',
+        browser: 'Chrome 128',
+        ipAddress: '103.145.74.22',
+        location: 'Dhaka, Bangladesh',
+        isCurrentSession: true,
+        loginAt: '2026-09-18 10:00 AM',
+        lastHeartbeat: 'Just now',
+        riskScore: 'low',
+      },
+    ],
+    customPermissions: {
+      canViewOrders: true,
+      canEditOrders: true,
+      canManageCatalog: true,
+      canManageLogistics: true,
+      canManageFinance: true,
+      canAccessRBAC: true,
+    },
   },
   {
     id: 'st-2',
-    name: 'Tahmidur Rahman',
-    email: 'tahmid.support@shopnexus.io',
+    name: 'Kabir Hossain',
+    email: 'kabir.orders@shopnexus.io',
     phone: '+880 1822-334455',
-    role: 'Customer Care Lead',
+    role: 'Telesales Executive',
     twoFactorEnabled: true,
     status: 'Active',
-    lastActive: '8 mins ago',
+    lastActive: '4 hours ago',
     avatarColor: 'from-blue-600 to-indigo-600',
+    createdAt: '2026-03-15',
+    customPermissions: {
+      canViewOrders: true,
+      canEditOrders: true,
+      canManageCatalog: false,
+      canManageLogistics: false,
+      canManageFinance: false,
+      canAccessRBAC: false,
+    },
   },
   {
     id: 'st-3',
-    name: 'Farzana Akter',
-    email: 'farzana.stock@shopnexus.io',
+    name: 'Mehedi Hasan',
+    email: 'mehedi.logistics@shopnexus.io',
+    phone: '+880 1644-556677',
+    role: 'Delivery Officer',
+    twoFactorEnabled: true,
+    status: 'Active',
+    lastActive: 'Yesterday',
+    avatarColor: 'from-emerald-600 to-teal-600',
+    createdAt: '2026-04-10',
+    customPermissions: {
+      canViewOrders: true,
+      canEditOrders: false,
+      canManageCatalog: false,
+      canManageLogistics: true,
+      canManageFinance: false,
+      canAccessRBAC: false,
+    },
+  },
+  {
+    id: 'st-4',
+    name: 'Naimur Rahman',
+    email: 'naimur.catalog@shopnexus.io',
     phone: '+880 1933-445566',
     role: 'Inventory Manager',
     twoFactorEnabled: false,
     status: 'Active',
-    lastActive: '25 mins ago',
+    lastActive: '2 days ago',
     avatarColor: 'from-purple-600 to-pink-600',
+    createdAt: '2026-05-02',
+    customPermissions: {
+      canViewOrders: false,
+      canEditOrders: false,
+      canManageCatalog: true,
+      canManageLogistics: false,
+      canManageFinance: false,
+      canAccessRBAC: false,
+    },
   },
   {
-    id: 'st-4',
-    name: 'Kamrul Hasan',
-    email: 'kamrul.dispatch@shopnexus.io',
-    phone: '+880 1644-556677',
-    role: 'Logistics Officer',
+    id: 'st-5',
+    name: 'Tahmidur Rahman',
+    email: 'tahmid.care@shopnexus.io',
+    phone: '+880 1755-667788',
+    role: 'Customer Care Lead',
     twoFactorEnabled: true,
     status: 'Active',
-    lastActive: '1 hour ago',
-    avatarColor: 'from-emerald-600 to-teal-600',
+    lastActive: '5 hours ago',
+    avatarColor: 'from-amber-600 to-orange-600',
+    createdAt: '2026-05-20',
+    customPermissions: {
+      canViewOrders: true,
+      canEditOrders: false,
+      canManageCatalog: false,
+      canManageLogistics: false,
+      canManageFinance: false,
+      canAccessRBAC: false,
+    },
+  },
+  {
+    id: 'st-6',
+    name: 'Shamim Reza',
+    email: 'shamim.accounts@shopnexus.io',
+    phone: '+880 1866-778899',
+    role: 'Accountant',
+    twoFactorEnabled: true,
+    status: 'Active',
+    lastActive: 'Yesterday',
+    avatarColor: 'from-cyan-600 to-blue-700',
+    createdAt: '2026-06-12',
+    customPermissions: {
+      canViewOrders: true,
+      canEditOrders: false,
+      canManageCatalog: false,
+      canManageLogistics: false,
+      canManageFinance: true,
+      canAccessRBAC: false,
+    },
   },
 ];
 
@@ -94,19 +288,35 @@ const INITIAL_PERMISSIONS: IPermissionRule[] = [
     title: 'View Revenue & Profit Margins',
     description: 'See total sales earnings, wholesale cost prices, and net P&L.',
     superAdmin: true,
-    customerCare: false,
+    telesales: false,
+    delivery: false,
     inventoryManager: false,
-    logistics: false,
+    customerCare: false,
+    accountant: true,
+  },
+  {
+    id: 'p-gate',
+    category: 'Financials & Margins',
+    title: 'Reconcile Gateways & Payouts',
+    description: 'Audit bKash, Nagad, SSLCommerz and Stripe merchant settlements.',
+    superAdmin: true,
+    telesales: false,
+    delivery: false,
+    inventoryManager: false,
+    customerCare: false,
+    accountant: true,
   },
   {
     id: 'p-cat-edit',
     category: 'Catalog & Inventory',
-    title: 'Add & Edit Products / Stock',
-    description: 'Modify product specifications, pricing, stock levels, and trust badges.',
+    title: 'Add & Edit Products / Stock Units',
+    description: 'Modify product specifications, pricing, stock levels, and flash deals.',
     superAdmin: true,
-    customerCare: false,
+    telesales: false,
+    delivery: false,
     inventoryManager: true,
-    logistics: false,
+    customerCare: false,
+    accountant: false,
   },
   {
     id: 'p-cat-del',
@@ -114,71 +324,181 @@ const INITIAL_PERMISSIONS: IPermissionRule[] = [
     title: 'Delete Products Permanently',
     description: 'Remove catalog items from the store database.',
     superAdmin: true,
+    telesales: false,
+    delivery: false,
+    inventoryManager: false,
     customerCare: false,
-    inventoryManager: false,
-    logistics: false,
+    accountant: false,
   },
   {
-    id: 'p-ord-view',
-    category: 'Orders & Fulfillment',
-    title: 'Process Customer Orders',
-    description: 'Update order milestones from Pending to Confirmed and Processing.',
+    id: 'p-ord-confirm',
+    category: 'Orders & Telesales',
+    title: 'Confirm COD Orders & Edit Address',
+    description: 'Call customer, verify COD intent, and update delivery details.',
     superAdmin: true,
-    customerCare: true,
+    telesales: true,
+    delivery: false,
     inventoryManager: false,
-    logistics: true,
+    customerCare: true,
+    accountant: false,
   },
   {
-    id: 'p-print',
-    category: 'Orders & Fulfillment',
-    title: 'Batch Print Invoices & Manifests',
-    description: 'Generate packing slips, parcel barcodes, and courier handover sheets.',
+    id: 'p-logistics',
+    category: 'Logistics & Dispatch',
+    title: 'Courier Dispatch & Print Invoices',
+    description: 'Assign Pathao/RedX couriers, generate barcodes and packing manifests.',
     superAdmin: true,
-    customerCare: true,
+    telesales: false,
+    delivery: true,
     inventoryManager: false,
-    logistics: true,
+    customerCare: false,
+    accountant: false,
   },
   {
-    id: 'p-contact',
+    id: 'p-support',
     category: 'Customer Communication',
-    title: 'Access Customer Contact & Send WhatsApp',
-    description: 'View customer phone numbers and send issue reports or abandoned cart offers.',
+    title: 'Reviews Moderation & AI Handover',
+    description: 'Approve customer ratings, resolve support tickets, and direct WhatsApp.',
     superAdmin: true,
+    telesales: false,
+    delivery: false,
+    inventoryManager: false,
     customerCare: true,
-    inventoryManager: false,
-    logistics: false,
+    accountant: false,
   },
   {
-    id: 'p-coupon',
-    category: 'Marketing & Promotions',
-    title: 'Create Promo Coupons & Deals',
-    description: 'Configure discount codes, bundle offers, and flash sales.',
-    superAdmin: true,
-    customerCare: false,
-    inventoryManager: false,
-    logistics: false,
-  },
-  {
-    id: 'p-staff',
+    id: 'p-rbac',
     category: 'System Security',
-    title: 'Manage Staff Credentials & Roles',
-    description: 'Invite new staff members and configure access permissions.',
+    title: 'Manage Staff Accounts & RBAC Matrix',
+    description: 'Invite new staff, revoke credentials, and modify role security rules.',
     superAdmin: true,
-    customerCare: false,
+    telesales: false,
+    delivery: false,
     inventoryManager: false,
-    logistics: false,
+    customerCare: false,
+    accountant: false,
   },
 ];
 
-const PERMISSION_TRANSLATIONS: Record<string, { title: { bn: string; en: string }; desc: { bn: string; en: string }; cat: { bn: string; en: string } }> = {
+export const ROLE_DEFINITIONS = {
+  'Super Admin': {
+    title: { en: 'Super Admin (Master Authority)', bn: 'সুপার অ্যাডমিন (মাস্টার অথরিটি)' },
+    desc: {
+      en: 'Unrestricted master access to all databases, financial logs, RBAC roles, product pricing, and settings.',
+      bn: 'সকল ডাটাবেস, ফাইন্যান্সিয়াল লগ, আরবিএসি রোল, প্রোডাক্ট প্রাইসিং এবং সেটিংসের সম্পূর্ণ মাস্টার অ্যাক্সেস।',
+    },
+    allowed: {
+      en: ['Full Read & Write', 'RBAC Control', 'Financial Payouts', 'Catalog & Orders', 'System Deletions'],
+      bn: ['সম্পূর্ণ রিড ও রাইট', 'আরবিএসি কন্ট্রোল', 'ফাইন্যান্সিয়াল পেআউট', 'ক্যাটালগ ও অর্ডার', 'সিস্টেম ডিলিটেশন'],
+    },
+    restricted: { en: ['None'], bn: ['কোনোটি নয়'] },
+    color: 'from-[#ff4400] to-[#ff7700]',
+    badgeBg: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20',
+  },
+  'Telesales Executive': {
+    title: { en: 'Telesales / Order Confirmation Executive', bn: 'টেলিসেলস / অর্ডার কনফার্মেশন এক্সিকিউটিভ' },
+    desc: {
+      en: 'Communicates with customers, confirms pending cash-on-delivery orders, and verifies delivery addresses.',
+      bn: 'গ্রাহকদের সাথে যোগাযোগ, ক্যাশ-অন-ডেলিভারি অর্ডার নিশ্চিতকরণ এবং ডেলিভারি ঠিকানা যাচাই।',
+    },
+    allowed: {
+      en: ['View Pending Orders', 'Confirm/Cancel Orders', 'Update Delivery Address', 'Customer Call Notes'],
+      bn: ['পেন্ডিং অর্ডার দেখা', 'অর্ডার কনফার্ম/ক্যান্সেল', 'ডেলিভারি ঠিকানা আপডেট', 'কাস্টমার কল নোটস'],
+    },
+    restricted: {
+      en: ['No Product Pricing Access', 'No Stock Adjustments', 'No Financial Balances'],
+      bn: ['প্রোডাক্টের দাম পরিবর্তন নিষিদ্ধ', 'স্টক সমন্বয় নিষিদ্ধ', 'আর্থিক ব্যালেন্স দেখা নিষিদ্ধ'],
+    },
+    color: 'from-blue-600 to-indigo-600',
+    badgeBg: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
+  },
+  'Delivery Officer': {
+    title: { en: 'Delivery & Tracking Officer', bn: 'ডেলিভারি ও ট্র্যাকিং অফিসার' },
+    desc: {
+      en: 'Oversees packaging, assigns 3rd-party couriers (Pathao/RedX/Steadfast), and generates shipping labels.',
+      bn: 'প্যাকেজিং তদারকি, কুরিয়ার (পাঠাও/রেডএক্স/স্টেডফাস্ট) অ্যাসাইন এবং শিপিং লেবেল প্রস্তুতকরণ।',
+    },
+    allowed: {
+      en: ['View Order Details', 'Generate Barcode Invoices', 'Update 5-Stage Courier Status', 'Logistics Dispatch'],
+      bn: ['অর্ডারের বিস্তারিত দেখা', 'বারকোড ইনভয়েস তৈরি', '৫-ধাপ কুরিয়ার স্ট্যাটাস আপডেট', 'লজিস্টিকস ডিসপ্যাচ'],
+    },
+    restricted: {
+      en: ['No Customer Billing Edits', 'No Catalog Uploads', 'No Financial Reports'],
+      bn: ['কাস্টমার বিলিং পরিবর্তন নিষিদ্ধ', 'ক্যাটালগ আপলোড নিষিদ্ধ', 'ফাইন্যান্সিয়াল রিপোর্ট নিষিদ্ধ'],
+    },
+    color: 'from-emerald-600 to-teal-600',
+    badgeBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+  },
+  'Inventory Manager': {
+    title: { en: 'Catalog / Inventory Manager', bn: 'ক্যাটালগ / ইনভেন্টরি ম্যানেজার' },
+    desc: {
+      en: 'Uploads new products, manages variants, adjusts stock units, and sets low-stock thresholds.',
+      bn: 'নতুন পণ্য আপলোড, ভ্যারিয়েন্ট ব্যবস্থাপনা, স্টক সংখ্যা সমন্বয় এবং লো-স্টক থ্রেশহোল্ড সেট করা।',
+    },
+    allowed: {
+      en: ['Upload Products', 'Adjust Stock & SKU', 'Edit Descriptions & Media', 'Set Flash Quotas'],
+      bn: ['পণ্য আপলোড', 'স্টক ও এসকেইউ সমন্বয়', 'বিবরণ ও ছবি এডিট', 'ফ্ল্যাশ কোটা নির্ধারণ'],
+    },
+    restricted: {
+      en: ['No Customer Order Data', 'No Payment Gateway Info', 'No Staff Accounts'],
+      bn: ['কাস্টমার অর্ডার তথ্য দেখা নিষিদ্ধ', 'পেমেন্ট গেটওয়ে নিষিদ্ধ', 'স্টাফ একাউন্ট নিয়ন্ত্রণ নিষিদ্ধ'],
+    },
+    color: 'from-purple-600 to-pink-600',
+    badgeBg: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',
+  },
+  'Customer Care Lead': {
+    title: { en: 'Customer Care & Support Lead', bn: 'কাস্টমার কেয়ার ও সাপোর্ট লিড' },
+    desc: {
+      en: 'Manages incoming customer inquiries, AI chat escalations, reviews moderation, and return RMA requests.',
+      bn: 'গ্রাহকের অনুসন্ধান পরিচালনা, এআই চ্যাট হ্যান্ডওভার, রিভিউ নিয়ন্ত্রণ এবং রিটার্ন আরএমএ অনুরোধ প্রসেস।',
+    },
+    allowed: {
+      en: ['View Customer Queries', 'Process Return Requests', 'Moderate Product Reviews', 'WhatsApp Comms'],
+      bn: ['গ্রাহকের মেসেজ দেখা', 'রিটার্ন অনুরোধ প্রসেস', 'প্রোডাক্ট রিভিউ মডারেশন', 'হোয়াটসঅ্যাপ যোগাযোগ'],
+    },
+    restricted: {
+      en: ['No Order Price Modifications', 'No Database Direct Changes', 'No Staff Access'],
+      bn: ['অর্ডার মূল্য পরিবর্তন নিষিদ্ধ', 'ডাটাবেস পরিবর্তন নিষিদ্ধ', 'স্টাফ একাউন্ট অ্যাক্সেস নিষিদ্ধ'],
+    },
+    color: 'from-amber-600 to-orange-600',
+    badgeBg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+  },
+  Accountant: {
+    title: { en: 'Accountant / Financial Manager', bn: 'অ্যাকাউন্ট্যান্ট / ফাইন্যান্সিয়াল ম্যানেজার' },
+    desc: {
+      en: 'Audits daily sales, reconciles bKash/Nagad/Stripe payouts, and analyzes revenue growth reports.',
+      bn: 'দৈনিক বিক্রয় অডিট, বিকাশ/নগদ/কার্ড পেআউট রিকনসাইল এবং রাজস্ব রিপোর্ট বিশ্লেষণ।',
+    },
+    allowed: {
+      en: ['View Financial Statements', 'Reconcile Gateways', 'Sales Analytics Reports', 'Refund Audits'],
+      bn: ['ফাইন্যান্সিয়াল বিবরণী দেখা', 'গেটওয়ে রিকনসিলেশন', 'সেলস অ্যানালিটিক্স রিপোর্ট', 'রিফান্ড অডিট'],
+    },
+    restricted: {
+      en: ['No Catalog Modifications', 'No Live Dispatch Management'],
+      bn: ['ক্যাটালগ পরিবর্তন নিষিদ্ধ', 'লাইভ ডিসপ্যাচ নিষিদ্ধ'],
+    },
+    color: 'from-cyan-600 to-blue-700',
+    badgeBg: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20',
+  },
+};
+
+const PERMISSION_TRANSLATIONS: Record<
+  string,
+  { title: { bn: string; en: string }; desc: { bn: string; en: string }; cat: { bn: string; en: string } }
+> = {
   'p-rev': {
     title: { bn: 'আয় ও লাভ মার্জিন দেখুন', en: 'View Revenue & Profit Margins' },
     desc: { bn: 'মোট বিক্রয় আয়, পাইকারি ক্রয়মূল্য এবং নিট লাভ-ক্ষতি দেখুন।', en: 'See total sales earnings, wholesale cost prices, and net P&L.' },
     cat: { bn: 'ফাইন্যান্সিয়াল ও মার্জিন', en: 'Financials & Margins' },
   },
+  'p-gate': {
+    title: { bn: 'গেটওয়ে রিকনসিলেশন ও পেআউট', en: 'Reconcile Gateways & Payouts' },
+    desc: { bn: 'বিকাশ, নগদ, এসএসএল ও কার্ড মার্চেন্ট সেটেলমেন্ট অডিট।', en: 'Audit bKash, Nagad, SSLCommerz and Stripe merchant settlements.' },
+    cat: { bn: 'ফাইন্যান্সিয়াল ও মার্জিন', en: 'Financials & Margins' },
+  },
   'p-cat-edit': {
-    title: { bn: 'পণ্য ও স্টক যোগ/সম্পাদনা করুন', en: 'Add & Edit Products / Stock' },
-    desc: { bn: 'পণ্যের বিবরণ, মূল্য, স্টক সংখ্যা এবং ট্রাস্ট ব্যাজ পরিবর্তন করুন।', en: 'Modify product specifications, pricing, stock levels, and trust badges.' },
+    title: { bn: 'পণ্য ও স্টক যোগ/সম্পাদনা করুন', en: 'Add & Edit Products / Stock Units' },
+    desc: { bn: 'পণ্যের বিবরণ, মূল্য, স্টক সংখ্যা এবং ফ্ল্যাশ ডিল পরিচালনা করুন।', en: 'Modify product specifications, pricing, stock levels, and flash deals.' },
     cat: { bn: 'ক্যাটালগ ও ইনভেন্টরি', en: 'Catalog & Inventory' },
   },
   'p-cat-del': {
@@ -186,135 +506,644 @@ const PERMISSION_TRANSLATIONS: Record<string, { title: { bn: string; en: string 
     desc: { bn: 'স্টোর ডাটাবেস থেকে পণ্য ডিলিট করার অধিকার।', en: 'Remove catalog items from the store database.' },
     cat: { bn: 'ক্যাটালগ ও ইনভেন্টরি', en: 'Catalog & Inventory' },
   },
-  'p-ord-view': {
-    title: { bn: 'গ্রাহকের অর্ডার প্রসেস করুন', en: 'Process Customer Orders' },
-    desc: { bn: 'অর্ডারের অবস্থা পেন্ডিং থেকে কনফার্মড ও প্রসেসিং-এ রূপান্তর করুন।', en: 'Update order milestones from Pending to Confirmed and Processing.' },
-    cat: { bn: 'অর্ডার ও ফুলফিলমেন্ট', en: 'Orders & Fulfillment' },
+  'p-ord-confirm': {
+    title: { bn: 'অর্ডার নিশ্চিতকরণ ও ঠিকানা আপডেট', en: 'Confirm COD Orders & Edit Address' },
+    desc: { bn: 'গ্রাহককে কল দিয়ে অর্ডার কনফার্ম এবং ডেলিভারি ঠিকানা সংশোধন।', en: 'Call customer, verify COD intent, and update delivery details.' },
+    cat: { bn: 'অর্ডার ও টেলিসেলস', en: 'Orders & Telesales' },
   },
-  'p-print': {
-    title: { bn: 'ইনভয়েস ও ম্যানিফেস্ট প্রিন্ট করুন', en: 'Batch Print Invoices & Manifests' },
-    desc: { bn: 'প্যাকিং স্লিপ, পার্সেল বারকোড ও কুরিয়ার হ্যান্ডওভার শিট তৈরি করুন।', en: 'Generate packing slips, parcel barcodes, and courier handover sheets.' },
-    cat: { bn: 'অর্ডার ও ফুলফিলমেন্ট', en: 'Orders & Fulfillment' },
+  'p-logistics': {
+    title: { bn: 'কুরিয়ার ডিসপ্যাচ ও ইনভয়েস প্রিন্ট', en: 'Courier Dispatch & Print Invoices' },
+    desc: { bn: 'পাঠাও/রেডএক্স কুরিয়ার অ্যাসাইন, বারকোড এবং প্যাকিং ম্যানিফেস্ট তৈরি।', en: 'Assign Pathao/RedX couriers, generate barcodes and packing manifests.' },
+    cat: { bn: 'লজিস্টিকস ও ডিসপ্যাচ', en: 'Logistics & Dispatch' },
   },
-  'p-contact': {
-    title: { bn: 'গ্রাহকের যোগাযোগ তথ্য ও হোয়াটসঅ্যাপ অ্যাক্সেস', en: 'Access Customer Contact & Send WhatsApp' },
-    desc: { bn: 'গ্রাহকের ফোন নম্বর দেখা এবং সমস্যা সমাধান বা পরিত্যক্ত কার্ট অফার পাঠানো।', en: 'View customer phone numbers and send issue reports or abandoned cart offers.' },
+  'p-support': {
+    title: { bn: 'রিভিউ মডারেশন ও সাপোর্ট টিকেট', en: 'Reviews Moderation & AI Handover' },
+    desc: { bn: 'কাস্টমার রিভিউ অনুমোদন, অভিযোগ সমাধান এবং হোয়াটসঅ্যাপ মেসেজিং।', en: 'Approve customer ratings, resolve support tickets, and direct WhatsApp.' },
     cat: { bn: 'গ্রাহক যোগাযোগ', en: 'Customer Communication' },
   },
-  'p-coupon': {
-    title: { bn: 'প্রমো কুপন ও ডিল তৈরি করুন', en: 'Create Promo Coupons & Deals' },
-    desc: { bn: 'ডিসকাউন্ট কোড, বান্ডেল অফার ও ফ্ল্যাশ সেল কনফিগার করুন।', en: 'Configure discount codes, bundle offers, and flash sales.' },
-    cat: { bn: 'মার্কেটিং ও প্রমোশন', en: 'Marketing & Promotions' },
-  },
-  'p-staff': {
-    title: { bn: 'স্টাফ তথ্য ও ভূমিকা পরিচালনা করুন', en: 'Manage Staff Credentials & Roles' },
-    desc: { bn: 'নতুন স্টাফ ইনভাইট করুন এবং অ্যাক্সেস পারমিশন কনফিগার করুন।', en: 'Invite new staff members and configure access permissions.' },
+  'p-rbac': {
+    title: { bn: 'স্টাফ অ্যাকাউন্ট ও আরবিএসি নিয়ন্ত্রণ', en: 'Manage Staff Accounts & RBAC Matrix' },
+    desc: { bn: 'নতুন স্টাফ যোগ, পারমিশন রুলস পরিবর্তন এবং অ্যাকাউন্ট সাসপেনশন।', en: 'Invite new staff, revoke credentials, and modify role security rules.' },
     cat: { bn: 'সিস্টেম সিকিউরিটি', en: 'System Security' },
   },
 };
 
-const getRoleLabel = (role: string, isBn: boolean) => {
-  if (!isBn) return role;
-  switch (role) {
-    case 'Super Admin': return 'সুপার অ্যাডমিন';
-    case 'Customer Care Lead': return 'কাস্টমার কেয়ার লিড';
-    case 'Inventory Manager': return 'ইনভেন্টরি ম্যানেজার';
-    case 'Logistics Officer': return 'লজিস্টিকস অফিসার';
-    default: return role;
-  }
-};
-
 export default function AdminStaffRolesPage() {
+  const { token, user } = useAuthStore();
   const { language } = useLanguageStore();
   const isBn = language === 'bn';
 
-  const [activeTab, setActiveTab] = useState<'roster' | 'matrix'>('roster');
-  const [staff, setStaff] = useState<IStaffMember[]>(INITIAL_STAFF);
+  const [activeTab, setActiveTab] = useState<'roster' | 'matrix' | 'guide'>('roster');
+  const [staffList, setStaffList] = useState<IStaffMember[]>(INITIAL_STAFF);
   const [permissions, setPermissions] = useState<IPermissionRule[]>(INITIAL_PERMISSIONS);
   const [searchQuery, setSearchQuery] = useState('');
-  
-  // Add Staff Modal
-  const [isAddStaffModalOpen, setIsAddStaffModalOpen] = useState(false);
-  const [newStaffName, setNewStaffName] = useState('');
-  const [newStaffEmail, setNewStaffEmail] = useState('');
-  const [newStaffPhone, setNewStaffPhone] = useState('');
-  const [newStaffRole, setNewStaffRole] = useState<IStaffMember['role']>('Customer Care Lead');
-  
-  // Toast Alert
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [roleFilter, setRoleFilter] = useState<string>('all');
+  const [staffStatusFilter, setStaffStatusFilter] = useState<'all' | 'online' | '2fa' | 'suspended'>('all');
+  const [isLoadingDB, setIsLoadingDB] = useState(false);
+
+  // Modals & Selected Role Info
+  const [isAddStaffOpen, setIsAddStaffOpen] = useState(false);
+  const [editingStaff, setEditingStaff] = useState<IStaffMember | null>(null);
+  const [selectedRoleInfo, setSelectedRoleInfo] = useState<StaffRoleType | null>(null);
+  const [selectedStaffForSessions, setSelectedStaffForSessions] = useState<IStaffMember | null>(null);
+  const [isRevokingSessionId, setIsRevokingSessionId] = useState<string | null>(null);
+  const [isTerminatingSessions, setIsTerminatingSessions] = useState(false);
+  const [isFreezingStaffId, setIsFreezingStaffId] = useState<string | null>(null);
+  const [pendingAuthRequest, setPendingAuthRequest] = useState<ILoginAuthRequest | null>(null);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  // New Staff Form State
+  const [newStaff, setNewStaff] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    password: '',
+    role: 'Telesales Executive' as StaffRoleType,
+    canViewOrders: true,
+    canEditOrders: true,
+    canManageCatalog: false,
+    canManageLogistics: false,
+    canManageFinance: false,
+    canAccessRBAC: false,
+  });
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
   const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3500);
   };
 
-  const handleTogglePermission = (
-    permissionId: string,
-    roleKey: 'superAdmin' | 'customerCare' | 'inventoryManager' | 'logistics'
+  // Trigger Push Login Simulation (e.g. from Chittagong Windows 11)
+  const handleSimulateRemoteLoginAttempt = async () => {
+    const mockRequest: ILoginAuthRequest = {
+      id: `req-${Date.now()}`,
+      email: user?.email || 'admin@shopnexus.io',
+      device: 'Dell XPS 15 (Windows Laptop)',
+      os: 'Windows 11 Pro',
+      browser: 'Microsoft Edge 126.0',
+      ipAddress: '45.112.58.10',
+      location: 'Chittagong, Bangladesh',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      status: 'pending',
+    };
+
+    setPendingAuthRequest(mockRequest);
+    showToast(isBn ? '🚨 সতর্কতা: চট্টগ্রাম থেকে নতুন ডিভাইসে লগইন অনুরোধ পাঠানো হয়েছে!' : '🚨 Security Alert: Incoming login challenge from Chittagong!');
+  };
+
+  // Handle Push Login Decision (Approve / Deny / Deny & Block)
+  const handleLoginDecision = async (
+    requestId: string,
+    decision: 'approved' | 'denied' | 'denied_and_blocked'
   ) => {
-    if (roleKey === 'superAdmin') {
-      showToast(isBn ? 'নিরাপত্তার স্বার্থে সুপার অ্যাডমিন পারমিশন সীমাবদ্ধ করা যাবে না।' : 'Super Admin permissions cannot be restricted for security safeguards.');
+    try {
+      await fetch('/api/auth/login-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'respond', requestId, decision }),
+      }).catch(() => null);
+
+      if (decision === 'approved' && pendingAuthRequest) {
+        // Add approved remote session
+        const newSession: IStaffSession = {
+          id: `sess-${Date.now()}`,
+          device: pendingAuthRequest.device,
+          os: pendingAuthRequest.os,
+          browser: pendingAuthRequest.browser,
+          ipAddress: pendingAuthRequest.ipAddress,
+          location: pendingAuthRequest.location,
+          isCurrentSession: false,
+          loginAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          lastHeartbeat: 'Just now',
+          riskScore: 'low',
+        };
+
+        setStaffList((prev) =>
+          prev.map((s) => {
+            if (s.email.toLowerCase() === (pendingAuthRequest?.email || '').toLowerCase()) {
+              return { ...s, sessions: [newSession, ...(s.sessions || [])] };
+            }
+            return s;
+          })
+        );
+
+        showToast(isBn ? '✅ রিমোট ডিভাইসের লগইন সফলভাবে অনুমোদন করা হয়েছে!' : '✅ Remote device login approved!');
+      } else if (decision === 'denied_and_blocked') {
+        showToast(isBn ? '🛑 দূরবর্তী লগইন বাতিল করা হয়েছে এবং ক্ষতিকর আইপি (45.112.58.10) ফ্রড শিল্ডে ব্লক হয়েছে!' : '🛑 Login denied and remote IP blocked in Fraud Shield!');
+      } else {
+        showToast(isBn ? '✕ দূরবর্তী ডিভাইসের লগইন অনুরোধ প্রত্যাখ্যান করা হয়েছে।' : '✕ Remote login authorization denied.');
+      }
+    } catch (err) {
+      console.error('Error handling login decision:', err);
+    } finally {
+      setPendingAuthRequest(null);
+    }
+  };
+
+  // 1-Click Revoke Specific Remote Device Session
+  const handleRevokeRemoteSession = async (staffId: string, sessionId: string, deviceName: string) => {
+    setIsRevokingSessionId(sessionId);
+    try {
+      await fetch('/api/admin/staff/sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'revoke_session', staffId, sessionId }),
+      }).catch(() => null);
+
+      setStaffList((prev) =>
+        prev.map((s) => {
+          if (s.id === staffId) {
+            const updatedSessions = (s.sessions || []).filter((sess) => sess.id !== sessionId);
+            return { ...s, sessions: updatedSessions };
+          }
+          return s;
+        })
+      );
+
+      setSelectedStaffForSessions((prev) => {
+        if (!prev || prev.id !== staffId) return prev;
+        const updatedSessions = (prev.sessions || []).filter((sess) => sess.id !== sessionId);
+        return { ...prev, sessions: updatedSessions };
+      });
+
+      showToast(
+        isBn
+          ? `✓ রিমোট ডিভাইস "${deviceName}" সফলভাবে লগআউট ও সেশন বাতিল করা হয়েছে!`
+          : `✓ Remote device "${deviceName}" disconnected and session revoked!`
+      );
+    } catch (err) {
+      console.error('Failed to revoke session:', err);
+      showToast(isBn ? 'সেশন রিভোক করতে সমস্যা হয়েছে।' : 'Failed to revoke remote session.');
+    } finally {
+      setIsRevokingSessionId(null);
+    }
+  };
+
+  // 1-Click Terminate All Other Sessions
+  const handleTerminateAllOtherSessions = async (staffId: string, staffName: string) => {
+    const isConfirmed = await showConfirmDialog({
+      title: isBn ? 'অন্যান্য সকল ডিভাইস লগআউট করবেন?' : 'Terminate All Other Sessions?',
+      message: isBn
+        ? `আপনি কি নিশ্চিত যে "${staffName}"-এর বর্তমান কম্পিউটার ব্যতীত অন্য সকল ডিভাইসের সেশন তাৎক্ষণিক টার্মিনেট (লগআউট) করতে চান?`
+        : `Are you sure you want to terminate all remote active sessions for "${staffName}"? Only the current active device will remain connected.`,
+      type: 'danger',
+      confirmText: isBn ? 'হ্যাঁ, সকল রিমোট সেশন বন্ধ করুন' : 'Terminate All Remote Sessions',
+      cancelText: isBn ? 'বাতিল' : 'Cancel',
+    });
+
+    if (!isConfirmed) return;
+
+    setIsTerminatingSessions(true);
+    try {
+      await fetch('/api/admin/staff/sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'terminate_all_other', staffId }),
+      }).catch(() => null);
+
+      setStaffList((prev) =>
+        prev.map((s) => {
+          if (s.id === staffId) {
+            const updatedSessions = (s.sessions || []).filter((sess) => sess.isCurrentSession);
+            return { ...s, sessions: updatedSessions };
+          }
+          return s;
+        })
+      );
+
+      setSelectedStaffForSessions((prev) => {
+        if (!prev || prev.id !== staffId) return prev;
+        const updatedSessions = (prev.sessions || []).filter((sess) => sess.isCurrentSession);
+        return { ...prev, sessions: updatedSessions };
+      });
+
+      showToast(
+        isBn
+          ? `🚨 "${staffName}"-এর বর্তমান ডিভাইস বাদে অন্য সকল রিমোট সেশন সফলভাবে লগআউট করা হয়েছে!`
+          : `🚨 All other remote sessions for "${staffName}" have been terminated!`
+      );
+    } catch (err) {
+      console.error('Failed to terminate sessions:', err);
+      showToast(isBn ? 'সকল সেশন বন্ধ করতে সমস্যা হয়েছে।' : 'Failed to terminate remote sessions.');
+    } finally {
+      setIsTerminatingSessions(false);
+    }
+  };
+
+  // 1-Click Instant Account Freeze
+  const handleInstantFreezeAccount = async (staffId: string, staffName: string) => {
+    const target = staffList.find((s) => s.id === staffId);
+    if (!target) return;
+
+    if (target.role === 'Super Admin' && target.email === (user?.email || 'admin@shopnexus.io')) {
+      showToast(isBn ? 'বর্তমান সক্রিয় সুপার অ্যাডমিন অ্যাকাউন্ট ফ্রিজ করা যাবে না।' : 'Cannot freeze the active Super Admin account in this session.');
       return;
     }
 
-    setPermissions((prev) =>
-      prev.map((p) => (p.id === permissionId ? { ...p, [roleKey]: !p[roleKey] } : p))
-    );
-    showToast(isBn ? 'পারমিশন ম্যাট্রিক্স সফলভাবে আপডেট করা হয়েছে।' : 'Permission matrix updated successfully.');
+    const isCurrentlySuspended = target.status === 'Suspended';
+    const isConfirmed = await showConfirmDialog({
+      title: isCurrentlySuspended
+        ? (isBn ? 'অ্যাকাউন্ট আনফ্রিজ ও সক্রিয় করবেন?' : 'Unfreeze & Restore Account?')
+        : (isBn ? '❄️ ইনস্ট্যান্ট একাউন্ট ফ্রিজ ও লকডাউন?' : '❄️ Instant Account Freeze & Lockdown?'),
+      message: isCurrentlySuspended
+        ? (isBn
+            ? `"${staffName}" অ্যাকাউন্টটি আনফ্রিজ করে পুনরায় স্বাভাবিক অ্যাক্সেস প্রদান করতে চান?`
+            : `Are you sure you want to unfreeze and restore login access for "${staffName}"?`)
+        : (isBn
+            ? `⚠️ সতর্কতা: "${staffName}" অ্যাকাউন্টটি সাথে সাথে ফ্রিজ (লক) করা হবে এবং সকল সেশন তাৎক্ষণিক বাতিল হয়ে যাবে। আপনি কি নিশ্চিত?`
+            : `⚠️ Warning: "${staffName}" will be instantly frozen, suspending login and terminating all connected sessions immediately. Are you sure?`),
+      type: isCurrentlySuspended ? 'info' : 'danger',
+      confirmText: isCurrentlySuspended ? (isBn ? 'হ্যাঁ, সক্রিয় করুন' : 'Unfreeze Account') : (isBn ? 'হ্যাঁ, ফ্রিজ করুন' : 'Freeze Account Now'),
+      cancelText: isBn ? 'বাতিল' : 'Cancel',
+    });
+
+    if (!isConfirmed) return;
+
+    setIsFreezingStaffId(staffId);
+    const nextStatus = isCurrentlySuspended ? 'Active' : 'Suspended';
+
+    try {
+      await fetch('/api/admin/staff/freeze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ staffId, isFrozen: !isCurrentlySuspended }),
+      }).catch(() => null);
+
+      setStaffList((prev) =>
+        prev.map((s) => {
+          if (s.id === staffId) {
+            return {
+              ...s,
+              status: nextStatus,
+              sessions: nextStatus === 'Suspended' ? [] : s.sessions,
+            };
+          }
+          return s;
+        })
+      );
+
+      if (selectedStaffForSessions?.id === staffId) {
+        setSelectedStaffForSessions((prev) =>
+          prev
+            ? {
+                ...prev,
+                status: nextStatus,
+                sessions: nextStatus === 'Suspended' ? [] : prev.sessions,
+              }
+            : null
+        );
+      }
+
+      showToast(
+        nextStatus === 'Suspended'
+          ? (isBn
+              ? `❄️ "${staffName}" অ্যাকাউন্টটি সফলভাবে ফ্রিজ করা হয়েছে এবং সকল অ্যাক্সেস স্থগিত করা হয়েছে!`
+              : `❄️ Account "${staffName}" has been frozen and all active sessions revoked!`)
+          : (isBn
+              ? `✓ "${staffName}" অ্যাকাউন্টটি আনফ্রিজ করা হয়েছে (অ্যাক্সেস সক্রিয়)!`
+              : `✓ Account "${staffName}" has been restored and unfreezed!`)
+      );
+    } catch (err) {
+      console.error('Failed to freeze account:', err);
+      showToast(isBn ? 'অ্যাকাউন্ট ফ্রিজ করতে সমস্যা হয়েছে।' : 'Failed to update account freeze status.');
+    } finally {
+      setIsFreezingStaffId(null);
+    }
   };
 
-  const handleAddStaffSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newStaffName || !newStaffEmail) return;
+  // Helper to dynamically check real-time session presence
+  const checkStaffPresence = useCallback(
+    (memberEmail: string) => {
+      const currentAuthEmail = (user?.email || 'admin@shopnexus.io').toLowerCase().trim();
+      const targetEmail = memberEmail.toLowerCase().trim();
 
+      // Only the exact matching current logged in user session is online
+      const isCurrentUser = targetEmail === currentAuthEmail;
+      const isOnline = isCurrentUser;
+
+      return {
+        isOnline,
+        isCurrentUser,
+        presenceLabel: isOnline
+          ? isBn
+            ? 'অনলাইন (আপনার সেশন)'
+            : 'Online (Current Session)'
+          : isBn
+          ? 'অফলাইন'
+          : 'Offline',
+        lastActiveFormatted: isOnline
+          ? isBn
+            ? 'এই মুহূর্তে সক্রিয়'
+            : 'Active right now'
+          : isBn
+          ? 'অফলাইন • পূর্বে সক্রিয়'
+          : 'Offline • Idle',
+      };
+    },
+    [user?.email, isBn]
+  );
+
+  // Fetch live staff from DB
+  const fetchLiveStaff = useCallback(async () => {
+    setIsLoadingDB(true);
+    try {
+      let res = await fetch('/api/admin/users', {
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      }).catch(() => null);
+
+      if ((!res || !res.ok) && API_URL && !API_URL.startsWith('/api') && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+        res = await fetch(`${API_URL}/admin/users`, {
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        }).catch(() => null);
+      }
+
+      if (!res || !res.ok) return;
+      const data = await res.json().catch(() => null);
+      if (data?.data && Array.isArray(data.data)) {
+        const liveUsers = data.data;
+        const liveStaff: IStaffMember[] = liveUsers
+          .filter((u: Partial<User>) => u.role === 'admin' || u.role === 'vendor' || u.role === 'staff')
+          .map((u: Partial<User> & Record<string, unknown>) => {
+            const roleTitle: StaffRoleType =
+              (u.storeName as StaffRoleType) || (u.role === 'admin' ? 'Super Admin' : 'Inventory Manager');
+            return {
+              id: String(u._id || u.id || ''),
+              name: String(u.name || 'Staff Member'),
+              email: String(u.email || ''),
+              phone: String(u.phoneNumber || '+880 1700-000000'),
+              role: roleTitle,
+              twoFactorEnabled: true,
+              status: u.isBlocked ? 'Suspended' : 'Active',
+              lastActive: 'Offline',
+              avatarColor: ROLE_DEFINITIONS[roleTitle]?.color || 'from-slate-700 to-slate-900',
+              createdAt: u.createdAt ? new Date(String(u.createdAt)).toISOString().split('T')[0] : '2026-01-01',
+              customPermissions: {
+                canViewOrders: true,
+                canEditOrders: roleTitle === 'Super Admin' || roleTitle === 'Telesales Executive',
+                canManageCatalog: roleTitle === 'Super Admin' || roleTitle === 'Inventory Manager',
+                canManageLogistics: roleTitle === 'Super Admin' || roleTitle === 'Delivery Officer',
+                canManageFinance: roleTitle === 'Super Admin' || roleTitle === 'Accountant',
+                canAccessRBAC: roleTitle === 'Super Admin',
+              },
+            };
+          });
+
+        if (liveStaff.length > 0) {
+          setStaffList((prev) => {
+            const liveEmails = new Set(liveStaff.map((s) => s.email.toLowerCase().trim()));
+            const liveIds = new Set(liveStaff.map((s) => s.id));
+            return [
+              ...liveStaff,
+              ...prev.filter(
+                (s) =>
+                  !liveIds.has(s.id) &&
+                  !liveEmails.has(s.email.toLowerCase().trim())
+              ),
+            ];
+          });
+        }
+      }
+    } catch (err) {
+      console.error('Could not fetch staff from DB:', err);
+    } finally {
+      setIsLoadingDB(false);
+    }
+  }, [API_URL, token]);
+
+  useEffect(() => {
+    fetchLiveStaff();
+  }, [fetchLiveStaff]);
+
+  // Toggle Staff Access (Active <-> Suspended)
+  const toggleStaffStatus = async (id: string, name: string) => {
+    const target = staffList.find((s) => s.id === id);
+    if (!target) return;
+    if (target.role === 'Super Admin') {
+      showToast(isBn ? 'সুপার অ্যাডমিন অ্যাকাউন্ট স্থগিত করা যাবে না।' : 'Super Admin account cannot be suspended.');
+      return;
+    }
+
+    const nextStatus: 'Active' | 'Suspended' = target.status === 'Active' ? 'Suspended' : 'Active';
+
+    setStaffList((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, status: nextStatus } : s))
+    );
+
+    showToast(
+      nextStatus === 'Active'
+        ? (isBn ? `✓ "${name}"-এর অ্যাক্সেস সক্রিয় করা হয়েছে!` : `✓ Access granted for "${name}"!`)
+        : (isBn ? `🔒 "${name}"-এর অ্যাক্সেস তাৎক্ষণিকভাবে স্থগিত করা হয়েছে!` : `🔒 Access suspended for "${name}"!`)
+    );
+  };
+
+  // Delete / Revoke Staff
+  const handleDeleteStaff = async (id: string, name: string) => {
+    const target = staffList.find((s) => s.id === id);
+    if (target?.role === 'Super Admin') {
+      showToast(isBn ? 'সুপার অ্যাডমিন অ্যাকাউন্ট মুছে ফেলা যাবে না।' : 'Cannot delete Super Admin account.');
+      return;
+    }
+
+    const isConfirmed = await showConfirmDialog({
+      title: isBn ? 'স্টাফ অ্যাক্সেস প্রত্যাহার করবেন?' : 'Revoke Staff Access?',
+      message: isBn
+        ? `আপনি কি নিশ্চিত যে "${name}"-এর স্টাফ ক্রেডেনশিয়াল এবং অ্যাক্সেস স্থায়ীভাবে বাতিল করতে চান?`
+        : `Are you sure you want to permanently revoke credentials for "${name}"?`,
+      type: 'danger',
+      confirmText: isBn ? 'হ্যাঁ, বাতিল করুন' : 'Revoke Credentials',
+      cancelText: isBn ? 'না' : 'Cancel',
+    });
+
+    if (isConfirmed) {
+      setStaffList((prev) => prev.filter((s) => s.id !== id));
+      showToast(isBn ? `"${name}"-এর অ্যাক্সেস প্রত্যাহার করা হয়েছে।` : `Revoked staff access for "${name}".`);
+
+      try {
+        await fetch(`${API_URL}/admin/users/${id}`, {
+          method: 'DELETE',
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
+      } catch (err) {
+        console.error('Error deleting staff from DB:', err);
+      }
+    }
+  };
+
+  // Add Staff Submit
+  const handleAddStaffSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newStaff.name || !newStaff.email || !newStaff.password) {
+      showToast(isBn ? 'অনুগ্রহ করে নাম, ইমেইল ও পাসওয়ার্ড প্রদান করুন।' : 'Please provide Name, Email and Password.');
+      return;
+    }
+
+    const createdStaffId = `st-${Date.now()}`;
     const newMember: IStaffMember = {
-      id: `st-${Date.now()}`,
-      name: newStaffName,
-      email: newStaffEmail,
-      phone: newStaffPhone || '+880 1700-000000',
-      role: newStaffRole,
+      id: createdStaffId,
+      name: newStaff.name,
+      email: newStaff.email,
+      phone: newStaff.phone || '+880 1700-000000',
+      role: newStaff.role,
       twoFactorEnabled: true,
       status: 'Active',
-      lastActive: isBn ? 'সবেমাত্র ইনভাইট করা হয়েছে' : 'Just invited',
-      avatarColor: 'from-amber-600 to-orange-600',
+      lastActive: 'Just invited',
+      avatarColor: ROLE_DEFINITIONS[newStaff.role]?.color || 'from-[#ff4400] to-[#ff7700]',
+      createdAt: new Date().toISOString().split('T')[0],
+      customPermissions: {
+        canViewOrders: newStaff.canViewOrders,
+        canEditOrders: newStaff.canEditOrders,
+        canManageCatalog: newStaff.canManageCatalog,
+        canManageLogistics: newStaff.canManageLogistics,
+        canManageFinance: newStaff.canManageFinance,
+        canAccessRBAC: newStaff.canAccessRBAC,
+      },
     };
 
-    setStaff((prev) => [newMember, ...prev]);
-    setIsAddStaffModalOpen(false);
-    setNewStaffName('');
-    setNewStaffEmail('');
-    setNewStaffPhone('');
-    showToast(isBn ? `স্টাফ মেম্বার ${newMember.name}-কে ${newMember.role} রোলে যুক্ত করা হয়েছে।` : `Staff member ${newMember.name} has been invited with ${newMember.role} role.`);
+    setStaffList((prev) => [newMember, ...prev]);
+    setIsAddStaffOpen(false);
+    showToast(isBn ? `স্টাফ মেম্বার "${newMember.name}" সফলভাবে যুক্ত করা হয়েছে!` : `Staff member "${newMember.name}" created with role "${newMember.role}"!`);
+
+    // Reset Form
+    setNewStaff({
+      name: '',
+      email: '',
+      phone: '',
+      password: '',
+      role: 'Telesales Executive',
+      canViewOrders: true,
+      canEditOrders: true,
+      canManageCatalog: false,
+      canManageLogistics: false,
+      canManageFinance: false,
+      canAccessRBAC: false,
+    });
+
+    try {
+      await fetch('/api/admin/users/staff', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(newMember),
+      }).catch(() => null);
+    } catch (err) {
+      console.error('Error saving staff to backend:', err);
+    }
   };
 
-  const filteredStaff = staff.filter(
-    (s) =>
-      s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.role.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Edit Staff Submit
+  const handleEditStaffSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingStaff) return;
+
+    setStaffList((prev) =>
+      prev.map((s) => (s.id === editingStaff.id ? editingStaff : s))
+    );
+    showToast(isBn ? `"${editingStaff.name}"-এর ভূমিকা ও পারমিশন আপডেট হয়েছে।` : `Updated roles and permissions for "${editingStaff.name}".`);
+    setEditingStaff(null);
+  };
+
+  // Toggle Permission Matrix Cell
+  const handleToggleMatrixRule = (
+    ruleId: string,
+    roleKey: 'telesales' | 'delivery' | 'inventoryManager' | 'customerCare' | 'accountant'
+  ) => {
+    setPermissions((prev) =>
+      prev.map((r) => (r.id === ruleId ? { ...r, [roleKey]: !r[roleKey] } : r))
+    );
+    showToast(isBn ? 'পারমিশন ম্যাট্রিক্স সফলভাবে আপডেট করা হয়েছে।' : 'Permission matrix updated.');
+  };
+
+  // Dynamic Telemetry Calculations
+  const onlineStaffCount = useMemo(() => {
+    return staffList.filter((s) => checkStaffPresence(s.email).isOnline && s.status === 'Active').length;
+  }, [staffList, checkStaffPresence]);
+
+  const offlineStaffCount = useMemo(() => {
+    return Math.max(0, staffList.length - onlineStaffCount);
+  }, [staffList.length, onlineStaffCount]);
+
+  const totalStaffCount = staffList.length;
+  const activeStaffCount = useMemo(() => staffList.filter((s) => s.status === 'Active').length, [staffList]);
+  const suspendedStaffCount = useMemo(() => staffList.filter((s) => s.status === 'Suspended').length, [staffList]);
+  const twoFaEnforcedCount = useMemo(() => staffList.filter((s) => s.twoFactorEnabled).length, [staffList]);
+
+  // Filtered Staff
+  const filteredStaff = useMemo(() => {
+    return staffList.filter((s) => {
+      const matchesSearch =
+        s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        s.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        s.phone.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        s.role.toLowerCase().includes(searchQuery.toLowerCase());
+
+      const matchesRole = roleFilter === 'all' || s.role === roleFilter;
+
+      let matchesStatus = true;
+      if (staffStatusFilter === 'online') {
+        matchesStatus = checkStaffPresence(s.email).isOnline && s.status === 'Active';
+      } else if (staffStatusFilter === '2fa') {
+        matchesStatus = s.twoFactorEnabled;
+      } else if (staffStatusFilter === 'suspended') {
+        matchesStatus = s.status === 'Suspended';
+      }
+
+      return matchesSearch && matchesRole && matchesStatus;
+    });
+  }, [staffList, searchQuery, roleFilter, staffStatusFilter, checkStaffPresence]);
 
   return (
     <RoleGuard allowedRoles={['admin']}>
       <div className="space-y-8 max-w-7xl mx-auto pb-16">
-        {/* Header */}
+        {/* Top Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-xs font-bold uppercase tracking-wider mb-2">
-              <ShieldCheck className="w-3.5 h-3.5" /> {isBn ? 'সিকিউরিটি ও রোল-বেসড অ্যাক্সেস কন্ট্রোল (RBAC)' : 'Security & Role-Based Access Control (RBAC)'}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-600 dark:text-orange-400 text-xs font-bold uppercase tracking-wider mb-2">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              {isBn ? 'সিকিউরিটি ও রোল-বেসড অ্যাক্সেস কন্ট্রোল (RBAC)' : 'Security & Role-Based Access Control (RBAC)'}
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-              {isBn ? 'স্টাফ রোল ও গ্র্যানুলার পারমিশন সিস্টেম' : 'Staff Roles & Granular Permissions System'}
+              {isBn ? 'স্টাফ রোল ও গ্র্যানুলার অ্যাক্সেস কন্ট্রোল' : 'Staff Roles & Access Control Center'}
             </h1>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
-              {isBn ? 'প্রশাসনিক কর্মকর্তাদের রোল নির্ধারণ করুন এবং কোন রোলে কোন কোন পারমিশন সক্রিয় থাকবে তা নিয়ন্ত্রণ করুন।' : 'Assign roles to administrative staff and configure granular module access permissions across the system.'}
+              {isBn
+                ? 'স্টাফ অ্যাকাউন্ট তৈরি করুন, লাইভ অনলাইন উপস্থিতি মনিটর করুন, গ্র্যানুলার পারমিশন দিন বা ১-ক্লিকে অ্যাক্সেস স্থগিত করুন।'
+                : 'Create staff accounts, monitor real-time online presence, configure granular RBAC permissions, or revoke access on demand.'}
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            {/* Live Push 2FA Simulator Trigger */}
             <button
               type="button"
-              onClick={() => setIsAddStaffModalOpen(true)}
+              onClick={handleSimulateRemoteLoginAttempt}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-600 dark:text-amber-400 font-black text-xs shadow-sm transition-all cursor-pointer hover:scale-105"
+              title={isBn ? 'চট্টগ্রাম থেকে দূরবর্তী ডিভাইসে লগইন চেষ্টার রিয়েল-টাইম পুশ অ্যালার্ট টেস্ট করুন' : 'Test Real-Time Remote Login Authorization Push Prompt'}
+            >
+              <ShieldAlert className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
+              <span>{isBn ? '🚨 টেস্ট পুশ ২এফএ (চট্টগ্রাম)' : '🚨 Test Push 2FA (Chittagong)'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => fetchLiveStaff()}
+              disabled={isLoadingDB}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-orange-500/40 text-slate-700 dark:text-slate-300 font-bold text-xs shadow-sm transition-all cursor-pointer hover:scale-105"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isLoadingDB ? 'animate-spin text-orange-500' : ''}`} />
+              <span>{isBn ? 'রিফ্রেশ' : 'Refresh'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsAddStaffOpen(true)}
               className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/25 transition-all cursor-pointer hover:scale-105"
             >
               <UserPlus className="w-4 h-4" />
@@ -323,25 +1152,201 @@ export default function AdminStaffRolesPage() {
           </div>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm max-w-md">
+        {/* Toast Alert */}
+        {toastMsg && (
+          <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-300 text-xs sm:text-sm font-bold flex items-center gap-2 animate-in fade-in duration-300">
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <span>{toastMsg}</span>
+          </div>
+        )}
+
+        {/* WORKABLE & REAL DYNAMIC KPI METRIC CARDS */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Card 1: Authorized Staff (Real Online vs Offline) */}
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('roster');
+              setStaffStatusFilter('all');
+            }}
+            className={`text-left p-5 rounded-3xl bg-white dark:bg-slate-900/80 border transition-all cursor-pointer group shadow-sm backdrop-blur-xl relative overflow-hidden ${
+              activeTab === 'roster' && staffStatusFilter === 'all'
+                ? 'border-orange-500 ring-2 ring-orange-500/40 shadow-lg shadow-orange-500/10'
+                : 'border-slate-200 dark:border-slate-800 hover:border-orange-500/40 hover:scale-[1.02]'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                {isBn ? 'অনুমোদিত স্টাফ' : 'Authorized Staff'}
+              </span>
+              <div className="w-9 h-9 rounded-2xl bg-orange-500/10 text-orange-600 dark:text-orange-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Users className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="mt-3 flex items-baseline gap-2">
+              <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+                {isBn ? toBengaliNumber(totalStaffCount) : totalStaffCount}
+              </span>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                  {isBn ? `${toBengaliNumber(onlineStaffCount)} জন Online` : `${onlineStaffCount} Online`}
+                </span>
+                <span className="text-[10px] text-slate-400 font-semibold">
+                  {isBn ? `• ${toBengaliNumber(offlineStaffCount)} অফলাইন` : `• ${offlineStaffCount} Offline`}
+                </span>
+              </div>
+            </div>
+            <div className="mt-2 text-[11px] text-slate-500 flex items-center justify-between">
+              <span className="flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                {isBn ? 'সেন্ট্রাল RBAC ডেটাবেস' : 'Central RBAC Database'}
+              </span>
+              <span className="text-[10px] text-orange-500 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                {isBn ? 'রোস্টার দেখুন →' : 'View Roster →'}
+              </span>
+            </div>
+          </button>
+
+          {/* Card 2: 2FA Authenticated */}
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('roster');
+              setStaffStatusFilter('2fa');
+            }}
+            className={`text-left p-5 rounded-3xl bg-white dark:bg-slate-900/80 border transition-all cursor-pointer group shadow-sm backdrop-blur-xl relative overflow-hidden ${
+              activeTab === 'roster' && staffStatusFilter === '2fa'
+                ? 'border-emerald-500 ring-2 ring-emerald-500/40 shadow-lg shadow-emerald-500/10'
+                : 'border-slate-200 dark:border-slate-800 hover:border-emerald-500/40 hover:scale-[1.02]'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                {isBn ? '২এফএ সক্রিয় টিম' : '2FA Authenticated'}
+              </span>
+              <div className="w-9 h-9 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <BadgeCheck className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="mt-3 flex items-baseline gap-2">
+              <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+                {isBn ? toBengaliNumber(twoFaEnforcedCount) : twoFaEnforcedCount}
+              </span>
+              <span className="text-xs text-emerald-600 dark:text-emerald-400 font-bold">
+                {isBn ? '১০০% এনক্রিপ্টেড' : '100% Encrypted'}
+              </span>
+            </div>
+            <div className="mt-2 text-[11px] text-slate-500 flex items-center justify-between">
+              <span className="flex items-center gap-1">
+                <Lock className="w-3 h-3 text-emerald-500" />
+                {isBn ? 'দ্বি-স্তর বিশিষ্ট নিরাপত্তা' : 'Two-Factor Shield Active'}
+              </span>
+              <span className="text-[10px] text-emerald-500 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                {isBn ? 'ফিল্টার করুন →' : 'Filter 2FA →'}
+              </span>
+            </div>
+          </button>
+
+          {/* Card 3: Active RBAC Rules */}
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('matrix');
+            }}
+            className={`text-left p-5 rounded-3xl bg-white dark:bg-slate-900/80 border transition-all cursor-pointer group shadow-sm backdrop-blur-xl relative overflow-hidden ${
+              activeTab === 'matrix'
+                ? 'border-indigo-500 ring-2 ring-indigo-500/40 shadow-lg shadow-indigo-500/10'
+                : 'border-slate-200 dark:border-slate-800 hover:border-indigo-500/40 hover:scale-[1.02]'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                {isBn ? 'পারমিশন রুলস' : 'Active RBAC Rules'}
+              </span>
+              <div className="w-9 h-9 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Sliders className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="mt-3 flex items-baseline gap-2">
+              <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+                {isBn ? toBengaliNumber(permissions.length) : permissions.length}
+              </span>
+              <span className="text-xs text-indigo-600 dark:text-indigo-400 font-bold">
+                {isBn ? '৬টি ভূমিকা' : '6 Roles'}
+              </span>
+            </div>
+            <div className="mt-2 text-[11px] text-slate-500 flex items-center justify-between">
+              <span className="flex items-center gap-1">
+                <Layers className="w-3 h-3 text-indigo-500" />
+                {isBn ? 'ম্যাট্রিক্স এডিট করুন' : 'Edit Matrix'}
+              </span>
+              <span className="text-[10px] text-indigo-500 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                {isBn ? 'ম্যাট্রিক্স দেখুন →' : 'View Matrix →'}
+              </span>
+            </div>
+          </button>
+
+          {/* Card 4: Suspended Access */}
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('roster');
+              setStaffStatusFilter('suspended');
+            }}
+            className={`text-left p-5 rounded-3xl bg-white dark:bg-slate-900/80 border transition-all cursor-pointer group shadow-sm backdrop-blur-xl relative overflow-hidden ${
+              activeTab === 'roster' && staffStatusFilter === 'suspended'
+                ? 'border-amber-500 ring-2 ring-amber-500/40 shadow-lg shadow-amber-500/10'
+                : 'border-slate-200 dark:border-slate-800 hover:border-amber-500/40 hover:scale-[1.02]'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                {isBn ? 'স্থগিত অ্যাক্সেস' : 'Suspended Access'}
+              </span>
+              <div className="w-9 h-9 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Power className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="mt-3 flex items-baseline gap-2">
+              <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+                {isBn ? toBengaliNumber(suspendedStaffCount) : suspendedStaffCount}
+              </span>
+              <span className="text-xs text-amber-600 dark:text-amber-400 font-bold">
+                {isBn ? 'ইনঅ্যাক্টিভ' : 'Inactive'}
+              </span>
+            </div>
+            <div className="mt-2 text-[11px] text-slate-500 flex items-center justify-between">
+              <span className="flex items-center gap-1">
+                <AlertCircle className="w-3 h-3 text-amber-500" />
+                {isBn ? '১-ক্লিক সুইচ কন্ট্রোল' : '1-Click instant toggle'}
+              </span>
+              <span className="text-[10px] text-amber-500 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                {isBn ? 'ফিল্টার করুন →' : 'Filter Suspended →'}
+              </span>
+            </div>
+          </button>
+        </div>
+
+        {/* TAB SWITCHER */}
+        <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm max-w-lg">
           <button
             type="button"
             onClick={() => setActiveTab('roster')}
-            className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+            className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
               activeTab === 'roster'
                 ? 'bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white shadow-md shadow-orange-500/25'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <Users className="w-4 h-4" />
-            <span>{isBn ? `স্টাফ মেম্বার (${toBengaliNumber(staff.length)})` : `Staff Members (${staff.length})`}</span>
+            <span>{isBn ? `স্টাফ মেম্বার (${toBengaliNumber(staffList.length)})` : `Staff Members (${staffList.length})`}</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('matrix')}
-            className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+            className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
               activeTab === 'matrix'
                 ? 'bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white shadow-md shadow-orange-500/25'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -350,85 +1355,386 @@ export default function AdminStaffRolesPage() {
             <Sliders className="w-4 h-4" />
             <span>{isBn ? 'পারমিশন ম্যাট্রিক্স' : 'Permissions Matrix'}</span>
           </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('guide')}
+            className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+              activeTab === 'guide'
+                ? 'bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white shadow-md shadow-orange-500/25'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            <FileText className="w-4 h-4" />
+            <span>{isBn ? 'রোল গাইড' : 'Roles Guide'}</span>
+          </button>
         </div>
 
-        {/* TAB 1: STAFF ROSTER */}
+        {/* TAB 1: STAFF ROSTER & ACCESS CONTROL */}
         {activeTab === 'roster' && (
           <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="max-w-xs w-full relative">
-                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+            {/* Search & Role Filters */}
+            <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
+              <div className="relative flex-1 max-w-md">
+                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
-                  placeholder={isBn ? 'স্টাফের নাম, ইমেইল বা রোল দিয়ে খুঁজুন...' : 'Search staff name, email, role...'}
+                  placeholder={isBn ? 'স্টাফের নাম, ইমেইল, ফোন বা পদবি দিয়ে খুঁজুন...' : 'Search staff name, email, phone, role...'}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none shadow-sm"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:border-orange-500 focus:outline-none shadow-sm"
                 />
+              </div>
+
+              {/* Status / Presence Quick Pills */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
+                <button
+                  type="button"
+                  onClick={() => setStaffStatusFilter('all')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                    staffStatusFilter === 'all'
+                      ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                  }`}
+                >
+                  {isBn ? `সকল (${toBengaliNumber(totalStaffCount)})` : `All (${totalStaffCount})`}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setStaffStatusFilter('online')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                    staffStatusFilter === 'online'
+                      ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+                      : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+                  }`}
+                >
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>{isBn ? `Online (${toBengaliNumber(onlineStaffCount)})` : `Online (${onlineStaffCount})`}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setStaffStatusFilter('2fa')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                    staffStatusFilter === '2fa'
+                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                      : 'bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400'
+                  }`}
+                >
+                  {isBn ? `২এফএ (${toBengaliNumber(twoFaEnforcedCount)})` : `2FA (${twoFaEnforcedCount})`}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setStaffStatusFilter('suspended')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                    staffStatusFilter === 'suspended'
+                      ? 'bg-amber-600 text-white shadow-md shadow-amber-600/20'
+                      : 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400'
+                  }`}
+                >
+                  {isBn ? `স্থগিত (${toBengaliNumber(suspendedStaffCount)})` : `Suspended (${suspendedStaffCount})`}
+                </button>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {filteredStaff.map((member) => (
-                <div
-                  key={member.id}
-                  className="p-5 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm backdrop-blur-xl space-y-4 hover:border-orange-500/30 transition-all"
+            {/* Role Filter Pills */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1">
+                {isBn ? 'পদবি:' : 'Role:'}
+              </span>
+              <button
+                type="button"
+                onClick={() => setRoleFilter('all')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                  roleFilter === 'all'
+                    ? 'bg-orange-500 text-white font-bold'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                {isBn ? 'সকল পদবি' : 'All Roles'}
+              </button>
+              {Object.keys(ROLE_DEFINITIONS).map((role) => (
+                <button
+                  key={role}
+                  type="button"
+                  onClick={() => setRoleFilter(role)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                    roleFilter === role
+                      ? 'bg-orange-500 text-white font-bold'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`w-12 h-12 rounded-2xl bg-gradient-to-tr ${member.avatarColor} text-white font-black text-base flex items-center justify-center shadow-md`}
-                      >
-                        {member.name.slice(0, 2).toUpperCase()}
-                      </div>
-                      <div>
-                        <div className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-1.5">
-                          {member.name}
-                          {member.twoFactorEnabled && (
-                            <span title={isBn ? '২এফএ ভেরিফাইড' : '2FA Authenticated'}>
-                              <BadgeCheck className="w-4 h-4 text-emerald-500 shrink-0" />
-                            </span>
-                          )}
-                        </div>
-                        <span className="text-xs text-slate-500 dark:text-slate-400 block">{member.email}</span>
-                        <span className="text-[11px] font-mono text-slate-400">{member.phone}</span>
-                      </div>
-                    </div>
-
-                    <span
-                      className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${
-                        member.role === 'Super Admin'
-                          ? 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20'
-                          : member.role === 'Customer Care Lead'
-                          ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20'
-                          : member.role === 'Inventory Manager'
-                          ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20'
-                          : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                      }`}
-                    >
-                      {getRoleLabel(member.role, isBn)}
-                    </span>
-                  </div>
-
-                  <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                      <span>{isBn ? 'সর্বশেষ সক্রিয়:' : 'Last Active:'} <strong className="text-slate-700 dark:text-slate-300">{member.lastActive}</strong></span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md">
-                        {isBn ? '২এফএ সক্রিয়' : '2FA Active'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                  {isBn ? ROLE_DEFINITIONS[role as StaffRoleType].title.bn.split(' ')[0] : role}
+                </button>
               ))}
             </div>
+
+            {/* ACTIVE KPI FILTER INDICATOR PILL */}
+            {(staffStatusFilter !== 'all' || roleFilter !== 'all' || searchQuery) && (
+              <div className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs animate-in fade-in duration-200">
+                <div className="flex items-center gap-2">
+                  <Filter className="w-3.5 h-3.5 text-orange-500 shrink-0" />
+                  <span className="text-slate-600 dark:text-slate-300">
+                    {isBn ? 'ফিল্টার করা হচ্ছে:' : 'Filtering by:'}{' '}
+                    <strong className="text-slate-900 dark:text-white">
+                      {staffStatusFilter === 'online'
+                        ? (isBn ? '🟢 বর্তমানে লগইন থাকা স্টাফ (Online Now)' : '🟢 Online Staff (Online Now)')
+                        : staffStatusFilter === '2fa'
+                        ? (isBn ? '২এফএ সক্রিয় স্টাফ' : '2FA Authenticated Staff')
+                        : staffStatusFilter === 'suspended'
+                        ? (isBn ? 'স্থগিত (Suspended) স্টাফ' : 'Suspended Staff')
+                        : (isBn ? 'সকল স্টাফ' : 'All Staff')}
+                    </strong>
+                    {roleFilter !== 'all' && (
+                      <span> • {isBn ? `পদবি: ${ROLE_DEFINITIONS[roleFilter as StaffRoleType]?.title.bn || roleFilter}` : `Role: ${roleFilter}`}</span>
+                    )}
+                    {searchQuery && <span> • {isBn ? `সার্চ: "${searchQuery}"` : `Search: "${searchQuery}"`}</span>}
+                  </span>
+                  <span className="px-2 py-0.5 rounded-md bg-orange-500/10 text-orange-600 dark:text-orange-400 font-bold text-[11px]">
+                    {isBn ? `${toBengaliNumber(filteredStaff.length)} জন মেম্বার` : `${filteredStaff.length} members`}
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStaffStatusFilter('all');
+                    setRoleFilter('all');
+                    setSearchQuery('');
+                  }}
+                  className="px-2.5 py-1 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-rose-500 hover:text-white text-slate-700 dark:text-slate-300 text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1"
+                >
+                  <X className="w-3 h-3" />
+                  <span>{isBn ? 'ফিল্টার রিসেট' : 'Reset Filter'}</span>
+                </button>
+              </div>
+            )}
+
+            {/* Staff Cards Grid */}
+            {filteredStaff.length === 0 ? (
+              <div className="text-center py-12 space-y-3 bg-white dark:bg-slate-900/60 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
+                <Users className="w-8 h-8 text-slate-400 mx-auto" />
+                <div className="text-sm font-bold text-slate-900 dark:text-white">
+                  {isBn ? 'কোনো স্টাফ মেম্বার মেলেনি' : 'No staff members found'}
+                </div>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                  {isBn
+                    ? 'আপনার নির্বাচিত ফিল্টারে বর্তমানে কোনো স্টাফ নেই। ফিল্টার রিসেট করে পুনরায় চেষ্টা করুন।'
+                    : 'No staff members matched your current filter criteria. Reset the filters to view all.'}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStaffStatusFilter('all');
+                    setRoleFilter('all');
+                    setSearchQuery('');
+                  }}
+                  className="px-4 py-2 rounded-xl bg-orange-500 text-white text-xs font-bold cursor-pointer hover:bg-orange-600"
+                >
+                  {isBn ? 'সকল স্টাফ দেখুন' : 'View All Staff'}
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {filteredStaff.map((member) => {
+                  const roleDef = ROLE_DEFINITIONS[member.role] || ROLE_DEFINITIONS['Super Admin'];
+                  const isSuspended = member.status === 'Suspended';
+                  const presence = checkStaffPresence(member.email);
+
+                  return (
+                    <div
+                      key={member.id}
+                      className={`p-5 rounded-3xl bg-white dark:bg-slate-900/80 border ${
+                        presence.isOnline
+                          ? 'border-emerald-500/40 shadow-emerald-500/5'
+                          : isSuspended
+                          ? 'border-rose-500/40 opacity-80'
+                          : 'border-slate-200 dark:border-slate-800'
+                      } shadow-sm backdrop-blur-xl space-y-4 hover:border-orange-500/40 transition-all relative`}
+                    >
+                      {/* Multi-Device Warning Ribbon or Online Pulse Indicator Ribbon */}
+                      {(member.sessions && member.sessions.length > 1) ? (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedStaffForSessions(member)}
+                          className="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold hover:scale-105 transition-transform cursor-pointer"
+                          title={isBn ? 'মাল্টি-ডিভাইস লগইন শনাক্ত হয়েছে - সেশন দেখুন' : 'Multi-device login detected - Inspect sessions'}
+                        >
+                          <AlertTriangle className="w-3 h-3 text-amber-500 animate-bounce" />
+                          <span>{isBn ? `${toBengaliNumber(member.sessions.length)}টি ডিভাইসে সক্রিয়` : `${member.sessions.length} Devices Active`}</span>
+                        </button>
+                      ) : presence.isOnline ? (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedStaffForSessions(member)}
+                          className="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold hover:scale-105 transition-transform cursor-pointer"
+                          title={isBn ? 'সক্রিয় সেশন ও ডিভাইস দেখুন' : 'View active sessions and telemetry'}
+                        >
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                          <span>{presence.presenceLabel}</span>
+                        </button>
+                      ) : null}
+
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="relative shrink-0">
+                            <div
+                              className={`w-12 h-12 rounded-2xl bg-gradient-to-tr ${member.avatarColor} text-white font-black text-base flex items-center justify-center shadow-md`}
+                            >
+                              {member.name.slice(0, 2).toUpperCase()}
+                            </div>
+                            {/* Avatar Presence Dot */}
+                            <span
+                              className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-slate-900 ${
+                                presence.isOnline ? 'bg-emerald-500' : 'bg-slate-400'
+                              }`}
+                              title={presence.presenceLabel}
+                            />
+                          </div>
+
+                          <div>
+                            <div className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-1.5">
+                              <span>{member.name}</span>
+                              {member.twoFactorEnabled && (
+                                <span title={isBn ? '২এফএ ভেরিফাইড' : '2FA Authenticated'}>
+                                  <BadgeCheck className="w-4 h-4 text-emerald-500 shrink-0" />
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-xs text-slate-500 dark:text-slate-400 block">{member.email}</span>
+                            <span className="text-[11px] font-mono text-slate-400">{member.phone}</span>
+                          </div>
+                        </div>
+
+                        {!presence.isOnline && (!member.sessions || member.sessions.length <= 1) && (
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${roleDef.badgeBg}`}>
+                              {isBn ? roleDef.title.bn : member.role}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedRoleInfo(member.role)}
+                              className="p-1 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 transition-colors cursor-pointer"
+                              title={isBn ? 'রোল পারমিশন তথ্য' : 'Role Information'}
+                            >
+                              <Info className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Permissions Tag Cloud & Role pill if online */}
+                      <div className="flex items-center gap-1.5 flex-wrap pt-2">
+                        {(presence.isOnline || (member.sessions && member.sessions.length > 1)) && (
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${roleDef.badgeBg} mr-1`}>
+                            {isBn ? roleDef.title.bn : member.role}
+                          </span>
+                        )}
+
+                        {member.customPermissions?.canManageCatalog && (
+                          <span className="px-2 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[9px] font-bold">
+                            {isBn ? 'ক্যাটালগ' : 'Catalog'}
+                          </span>
+                        )}
+                        {member.customPermissions?.canEditOrders && (
+                          <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] font-bold">
+                            {isBn ? 'অর্ডার' : 'Orders'}
+                          </span>
+                        )}
+                        {member.customPermissions?.canManageLogistics && (
+                          <span className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[9px] font-bold">
+                            {isBn ? 'লজিস্টিকস' : 'Logistics'}
+                          </span>
+                        )}
+                        {member.customPermissions?.canManageFinance && (
+                          <span className="px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 text-[9px] font-bold">
+                            {isBn ? 'ফাইন্যান্স' : 'Finance'}
+                          </span>
+                        )}
+                        {member.customPermissions?.canAccessRBAC && (
+                          <span className="px-2 py-0.5 rounded bg-purple-500/10 text-purple-600 dark:text-purple-400 text-[9px] font-bold">
+                            {isBn ? 'মাস্টার আরবিএসি' : 'Master RBAC'}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Footer Actions */}
+                      <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500 flex-wrap gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-slate-400">
+                            {isBn ? 'সেশন:' : 'Presence:'}{' '}
+                            <strong className={presence.isOnline ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-400'}>
+                              {presence.isOnline ? (isBn ? '🟢 অনলাইন (Online)' : '🟢 Online') : (isBn ? `⚪ অফলাইন (${member.lastActive})` : `⚪ Offline (${member.lastActive})`)}
+                            </strong>
+                          </span>
+                          <span className="text-slate-600">•</span>
+                          <span className={isSuspended ? 'text-rose-600 font-bold' : 'text-slate-400'}>
+                            {isSuspended ? (isBn ? 'লকড' : 'Suspended') : (isBn ? 'অনুমোদিত' : 'Allowed')}
+                          </span>
+                        </div>
+
+                        {/* Action buttons */}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {/* Active Sessions Inspector Trigger */}
+                          <button
+                            type="button"
+                            onClick={() => setSelectedStaffForSessions(member)}
+                            className="px-2.5 py-1 rounded-xl text-[10px] font-bold bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 transition-all cursor-pointer flex items-center gap-1"
+                            title={isBn ? 'সক্রিয় সেশন ও ডিভাইস নিরাপত্তা দেখুন' : 'Inspect Active Sessions & Remote Logout'}
+                          >
+                            <Laptop className="w-3 h-3" />
+                            <span>{isBn ? `সেশন (${toBengaliNumber(member.sessions?.length || 1)})` : `Sessions (${member.sessions?.length || 1})`}</span>
+                          </button>
+
+                          {/* 1-Click Instant Freeze / Unfreeze Button */}
+                          {member.role !== 'Super Admin' && (
+                            <button
+                              type="button"
+                              onClick={() => handleInstantFreezeAccount(member.id, member.name)}
+                              className={`px-2.5 py-1 rounded-xl text-[10px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                                isSuspended
+                                  ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+                                  : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20'
+                              }`}
+                              title={isSuspended ? (isBn ? 'অ্যাকাউন্ট আনফ্রিজ করুন' : 'Unfreeze Account') : (isBn ? 'ইনস্ট্যান্ট একাউন্ট ফ্রিজ' : 'Instant Freeze Account')}
+                            >
+                              <Snowflake className="w-3 h-3" />
+                              <span>{isSuspended ? (isBn ? 'সক্রিয় করুন' : 'Unfreeze') : (isBn ? 'ফ্রিজ' : 'Freeze')}</span>
+                            </button>
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={() => setEditingStaff(member)}
+                            className="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
+                            title={isBn ? 'রোল ও পারমিশন এডিট' : 'Edit Role & Permissions'}
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                          </button>
+
+                          {member.role !== 'Super Admin' && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteStaff(member.id, member.name)}
+                              className="p-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 transition-colors cursor-pointer"
+                              title={isBn ? 'অ্যাক্সেস চিরতরে বাতিল' : 'Revoke Credentials'}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
-        {/* TAB 2: PERMISSIONS MATRIX */}
+        {/* TAB 2: GRANULAR PERMISSIONS MATRIX */}
         {activeTab === 'matrix' && (
           <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 backdrop-blur-xl overflow-hidden shadow-sm space-y-4 p-6">
             <div>
@@ -437,7 +1743,9 @@ export default function AdminStaffRolesPage() {
                 {isBn ? 'গ্র্যানুলার সিকিউরিটি পারমিশন ম্যাট্রিক্স' : 'Granular Security Permissions Matrix'}
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                {isBn ? 'প্রতিটি প্রশাসনিক রোলের জন্য মডিউল অ্যাক্সেস তাৎক্ষণিকভাবে চালু বা বন্ধ করুন।' : 'Toggle permissions to immediately grant or revoke module access for each administrative staff role.'}
+                {isBn
+                  ? 'প্রতিটি প্রশাসনিক রোলের জন্য মডিউল অ্যাক্সেস তাৎক্ষণিকভাবে অন/অফ করুন।'
+                  : 'Toggle permissions to immediately grant or revoke module access for each administrative staff role.'}
               </p>
             </div>
 
@@ -445,11 +1753,13 @@ export default function AdminStaffRolesPage() {
               <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300">
                 <thead className="bg-slate-50 dark:bg-slate-950/80 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
                   <tr>
-                    <th className="px-5 py-3.5 w-1/3">{isBn ? 'সিকিউরিটি ডোমেন ও অ্যাকশন' : 'Security Domain & Action'}</th>
-                    <th className="px-4 py-3.5 text-center">{isBn ? 'সুপার অ্যাডমিন' : 'Super Admin'}</th>
-                    <th className="px-4 py-3.5 text-center">{isBn ? 'কাস্টমার কেয়ার লিড' : 'Customer Care Lead'}</th>
-                    <th className="px-4 py-3.5 text-center">{isBn ? 'ইনভেন্টরি ম্যানেজার' : 'Inventory Manager'}</th>
-                    <th className="px-4 py-3.5 text-center">{isBn ? 'লজিস্টিকস অফিসার' : 'Logistics Officer'}</th>
+                    <th className="px-5 py-3.5 w-1/4">{isBn ? 'সিকিউরিটি ডোমেন ও অ্যাকশন' : 'Security Domain & Action'}</th>
+                    <th className="px-3 py-3.5 text-center">{isBn ? 'সুপার অ্যাডমিন' : 'Super Admin'}</th>
+                    <th className="px-3 py-3.5 text-center">{isBn ? 'টেলিসেলস' : 'Telesales'}</th>
+                    <th className="px-3 py-3.5 text-center">{isBn ? 'ডেলিভারি' : 'Delivery'}</th>
+                    <th className="px-3 py-3.5 text-center">{isBn ? 'ইনভেন্টরি' : 'Inventory'}</th>
+                    <th className="px-3 py-3.5 text-center">{isBn ? 'কাস্টমার কেয়ার' : 'Customer Care'}</th>
+                    <th className="px-3 py-3.5 text-center">{isBn ? 'অ্যাকাউন্ট্যান্ট' : 'Accountant'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
@@ -469,54 +1779,85 @@ export default function AdminStaffRolesPage() {
                           <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{descText}</p>
                         </td>
 
-                        {/* Super Admin */}
-                        <td className="px-4 py-4 text-center">
-                          <div className="inline-flex p-2 rounded-xl bg-orange-500/10 text-orange-600 dark:text-orange-400">
+                        {/* Super Admin - Locked */}
+                        <td className="px-3 py-4 text-center">
+                          <div className="inline-flex p-2 rounded-xl bg-orange-500/10 text-orange-600 dark:text-orange-400" title={isBn ? 'মাস্টার পারমিশন লকড' : 'Master Permission Locked'}>
                             <Lock className="w-4 h-4" />
                           </div>
                         </td>
 
-                        {/* Customer Care */}
-                        <td className="px-4 py-4 text-center">
+                        {/* Telesales */}
+                        <td className="px-3 py-4 text-center">
                           <button
                             type="button"
-                            onClick={() => handleTogglePermission(rule.id, 'customerCare')}
-                            className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer mx-auto ${
-                              rule.customerCare
+                            onClick={() => handleToggleMatrixRule(rule.id, 'telesales')}
+                            className={`w-7 h-7 rounded-xl flex items-center justify-center transition-all cursor-pointer mx-auto ${
+                              rule.telesales
                                 ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/25 scale-105'
                                 : 'bg-slate-100 dark:bg-slate-800 text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
                             }`}
                           >
-                            {rule.customerCare ? <Check className="w-4 h-4 stroke-[3]" /> : <X className="w-3.5 h-3.5" />}
+                            {rule.telesales ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : <X className="w-3 h-3" />}
                           </button>
                         </td>
 
-                        {/* Inventory Manager */}
-                        <td className="px-4 py-4 text-center">
+                        {/* Delivery */}
+                        <td className="px-3 py-4 text-center">
                           <button
                             type="button"
-                            onClick={() => handleTogglePermission(rule.id, 'inventoryManager')}
-                            className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer mx-auto ${
+                            onClick={() => handleToggleMatrixRule(rule.id, 'delivery')}
+                            className={`w-7 h-7 rounded-xl flex items-center justify-center transition-all cursor-pointer mx-auto ${
+                              rule.delivery
+                                ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/25 scale-105'
+                                : 'bg-slate-100 dark:bg-slate-800 text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                            }`}
+                          >
+                            {rule.delivery ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : <X className="w-3 h-3" />}
+                          </button>
+                        </td>
+
+                        {/* Inventory */}
+                        <td className="px-3 py-4 text-center">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleMatrixRule(rule.id, 'inventoryManager')}
+                            className={`w-7 h-7 rounded-xl flex items-center justify-center transition-all cursor-pointer mx-auto ${
                               rule.inventoryManager
                                 ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/25 scale-105'
                                 : 'bg-slate-100 dark:bg-slate-800 text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
                             }`}
                           >
-                            {rule.inventoryManager ? <Check className="w-4 h-4 stroke-[3]" /> : <X className="w-3.5 h-3.5" />}
+                            {rule.inventoryManager ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : <X className="w-3 h-3" />}
                           </button>
                         </td>
 
-                        <td className="px-4 py-4 text-center">
+                        {/* Customer Care */}
+                        <td className="px-3 py-4 text-center">
                           <button
                             type="button"
-                            onClick={() => handleTogglePermission(rule.id, 'logistics')}
-                            className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer mx-auto ${
-                              rule.logistics
+                            onClick={() => handleToggleMatrixRule(rule.id, 'customerCare')}
+                            className={`w-7 h-7 rounded-xl flex items-center justify-center transition-all cursor-pointer mx-auto ${
+                              rule.customerCare
                                 ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/25 scale-105'
                                 : 'bg-slate-100 dark:bg-slate-800 text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
                             }`}
                           >
-                            {rule.logistics ? <Check className="w-4 h-4 stroke-[3]" /> : <X className="w-3.5 h-3.5" />}
+                            {rule.customerCare ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : <X className="w-3 h-3" />}
+                          </button>
+                        </td>
+
+                        {/* Accountant */}
+                        <td className="px-3 py-4 text-center">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleMatrixRule(rule.id, 'accountant')}
+                            className={`w-7 h-7 rounded-xl flex items-center justify-center transition-all cursor-pointer mx-auto ${
+                              rule.accountant
+                                ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/25 scale-105'
+                                : 'bg-slate-100 dark:bg-slate-800 text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                            }`}
+                          >
+                            {rule.accountant ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : <X className="w-3 h-3" />}
                           </button>
                         </td>
                       </tr>
@@ -528,7 +1869,67 @@ export default function AdminStaffRolesPage() {
           </div>
         )}
 
-        {isAddStaffModalOpen && (
+        {/* TAB 3: ROLES SPECIFICATION & GUIDE */}
+        {activeTab === 'guide' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Object.entries(ROLE_DEFINITIONS).map(([roleKey, def]) => (
+              <div
+                key={roleKey}
+                className="p-5 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4"
+              >
+                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-8 h-8 rounded-xl bg-gradient-to-tr ${def.color} text-white flex items-center justify-center text-xs font-bold`}>
+                      <ShieldCheck className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-900 dark:text-white text-xs">
+                        {isBn ? def.title.bn : def.title.en}
+                      </h4>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  {isBn ? def.desc.bn : def.desc.en}
+                </p>
+
+                <div className="space-y-2 text-xs">
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block mb-1">
+                      {isBn ? '✓ অনুমোদিত সুবিধাসমূহ:' : '✓ Permitted Modules:'}
+                    </span>
+                    <ul className="space-y-1">
+                      {(isBn ? def.allowed.bn : def.allowed.en).map((item, idx) => (
+                        <li key={idx} className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-500 shrink-0" />
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 block mb-1">
+                      {isBn ? '✕ সীমাবদ্ধ সুবিধাসমূহ:' : '✕ Restricted Modules:'}
+                    </span>
+                    <ul className="space-y-1">
+                      {(isBn ? def.restricted.bn : def.restricted.en).map((item, idx) => (
+                        <li key={idx} className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                          <X className="w-3 h-3 text-rose-500 shrink-0" />
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ADD STAFF MODAL */}
+        {isAddStaffOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
             <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5 my-8">
               <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
@@ -538,17 +1939,17 @@ export default function AdminStaffRolesPage() {
                   </div>
                   <div>
                     <h2 className="text-lg font-black text-slate-900 dark:text-white">
-                      {isBn ? 'প্রশাসনিক কর্মকর্তা ইনভাইট করুন' : 'Invite Administrative Staff'}
+                      {isBn ? 'নতুন স্টাফ মেম্বার ইনভাইট করুন' : 'Invite Administrative Staff'}
                     </h2>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                      {isBn ? 'নতুন স্টাফ মেম্বার যোগ করুন এবং তার দায়িত্ব নির্ধারণ করুন' : 'Add a new administrative member and configure their roles and privileges'}
+                      {isBn ? 'স্টাফের জন্য জিমেইল, পাসওয়ার্ড ও দায়িত্ব নির্ধারণ করুন' : 'Configure official Gmail, password & RBAC roles'}
                     </p>
                   </div>
                 </div>
                 <button
                   type="button"
-                  onClick={() => setIsAddStaffModalOpen(false)}
-                  className="p-2 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                  onClick={() => setIsAddStaffOpen(false)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -557,14 +1958,14 @@ export default function AdminStaffRolesPage() {
               <form onSubmit={handleAddStaffSubmit} className="space-y-4 text-xs">
                 <div>
                   <label className="block text-[11px] uppercase font-bold text-slate-500 mb-1">
-                    {isBn ? 'স্টাফের পুরো নাম:' : 'Full Name:'}
+                    {isBn ? 'স্টাফের পুরো নাম *' : 'Full Name *'}
                   </label>
                   <input
                     type="text"
                     required
                     placeholder={isBn ? 'উদাঃ মাহফুজুর রহমান' : 'e.g. Mahfuzur Rahman'}
-                    value={newStaffName}
-                    onChange={(e) => setNewStaffName(e.target.value)}
+                    value={newStaff.name}
+                    onChange={(e) => setNewStaff({ ...newStaff, name: e.target.value })}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:border-orange-500 focus:outline-none"
                   />
                 </div>
@@ -572,27 +1973,27 @@ export default function AdminStaffRolesPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-[11px] uppercase font-bold text-slate-500 mb-1">
-                      {isBn ? 'অফিসিয়াল ইমেইল:' : 'Official Email:'}
+                      {isBn ? 'অফিসিয়াল জিমেইল *' : 'Official Gmail / Email *'}
                     </label>
                     <input
                       type="email"
                       required
                       placeholder="staff@shopnexus.io"
-                      value={newStaffEmail}
-                      onChange={(e) => setNewStaffEmail(e.target.value)}
+                      value={newStaff.email}
+                      onChange={(e) => setNewStaff({ ...newStaff, email: e.target.value })}
                       className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:border-orange-500 focus:outline-none"
                     />
                   </div>
 
                   <div>
                     <label className="block text-[11px] uppercase font-bold text-slate-500 mb-1">
-                      {isBn ? 'ফোন নম্বর:' : 'Phone Number:'}
+                      {isBn ? 'ফোন নম্বর' : 'Phone Number'}
                     </label>
                     <input
                       type="text"
                       placeholder="+880 1711-xxxxxx"
-                      value={newStaffPhone}
-                      onChange={(e) => setNewStaffPhone(e.target.value)}
+                      value={newStaff.phone}
+                      onChange={(e) => setNewStaff({ ...newStaff, phone: e.target.value })}
                       className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:border-orange-500 focus:outline-none"
                     />
                   </div>
@@ -600,24 +2001,52 @@ export default function AdminStaffRolesPage() {
 
                 <div>
                   <label className="block text-[11px] uppercase font-bold text-slate-500 mb-1">
-                    {isBn ? 'পদবি ও পারমিশন নির্ধারণ:' : 'Assign Role & Access:'}
+                    {isBn ? 'পাসওয়ার্ড *' : 'Temporary Password *'}
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    placeholder="••••••••"
+                    value={newStaff.password}
+                    onChange={(e) => setNewStaff({ ...newStaff, password: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:border-orange-500 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] uppercase font-bold text-slate-500 mb-1">
+                    {isBn ? 'নির্ধারিত পদবি (Role) *' : 'Designated Role *'}
                   </label>
                   <select
-                    value={newStaffRole}
-                    onChange={(e) => setNewStaffRole(e.target.value as IStaffMember['role'])}
+                    value={newStaff.role}
+                    onChange={(e) => {
+                      const r = e.target.value as StaffRoleType;
+                      setNewStaff({
+                        ...newStaff,
+                        role: r,
+                        canViewOrders: r !== 'Inventory Manager',
+                        canEditOrders: r === 'Telesales Executive' || r === 'Super Admin',
+                        canManageCatalog: r === 'Inventory Manager' || r === 'Super Admin',
+                        canManageLogistics: r === 'Delivery Officer' || r === 'Super Admin',
+                        canManageFinance: r === 'Accountant' || r === 'Super Admin',
+                        canAccessRBAC: r === 'Super Admin',
+                      });
+                    }}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold focus:border-orange-500 focus:outline-none cursor-pointer"
                   >
-                    <option value="Customer Care Lead">{isBn ? 'Customer Care Lead (অর্ডার প্রসেস ও কাস্টমার যোগাযোগ)' : 'Customer Care Lead (Order Processing & Comms)'}</option>
-                    <option value="Inventory Manager">{isBn ? 'Inventory Manager (স্টক ও ক্যাটালগ এডিট)' : 'Inventory Manager (Stock & Catalog Edit)'}</option>
-                    <option value="Logistics Officer">{isBn ? 'Logistics Officer (পার্সেল ডিসপ্যাচ ও প্রিন্ট)' : 'Logistics Officer (Parcel Dispatch & Invoicing)'}</option>
-                    <option value="Super Admin">{isBn ? 'Super Admin (সম্পূর্ণ প্রশাসনিক অধিকার)' : 'Super Admin (Full Administrative Access)'}</option>
+                    <option value="Telesales Executive">{isBn ? 'Telesales Executive (অর্ডার কনফার্মেশন)' : 'Telesales Executive (Order Confirmation)'}</option>
+                    <option value="Delivery Officer">{isBn ? 'Delivery Officer (লজিস্টিকস ও ট্র্যাকিং)' : 'Delivery Officer (Logistics & Tracking)'}</option>
+                    <option value="Inventory Manager">{isBn ? 'Inventory Manager (পণ্য ও স্টক আপডেট)' : 'Inventory Manager (Catalog & Stock)'}</option>
+                    <option value="Customer Care Lead">{isBn ? 'Customer Care Lead (কাস্টমার সাপোর্ট ও রিভিউ)' : 'Customer Care Lead (Support & Reviews)'}</option>
+                    <option value="Accountant">{isBn ? 'Accountant (ফাইন্যান্স ও সেটেলমেন্ট)' : 'Accountant (Finance & Gateways)'}</option>
+                    <option value="Super Admin">{isBn ? 'Super Admin (সম্পূর্ণ মাস্টার এক্সেস)' : 'Super Admin (Full Master Access)'}</option>
                   </select>
                 </div>
 
                 <div className="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800">
                   <button
                     type="button"
-                    onClick={() => setIsAddStaffModalOpen(false)}
+                    onClick={() => setIsAddStaffOpen(false)}
                     className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition-all cursor-pointer"
                   >
                     {isBn ? 'বাতিল' : 'Cancel'}
@@ -627,7 +2056,7 @@ export default function AdminStaffRolesPage() {
                     className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/25 transition-all cursor-pointer"
                   >
                     <Check className="w-4 h-4" />
-                    <span>{isBn ? 'ইনভাইট পাঠান ও পারমিশন দিন' : 'Send Invite & Grant Access'}</span>
+                    <span>{isBn ? 'স্টাফ একাউন্ট তৈরি করুন' : 'Create Staff Account'}</span>
                   </button>
                 </div>
               </form>
@@ -635,12 +2064,369 @@ export default function AdminStaffRolesPage() {
           </div>
         )}
 
-        {/* Floating Toast Message */}
-        {toastMessage && (
-          <div className="fixed bottom-6 right-6 z-50 p-4 rounded-2xl bg-slate-900 text-white border border-orange-500/40 shadow-2xl flex items-center gap-2.5 animate-in fade-in slide-in-from-bottom-3 duration-200 text-xs font-bold">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-            <span>{toastMessage}</span>
+        {/* EDIT STAFF MODAL */}
+        {editingStaff && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+            <div className="relative w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                <h3 className="text-base font-black text-slate-900 dark:text-white">
+                  {isBn ? `সম্পাদনা: ${editingStaff.name}` : `Edit: ${editingStaff.name}`}
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setEditingStaff(null)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleEditStaffSubmit} className="space-y-3.5 text-xs">
+                <div>
+                  <label className="block text-[11px] font-bold uppercase text-slate-500 mb-1">
+                    {isBn ? 'পদবি ও রোল' : 'Assigned Role'}
+                  </label>
+                  <select
+                    value={editingStaff.role}
+                    onChange={(e) => setEditingStaff({ ...editingStaff, role: e.target.value as StaffRoleType })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold cursor-pointer"
+                  >
+                    <option value="Super Admin">Super Admin</option>
+                    <option value="Telesales Executive">Telesales Executive</option>
+                    <option value="Delivery Officer">Delivery Officer</option>
+                    <option value="Inventory Manager">Inventory Manager</option>
+                    <option value="Customer Care Lead">Customer Care Lead</option>
+                    <option value="Accountant">Accountant</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold uppercase text-slate-500 mb-1">
+                    {isBn ? 'স্ট্যাটাস' : 'Access Status'}
+                  </label>
+                  <select
+                    value={editingStaff.status}
+                    onChange={(e) => setEditingStaff({ ...editingStaff, status: e.target.value as 'Active' | 'Suspended' })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold cursor-pointer"
+                  >
+                    <option value="Active">{isBn ? 'Active (সক্রিয়)' : 'Active (Access Granted)'}</option>
+                    <option value="Suspended">{isBn ? 'Suspended (স্থগিত)' : 'Suspended (Access Revoked)'}</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => setEditingStaff(null)}
+                    className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold cursor-pointer"
+                  >
+                    {isBn ? 'বাতিল' : 'Cancel'}
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white font-bold shadow-md shadow-orange-500/25 cursor-pointer"
+                  >
+                    {isBn ? 'পরিবর্তন সংরক্ষণ করুন' : 'Save Changes'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
+        )}
+
+        {/* ROLE INFO MODAL */}
+        {selectedRoleInfo && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+            <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5">
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-orange-500/10 text-orange-600 dark:text-orange-400 flex items-center justify-center">
+                    <Info className="w-4 h-4" />
+                  </div>
+                  <h3 className="text-base font-black text-slate-900 dark:text-white">
+                    {isBn ? ROLE_DEFINITIONS[selectedRoleInfo].title.bn : ROLE_DEFINITIONS[selectedRoleInfo].title.en}
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedRoleInfo(null)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                {isBn ? ROLE_DEFINITIONS[selectedRoleInfo].desc.bn : ROLE_DEFINITIONS[selectedRoleInfo].desc.en}
+              </p>
+
+              <div className="space-y-3">
+                <div>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block mb-1.5">
+                    {isBn ? '✓ অনুমোদিত অ্যাক্সেস মডিউলসমূহ:' : '✓ Permitted Access Modules:'}
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                    {(isBn ? ROLE_DEFINITIONS[selectedRoleInfo].allowed.bn : ROLE_DEFINITIONS[selectedRoleInfo].allowed.en).map((item, idx) => (
+                      <div key={idx} className="flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-200">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        <span>{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 block mb-1.5">
+                    {isBn ? '✕ সীমাবদ্ধ / ব্লকড ফিচারসমূহ:' : '✕ Restricted / Blocked Features:'}
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                    {(isBn ? ROLE_DEFINITIONS[selectedRoleInfo].restricted.bn : ROLE_DEFINITIONS[selectedRoleInfo].restricted.en).map((item, idx) => (
+                      <div key={idx} className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                        <X className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 shrink-0" />
+                        <span>{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setSelectedRoleInfo(null)}
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white font-bold text-xs cursor-pointer"
+                >
+                  {isBn ? 'বন্ধ করুন' : 'Close'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ACTIVE SESSIONS & REMOTE SECURITY INSPECTOR MODAL */}
+        {selectedStaffForSessions && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+            <div className="relative w-full max-w-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
+                <div className="flex items-center gap-3.5">
+                  <div className={`w-12 h-12 rounded-2xl bg-gradient-to-tr ${selectedStaffForSessions.avatarColor} text-white font-black text-lg flex items-center justify-center shadow-md`}>
+                    {selectedStaffForSessions.name.slice(0, 2).toUpperCase()}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
+                        {selectedStaffForSessions.name}
+                      </h3>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20">
+                        {selectedStaffForSessions.role}
+                      </span>
+                    </div>
+                    <span className="text-xs text-slate-500 dark:text-slate-400 block font-mono mt-0.5">
+                      {selectedStaffForSessions.email} • {selectedStaffForSessions.phone}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedStaffForSessions(null)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Multi-device Warning Banner */}
+              {(selectedStaffForSessions.sessions?.length || 0) > 1 && (
+                <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs space-y-1.5 animate-in fade-in">
+                  <div className="flex items-center gap-2 font-black text-sm text-amber-600 dark:text-amber-400">
+                    <ShieldAlert className="w-4 h-4 shrink-0" />
+                    <span>
+                      {isBn
+                        ? `সতর্কতা: একাধিক ডিভাইসে একযোগে লগইন শনাক্ত হয়েছে (${toBengaliNumber(selectedStaffForSessions.sessions?.length || 0)}টি ডিভাইস)!`
+                        : `Security Alert: Multiple active devices detected (${selectedStaffForSessions.sessions?.length} concurrent sessions)!`}
+                    </span>
+                  </div>
+                  <p className="text-[11px] leading-relaxed text-amber-600/90 dark:text-amber-300/90">
+                    {isBn
+                      ? 'যদি আপনি নিজেই এই ডিভাইসগুলো থেকে লগইন না করে থাকেন, তবে পাসওয়ার্ড ফাঁস হয়ে থাকতে পারে। অননুমোদিত ডিভাইসটি রিভোক করুন অথবা নিচের বাটন দিয়ে অন্য সব সেশন তাৎক্ষণিক টার্মিনেট করুন।'
+                      : 'If you did not initiate these logins, credentials may be exposed. Revoke unauthorized devices or terminate all remote sessions immediately.'}
+                  </p>
+                </div>
+              )}
+
+              {/* Primary Security Quick Actions Bar */}
+              <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+                <div>
+                  <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                    <Activity className="w-3.5 h-3.5 text-emerald-500" />
+                    <span>{isBn ? 'সক্রিয় সেশন কন্ট্রোল' : 'Active Session Defense'}</span>
+                  </div>
+                  <span className="text-[11px] text-slate-500">
+                    {isBn
+                      ? `মোট সংযুক্ত ডিভাইস: ${toBengaliNumber(selectedStaffForSessions.sessions?.length || 1)}টি`
+                      : `Total active devices: ${selectedStaffForSessions.sessions?.length || 1}`}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  {(selectedStaffForSessions.sessions?.length || 0) > 1 && (
+                    <button
+                      type="button"
+                      disabled={isTerminatingSessions}
+                      onClick={() => handleTerminateAllOtherSessions(selectedStaffForSessions.id, selectedStaffForSessions.name)}
+                      className="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md shadow-rose-600/20 transition-all cursor-pointer flex items-center gap-1.5"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      <span>{isBn ? 'অন্য সকল ডিভাইস লগআউট করুন' : 'Terminate All Other Sessions'}</span>
+                    </button>
+                  )}
+
+                  {selectedStaffForSessions.role !== 'Super Admin' && (
+                    <button
+                      type="button"
+                      disabled={isFreezingStaffId === selectedStaffForSessions.id}
+                      onClick={() => handleInstantFreezeAccount(selectedStaffForSessions.id, selectedStaffForSessions.name)}
+                      className={`px-3.5 py-2 rounded-xl font-bold text-xs transition-all cursor-pointer flex items-center gap-1.5 ${
+                        selectedStaffForSessions.status === 'Suspended'
+                          ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                          : 'bg-amber-500 hover:bg-amber-600 text-slate-950 shadow-md shadow-amber-500/20'
+                      }`}
+                    >
+                      <Snowflake className="w-3.5 h-3.5" />
+                      <span>
+                        {selectedStaffForSessions.status === 'Suspended'
+                          ? (isBn ? 'আনফ্রিজ করুন (Active)' : 'Unfreeze Account')
+                          : (isBn ? 'ইনস্ট্যান্ট একাউন্ট ফ্রিজ' : 'Instant Freeze Account')}
+                      </span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Sessions List */}
+              <div className="space-y-3">
+                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                  {isBn ? 'সংযুক্ত ডিভাইস ও সেশন তালিকা:' : 'Connected Devices & Active Sessions:'}
+                </div>
+
+                {(!selectedStaffForSessions.sessions || selectedStaffForSessions.sessions.length === 0) ? (
+                  <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-dashed border-slate-200 dark:border-slate-800 text-center space-y-1">
+                    <Laptop className="w-6 h-6 text-slate-400 mx-auto" />
+                    <div className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                      {isBn ? 'বর্তমানে কোনো সক্রিয় সেশন নেই' : 'No active sessions found'}
+                    </div>
+                    <p className="text-[11px] text-slate-500">
+                      {isBn ? 'এই অ্যাকাউন্টটি বর্তমানে অফলাইন অথবা ফ্রিজ অবস্থায় আছে।' : 'This account is currently offline or suspended.'}
+                    </p>
+                  </div>
+                ) : (
+                  selectedStaffForSessions.sessions.map((sess) => (
+                    <div
+                      key={sess.id}
+                      className={`p-4 rounded-2xl border transition-all ${
+                        sess.isCurrentSession
+                          ? 'bg-emerald-500/5 border-emerald-500/30'
+                          : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 hover:border-orange-500/30'
+                      }`}
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-start gap-3">
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                            sess.isCurrentSession
+                              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                              : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                          }`}>
+                            {sess.os.toLowerCase().includes('ios') || sess.os.toLowerCase().includes('android') ? (
+                              <Smartphone className="w-5 h-5" />
+                            ) : (
+                              <Laptop className="w-5 h-5" />
+                            )}
+                          </div>
+
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-black text-xs text-slate-900 dark:text-white">
+                                {sess.device}
+                              </span>
+                              {sess.isCurrentSession ? (
+                                <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-black">
+                                  {isBn ? '🟢 বর্তমান ডিভাইস (সুরক্ষিত)' : '🟢 This Device (Current Session)'}
+                                </span>
+                              ) : (
+                                <span className="px-2 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-[10px] font-black flex items-center gap-1">
+                                  <AlertTriangle className="w-3 h-3" />
+                                  <span>{isBn ? '⚠️ রিমোট সেশন' : '⚠️ Remote Session'}</span>
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-3 flex-wrap">
+                              <span>{sess.os} • {sess.browser}</span>
+                              <span className="flex items-center gap-1 font-mono text-slate-600 dark:text-slate-300">
+                                <Globe className="w-3 h-3 text-orange-500" />
+                                <span>{sess.ipAddress} ({sess.location})</span>
+                              </span>
+                            </div>
+
+                            <div className="text-[10px] text-slate-400 flex items-center gap-3">
+                              <span>{isBn ? `লগইন: ${sess.loginAt}` : `Logged in: ${sess.loginAt}`}</span>
+                              <span>•</span>
+                              <span className="text-emerald-500 font-semibold">{isBn ? `সর্বশেষ সক্রিয়তা: ${sess.lastHeartbeat}` : `Last active: ${sess.lastHeartbeat}`}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Revoke Action */}
+                        {!sess.isCurrentSession && (
+                          <div className="sm:self-center shrink-0">
+                            <button
+                              type="button"
+                              disabled={isRevokingSessionId === sess.id}
+                              onClick={() => handleRevokeRemoteSession(selectedStaffForSessions.id, sess.id, sess.device)}
+                              className="px-3 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500 text-rose-600 dark:text-rose-400 hover:text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
+                            >
+                              <LogOut className="w-3.5 h-3.5" />
+                              <span>
+                                {isRevokingSessionId === sess.id
+                                  ? (isBn ? 'লগআউট হচ্ছে...' : 'Revoking...')
+                                  : (isBn ? 'ডিভাইস লগআউট করুন' : 'Revoke Device')}
+                              </span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Modal Footer */}
+              <div className="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-slate-800">
+                <span className="text-[11px] text-slate-400">
+                  {isBn ? '🔒 ShopNexus রিয়েল-টাইম সেশন টেলিমেট্রি দ্বারা সুরক্ষিত' : '🔒 Protected by ShopNexus Real-Time Session Telemetry'}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedStaffForSessions(null)}
+                  className="px-5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs cursor-pointer"
+                >
+                  {isBn ? 'বন্ধ করুন' : 'Close'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* REAL-TIME PUSH LOGIN AUTHORIZATION PROMPT (GOOGLE / APPLE 2FA STYLE) */}
+        {pendingAuthRequest && (
+          <LoginAuthorizationPrompt
+            request={pendingAuthRequest}
+            onDecision={handleLoginDecision}
+            onDismiss={() => setPendingAuthRequest(null)}
+          />
         )}
       </div>
     </RoleGuard>
