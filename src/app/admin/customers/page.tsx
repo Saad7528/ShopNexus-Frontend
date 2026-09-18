@@ -563,13 +563,13 @@ export default function AdminCustomerDirectoryPage() {
     <RoleGuard allowedRoles={['admin']}>
       <div className="space-y-8 max-w-7xl mx-auto pb-16">
         {/* Top Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider mb-2">
               <ShieldCheck className="w-3.5 h-3.5" />
               {isBn ? 'গ্রাহক বিশ্লেষণ ও ফ্রড প্রতিরোধ ইকোসিস্টেম' : 'Customer Intelligence & Fraud Defense'}
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+            <h1 className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
               {isBn ? 'কাস্টমার ডিরেক্টরি ও এলটিভি স্কোরিং' : 'Customer Directory & Lifetime Value (LTV)'}
             </h1>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
@@ -579,31 +579,31 @@ export default function AdminCustomerDirectoryPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5 flex-wrap">
+          <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-2.5 w-full sm:w-auto shrink-0">
             {/* Multi-format Export Dropdown with Excel as Default */}
-            <div className="relative inline-flex items-center rounded-xl shadow-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-orange-500/40 transition-all">
+            <div className="relative inline-flex items-center rounded-xl shadow-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-orange-500/40 transition-all justify-between">
               <button
                 type="button"
                 onClick={triggerActiveExport}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-700 dark:text-slate-200 font-bold text-xs rounded-l-xl transition-all cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-2.5 sm:px-3.5 py-2 sm:py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-700 dark:text-slate-200 font-bold text-xs rounded-l-xl transition-all cursor-pointer truncate flex-1 min-w-0"
                 title={isBn ? 'এক্সপোর্ট করুন' : 'Export Data'}
               >
-                {exportFormat === 'excel' && <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-500" />}
-                {exportFormat === 'csv' && <FileText className="w-3.5 h-3.5 text-orange-500" />}
-                {exportFormat === 'doc' && <FileCode className="w-3.5 h-3.5 text-indigo-500" />}
-                <span>
+                {exportFormat === 'excel' && <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-500 shrink-0" />}
+                {exportFormat === 'csv' && <FileText className="w-3.5 h-3.5 text-orange-500 shrink-0" />}
+                {exportFormat === 'doc' && <FileCode className="w-3.5 h-3.5 text-indigo-500 shrink-0" />}
+                <span className="truncate">
                   {exportFormat === 'excel'
-                    ? (isBn ? 'এক্সেল শিট (.xls)' : 'Export Excel (.xls)')
+                    ? (isBn ? 'এক্সেল (.xls)' : 'Export Excel')
                     : exportFormat === 'csv'
-                    ? (isBn ? 'সিএসভি ফাইল (.csv)' : 'Export CSV (.csv)')
-                    : (isBn ? 'ডক ফাইল (.doc)' : 'Export Doc (.doc)')}
+                    ? (isBn ? 'সিএসভি (.csv)' : 'Export CSV')
+                    : (isBn ? 'ডক (.doc)' : 'Export Doc')}
                 </span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setIsExportMenuOpen(!isExportMenuOpen)}
-                className="px-2 py-2.5 border-l border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-500 dark:text-slate-400 rounded-r-xl transition-all cursor-pointer"
+                className="px-2 py-2 sm:py-2.5 border-l border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-500 dark:text-slate-400 rounded-r-xl transition-all cursor-pointer shrink-0"
                 title={isBn ? 'এক্সপোর্ট ফরম্যাট নির্বাচন করুন' : 'Select Export Format'}
               >
                 <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isExportMenuOpen ? 'rotate-180' : ''}`} />
@@ -613,10 +613,10 @@ export default function AdminCustomerDirectoryPage() {
               {isExportMenuOpen && (
                 <>
                   <div
-                    className="fixed inset-0 z-30"
+                    className="fixed inset-0 z-40"
                     onClick={() => setIsExportMenuOpen(false)}
                   />
-                  <div className="absolute right-0 top-full mt-2 w-60 p-1.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl z-40 space-y-1 animate-in fade-in slide-in-from-top-2 duration-150">
+                  <div className="absolute left-0 sm:left-auto sm:right-0 top-full mt-2 w-64 p-1.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl z-50 space-y-1 animate-in fade-in slide-in-from-top-2 duration-150">
                     <div className="px-2.5 py-1.5 text-[10px] font-black uppercase text-slate-400 tracking-wider">
                       {isBn ? 'এক্সপোর্ট ফরম্যাট নির্বাচন' : 'Export Format Options'}
                     </div>
@@ -637,7 +637,7 @@ export default function AdminCustomerDirectoryPage() {
                       <div className="flex items-center gap-2">
                         <FileSpreadsheet className="w-4 h-4 text-emerald-500 shrink-0" />
                         <div className="text-left">
-                          <div>{isBn ? 'এক্সেল শিট (.xls)' : 'Excel Spreadsheet (.xls)'}</div>
+                          <div className="font-bold">{isBn ? 'এক্সেল শিট (.xls)' : 'Excel Spreadsheet (.xls)'}</div>
                           <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">{isBn ? 'ডিফল্ট ফরম্যাট' : 'Default Format'}</div>
                         </div>
                       </div>
@@ -660,7 +660,7 @@ export default function AdminCustomerDirectoryPage() {
                       <div className="flex items-center gap-2">
                         <FileText className="w-4 h-4 text-orange-500 shrink-0" />
                         <div className="text-left">
-                          <div>{isBn ? 'সিএসভি ফাইল (.csv)' : 'CSV Document (.csv)'}</div>
+                          <div className="font-bold">{isBn ? 'সিএসভি ফাইল (.csv)' : 'CSV Document (.csv)'}</div>
                           <div className="text-[10px] text-slate-400 font-normal">{isBn ? 'কমা সেপারেটেড ফাইল' : 'Comma Separated'}</div>
                         </div>
                       </div>
@@ -683,7 +683,7 @@ export default function AdminCustomerDirectoryPage() {
                       <div className="flex items-center gap-2">
                         <FileCode className="w-4 h-4 text-indigo-500 shrink-0" />
                         <div className="text-left">
-                          <div>{isBn ? 'ডক ফাইল (.doc)' : 'Word Document (.doc)'}</div>
+                          <div className="font-bold">{isBn ? 'ডক ফাইল (.doc)' : 'Word Document (.doc)'}</div>
                           <div className="text-[10px] text-slate-400 font-normal">{isBn ? 'মাইক্রোসফট ওয়ার্ড রিপোর্ট' : 'Microsoft Word Doc'}</div>
                         </div>
                       </div>
@@ -693,61 +693,59 @@ export default function AdminCustomerDirectoryPage() {
                 </>
               )}
             </div>
+
             <button
               type="button"
               onClick={() => fetchLiveUsers()}
               disabled={isLoadingUsers}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-lg shadow-orange-500/25 transition-all cursor-pointer hover:scale-105"
+              className="inline-flex items-center justify-center gap-1.5 px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-xs shadow-md shadow-orange-500/20 transition-all cursor-pointer active:scale-95"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isLoadingUsers ? 'animate-spin' : ''}`} />
-              <span>{isBn ? 'ডাটাবেস সিঙ্ক' : 'Sync Live DB'}</span>
+              <RefreshCw className={`w-3.5 h-3.5 shrink-0 ${isLoadingUsers ? 'animate-spin' : ''}`} />
+              <span className="truncate">{isBn ? 'ডাটাবেস সিঙ্ক' : 'Sync Live DB'}</span>
             </button>
           </div>
         </div>
 
         {/* Toast Alert */}
         {toastMsg && (
-          <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-300 text-xs sm:text-sm font-bold flex items-center gap-2 animate-in fade-in duration-300">
+          <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-300 text-xs sm:text-sm font-bold flex items-center gap-2 animate-in fade-in duration-300">
             <CheckCircle2 className="w-4 h-4 shrink-0" />
             <span>{toastMsg}</span>
           </div>
         )}
 
-        {/* WORKABLE & DYNAMIC KPI METRIC CARDS */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* WORKABLE & DYNAMIC KPI METRIC CARDS (2-Columns on mobile) */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
           {/* Card 1: Total Registered Shoppers */}
           <button
             type="button"
             onClick={() => setCustomerFilter('all')}
-            className={`text-left p-5 rounded-3xl bg-white dark:bg-slate-900/80 border transition-all cursor-pointer group shadow-sm backdrop-blur-xl relative overflow-hidden ${
+            className={`text-left p-3 sm:p-5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 border transition-all cursor-pointer group shadow-sm backdrop-blur-xl relative overflow-hidden flex flex-col justify-between ${
               customerFilter === 'all'
                 ? 'border-emerald-500 ring-2 ring-emerald-500/40 shadow-lg shadow-emerald-500/10'
-                : 'border-slate-200 dark:border-slate-800 hover:border-emerald-500/40 hover:scale-[1.02]'
+                : 'border-slate-200 dark:border-slate-800 hover:border-emerald-500/40'
             }`}
           >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                {isBn ? 'মোট নিবন্ধিত গ্রাহক' : 'Total Registered'}
+            <div className="flex items-center justify-between gap-1">
+              <span className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">
+                {isBn ? 'নিবন্ধিত গ্রাহক' : 'Total Registered'}
               </span>
-              <div className="w-9 h-9 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Users className="w-4 h-4" />
+              <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
             </div>
-            <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+            <div className="mt-2 sm:mt-3">
+              <span className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white block">
                 {isBn ? toBengaliNumber(totalCustomersCount) : totalCustomersCount}
               </span>
-              <span className="text-xs text-emerald-600 dark:text-emerald-400 font-bold">
-                {isBn ? `${toBengaliNumber(activeCount)} সক্রিয়` : `${activeCount} active`}
+              <span className="text-[9px] sm:text-xs text-emerald-600 dark:text-emerald-400 font-bold block mt-1 truncate">
+                {isBn ? `${toBengaliNumber(activeCount)} জন সক্রিয়` : `${activeCount} active`}
               </span>
             </div>
-            <div className="mt-2 text-[11px] text-slate-500 flex items-center justify-between">
-              <span className="flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3 text-emerald-500" />
-                {isBn ? '১০০% রিয়েল-টাইম কাস্টমার' : '100% Real-time customer base'}
-              </span>
-              <span className="text-[10px] text-emerald-500 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
-                {isBn ? 'সকল গ্রাহক দেখুন →' : 'View All →'}
+            <div className="mt-2 text-[9px] sm:text-[11px] text-slate-500 flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-800/60">
+              <span className="flex items-center gap-1 truncate">
+                <CheckCircle2 className="w-3 h-3 text-emerald-500 shrink-0" />
+                <span className="truncate">{isBn ? 'রিয়েল-টাইম বেস' : 'Live base'}</span>
               </span>
             </div>
           </button>
@@ -756,33 +754,35 @@ export default function AdminCustomerDirectoryPage() {
           <button
             type="button"
             onClick={() => setCustomerFilter('top10')}
-            className={`text-left p-5 rounded-3xl bg-white dark:bg-slate-900/80 border transition-all cursor-pointer group shadow-sm backdrop-blur-xl relative overflow-hidden ${
+            className={`text-left p-3 sm:p-5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 border transition-all cursor-pointer group shadow-sm backdrop-blur-xl relative overflow-hidden flex flex-col justify-between ${
               customerFilter === 'top10'
                 ? 'border-orange-500 ring-2 ring-orange-500/40 shadow-lg shadow-orange-500/10'
-                : 'border-slate-200 dark:border-slate-800 hover:border-orange-500/40 hover:scale-[1.02]'
+                : 'border-slate-200 dark:border-slate-800 hover:border-orange-500/40'
             }`}
           >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                {isBn ? 'মোট অর্জিত LTV ভলিউম' : 'Total LTV Generated'}
+            <div className="flex items-center justify-between gap-1">
+              <span className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">
+                {isBn ? 'মোট LTV ভলিউম' : 'Total LTV Generated'}
               </span>
-              <div className="w-9 h-9 rounded-2xl bg-orange-500/10 text-orange-600 dark:text-orange-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <TrendingUp className="w-4 h-4" />
+              <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl bg-orange-500/10 text-orange-600 dark:text-orange-400 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
             </div>
-            <div className="mt-3 flex items-baseline gap-1">
-              <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-                {isBn ? `৳${toBengaliNumber(totalLTVVolume.toLocaleString('en-US'))}` : `৳${totalLTVVolume.toLocaleString()}`}
+            <div className="mt-2 sm:mt-3">
+              <div className="flex items-baseline gap-1 truncate">
+                <span className="text-lg sm:text-3xl font-black text-slate-900 dark:text-white truncate">
+                  {isBn ? `৳${toBengaliNumber(totalLTVVolume.toLocaleString('en-US'))}` : `৳${totalLTVVolume.toLocaleString()}`}
+                </span>
+                <span className="text-[10px] sm:text-xs text-slate-400 font-bold shrink-0">BDT</span>
+              </div>
+              <span className="text-[9px] sm:text-xs text-orange-600 dark:text-orange-400 font-bold block mt-1 truncate">
+                {isBn ? 'টপ স্পেন্ডারস' : 'Top 10 Spenders'}
               </span>
-              <span className="text-xs text-slate-400 font-bold">BDT</span>
             </div>
-            <div className="mt-2 text-[11px] text-slate-500 flex items-center justify-between">
-              <span className="flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-orange-500" />
-                {isBn ? 'টপ ১০ ক্রেতা র‍্যাংকিং' : 'Top 10 Spenders'}
-              </span>
-              <span className="text-[10px] text-orange-500 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
-                {isBn ? 'টপ ১০ দেখুন →' : 'View Top 10 →'}
+            <div className="mt-2 text-[9px] sm:text-[11px] text-slate-500 flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-800/60">
+              <span className="flex items-center gap-1 truncate">
+                <Sparkles className="w-3 h-3 text-orange-500 shrink-0" />
+                <span className="truncate">{isBn ? 'LTV র‍্যাংকিং' : 'LTV Ranking'}</span>
               </span>
             </div>
           </button>
@@ -791,35 +791,32 @@ export default function AdminCustomerDirectoryPage() {
           <button
             type="button"
             onClick={() => setCustomerFilter('vip')}
-            className={`text-left p-5 rounded-3xl bg-white dark:bg-slate-900/80 border transition-all cursor-pointer group shadow-sm backdrop-blur-xl relative overflow-hidden ${
+            className={`text-left p-3 sm:p-5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 border transition-all cursor-pointer group shadow-sm backdrop-blur-xl relative overflow-hidden flex flex-col justify-between ${
               customerFilter === 'vip'
                 ? 'border-indigo-500 ring-2 ring-indigo-500/40 shadow-lg shadow-indigo-500/10'
-                : 'border-slate-200 dark:border-slate-800 hover:border-indigo-500/40 hover:scale-[1.02]'
+                : 'border-slate-200 dark:border-slate-800 hover:border-indigo-500/40'
             }`}
           >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            <div className="flex items-center justify-between gap-1">
+              <span className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">
                 {isBn ? 'ভিআইপি স্পেন্ডারস' : 'VIP High Spenders'}
               </span>
-              <div className="w-9 h-9 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Award className="w-4 h-4" />
+              <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                <Award className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
             </div>
-            <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+            <div className="mt-2 sm:mt-3">
+              <span className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white block">
                 {isBn ? toBengaliNumber(vipShoppersCount) : vipShoppersCount}
               </span>
-              <span className="text-xs text-indigo-600 dark:text-indigo-400 font-bold">
-                {isBn ? 'Platinum / Gold' : 'Platinum / Gold'}
+              <span className="text-[9px] sm:text-xs text-indigo-600 dark:text-indigo-400 font-bold block mt-1 truncate">
+                Platinum / Gold
               </span>
             </div>
-            <div className="mt-2 text-[11px] text-slate-500 flex items-center justify-between">
-              <span className="flex items-center gap-1">
-                <Award className="w-3 h-3 text-indigo-500" />
-                {isBn ? '৳৫০,০০০+ স্পেন্ডিং টায়ার' : '৳50k+ purchase volume'}
-              </span>
-              <span className="text-[10px] text-indigo-500 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
-                {isBn ? 'ভিআইপি ফিল্টার →' : 'Filter VIP →'}
+            <div className="mt-2 text-[9px] sm:text-[11px] text-slate-500 flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-800/60">
+              <span className="flex items-center gap-1 truncate">
+                <Award className="w-3 h-3 text-indigo-500 shrink-0" />
+                <span className="truncate">{isBn ? '৳৫০হাজার+' : '৳50k+ VIP'}</span>
               </span>
             </div>
           </button>
@@ -828,35 +825,32 @@ export default function AdminCustomerDirectoryPage() {
           <button
             type="button"
             onClick={() => setCustomerFilter('blocked')}
-            className={`text-left p-5 rounded-3xl bg-white dark:bg-slate-900/80 border transition-all cursor-pointer group shadow-sm backdrop-blur-xl relative overflow-hidden ${
+            className={`text-left p-3 sm:p-5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 border transition-all cursor-pointer group shadow-sm backdrop-blur-xl relative overflow-hidden flex flex-col justify-between ${
               customerFilter === 'blocked'
                 ? 'border-rose-500 ring-2 ring-rose-500/40 shadow-lg shadow-rose-500/10'
-                : 'border-slate-200 dark:border-slate-800 hover:border-rose-500/40 hover:scale-[1.02]'
+                : 'border-slate-200 dark:border-slate-800 hover:border-rose-500/40'
             }`}
           >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                {isBn ? 'ফ্রড শিল্ড ব্লকড' : 'Fraud Shield Blocks'}
+            <div className="flex items-center justify-between gap-1">
+              <span className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">
+                {isBn ? 'ফ্রড ব্লকড' : 'Fraud Shield Blocks'}
               </span>
-              <div className="w-9 h-9 rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <ShieldAlert className="w-4 h-4" />
+              <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                <ShieldAlert className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
             </div>
-            <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+            <div className="mt-2 sm:mt-3">
+              <span className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white block">
                 {isBn ? toBengaliNumber(blockedCount) : blockedCount}
               </span>
-              <span className="text-xs text-rose-600 dark:text-rose-400 font-bold">
+              <span className="text-[9px] sm:text-xs text-rose-600 dark:text-rose-400 font-bold block mt-1 truncate">
                 {isBn ? `${toBengaliNumber(highRiskCount)} ঝুঁকিপূর্ণ` : `${highRiskCount} at risk`}
               </span>
             </div>
-            <div className="mt-2 text-[11px] text-slate-500 flex items-center justify-between">
-              <span className="flex items-center gap-1">
-                <ShieldCheck className="w-3 h-3 text-rose-500" />
-                {isBn ? '১-ক্লিক আইপি ও অ্যাকাউন্ট ব্লক' : '1-Click instant IP lock'}
-              </span>
-              <span className="text-[10px] text-rose-500 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
-                {isBn ? 'ব্লকড ফিল্টার →' : 'Filter Blocked →'}
+            <div className="mt-2 text-[9px] sm:text-[11px] text-slate-500 flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-800/60">
+              <span className="flex items-center gap-1 truncate">
+                <ShieldCheck className="w-3 h-3 text-rose-500 shrink-0" />
+                <span className="truncate">{isBn ? 'আইপি লক' : '1-Click Lock'}</span>
               </span>
             </div>
           </button>
@@ -1009,6 +1003,15 @@ export default function AdminCustomerDirectoryPage() {
               </button>
             </div>
           )}
+
+          <div className="sm:hidden px-3.5 py-2 bg-slate-50 dark:bg-slate-950/60 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+            <span className="flex items-center gap-1.5">
+              <span>👉</span>
+            </span>
+            <span className="text-[10px] bg-slate-200 dark:bg-slate-800 px-2 py-0.5 rounded-full font-mono font-bold text-slate-700 dark:text-slate-300">
+              {isBn ? toBengaliNumber(filteredCustomers.length) : filteredCustomers.length}
+            </span>
+          </div>
 
           {/* TABLE OF CUSTOMERS */}
           <div className="overflow-x-auto">
