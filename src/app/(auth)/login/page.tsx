@@ -217,24 +217,7 @@ export default function LoginPage() {
           return;
         }
 
-        // Credentials are valid! Check current device authority:
-        const isPrimaryDevice =
-          typeof window !== 'undefined' && localStorage.getItem('shopnexus_primary_master') === 'authorized_master_root';
-
-        const activeSessionExpiresAt =
-          typeof window !== 'undefined' ? localStorage.getItem('shopnexus_session_expires_at') : null;
-
-        const isSessionStillValid =
-          activeSessionExpiresAt === 'until_revoked' ||
-          (activeSessionExpiresAt && Number(activeSessionExpiresAt) > Date.now());
-
-        if (isPrimaryDevice || isSessionStillValid) {
-          // Already recognized master device -> enter dashboard directly
-          executeDirectAdminLogin(targetEmail);
-          return;
-        }
-
-        // Check if a Primary Master is ALREADY ACTIVE and ONLINE elsewhere:
+        // 🔒 Credentials are valid! Check if another Master is ALREADY ACTIVE and ONLINE elsewhere:
         const isAnotherMasterOnline = !!verifyData.isMasterOnline;
 
         if (isAnotherMasterOnline) {
@@ -255,12 +238,12 @@ export default function LoginPage() {
             setIsLoading(false);
             return;
           }
-        } else {
-          // No Master is currently online (first login / after logout / 0-second latency) -> Directly prompt for 6-digit TOTP
-          setIsLoading(false);
-          setShowTotpModal(true);
-          return;
         }
+
+        // If no other master is currently online (or master logged out) -> Prompt for 6-digit Google Authenticator TOTP
+        setIsLoading(false);
+        setShowTotpModal(true);
+        return;
       } catch (err) {
         console.error('Admin login verification error:', err);
         setError('লগইন প্রক্রিয়ায় সমস্যা হয়েছে। পুনরায় চেষ্টা করুন।');
