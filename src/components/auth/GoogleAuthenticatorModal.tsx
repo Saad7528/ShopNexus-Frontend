@@ -4,17 +4,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   ShieldCheck,
   Key,
-  QrCode,
-  Copy,
-  Check,
   ArrowRight,
   Loader2,
   X,
   AlertCircle,
   Smartphone,
-  Sparkles,
+  Lock,
 } from 'lucide-react';
-import { MASTER_TOTP_SECRET, MASTER_ADMIN_EMAIL, verifyMasterTotp, getTotpAuthUri, EMERGENCY_MASTER_CODE } from '@/lib/totp';
+import { MASTER_ADMIN_EMAIL, verifyMasterTotp } from '@/lib/totp';
 
 interface GoogleAuthenticatorModalProps {
   email?: string;
@@ -32,13 +29,8 @@ export function GoogleAuthenticatorModal({
   const [digits, setDigits] = useState<string[]>(['', '', '', '', '', '']);
   const [isVerifying, setIsVerifying] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [showQr, setShowQr] = useState(true);
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-
-  const totpUri = getTotpAuthUri(email, MASTER_TOTP_SECRET);
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&format=svg&data=${encodeURIComponent(totpUri)}`;
 
   useEffect(() => {
     if (isOpen) {
@@ -96,7 +88,7 @@ export function GoogleAuthenticatorModal({
         const masterToken = `master-root-token-${Date.now()}-${Math.random().toString(36).substr(2, 8)}`;
         onSuccess(masterToken);
       } else {
-        setError('ভুল অথেন্টিকেটর কোড! আপনার ফোনের Google Authenticator অ্যাপের লাইভ ৬-সংখ্যার কোডটি দিন।');
+        setError('ভুল সিকিউরিটি কোড! আপনার ফোনের Google Authenticator অ্যাপের চলতি ৬-সংখ্যার কোডটি দিন।');
       }
     } catch {
       setError('ভেরিফিকেশন প্রক্রিয়ায় সমস্যা হয়েছে। পুনরায় চেষ্টা করুন।');
@@ -115,15 +107,9 @@ export function GoogleAuthenticatorModal({
     }
   };
 
-  const handleCopySecret = () => {
-    navigator.clipboard.writeText(MASTER_TOTP_SECRET);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
-  };
-
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-xl animate-in fade-in duration-200">
-      <div className="relative w-full max-w-md bg-slate-900 border-2 border-orange-500/60 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-orange-500/25 space-y-5 animate-in zoom-in-95 duration-200 text-center">
+      <div className="relative w-full max-w-md bg-slate-900 border-2 border-orange-500/60 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-orange-500/25 space-y-6 animate-in zoom-in-95 duration-200 text-center">
         
         {/* Close button */}
         <button
@@ -138,73 +124,25 @@ export function GoogleAuthenticatorModal({
         <div className="relative mx-auto w-16 h-16 rounded-3xl bg-gradient-to-tr from-[#ff4400] to-[#ff7700] flex items-center justify-center text-white shadow-xl shadow-orange-500/30">
           <ShieldCheck className="w-9 h-9" />
           <span className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-slate-900 border-2 border-orange-500 flex items-center justify-center">
-            <Key className="w-3 h-3 text-orange-400" />
+            <Lock className="w-3 h-3 text-orange-400" />
           </span>
         </div>
 
         <div>
           <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-orange-500/15 text-orange-400 text-[10px] font-black uppercase tracking-wider mb-1.5">
-            <Sparkles className="w-3 h-3 text-orange-400" />
-            Super Admin Master Verification
+            <Smartphone className="w-3 h-3 text-orange-400" />
+            2FA Security Verification
           </div>
           <h2 className="text-xl font-black text-white leading-tight">
-            Google Authenticator 2FA
+            Google Authenticator কোড দিন
           </h2>
-          <p className="text-xs text-slate-400 mt-1">
-            <span className="text-orange-400 font-semibold">{email}</span> অ্যাকাউন্টে প্রাইমারি মাস্টার এক্সেস পেতে আপনার ফোনের ৬-সংখ্যার TOTP কোডটি দিন।
+          <p className="text-xs text-slate-400 mt-1.5">
+            আপনার মোবাইলের <span className="text-orange-400 font-semibold">Google Authenticator</span> অ্যাপ খুলে চলতি ৬-ডিজিটের ওটিপি (OTP) কোডটি প্রবেশ করান।
           </p>
         </div>
 
-        {/* QR Code Setup Accordion */}
-        <div className="bg-slate-950/80 border border-slate-800 rounded-2xl p-3 text-left space-y-2">
-          <button
-            type="button"
-            onClick={() => setShowQr(!showQr)}
-            className="w-full flex items-center justify-between text-xs font-bold text-slate-300 hover:text-white cursor-pointer"
-          >
-            <span className="flex items-center gap-1.5 text-orange-400">
-              <QrCode className="w-4 h-4" />
-              {showQr ? 'কিউআর কোড স্ক্যানার লুকান' : '📱 প্রথমবার স্ক্যান করতে QR কোড দেখুন'}
-            </span>
-            <span className="text-[11px] text-slate-500">{showQr ? 'সংকোচন' : 'প্রদর্শন'}</span>
-          </button>
-
-          {showQr && (
-            <div className="pt-2 border-t border-slate-800 flex flex-col sm:flex-row items-center gap-3 animate-in fade-in">
-              <div className="w-28 h-28 bg-white p-1.5 rounded-xl shrink-0 shadow-md">
-                <img
-                  src={qrCodeUrl}
-                  alt="ShopNexus Google Authenticator QR Code"
-                  className="w-full h-full object-contain"
-                />
-              </div>
-              <div className="space-y-1.5 text-[11px] text-slate-400">
-                <p>
-                  ১. ফোনে <strong>Google Authenticator</strong> অ্যাপ খুলুন।
-                </p>
-                <p>
-                  ২. <strong>+</strong> বাটনে চাপ দিয়ে এই QR কোডটি স্ক্যান করুন।
-                </p>
-                <div className="pt-1 flex items-center gap-1.5">
-                  <span className="font-mono text-[10px] text-slate-300 bg-slate-900 px-2 py-1 rounded border border-slate-700 truncate max-w-[140px]">
-                    {MASTER_TOTP_SECRET}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={handleCopySecret}
-                    className="p-1 rounded bg-orange-500/20 text-orange-400 hover:bg-orange-500 hover:text-white transition-colors cursor-pointer"
-                    title="Copy Secret Key"
-                  >
-                    {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
         {/* 6 Digit Input Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div className="flex items-center justify-center gap-2 sm:gap-2.5">
             {digits.map((digit, idx) => (
               <input
@@ -243,16 +181,15 @@ export function GoogleAuthenticatorModal({
               </>
             ) : (
               <>
-                <span>ভেরিফাই করে প্রাইমারি মাস্টার আনলক করুন</span>
+                <span>ভেরিফাই করুন</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
           </button>
         </form>
 
-        {/* Emergency Note */}
-        <p className="text-[10px] text-slate-500 pt-1">
-          জরুরি প্রয়োজনে ইমার্জেন্সি মাস্টার ব্যাকআপ পিন: <span className="font-mono text-slate-400 font-bold">{EMERGENCY_MASTER_CODE}</span>
+        <p className="text-[11px] text-slate-500">
+          🔒 শুধুমাত্র অথোরাইজড ডিভাইসের Authenticator কোড দিয়ে প্রবেশাধিকার মিলবে।
         </p>
       </div>
     </div>

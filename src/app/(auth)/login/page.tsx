@@ -388,8 +388,8 @@ export default function LoginPage() {
                 onClick={() => setShowTotpModal(true)}
                 className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-orange-600/30 to-amber-600/30 hover:from-orange-600/50 hover:to-amber-600/50 border border-orange-500/50 text-orange-300 hover:text-white font-bold text-xs transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm"
               >
-                <QrCode className="w-4 h-4 text-orange-400" />
-                <span>আপনি কি মূল অ্যাডমিন? Google Authenticator দিয়ে আনলক করুন</span>
+                <KeyRound className="w-4 h-4 text-orange-400" />
+                <span>মাস্টার ২-ফ্যাক্টর (2FA) কোড দিয়ে যাচাই করুন</span>
               </button>
 
               <button
