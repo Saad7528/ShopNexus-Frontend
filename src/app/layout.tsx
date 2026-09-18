@@ -10,6 +10,7 @@ import { ThemeProvider } from '@/components/theme/ThemeProvider';
 import StorefrontTelemetryTracker from '@/components/analytics/StorefrontTelemetryTracker';
 import CrossTabAuthSync from '@/components/auth/CrossTabAuthSync';
 import { GlobalDialogModal } from '@/components/common/GlobalDialogModal';
+import { AdminSecurityListener } from '@/components/admin/AdminSecurityListener';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -55,6 +56,9 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-slate-950 text-slate-100 dark:bg-slate-950 dark:text-slate-100 selection:bg-[#ff4400] selection:text-white transition-colors duration-200">
         <ThemeProvider>
+          {/* Universal Real-Time 2FA Security Listener (Runs on Storefront & Admin) */}
+          <AdminSecurityListener />
+
           {/* Real-time Customer Storefront Telemetry Tracker (Excludes Internal Admin Traffic) */}
           <StorefrontTelemetryTracker />
 
