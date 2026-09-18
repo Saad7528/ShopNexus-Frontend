@@ -17,11 +17,16 @@ import {
   Radio,
   XCircle,
   Ban,
+  KeyRound,
+  QrCode,
+  Clock,
 } from 'lucide-react';
 import { BrandLogo } from '@/components/common/BrandLogo';
 import { AuthBackground } from '@/components/auth/AuthBackground';
 import { User } from '@/types/user';
 import { ILoginAuthRequest } from '@/app/api/auth/login-requests/route';
+import { GoogleAuthenticatorModal } from '@/components/auth/GoogleAuthenticatorModal';
+import { MASTER_ADMIN_EMAIL } from '@/lib/totp';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -36,7 +41,9 @@ export default function LoginPage() {
 
   // 🛡️ Live 2FA Secondary Device Approval State
   const [pendingChallenge, setPendingChallenge] = useState<ILoginAuthRequest | null>(null);
-  const [challengeStatus, setChallengeStatus] = useState<'waiting' | 'approved' | 'denied' | 'denied_and_blocked'>('waiting');
+  const [challengeStatus, setChallengeStatus] = useState<'waiting' | 'approved' | 'denied' | 'denied_and_blocked' | 'timeout'>('waiting');
+  const [challengeCountdown, setChallengeCountdown] = useState<number>(60);
+  const [showTotpModal, setShowTotpModal] = useState(false);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
@@ -49,6 +56,26 @@ export default function LoginPage() {
     };
   }, []);
 
+  // 60-Second Live Countdown for Login Challenge
+  useEffect(() => {
+    if (!pendingChallenge || challengeStatus !== 'waiting') return;
+    setChallengeCountdown(60);
+
+    const timer = setInterval(() => {
+      setChallengeCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+          setChallengeStatus('timeout');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [pendingChallenge, challengeStatus]);
+
   // Poll for Primary Admin Approval when in pendingChallenge mode
   useEffect(() => {
     if (!pendingChallenge || challengeStatus !== 'waiting') return;
@@ -56,7 +83,14 @@ export default function LoginPage() {
     pollIntervalRef.current = setInterval(async () => {
       try {
         const res = await fetch(`/api/auth/login-requests?requestId=${pendingChallenge.id}`);
-        if (!res.ok) return;
+        if (!res.ok) {
+          if (res.status === 404) {
+            // Expired or purged on server
+            setChallengeStatus('timeout');
+            if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+          }
+          return;
+        }
 
         const json = await res.json();
         if (json.success && json.data) {
@@ -66,8 +100,9 @@ export default function LoginPage() {
             setChallengeStatus('approved');
             if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
 
-            // Store approved session validity in localStorage
+            // Store approved session validity and ID in localStorage
             if (typeof window !== 'undefined') {
+              localStorage.setItem('shopnexus_session_id', reqData.id);
               localStorage.setItem(
                 'shopnexus_session_expires_at',
                 reqData.expiresAt ? String(reqData.expiresAt) : 'until_revoked'
@@ -78,7 +113,7 @@ export default function LoginPage() {
             // Perform login and redirect
             const approvedAdmin: User = {
               _id: 'usr-admin-01',
-              name: 'Nexus Lead Admin',
+              name: 'S.M. Amirul Islam Saad',
               email: reqData.email,
               role: 'admin',
               nexusCoins: 5000,
@@ -113,20 +148,41 @@ export default function LoginPage() {
     if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
     setPendingChallenge(null);
     setChallengeStatus('waiting');
+    setChallengeCountdown(60);
     setError(null);
   };
 
-  const executeDirectAdminLogin = (adminEmail: string) => {
+  const executeDirectAdminLogin = (adminEmail: string, token: string = 'demo-admin-jwt-token') => {
     const fallbackAdmin: User = {
       _id: 'usr-admin-01',
-      name: 'Nexus Lead Admin',
+      name: 'S.M. Amirul Islam Saad',
       email: adminEmail,
       role: 'admin',
       nexusCoins: 5000,
       isVipMember: true,
     };
-    login(fallbackAdmin, 'demo-admin-jwt-token');
+    login(fallbackAdmin, token);
     router.push('/admin/dashboard');
+  };
+
+  // Google Authenticator TOTP Master Verification Success Handler
+  const handleTotpSuccess = async (token: string) => {
+    setShowTotpModal(false);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('shopnexus_primary_master', 'authorized_master_root');
+      localStorage.removeItem('shopnexus_session_id');
+      localStorage.removeItem('shopnexus_session_expires_at');
+      localStorage.removeItem('shopnexus_session_duration');
+    }
+
+    // Register active master on server with instant sync
+    await fetch('/api/auth/login-requests', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'master_register', email: email || MASTER_ADMIN_EMAIL }),
+    }).catch(() => null);
+
+    executeDirectAdminLogin(email || MASTER_ADMIN_EMAIL, token);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -134,51 +190,91 @@ export default function LoginPage() {
     setError(null);
     setIsLoading(true);
 
+    const targetEmail = email.toLowerCase().trim();
     const isAdminAccount =
-      email.toLowerCase().includes('admin') ||
-      email.toLowerCase().includes('saad') ||
-      email.toLowerCase() === 'admin@shopnexus.io';
+      targetEmail.includes('admin') ||
+      targetEmail.includes('saad') ||
+      targetEmail === MASTER_ADMIN_EMAIL.toLowerCase() ||
+      targetEmail === 'admin@shopnexus.io';
 
-    // 🔒 Check if current device is the Primary Trusted Device or has an active approved session
-    const isPrimaryDevice =
-      typeof window !== 'undefined' && localStorage.getItem('shopnexus_primary_device') === 'true';
-
-    const activeSessionExpiresAt =
-      typeof window !== 'undefined' ? localStorage.getItem('shopnexus_session_expires_at') : null;
-
-    const isSessionStillValid =
-      activeSessionExpiresAt === 'until_revoked' ||
-      (activeSessionExpiresAt && Number(activeSessionExpiresAt) > Date.now());
-
-    // If attempting Admin login from a Secondary device/IP without an active approval window:
-    if (isAdminAccount && !isPrimaryDevice && !isSessionStillValid) {
+    // 🔒 1. If attempting Admin login: VERIFY PASSWORD FIRST!
+    if (isAdminAccount) {
       try {
-        const challengeRes = await fetch('/api/auth/login-requests', {
+        const verifyRes = await fetch('/api/auth/login-requests', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            action: 'create_request',
-            email,
+            action: 'verify_admin_credentials',
+            email: targetEmail,
+            password: password,
           }),
         });
 
-        const challengeData = await challengeRes.json();
-        if (challengeData.success && challengeData.data) {
-          setPendingChallenge(challengeData.data);
-          setChallengeStatus('waiting');
+        const verifyData = await verifyRes.json().catch(() => null);
+        if (!verifyData || !verifyData.success) {
+          setError(verifyData?.message || 'ভুল পাসওয়ার্ড! অনুগ্রহ করে সঠিক পাসওয়ার্ড দিন।');
           setIsLoading(false);
           return;
         }
+
+        // Credentials are valid! Check current device authority:
+        const isPrimaryDevice =
+          typeof window !== 'undefined' && localStorage.getItem('shopnexus_primary_master') === 'authorized_master_root';
+
+        const activeSessionExpiresAt =
+          typeof window !== 'undefined' ? localStorage.getItem('shopnexus_session_expires_at') : null;
+
+        const isSessionStillValid =
+          activeSessionExpiresAt === 'until_revoked' ||
+          (activeSessionExpiresAt && Number(activeSessionExpiresAt) > Date.now());
+
+        if (isPrimaryDevice || isSessionStillValid) {
+          // Already recognized master device -> enter dashboard directly
+          executeDirectAdminLogin(targetEmail);
+          return;
+        }
+
+        // Check if a Primary Master is ALREADY ACTIVE and ONLINE elsewhere:
+        const isAnotherMasterOnline = !!verifyData.isMasterOnline;
+
+        if (isAnotherMasterOnline) {
+          // Another master device is currently online -> Dispatch 2FA waiting challenge
+          const challengeRes = await fetch('/api/auth/login-requests', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'create_request',
+              email: targetEmail,
+            }),
+          });
+
+          const challengeData = await challengeRes.json();
+          if (challengeData.success && challengeData.data) {
+            setPendingChallenge(challengeData.data);
+            setChallengeStatus('waiting');
+            setIsLoading(false);
+            return;
+          }
+        } else {
+          // No Master is currently online (first login / after logout / 0-second latency) -> Directly prompt for 6-digit TOTP
+          setIsLoading(false);
+          setShowTotpModal(true);
+          return;
+        }
       } catch (err) {
-        console.error('Challenge dispatch error:', err);
+        console.error('Admin login verification error:', err);
+        setError('লগইন প্রক্রিয়ায় সমস্যা হয়েছে। পুনরায় চেষ্টা করুন।');
+        setIsLoading(false);
+        return;
       }
     }
 
+    // 2. Standard Customer / Vendor Login Flow
     try {
       const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: targetEmail, password }),
       }).catch(() => null);
 
       let data: { message?: string; data?: { user: User; token: string } } = {};
@@ -196,19 +292,9 @@ export default function LoginPage() {
         return;
       }
 
-      // If backend is local/demo or credentials matched admin
-      if (isAdminAccount) {
-        executeDirectAdminLogin(email);
-        return;
-      }
-
       throw new Error(data.message || 'Invalid email or password');
     } catch (err: unknown) {
-      if (isAdminAccount) {
-        executeDirectAdminLogin(email);
-        return;
-      }
-      const errMsg = err instanceof Error ? err.message : 'An error occurred. Please try again.';
+      const errMsg = err instanceof Error ? err.message : 'Invalid email or password';
       setError(errMsg);
     } finally {
       setIsLoading(false);
@@ -219,40 +305,47 @@ export default function LoginPage() {
   const handleAdminQuickLogin = async () => {
     setIsLoading(true);
     setError(null);
-    setEmail('admin@shopnexus.io');
-    setPassword('Admin@ShopNexus2026!');
+    const targetEmail = MASTER_ADMIN_EMAIL;
+    setEmail(targetEmail);
+    setPassword('Saad@752800');
 
     const isPrimaryDevice =
-      typeof window !== 'undefined' && localStorage.getItem('shopnexus_primary_device') === 'true';
+      typeof window !== 'undefined' && localStorage.getItem('shopnexus_primary_master') === 'authorized_master_root';
 
-    const activeSessionExpiresAt =
-      typeof window !== 'undefined' ? localStorage.getItem('shopnexus_session_expires_at') : null;
+    if (isPrimaryDevice) {
+      executeDirectAdminLogin(targetEmail);
+      setIsLoading(false);
+      return;
+    }
 
-    const isSessionStillValid =
-      activeSessionExpiresAt === 'until_revoked' ||
-      (activeSessionExpiresAt && Number(activeSessionExpiresAt) > Date.now());
+    try {
+      const checkRes = await fetch('/api/auth/login-requests?checkMaster=true');
+      const checkData = await checkRes.json().catch(() => null);
 
-    if (!isPrimaryDevice && !isSessionStillValid) {
-      try {
+      if (checkData?.isMasterOnline) {
+        // Master is online elsewhere -> Dispatch waiting challenge
         const challengeRes = await fetch('/api/auth/login-requests', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             action: 'create_request',
-            email: 'admin@shopnexus.io',
+            email: targetEmail,
           }),
         });
 
-        const challengeData = await challengeRes.json();
-        if (challengeData.success && challengeData.data) {
+        const challengeData = await challengeRes.json().catch(() => null);
+        if (challengeData?.success && challengeData.data) {
           setPendingChallenge(challengeData.data);
           setChallengeStatus('waiting');
-          setIsLoading(false);
-          return;
         }
-      } catch (err) {
-        console.error('Challenge dispatch error:', err);
+      } else {
+        // No master online -> Direct TOTP modal
+        setShowTotpModal(true);
       }
+    } catch {
+      setShowTotpModal(true);
+    } finally {
+      setIsLoading(false);
     }
 
     executeDirectAdminLogin('admin@shopnexus.io');
@@ -271,6 +364,14 @@ export default function LoginPage() {
   return (
     <AuthBackground>
       <BrandLogo size="lg" variant="white" className="mb-6 drop-shadow-2xl" />
+
+      {/* Google Authenticator Master TOTP Verification Modal */}
+      <GoogleAuthenticatorModal
+        email={email || MASTER_ADMIN_EMAIL}
+        isOpen={showTotpModal}
+        onSuccess={handleTotpSuccess}
+        onCancel={() => setShowTotpModal(false)}
+      />
 
       {/* Glassmorphic Container */}
       <div className="w-full max-w-md bg-slate-900/80 backdrop-blur-md border border-white/10 rounded-3xl p-7 sm:p-9 shadow-[0_20px_50px_rgba(0,0,0,0.6)] relative overflow-hidden space-y-5">
@@ -318,9 +419,27 @@ export default function LoginPage() {
 
             {/* Status Feedback */}
             {challengeStatus === 'waiting' && (
-              <div className="flex items-center justify-center gap-2 text-xs text-amber-300 font-semibold py-2">
-                <Loader2 className="w-4 h-4 animate-spin text-orange-400" />
-                <span>লাইভ স্ট্যাটাস চেক করা হচ্ছে...</span>
+              <div className="flex flex-col items-center justify-center gap-1.5 py-2">
+                <div className="flex items-center gap-2 text-xs text-amber-300 font-semibold">
+                  <Loader2 className="w-4 h-4 animate-spin text-orange-400" />
+                  <span>লাইভ স্ট্যাটাস চেক করা হচ্ছে...</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-[11px] font-mono text-orange-400 font-bold bg-orange-500/10 px-3 py-1 rounded-full border border-orange-500/20">
+                  <Clock className="w-3 h-3 animate-pulse" />
+                  <span>সময় বাকি: {challengeCountdown} সেকেন্ড</span>
+                </div>
+              </div>
+            )}
+
+            {challengeStatus === 'timeout' && (
+              <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs text-center space-y-1.5 animate-in fade-in">
+                <div className="flex items-center justify-center gap-1.5 font-bold text-amber-400">
+                  <Clock className="w-4 h-4 text-amber-400" />
+                  <span>অনুরোধের সময়সীমা (১ মিনিট) সমাপ্ত</span>
+                </div>
+                <p className="text-[11px] text-slate-400">
+                  নির্ধারিত ৬০ সেকেন্ডের মধ্যে মাস্টার অনুমোদন না পাওয়ায় অনুরোধটি স্বয়ংক্রিয়ভাবে বাতিল করা হয়েছে।
+                </p>
               </div>
             )}
 
@@ -345,13 +464,25 @@ export default function LoginPage() {
               </div>
             )}
 
-            <button
-              type="button"
-              onClick={handleCancelChallenge}
-              className="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-xs transition-colors cursor-pointer"
-            >
-              অনুরোধ বাতিল করে ফিরে যান
-            </button>
+            {/* 🔑 Master Super Admin Emergency Override Option with Google Authenticator */}
+            <div className="pt-2 border-t border-white/10 space-y-2">
+              <button
+                type="button"
+                onClick={() => setShowTotpModal(true)}
+                className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-orange-600/30 to-amber-600/30 hover:from-orange-600/50 hover:to-amber-600/50 border border-orange-500/50 text-orange-300 hover:text-white font-bold text-xs transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm"
+              >
+                <KeyRound className="w-4 h-4 text-orange-400" />
+                <span>মাস্টার ২-ফ্যাক্টর (2FA) কোড দিয়ে যাচাই করুন</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleCancelChallenge}
+                className="w-full py-2 px-4 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white font-bold text-xs transition-colors cursor-pointer"
+              >
+                অনুরোধ বাতিল করে ফিরে যান
+              </button>
+            </div>
           </div>
         ) : (
           <>
@@ -423,7 +554,7 @@ export default function LoginPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
+                    placeholder="saad0174742@gmail.com"
                     className="w-full pl-10 pr-4 py-2.5 bg-slate-950/50 border border-white/10 rounded-xl text-white placeholder-slate-500 text-xs focus:outline-none focus:border-orange-500/70 focus:ring-2 focus:ring-orange-500/20 transition-all duration-200"
                   />
                 </div>
@@ -492,8 +623,8 @@ export default function LoginPage() {
                       <ShieldCheck className="w-4 h-4" />
                     </div>
                     <div className="text-left">
-                      <span className="block font-bold text-amber-300">1-Click Admin Access</span>
-                      <span className="block text-[10px] text-slate-400 font-normal">admin@shopnexus.io • Admin@ShopNexus2026!</span>
+                      <span className="block font-bold text-amber-300">1-Click Super Admin</span>
+                      <span className="block text-[10px] text-slate-400 font-normal truncate max-w-[200px]">saad0174742@gmail.com</span>
                     </div>
                   </div>
                   <span className="flex items-center gap-1 text-[11px] font-bold text-amber-400 group-hover:translate-x-0.5 transition-transform shrink-0">

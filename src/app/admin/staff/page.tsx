@@ -103,54 +103,8 @@ export interface IPermissionRule {
 const INITIAL_STAFF: IStaffMember[] = [
   {
     id: 'st-0',
-    name: 'Nexus Lead Admin',
-    email: 'admin@shopnexus.io',
-    phone: '+880 1700-000000',
-    role: 'Super Admin',
-    twoFactorEnabled: true,
-    status: 'Active',
-    lastActive: 'Online',
-    avatarColor: 'from-orange-600 to-amber-600',
-    createdAt: '2026-08-21',
-    sessions: [
-      {
-        id: 'sess-lead-1',
-        device: 'MacBook Pro 16" (M3 Max)',
-        os: 'macOS Sonoma 14.5',
-        browser: 'Google Chrome 128.0',
-        ipAddress: '103.145.74.22',
-        location: 'Dhaka, Bangladesh',
-        isCurrentSession: true,
-        loginAt: '2026-09-18 09:30 AM',
-        lastHeartbeat: 'Just now',
-        riskScore: 'low',
-      },
-      {
-        id: 'sess-lead-2',
-        device: 'Dell XPS 15 (Windows 11)',
-        os: 'Windows 11 Pro',
-        browser: 'Microsoft Edge 126.0',
-        ipAddress: '45.112.58.10',
-        location: 'Chittagong, Bangladesh',
-        isCurrentSession: false,
-        loginAt: '2026-09-18 08:15 AM',
-        lastHeartbeat: '12 mins ago',
-        riskScore: 'high',
-      },
-    ],
-    customPermissions: {
-      canViewOrders: true,
-      canEditOrders: true,
-      canManageCatalog: true,
-      canManageLogistics: true,
-      canManageFinance: true,
-      canAccessRBAC: true,
-    },
-  },
-  {
-    id: 'st-1',
     name: 'S.M. Amirul Islam Saad',
-    email: 'saad@shopnexus.io',
+    email: 'saad0174742@gmail.com',
     phone: '+880 1711-000111',
     role: 'Super Admin',
     twoFactorEnabled: true,
@@ -161,13 +115,13 @@ const INITIAL_STAFF: IStaffMember[] = [
     sessions: [
       {
         id: 'sess-saad-1',
-        device: 'Apple MacBook Pro',
+        device: 'Apple MacBook Pro (Primary Master)',
         os: 'macOS 14.5',
-        browser: 'Chrome 128',
+        browser: 'Google Chrome 128',
         ipAddress: '103.145.74.22',
         location: 'Dhaka, Bangladesh',
         isCurrentSession: true,
-        loginAt: '2026-09-18 10:00 AM',
+        loginAt: 'Today, 10:00 AM',
         lastHeartbeat: 'Just now',
         riskScore: 'low',
       },
@@ -587,6 +541,7 @@ export default function AdminStaffRolesPage() {
       ipAddress: '45.112.58.10',
       location: 'Chittagong, Bangladesh',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      createdAtTimestamp: Date.now(),
       status: 'pending',
     };
 
@@ -913,11 +868,19 @@ export default function AdminStaffRolesPage() {
       if (data?.data && Array.isArray(data.data)) {
         const liveUsers = data.data;
         const liveStaff: IStaffMember[] = liveUsers
-          .filter((u: Partial<User>) => u.role === 'admin' || u.role === 'vendor' || u.role === 'staff')
+          .filter((u: Partial<User>) => {
+            const uEmail = String(u.email || '').toLowerCase().trim();
+            const uName = String(u.name || '').toLowerCase().trim();
+            // Filter out old legacy admin@shopnexus.io / Nexus Lead Admin
+            if (uEmail === 'admin@shopnexus.io' || uName.includes('nexus lead admin')) {
+              return false;
+            }
+            return u.role === 'admin' || u.role === 'vendor' || u.role === 'staff';
+          })
           .map((u: Partial<User> & Record<string, unknown>) => {
             const roleTitle: StaffRoleType =
               (u.storeName as StaffRoleType) || (u.role === 'admin' ? 'Super Admin' : 'Inventory Manager');
-            const uEmail = String(u.email || '').toLowerCase();
+            const uEmail = String(u.email || '').toLowerCase().trim();
             
             const existingMember = INITIAL_STAFF.find(
               (init) => init.email.toLowerCase() === uEmail
@@ -964,14 +927,17 @@ export default function AdminStaffRolesPage() {
           setStaffList((prev) => {
             const liveEmails = new Set(liveStaff.map((s) => s.email.toLowerCase().trim()));
             const liveIds = new Set(liveStaff.map((s) => s.id));
-            return [
+            const merged = [
               ...liveStaff,
               ...prev.filter(
                 (s) =>
                   !liveIds.has(s.id) &&
-                  !liveEmails.has(s.email.toLowerCase().trim())
+                  !liveEmails.has(s.email.toLowerCase().trim()) &&
+                  s.email.toLowerCase().trim() !== 'admin@shopnexus.io'
               ),
             ];
+            // Ensure only saad0174742@gmail.com is Super Admin and comes first
+            return merged.filter((s) => s.email.toLowerCase().trim() !== 'admin@shopnexus.io');
           });
         }
       }

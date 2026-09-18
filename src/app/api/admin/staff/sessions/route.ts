@@ -50,6 +50,22 @@ let staffSessionsMap: Record<string, IStaffSessionData[]> = {
       expiresAt: null,
     },
   ],
+  'saad0174742@gmail.com': [
+    {
+      id: 'sess-saad-primary',
+      device: 'MacBook Pro (Primary Master)',
+      os: 'macOS Sonoma 14.5',
+      browser: 'Google Chrome 128.0',
+      ipAddress: '103.145.74.22',
+      location: 'Dhaka, Bangladesh',
+      isCurrentSession: true,
+      loginAt: 'Today, 10:00 AM',
+      lastHeartbeat: 'Just now',
+      riskScore: 'low',
+      validUntil: 'Permanent (Primary Master Root)',
+      expiresAt: null,
+    },
+  ],
 };
 
 export async function GET(req: Request) {
@@ -105,7 +121,16 @@ export async function GET(req: Request) {
       return true;
     });
 
-    const approvedSessionObjects: IStaffSessionData[] = matchingApproved.map((r) => {
+    // Deduplicate by IP address so 1 phone/IP = 1 active secondary session
+    const seenIps = new Set<string>();
+    const uniqueApproved = matchingApproved.filter((r) => {
+      const ip = r.ipAddress || 'unknown';
+      if (seenIps.has(ip)) return false;
+      seenIps.add(ip);
+      return true;
+    });
+
+    const approvedSessionObjects: IStaffSessionData[] = uniqueApproved.map((r) => {
       let durationStr = '1 Hour';
       if (r.duration === 'until_revoked') durationStr = 'Until Blocked';
       else if (r.duration === '20m') durationStr = '20 Mins';
@@ -129,7 +154,7 @@ export async function GET(req: Request) {
       };
     });
 
-    // Deduplicate sessions
+    // Deduplicate sessions against primary
     const existingIds = new Set(sessions.map((s) => s.id));
     for (const appSess of approvedSessionObjects) {
       if (!existingIds.has(appSess.id)) {
@@ -156,11 +181,11 @@ export async function POST(req: Request) {
     const { action, staffId, email, sessionId } = body;
 
     const targetKey = staffId || email || 'st-0';
+    const protocol = req.headers.get('x-forwarded-proto') || 'http';
+    const host = req.headers.get('host') || 'localhost:3000';
 
     if (action === 'revoke_session' && sessionId) {
-      // Also notify /api/auth/login-requests if this was an approved 2FA session
-      const protocol = req.headers.get('x-forwarded-proto') || 'http';
-      const host = req.headers.get('host') || 'localhost:3000';
+      // Invalidate in login-requests registry
       try {
         await fetch(`${protocol}://${host}/api/auth/login-requests`, {
           method: 'POST',
@@ -182,6 +207,16 @@ export async function POST(req: Request) {
     }
 
     if (action === 'terminate_all_other') {
+      try {
+        await fetch(`${protocol}://${host}/api/auth/login-requests`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'terminate_all', email: email || 'admin@shopnexus.io' }),
+        });
+      } catch {
+        // ignore
+      }
+
       if (staffSessionsMap[targetKey]) {
         staffSessionsMap[targetKey] = staffSessionsMap[targetKey].filter((s) => s.isCurrentSession);
       }
