@@ -6,7 +6,7 @@ import { LoginAuthorizationPrompt, SessionDurationType } from '@/components/auth
 import { ILoginAuthRequest } from '@/app/api/auth/login-requests/route';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useLanguageStore } from '@/store/useLanguageStore';
-import { CheckCircle2, Clock, AlertTriangle, LogOut, Ban } from 'lucide-react';
+import { CheckCircle2, Clock, AlertTriangle, LogOut, Ban, ArrowRight, LogIn } from 'lucide-react';
 
 export function AdminSecurityListener() {
   const router = useRouter();
@@ -24,6 +24,21 @@ export function AdminSecurityListener() {
   const [isSessionExpired, setIsSessionExpired] = useState(false);
   const [isSessionRevoked, setIsSessionRevoked] = useState(false);
   const isLoggingOutRef = useRef(false);
+
+  const handleRedirectToLogin = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('shopnexus_session_id');
+      localStorage.removeItem('shopnexus_session_expires_at');
+      localStorage.removeItem('shopnexus_session_duration');
+      localStorage.removeItem('shopnexus_primary_master');
+    }
+    logout();
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
+    } else {
+      router.push('/login');
+    }
+  }, [logout, router]);
 
   // 1. Determine Device Type (Primary Master vs Secondary/Temporary 2FA Session)
   useEffect(() => {
@@ -89,9 +104,8 @@ export function AdminSecurityListener() {
             localStorage.removeItem('shopnexus_session_duration');
 
             setTimeout(() => {
-              logout();
-              router.push('/login');
-            }, 3000);
+              handleRedirectToLogin();
+            }, 2500);
           }
         };
 
@@ -100,7 +114,7 @@ export function AdminSecurityListener() {
         return () => clearInterval(interval);
       }
     }
-  }, [logout, router]);
+  }, [handleRedirectToLogin]);
 
   // 3. Secondary Device: Active Revocation / Termination Poller (Checks if Primary Admin revoked session)
   useEffect(() => {
@@ -122,9 +136,8 @@ export function AdminSecurityListener() {
           localStorage.removeItem('shopnexus_session_expires_at');
           localStorage.removeItem('shopnexus_session_duration');
           setTimeout(() => {
-            logout();
-            router.push('/login');
-          }, 3000);
+            handleRedirectToLogin();
+          }, 2500);
           return;
         }
 
@@ -139,9 +152,8 @@ export function AdminSecurityListener() {
               localStorage.removeItem('shopnexus_session_expires_at');
               localStorage.removeItem('shopnexus_session_duration');
               setTimeout(() => {
-                logout();
-                router.push('/login');
-              }, 3000);
+                handleRedirectToLogin();
+              }, 2500);
             }
           }
         }
@@ -152,7 +164,7 @@ export function AdminSecurityListener() {
 
     const interval = setInterval(checkRevocation, 1500);
     return () => clearInterval(interval);
-  }, [logout, router]);
+  }, [handleRedirectToLogin]);
 
   // 4. Primary Device: Poll for incoming pending login requests (Runs across ALL pages)
   const checkPendingRequests = useCallback(async () => {
@@ -299,9 +311,22 @@ export function AdminSecurityListener() {
                 ? 'প্রাইমারি অ্যাডমিন কর্তৃক আপনার এই ডিভাইসের এক্সেস তাৎক্ষণিকভাবে টার্মিনেট / বাতিল করা হয়েছে।'
                 : 'Your session on this device has been revoked remotely by the Primary Admin.'}
             </p>
-            <div className="flex items-center justify-center gap-2 text-rose-400 text-xs font-bold pt-2">
-              <LogOut className="w-4 h-4 animate-spin" />
-              <span>{isBn ? 'লগইন পেজে রিডাইরেক্ট হচ্ছে...' : 'Redirecting to login...'}</span>
+            
+            <div className="pt-2 flex flex-col items-center gap-3">
+              <button
+                type="button"
+                onClick={handleRedirectToLogin}
+                className="w-full py-3 px-5 rounded-2xl bg-gradient-to-r from-rose-600 via-orange-600 to-[#ff4400] hover:from-rose-500 hover:to-[#ff5500] text-white font-bold text-sm shadow-lg shadow-rose-600/30 active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                <LogIn className="w-4 h-4" />
+                <span>{isBn ? 'পুনরায় লগইন করুন' : 'Go to Login Page'}</span>
+                <ArrowRight className="w-4 h-4 ml-1" />
+              </button>
+
+              <div className="flex items-center justify-center gap-2 text-rose-400/80 text-[11px] font-medium">
+                <LogOut className="w-3.5 h-3.5 animate-spin" />
+                <span>{isBn ? 'লগইন পেজে রিডাইরেক্ট হচ্ছে...' : 'Redirecting to login...'}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -322,9 +347,22 @@ export function AdminSecurityListener() {
                 ? 'প্রাইমারি অ্যাডমিন কর্তৃক নির্ধারিত সময় পার হওয়ায় নিরাপত্তার স্বার্থে আপনাকে লগআউট করা হচ্ছে।'
                 : 'Your authorized session duration has elapsed. Logging out for platform security.'}
             </p>
-            <div className="flex items-center justify-center gap-2 text-rose-400 text-xs font-bold pt-2">
-              <LogOut className="w-4 h-4 animate-spin" />
-              <span>{isBn ? 'লগইন পেজে রিডাইরেক্ট হচ্ছে...' : 'Redirecting to login...'}</span>
+            
+            <div className="pt-2 flex flex-col items-center gap-3">
+              <button
+                type="button"
+                onClick={handleRedirectToLogin}
+                className="w-full py-3 px-5 rounded-2xl bg-gradient-to-r from-orange-600 via-[#ff4400] to-rose-600 hover:from-orange-500 hover:to-rose-500 text-white font-bold text-sm shadow-lg shadow-orange-600/30 active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                <LogIn className="w-4 h-4" />
+                <span>{isBn ? 'পুনরায় লগইন করুন' : 'Go to Login Page'}</span>
+                <ArrowRight className="w-4 h-4 ml-1" />
+              </button>
+
+              <div className="flex items-center justify-center gap-2 text-rose-400/80 text-[11px] font-medium">
+                <LogOut className="w-3.5 h-3.5 animate-spin" />
+                <span>{isBn ? 'লগইন পেজে রিডাইরেক্ট হচ্ছে...' : 'Redirecting to login...'}</span>
+              </div>
             </div>
           </div>
         </div>
