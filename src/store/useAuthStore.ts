@@ -168,9 +168,13 @@ export const useAuthStore = create<AuthState>()(
           document.cookie = 'token=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT';
         }
 
-        // 📡 Broadcast logout event to other open browser tabs
+        // 🛡️ Ensure all security session tokens and primary device flags are wiped on logout
         if (typeof window !== 'undefined') {
           try {
+            localStorage.removeItem('shopnexus_primary_master');
+            localStorage.removeItem('shopnexus_session_id');
+            localStorage.removeItem('shopnexus_session_expires_at');
+            localStorage.removeItem('shopnexus_session_duration');
             if ('BroadcastChannel' in window) {
               const channel = new BroadcastChannel('shopnexus_auth_sync_channel');
               channel.postMessage({ type: 'LOGOUT', timestamp: Date.now() });
