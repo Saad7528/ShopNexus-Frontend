@@ -136,7 +136,7 @@ export default function LoginPage() {
   };
 
   // Google Authenticator TOTP Master Verification Success Handler
-  const handleTotpSuccess = (token: string) => {
+  const handleTotpSuccess = async (token: string) => {
     setShowTotpModal(false);
     if (typeof window !== 'undefined') {
       localStorage.setItem('shopnexus_primary_master', 'authorized_master_root');
@@ -144,6 +144,14 @@ export default function LoginPage() {
       localStorage.removeItem('shopnexus_session_expires_at');
       localStorage.removeItem('shopnexus_session_duration');
     }
+
+    // Register active master on server with instant sync
+    await fetch('/api/auth/login-requests', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'master_register', email: email || MASTER_ADMIN_EMAIL }),
+    }).catch(() => null);
+
     executeDirectAdminLogin(email || MASTER_ADMIN_EMAIL, token);
   };
 
@@ -159,48 +167,79 @@ export default function LoginPage() {
       targetEmail === MASTER_ADMIN_EMAIL.toLowerCase() ||
       targetEmail === 'admin@shopnexus.io';
 
-    // 🔒 Check if current device is the Primary Master Root Device or has an active approved session
-    const isPrimaryDevice =
-      typeof window !== 'undefined' && localStorage.getItem('shopnexus_primary_master') === 'authorized_master_root';
-
-    const activeSessionExpiresAt =
-      typeof window !== 'undefined' ? localStorage.getItem('shopnexus_session_expires_at') : null;
-
-    const isSessionStillValid =
-      activeSessionExpiresAt === 'until_revoked' ||
-      (activeSessionExpiresAt && Number(activeSessionExpiresAt) > Date.now());
-
-    // If attempting Admin login from a Secondary device/IP/Incognito without an active approval window:
-    if (isAdminAccount && !isPrimaryDevice && !isSessionStillValid) {
-      if (targetEmail === MASTER_ADMIN_EMAIL.toLowerCase() || targetEmail.includes('saad')) {
-        // Direct seamless Google Authenticator prompt for Super Admin
-        setIsLoading(false);
-        setShowTotpModal(true);
-        return;
-      }
-
+    // 🔒 1. If attempting Admin login: VERIFY PASSWORD FIRST!
+    if (isAdminAccount) {
       try {
-        const challengeRes = await fetch('/api/auth/login-requests', {
+        const verifyRes = await fetch('/api/auth/login-requests', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            action: 'create_request',
+            action: 'verify_admin_credentials',
             email: targetEmail,
+            password: password,
           }),
         });
 
-        const challengeData = await challengeRes.json();
-        if (challengeData.success && challengeData.data) {
-          setPendingChallenge(challengeData.data);
-          setChallengeStatus('waiting');
+        const verifyData = await verifyRes.json().catch(() => null);
+        if (!verifyData || !verifyData.success) {
+          setError(verifyData?.message || 'ভুল পাসওয়ার্ড! অনুগ্রহ করে সঠিক পাসওয়ার্ড দিন।');
           setIsLoading(false);
           return;
         }
+
+        // Credentials are valid! Check current device authority:
+        const isPrimaryDevice =
+          typeof window !== 'undefined' && localStorage.getItem('shopnexus_primary_master') === 'authorized_master_root';
+
+        const activeSessionExpiresAt =
+          typeof window !== 'undefined' ? localStorage.getItem('shopnexus_session_expires_at') : null;
+
+        const isSessionStillValid =
+          activeSessionExpiresAt === 'until_revoked' ||
+          (activeSessionExpiresAt && Number(activeSessionExpiresAt) > Date.now());
+
+        if (isPrimaryDevice || isSessionStillValid) {
+          // Already recognized master device -> enter dashboard directly
+          executeDirectAdminLogin(targetEmail);
+          return;
+        }
+
+        // Check if a Primary Master is ALREADY ACTIVE and ONLINE elsewhere:
+        const isAnotherMasterOnline = !!verifyData.isMasterOnline;
+
+        if (isAnotherMasterOnline) {
+          // Another master device is currently online -> Dispatch 2FA waiting challenge
+          const challengeRes = await fetch('/api/auth/login-requests', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'create_request',
+              email: targetEmail,
+            }),
+          });
+
+          const challengeData = await challengeRes.json();
+          if (challengeData.success && challengeData.data) {
+            setPendingChallenge(challengeData.data);
+            setChallengeStatus('waiting');
+            setIsLoading(false);
+            return;
+          }
+        } else {
+          // No Master is currently online (first login / after logout / 0-second latency) -> Directly prompt for 6-digit TOTP
+          setIsLoading(false);
+          setShowTotpModal(true);
+          return;
+        }
       } catch (err) {
-        console.error('Challenge dispatch error:', err);
+        console.error('Admin login verification error:', err);
+        setError('লগইন প্রক্রিয়ায় সমস্যা হয়েছে। পুনরায় চেষ্টা করুন।');
+        setIsLoading(false);
+        return;
       }
     }
 
+    // 2. Standard Customer / Vendor Login Flow
     try {
       const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
@@ -223,19 +262,9 @@ export default function LoginPage() {
         return;
       }
 
-      // If backend is local/demo or credentials matched admin
-      if (isAdminAccount) {
-        executeDirectAdminLogin(targetEmail);
-        return;
-      }
-
       throw new Error(data.message || 'Invalid email or password');
     } catch (err: unknown) {
-      if (isAdminAccount) {
-        executeDirectAdminLogin(targetEmail);
-        return;
-      }
-      const errMsg = err instanceof Error ? err.message : 'An error occurred. Please try again.';
+      const errMsg = err instanceof Error ? err.message : 'Invalid email or password';
       setError(errMsg);
     } finally {
       setIsLoading(false);
@@ -248,20 +277,23 @@ export default function LoginPage() {
     setError(null);
     const targetEmail = MASTER_ADMIN_EMAIL;
     setEmail(targetEmail);
-    setPassword('Admin@ShopNexus2026!');
+    setPassword('Saad@752800');
 
     const isPrimaryDevice =
       typeof window !== 'undefined' && localStorage.getItem('shopnexus_primary_master') === 'authorized_master_root';
 
-    const activeSessionExpiresAt =
-      typeof window !== 'undefined' ? localStorage.getItem('shopnexus_session_expires_at') : null;
+    if (isPrimaryDevice) {
+      executeDirectAdminLogin(targetEmail);
+      setIsLoading(false);
+      return;
+    }
 
-    const isSessionStillValid =
-      activeSessionExpiresAt === 'until_revoked' ||
-      (activeSessionExpiresAt && Number(activeSessionExpiresAt) > Date.now());
+    try {
+      const checkRes = await fetch('/api/auth/login-requests?checkMaster=true');
+      const checkData = await checkRes.json().catch(() => null);
 
-    if (!isPrimaryDevice && !isSessionStillValid) {
-      try {
+      if (checkData?.isMasterOnline) {
+        // Master is online elsewhere -> Dispatch waiting challenge
         const challengeRes = await fetch('/api/auth/login-requests', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -271,20 +303,20 @@ export default function LoginPage() {
           }),
         });
 
-        const challengeData = await challengeRes.json();
-        if (challengeData.success && challengeData.data) {
+        const challengeData = await challengeRes.json().catch(() => null);
+        if (challengeData?.success && challengeData.data) {
           setPendingChallenge(challengeData.data);
           setChallengeStatus('waiting');
-          setIsLoading(false);
-          return;
         }
-      } catch (err) {
-        console.error('Challenge dispatch error:', err);
+      } else {
+        // No master online -> Direct TOTP modal
+        setShowTotpModal(true);
       }
+    } catch {
+      setShowTotpModal(true);
+    } finally {
+      setIsLoading(false);
     }
-
-    executeDirectAdminLogin(targetEmail);
-    setIsLoading(false);
   };
 
   const handleGoogleLogin = () => {

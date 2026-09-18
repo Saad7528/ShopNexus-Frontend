@@ -46,6 +46,23 @@ export function AdminSecurityListener() {
     }
   }, [user]);
 
+  // 1B. Primary Master Continuous Heartbeat Sync (Keeps Server aware that Master is Online)
+  useEffect(() => {
+    if (!user || user.role !== 'admin' || isTemporarySession) return;
+
+    const sendHeartbeat = async () => {
+      await fetch('/api/auth/login-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'master_heartbeat', email: user.email }),
+      }).catch(() => null);
+    };
+
+    sendHeartbeat();
+    const interval = setInterval(sendHeartbeat, 7000);
+    return () => clearInterval(interval);
+  }, [user, isTemporarySession]);
+
   // 2. Secondary Device: Live Expiration Countdown & Auto-Logout Watcher
   useEffect(() => {
     if (typeof window !== 'undefined') {

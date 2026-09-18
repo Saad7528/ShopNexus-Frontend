@@ -30,8 +30,6 @@ import { useLanguageStore } from '@/store/useLanguageStore';
 import { LanguageToggle } from '@/components/common/LanguageToggle';
 import DevTelemetryToggle from '@/components/admin/DevTelemetryToggle';
 
-import { AdminSecurityListener } from '@/components/admin/AdminSecurityListener';
-
 interface AdminNavItem {
   title: string;
   href: string;
@@ -66,7 +64,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/login-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'master_logout' }),
+      }).catch(() => null);
+    } catch {
+      // ignore
+    }
+
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('shopnexus_primary_master');
+      localStorage.removeItem('shopnexus_session_id');
+      localStorage.removeItem('shopnexus_session_expires_at');
+      localStorage.removeItem('shopnexus_session_duration');
+    }
+
     logout();
     router.push('/login');
   };
@@ -132,9 +147,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f19] text-slate-900 dark:text-white flex flex-col md:flex-row relative">
-      {/* Universal Real-Time 2FA Pop-up Listener for Primary Admin */}
-      <AdminSecurityListener />
-
       {/* Mobile Backdrop Overlay */}
       {isMobile && sidebarOpen && (
         <div
