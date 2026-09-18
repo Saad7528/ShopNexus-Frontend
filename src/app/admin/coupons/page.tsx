@@ -311,14 +311,14 @@ export default function AdminCouponsPage() {
         )}
 
         {/* Active Coupons Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-5">
           {coupons.map((coupon) => (
             <div
               key={coupon.id}
-              className="p-6 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 backdrop-blur-xl relative flex flex-col justify-between space-y-4 shadow-sm"
+              className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 backdrop-blur-xl relative flex flex-col justify-between space-y-3.5 sm:space-y-4 shadow-sm"
             >
               <div className="flex items-center justify-between">
-                <span className="font-mono text-xl font-black text-orange-600 dark:text-orange-400 tracking-tight px-3 py-1 rounded-xl bg-orange-500/10 border border-orange-500/30">
+                <span className="font-mono text-base sm:text-xl font-black text-orange-600 dark:text-orange-400 tracking-tight px-2.5 sm:px-3 py-1 rounded-xl bg-orange-500/10 border border-orange-500/30">
                   {coupon.code}
                 </span>
 
@@ -359,7 +359,7 @@ export default function AdminCouponsPage() {
               </div>
 
               <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                <span className="text-[11px] text-slate-400 dark:text-slate-500 font-mono">ShopNexus Engine</span>
+                <span className="text-[10px] sm:text-[11px] text-slate-400 dark:text-slate-500 font-mono">ShopNexus Engine</span>
                 <button
                   type="button"
                   onClick={() => handleDeleteCoupon(coupon.id, coupon.code)}

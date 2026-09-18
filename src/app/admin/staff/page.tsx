@@ -1582,7 +1582,7 @@ export default function AdminStaffRolesPage() {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4">
                 {filteredStaff.map((member) => {
                   const roleDef = ROLE_DEFINITIONS[member.role] || ROLE_DEFINITIONS['Super Admin'];
                   const isSuspended = member.status === 'Suspended';
@@ -1591,93 +1591,91 @@ export default function AdminStaffRolesPage() {
                   return (
                     <div
                       key={member.id}
-                      className={`p-5 rounded-3xl bg-white dark:bg-slate-900/80 border ${
+                      className={`p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 border ${
                         presence.isOnline
                           ? 'border-emerald-500/40 shadow-emerald-500/5'
                           : isSuspended
                           ? 'border-rose-500/40 opacity-80'
                           : 'border-slate-200 dark:border-slate-800'
-                      } shadow-sm backdrop-blur-xl space-y-4 hover:border-orange-500/40 transition-all relative`}
+                      } shadow-sm backdrop-blur-xl space-y-3 sm:space-y-4 hover:border-orange-500/40 transition-all`}
                     >
-                      {/* Multi-Device Warning Ribbon or Online Pulse Indicator Ribbon */}
-                      {(member.sessions && member.sessions.length > 1) ? (
-                        <button
-                          type="button"
-                          onClick={() => handleOpenSessionsModal(member)}
-                          className="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold hover:scale-105 transition-transform cursor-pointer"
-                          title={isBn ? 'মাল্টি-ডিভাইস লগইন শনাক্ত হয়েছে - সেশন দেখুন' : 'Multi-device login detected - Inspect sessions'}
-                        >
-                          <AlertTriangle className="w-3 h-3 text-amber-500 animate-bounce" />
-                          <span>{isBn ? `${toBengaliNumber(member.sessions.length)}টি ডিভাইসে সক্রিয়` : `${member.sessions.length} Devices Active`}</span>
-                        </button>
-                      ) : presence.isOnline ? (
-                        <button
-                          type="button"
-                          onClick={() => handleOpenSessionsModal(member)}
-                          className="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold hover:scale-105 transition-transform cursor-pointer"
-                          title={isBn ? 'সক্রিয় সেশন ও ডিভাইস দেখুন' : 'View active sessions and telemetry'}
-                        >
-                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                          <span>{presence.presenceLabel}</span>
-                        </button>
-                      ) : null}
-
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-center gap-3">
-                          <div className="relative shrink-0">
-                            <div
-                              className={`w-12 h-12 rounded-2xl bg-gradient-to-tr ${member.avatarColor} text-white font-black text-base flex items-center justify-center shadow-md`}
-                            >
-                              {member.name.slice(0, 2).toUpperCase()}
-                            </div>
-                            {/* Avatar Presence Dot */}
-                            <span
-                              className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-slate-900 ${
-                                presence.isOnline ? 'bg-emerald-500' : 'bg-slate-400'
-                              }`}
-                              title={presence.presenceLabel}
-                            />
-                          </div>
-
-                          <div>
-                            <div className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-1.5">
-                              <span>{member.name}</span>
-                              {member.twoFactorEnabled && (
-                                <span title={isBn ? '২এফএ ভেরিফাইড' : '2FA Authenticated'}>
-                                  <BadgeCheck className="w-4 h-4 text-emerald-500 shrink-0" />
-                                </span>
-                              )}
-                            </div>
-                            <span className="text-xs text-slate-500 dark:text-slate-400 block">{member.email}</span>
-                            <span className="text-[11px] font-mono text-slate-400">{member.phone}</span>
-                          </div>
+                      {/* Top Header Row with Presence & Role Badge */}
+                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800/60 pb-2.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${roleDef.badgeBg}`}>
+                            {isBn ? roleDef.title.bn : member.role}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedRoleInfo(member.role)}
+                            className="p-1 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 transition-colors cursor-pointer"
+                            title={isBn ? 'রোল পারমিশন তথ্য' : 'Role Information'}
+                          >
+                            <Info className="w-3 h-3" />
+                          </button>
                         </div>
 
-                        {!presence.isOnline && (!member.sessions || member.sessions.length <= 1) && (
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${roleDef.badgeBg}`}>
-                              {isBn ? roleDef.title.bn : member.role}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => setSelectedRoleInfo(member.role)}
-                              className="p-1 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 transition-colors cursor-pointer"
-                              title={isBn ? 'রোল পারমিশন তথ্য' : 'Role Information'}
-                            >
-                              <Info className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
+                        {/* Multi-Device Warning Ribbon or Online Pulse Indicator */}
+                        {(member.sessions && member.sessions.length > 1) ? (
+                          <button
+                            type="button"
+                            onClick={() => handleOpenSessionsModal(member)}
+                            className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold hover:scale-105 transition-transform cursor-pointer"
+                            title={isBn ? 'মাল্টি-ডিভাইস লগইন শনাক্ত হয়েছে - সেশন দেখুন' : 'Multi-device login detected - Inspect sessions'}
+                          >
+                            <AlertTriangle className="w-3 h-3 text-amber-500 animate-bounce" />
+                            <span>{isBn ? `${toBengaliNumber(member.sessions.length)}টি ডিভাইসে সক্রিয়` : `${member.sessions.length} Devices`}</span>
+                          </button>
+                        ) : presence.isOnline ? (
+                          <button
+                            type="button"
+                            onClick={() => handleOpenSessionsModal(member)}
+                            className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold hover:scale-105 transition-transform cursor-pointer"
+                            title={isBn ? 'সক্রিয় সেশন ও ডিভাইস দেখুন' : 'View active sessions and telemetry'}
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            <span>{presence.presenceLabel}</span>
+                          </button>
+                        ) : (
+                          <span className="text-[10px] text-slate-400">
+                            {isBn ? `⚪ অফলাইন` : `⚪ Offline`}
+                          </span>
                         )}
                       </div>
 
-                      {/* Permissions Tag Cloud & Role pill if online */}
-                      <div className="flex items-center gap-1.5 flex-wrap pt-2">
-                        {(presence.isOnline || (member.sessions && member.sessions.length > 1)) && (
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${roleDef.badgeBg} mr-1`}>
-                            {isBn ? roleDef.title.bn : member.role}
-                          </span>
-                        )}
+                      {/* Avatar & User Details */}
+                      <div className="flex items-center gap-3">
+                        <div className="relative shrink-0">
+                          <div
+                            className={`w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-tr ${member.avatarColor} text-white font-black text-sm sm:text-base flex items-center justify-center shadow-md`}
+                          >
+                            {member.name.slice(0, 2).toUpperCase()}
+                          </div>
+                          {/* Avatar Presence Dot */}
+                          <span
+                            className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white dark:border-slate-900 ${
+                              presence.isOnline ? 'bg-emerald-500' : 'bg-slate-400'
+                            }`}
+                            title={presence.presenceLabel}
+                          />
+                        </div>
 
+                        <div className="min-w-0 flex-1">
+                          <div className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-1.5 truncate">
+                            <span className="truncate">{member.name}</span>
+                            {member.twoFactorEnabled && (
+                              <span title={isBn ? '২এফএ ভেরিফাইড' : '2FA Authenticated'}>
+                                <BadgeCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-xs text-slate-500 dark:text-slate-400 block truncate">{member.email}</span>
+                          <span className="text-[11px] font-mono text-slate-400 block">{member.phone}</span>
+                        </div>
+                      </div>
+
+                      {/* Permissions Tag Cloud */}
+                      <div className="flex items-center gap-1 flex-wrap pt-1">
                         {member.customPermissions?.canManageCatalog && (
                           <span className="px-2 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[9px] font-bold">
                             {isBn ? 'ক্যাটালগ' : 'Catalog'}
@@ -1706,30 +1704,23 @@ export default function AdminStaffRolesPage() {
                       </div>
 
                       {/* Footer Actions */}
-                      <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500 flex-wrap gap-2">
-                        <div className="flex items-center gap-2">
-                          <span className="text-slate-400">
-                            {isBn ? 'সেশন:' : 'Presence:'}{' '}
-                            <strong className={presence.isOnline ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-400'}>
-                              {presence.isOnline ? (isBn ? '🟢 অনলাইন (Online)' : '🟢 Online') : (isBn ? `⚪ অফলাইন (${member.lastActive})` : `⚪ Offline (${member.lastActive})`)}
-                            </strong>
-                          </span>
-                          <span className="text-slate-600">•</span>
+                      <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500 flex-wrap gap-2">
+                        <div className="flex items-center gap-1.5">
                           <span className={isSuspended ? 'text-rose-600 font-bold' : 'text-slate-400'}>
                             {isSuspended ? (isBn ? 'লকড' : 'Suspended') : (isBn ? 'অনুমোদিত' : 'Allowed')}
                           </span>
                         </div>
 
                         {/* Action buttons */}
-                        <div className="flex items-center gap-1.5 flex-wrap">
+                        <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
                           {/* Active Sessions Inspector Trigger */}
                           <button
                             type="button"
                             onClick={() => handleOpenSessionsModal(member)}
-                            className="px-2.5 py-1 rounded-xl text-[10px] font-bold bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 transition-all cursor-pointer flex items-center gap-1"
+                            className="px-2 sm:px-2.5 py-1 rounded-xl text-[10px] font-bold bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 transition-all cursor-pointer flex items-center gap-1"
                             title={isBn ? 'সক্রিয় সেশন ও ডিভাইস নিরাপত্তা দেখুন' : 'Inspect Active Sessions & Remote Logout'}
                           >
-                            <Laptop className="w-3 h-3" />
+                            <Laptop className="w-3 h-3 shrink-0" />
                             <span>{isBn ? `সেশন (${toBengaliNumber(member.sessions?.length || 1)})` : `Sessions (${member.sessions?.length || 1})`}</span>
                           </button>
 
@@ -1738,14 +1729,14 @@ export default function AdminStaffRolesPage() {
                             <button
                               type="button"
                               onClick={() => handleInstantFreezeAccount(member.id, member.name)}
-                              className={`px-2.5 py-1 rounded-xl text-[10px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                              className={`px-2 sm:px-2.5 py-1 rounded-xl text-[10px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
                                 isSuspended
                                   ? 'bg-emerald-600 text-white hover:bg-emerald-700'
                                   : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20'
                               }`}
                               title={isSuspended ? (isBn ? 'অ্যাকাউন্ট আনফ্রিজ করুন' : 'Unfreeze Account') : (isBn ? 'ইনস্ট্যান্ট একাউন্ট ফ্রিজ' : 'Instant Freeze Account')}
                             >
-                              <Snowflake className="w-3 h-3" />
+                              <Snowflake className="w-3 h-3 shrink-0" />
                               <span>{isSuspended ? (isBn ? 'সক্রিয় করুন' : 'Unfreeze') : (isBn ? 'ফ্রিজ' : 'Freeze')}</span>
                             </button>
                           )}
@@ -1753,7 +1744,7 @@ export default function AdminStaffRolesPage() {
                           <button
                             type="button"
                             onClick={() => setEditingStaff(member)}
-                            className="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
+                            className="p-1 sm:p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
                             title={isBn ? 'রোল ও পারমিশন এডিট' : 'Edit Role & Permissions'}
                           >
                             <Edit className="w-3.5 h-3.5" />
@@ -1763,7 +1754,7 @@ export default function AdminStaffRolesPage() {
                             <button
                               type="button"
                               onClick={() => handleDeleteStaff(member.id, member.name)}
-                              className="p-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 transition-colors cursor-pointer"
+                              className="p-1 sm:p-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 transition-colors cursor-pointer"
                               title={isBn ? 'অ্যাক্সেস চিরতরে বাতিল' : 'Revoke Credentials'}
                             >
                               <Trash2 className="w-3.5 h-3.5" />
