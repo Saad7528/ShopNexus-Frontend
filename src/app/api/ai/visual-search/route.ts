@@ -110,19 +110,24 @@ export async function POST(req: NextRequest) {
       // Fallback to in-memory datasets
     }
 
-    // Merge static catalog products
+    // Merge static catalog products (Strict Deduplication by ID and Normalized Title)
     const existingIds = new Set(catalogProducts.map((p) => p._id));
+    const existingTitles = new Set(
+      catalogProducts.map((p) => (p.title || '').toLowerCase().trim())
+    );
     for (const prod of ALL_PRODUCTS) {
-      if (!existingIds.has(prod._id)) {
+      const prodTitle = (prod.title || '').toLowerCase().trim();
+      if (!existingIds.has(prod._id) && !existingTitles.has(prodTitle)) {
         catalogProducts.push(prod);
         existingIds.add(prod._id);
+        existingTitles.add(prodTitle);
       }
     }
 
     // Create concise catalog reference for AI prompt
     const catalogSummary = catalogProducts.slice(0, 30).map((p) => ({
       id: p._id,
-      title: p.title || p.name,
+      title: p.title || '',
       category: p.category,
       brand: p.brand,
       price: p.discountPrice || p.price,
@@ -164,57 +169,84 @@ export async function POST(req: NextRequest) {
         cleanBase64 = parts[1];
       }
 
-      const visionPrompt = `You are ShopNexus AI Vector Vision Engine - a specialist in multimodal computer vision for premium electronics, tech gadgets, mechanical keyboards, audiophile gear, smart wearables, and gaming peripherals.
+      const targetLanguageInstruction = isBn
+        ? `CRITICAL LANGUAGE DIRECTIVE:
+The current user interface language is BENGALI (বাংলা).
+1. "detectedItem": MUST be written in natural, accurate Bengali (e.g. "কিউ০৭ ব্লুটুথ সেলফি স্টিক ও ট্রাইপড", "ওয়্যারলেস মাইক্রোফোন", "অ্যাপল আইফোন ও ম্যাগসেফ কেস", "মেকানিক্যাল কীবোর্ড", "স্মার্টওয়াচ", "নয়েজ-ক্যানসেলিং হেডফোন").
+2. "aiMessage": MUST be STRICTLY 100% PURE BENGALI (বাংলা). Under NO circumstances should you output English sentences, mixed text, or slash translations like "/ Hello...". Output only clean Bengali sentences.
+3. "visualTags": MUST be in Bengali (e.g. ["সেলফি-স্টিক", "ট্রাইপড", "মোবাইল-অ্যাকসেসরি"] or ["মাইক্রোফোন", "অডিও-রেকর্ড", "ভয়েস"]).`
+        : `CRITICAL LANGUAGE DIRECTIVE:
+The current user interface language is ENGLISH.
+1. "detectedItem": MUST be written in crisp, professional English (e.g. "Q07 Bluetooth Selfie Stick & Tripod", "Wireless Lavalier Microphone", "Apple iPhone with MagSafe Case", "Mechanical Keyboard", "Smartwatch").
+2. "aiMessage": MUST be STRICTLY 100% PURE ENGLISH. DO NOT include any Bengali words or slash translations.
+3. "visualTags": MUST be in English (e.g. ["selfie-stick", "tripod", "creator-gear"] or ["microphone", "wireless-audio"]).`;
 
-Analyze the uploaded image with extreme precision across 3 possible cases:
+      const visionPrompt = `You are ShopNexus AI Vector Vision Engine - a specialist in multimodal computer vision for tech gadgets, electronics, mechanical keyboards, audiophile headphones, smartwatches, gaming peripherals, smartphones, and accessories.
 
-Case A: The image shows a HUMAN, SELFIE, FACE, BODY, PORTRAIT, PET, SCENERY, RANDOM NON-TECH OBJECT (e.g. food, furniture, clothes, car), or a CODE/UI SCREENSHOT.
-- Set categoryType to "human_or_selfie", "screenshot_or_ui", or "non_tech_object".
-- Set isGadget to false.
-- Set isCatalogAvailable to false.
-- Set detectedCategory to "General".
-- Set aiMessage to a clear polite explanation in Bengali/English (e.g., "এটি একজন ব্যক্তির ছবি / সাধারণ ছবি, কোনো টেক গ্যাজেট নয়। ShopNexus শুধুমাত্র প্রিমিয়াম গ্যাজেট বিক্রয় করে।").
-- matchedProductIds MUST BE [].
+${targetLanguageInstruction}
 
-Case B: The image shows a TECH GADGET / ELECTRONICS PRODUCT that IS PRESENT in the ShopNexus Catalog below (e.g. Mechanical Keyboard, Sony/Bose Headphones, Smartwatch, Gaming Mouse, Studio Mic).
-- Set categoryType to "tech_gadget".
-- Set isGadget to true.
-- Set isCatalogAvailable to true.
-- Set detectedCategory to one of: "Wearables", "Audio", "Peripherals", "Gaming", "Creator Gear", "Smart Home", "Electronics".
-- List the top 1 to 3 matching product IDs from the catalog with similarityScore (0.80 to 0.99) and matchedFeatures.
+Analyze the uploaded image with high precision across 3 possible cases:
 
-Case C: The image shows a TECH GADGET / DEVICE that is REAL but NOT STOCKED in the ShopNexus Catalog (e.g. Xiaomi/Redmi Smartwatch not in catalog, Drone, Microwave, DSLR Camera, Smartphone, VR Headset).
-- Set categoryType to "tech_gadget".
-- Set isGadget to true.
-- Set isCatalogAvailable to false.
-- Set detectedCategory to one of: "Wearables", "Audio", "Peripherals", "Gaming", "Creator Gear", "Smart Home", "Electronics".
-- Set aiMessage to a friendly notice explaining that this specific gadget was detected, but is currently out of stock in ShopNexus.
-- matchedProductIds MUST BE [].
+Case A: The image shows a HUMAN, SELFIE, FACE, PORTRAIT, PET, SCENERY, RANDOM NON-TECH OBJECT (food, clothes, furniture), or CODE/SCREENSHOT.
+- categoryType: "human_or_selfie" | "non_tech_object" | "screenshot_or_ui"
+- isGadget: false
+- isCatalogAvailable: false
+- detectedCategory: "General"
+- detectedItem: Clear description of the subject in the required language.
+- aiMessage: Polite single-language explanation that ShopNexus is a premium tech gadget store and this is not a tech gadget.
+- visualTags: Relevant single-language tags.
+- matchedProductIds: []
+
+Case B: The image shows a TECH GADGET / ELECTRONICS PRODUCT that MATCHES or IS VERY SIMILAR TO an item in the ShopNexus Catalog below (e.g. Mechanical Keyboard, Sony/Bose Headphones, Apple AirPods Max, Smartwatch, Gaming Mouse, Studio Mic, Smart Glasses).
+- categoryType: "tech_gadget"
+- isGadget: true
+- isCatalogAvailable: true
+- detectedCategory: One of "Wearables" | "Audio" | "Peripherals" | "Gaming" | "Creator Gear" | "Smart Home" | "Electronics"
+- detectedItem: Specific gadget name with brand/model if visible in the required language.
+- aiMessage: Positive single-language match explanation.
+- visualTags: 3 to 5 relevant technical tags in the required language.
+- matchedProductIds: Top 1-3 matching catalog IDs with similarityScore (0.85 to 0.99), confidence ("high" | "exact"), and matchedFeatures.
+
+Case C: The image shows a REAL TECH GADGET / DEVICE that is NOT DIRECTLY STOCKED in the ShopNexus Catalog (e.g. Selfie Stick / Tripod, Smartphone / iPhone with MagSafe Case, Drone, DSLR Camera, Tablet, VR Headset, Power Bank).
+- categoryType: "tech_gadget"
+- isGadget: true
+- isCatalogAvailable: false
+- detectedCategory: Closest related category ("Creator Gear", "Peripherals", "Wearables", "Audio", "Gaming", "Smart Home", or "Electronics")
+- detectedItem: Specific name of the gadget / device in the required language (e.g. "Q07 Bluetooth Selfie Stick & Tripod").
+- aiMessage: Notice in the required language explaining that this specific gadget model was recognized, but is currently not in direct inventory, with best alternative tech recommendations provided below.
+- visualTags: 3 to 5 descriptive tags in the required language.
+- matchedProductIds: []
 
 SHOPNEXUS CATALOG:
 ${JSON.stringify(catalogSummary, null, 2)}
 
 OUTPUT REQUIREMENT:
-Respond ONLY with a valid JSON object in this exact schema without any markdown wrapping or extra commentary:
+Respond ONLY with a valid JSON object matching this schema without markdown codeblocks or extra text:
 {
   "categoryType": "human_or_selfie" | "tech_gadget" | "non_tech_object" | "screenshot_or_ui",
   "detectedCategory": "Wearables" | "Audio" | "Peripherals" | "Gaming" | "Creator Gear" | "Smart Home" | "Electronics",
-  "detectedItem": "Detailed description of what is visible in the image",
+  "detectedItem": "Accurate name of the detected gadget or subject",
   "isGadget": true/false,
   "isCatalogAvailable": true/false,
-  "aiMessage": "Contextual explanation for the user",
+  "aiMessage": "Informative message strictly in requested language",
   "visualTags": ["tag1", "tag2", "tag3"],
   "matchedProductIds": [
     {
-      "id": "exact_catalog_id",
-      "similarityScore": 0.96,
+      "id": "catalog_product_id",
+      "similarityScore": 0.95,
       "confidence": "high",
       "matchedFeatures": ["Feature 1", "Feature 2"]
     }
   ]
 }`;
 
-      const visionModels = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-flash-latest', 'gemini-1.5-pro'];
+      const visionModels = [
+        'gemini-3.6-flash',
+        'gemini-3.7-flash',
+        'gemini-3.8-flash',
+        'gemini-flash-latest',
+        'gemini-3.5-flash',
+      ];
 
       for (const apiKey of apiKeys) {
         if (aiMatchResult) break;
@@ -260,7 +292,7 @@ Respond ONLY with a valid JSON object in this exact schema without any markdown 
                 try {
                   const cleaned = textResponse.replace(/```json|```/g, '').trim();
                   const parsed = JSON.parse(cleaned);
-                  if (parsed.detectedItem && Array.isArray(parsed.visualTags)) {
+                  if (parsed.detectedItem) {
                     aiMatchResult = parsed;
                     break;
                   }
@@ -278,40 +310,62 @@ Respond ONLY with a valid JSON object in this exact schema without any markdown 
 
     // 🎯 4. Build Final Matched Products List & Category Inference
     const finalMatchedItems: VisualMatchedItem[] = [];
-    let detectedItemTitle = aiMatchResult?.detectedItem || (isBn ? 'শনাক্তকরণ সম্পন্ন' : 'Detected Visual Gear');
+    let detectedItemTitle = aiMatchResult?.detectedItem || (isBn ? 'শনাক্তকৃত গ্যাজেট' : 'Detected Tech Gadget');
     let queryVisualTags: string[] = aiMatchResult?.visualTags || [];
     const categoryType = aiMatchResult?.categoryType || 'tech_gadget';
-    let isGadget = aiMatchResult?.isGadget ?? true;
-    let isCatalogAvailable = aiMatchResult?.isCatalogAvailable ?? false;
+    let isGadget = aiMatchResult?.isGadget ?? (categoryType === 'tech_gadget');
     const aiMessage = aiMatchResult?.aiMessage || '';
     let detectedCategory = aiMatchResult?.detectedCategory || '';
 
-    // Smart Category Inference if not explicitly returned by Gemini
-    if (!detectedCategory || detectedCategory === 'General') {
-      const lowerDetection = `${detectedItemTitle} ${queryVisualTags.join(' ')}`.toLowerCase();
-      if (lowerDetection.includes('watch') || lowerDetection.includes('wearable') || lowerDetection.includes('fitness') || lowerDetection.includes('band') || lowerDetection.includes('tracker')) {
-        detectedCategory = 'Wearables';
-      } else if (lowerDetection.includes('headphone') || lowerDetection.includes('earphone') || lowerDetection.includes('earbud') || lowerDetection.includes('audio') || lowerDetection.includes('speaker') || lowerDetection.includes('mic')) {
+    // Smart Category & Subtype Inference
+    const lowerDetection = `${detectedItemTitle} ${queryVisualTags.join(' ')}`.toLowerCase();
+    const isSelfieOrTripod = lowerDetection.includes('selfie') || lowerDetection.includes('tripod') || lowerDetection.includes('stick') || lowerDetection.includes('gimbal') || lowerDetection.includes('mount');
+    const isMicrophone = lowerDetection.includes('microphone') || lowerDetection.includes('mic') || lowerDetection.includes('lavalier') || lowerDetection.includes('podcast') || lowerDetection.includes('vocal');
+    const isHeadphonesOrSpeakers = (lowerDetection.includes('headphone') || lowerDetection.includes('earphone') || lowerDetection.includes('earbud') || lowerDetection.includes('speaker') || lowerDetection.includes('headset') || lowerDetection.includes('airpod')) && !isMicrophone;
+    const isWatchOrWearable = lowerDetection.includes('watch') || lowerDetection.includes('wearable') || lowerDetection.includes('fitness') || lowerDetection.includes('band') || lowerDetection.includes('tracker') || lowerDetection.includes('glasses');
+    const isKeyboardOrMouse = lowerDetection.includes('keyboard') || lowerDetection.includes('mouse') || lowerDetection.includes('keycap') || lowerDetection.includes('desk') || lowerDetection.includes('peripheral');
+    const isCameraOrCreator = lowerDetection.includes('camera') || lowerDetection.includes('stream') || lowerDetection.includes('light') || lowerDetection.includes('lens') || lowerDetection.includes('dji') || isSelfieOrTripod;
+
+    if (!detectedCategory || detectedCategory === 'General' || isSelfieOrTripod) {
+      if (isSelfieOrTripod || isCameraOrCreator) {
+        detectedCategory = 'Creator Gear';
+      } else if (isMicrophone) {
         detectedCategory = 'Audio';
-      } else if (lowerDetection.includes('keyboard') || lowerDetection.includes('mouse') || lowerDetection.includes('keycap') || lowerDetection.includes('desk') || lowerDetection.includes('peripheral')) {
+      } else if (isHeadphonesOrSpeakers) {
+        detectedCategory = 'Audio';
+      } else if (isWatchOrWearable) {
+        detectedCategory = 'Wearables';
+      } else if (isKeyboardOrMouse) {
         detectedCategory = 'Peripherals';
       } else if (lowerDetection.includes('game') || lowerDetection.includes('controller') || lowerDetection.includes('console') || lowerDetection.includes('joystick')) {
         detectedCategory = 'Gaming';
-      } else if (lowerDetection.includes('camera') || lowerDetection.includes('stream') || lowerDetection.includes('light') || lowerDetection.includes('lens')) {
-        detectedCategory = 'Creator Gear';
       } else if (lowerDetection.includes('home') || lowerDetection.includes('smart bulb') || lowerDetection.includes('vacuum') || lowerDetection.includes('router')) {
         detectedCategory = 'Smart Home';
       } else {
-        detectedCategory = isGadget ? 'Wearables' : 'General';
+        detectedCategory = isGadget ? 'Creator Gear' : 'General';
       }
     }
 
-    if (aiMatchResult && isGadget && isCatalogAvailable && Array.isArray(aiMatchResult.matchedProductIds)) {
+    // Direct Match Validation (Must Strictly Match Product Type)
+    // IMPORTANT: Selfie Sticks and unstocked items must NEVER match Headphones!
+    if (aiMatchResult && isGadget && !isSelfieOrTripod && Array.isArray(aiMatchResult.matchedProductIds) && aiMatchResult.matchedProductIds.length > 0) {
       for (const match of aiMatchResult.matchedProductIds) {
         const fullProd = catalogProducts.find(
           (p) => p._id === match.id || p.id === match.id || p.slug === match.id
         );
         if (fullProd) {
+          const prodTitleLower = (fullProd.title || fullProd.name || '').toLowerCase();
+          const prodCatLower = (fullProd.category || '').toLowerCase();
+
+          // Strict type guard: A microphone query must only match microphones, not headphones!
+          if (isMicrophone && !prodTitleLower.includes('mic') && !prodTitleLower.includes('sm7b') && !prodTitleLower.includes('podcast')) {
+            continue;
+          }
+          // A headphone query must only match headphones, not microphones or speakers!
+          if (isHeadphonesOrSpeakers && (prodTitleLower.includes('mic') || prodTitleLower.includes('microphone'))) {
+            continue;
+          }
+
           finalMatchedItems.push({
             product: {
               _id: fullProd._id,
@@ -324,63 +378,50 @@ Respond ONLY with a valid JSON object in this exact schema without any markdown 
               stock: fullProd.stock ?? 20,
             },
             similarityScore: match.similarityScore || 0.95,
-            matchLabel: match.confidence || (isBn ? 'শনাক্তকৃত মিল' : 'Detected Match'),
-            matchedFeatures: match.matchedFeatures || [],
+            matchLabel: match.confidence === 'exact' ? (isBn ? 'নিখুঁত মিল' : 'Exact Visual Match') : (isBn ? 'শনাক্তকৃত মিল' : 'Detected Match'),
+            matchedFeatures: match.matchedFeatures || [fullProd.category || 'Tech Gadget'],
           });
         }
       }
     }
 
-    // ⚡ Fallback if AI was offline/unavailable or sample image was used
-    if (!aiMatchResult && (imageUrl || imageBase64)) {
-      const sampleKeywords = (imageUrl || '').toLowerCase();
-      if (sampleKeywords.includes('keyboard') || sampleKeywords.includes('keychron')) {
-        detectedItemTitle = 'Keychron Mechanical Keyboard';
-        detectedCategory = 'Peripherals';
-        queryVisualTags = ['mechanical-keyboard', 'custom-keycaps', 'wireless', 'rgb'];
-        const prod = catalogProducts.find((p) => p.category === 'Peripherals' || p.title?.toLowerCase().includes('keyboard'));
-        if (prod) {
-          finalMatchedItems.push({
-            product: {
-              _id: prod._id,
-              title: prod.title || prod.name || 'Keychron Keyboard',
-              category: prod.category,
-              brand: prod.brand,
-              price: prod.price,
-              discountPrice: prod.discountPrice,
-              images: prod.images,
-              stock: prod.stock,
-            },
-            similarityScore: 0.96,
-            matchLabel: isBn ? 'খুব কাছাকাছি ম্যাচ' : 'Strong Visual Match',
-            matchedFeatures: ['Mechanical Switch', 'RGB Backlight', 'Peripherals'],
-          });
-          isCatalogAvailable = true;
-          isGadget = true;
+    // Secondary Precise Keyword Matching (Requires Specific Product-Type Keyword, NEVER generic 'bluetooth' or 'wireless')
+    if (isGadget && !isSelfieOrTripod && finalMatchedItems.length === 0 && detectedItemTitle) {
+      const directCandidates = catalogProducts.filter((p) => {
+        const titleLower = (p.title || p.name || '').toLowerCase();
+        
+        if (isMicrophone) {
+          return titleLower.includes('mic') || titleLower.includes('sm7b') || titleLower.includes('shure');
         }
-      } else if (sampleKeywords.includes('headphones') || sampleKeywords.includes('audio')) {
-        detectedItemTitle = 'Sony WH-1000XM5 Wireless ANC';
-        detectedCategory = 'Audio';
-        queryVisualTags = ['audiophile', 'anc-headphones', 'wireless-audio'];
-        const prod = catalogProducts.find((p) => p.category === 'Audio');
-        if (prod) {
+        if (isHeadphonesOrSpeakers) {
+          return (titleLower.includes('headphone') || titleLower.includes('wh-1000') || titleLower.includes('quietcomfort') || titleLower.includes('airpods') || titleLower.includes('momentum') || titleLower.includes('speaker') || titleLower.includes('stanmore')) && !titleLower.includes('mic');
+        }
+        if (isWatchOrWearable) {
+          return titleLower.includes('watch') || titleLower.includes('ultra') || titleLower.includes('fenix') || titleLower.includes('glasses');
+        }
+        if (isKeyboardOrMouse) {
+          return titleLower.includes('keyboard') || titleLower.includes('keychron') || titleLower.includes('mx master') || titleLower.includes('mouse');
+        }
+        return false;
+      });
+
+      if (directCandidates.length > 0) {
+        for (const fullProd of directCandidates.slice(0, 3)) {
           finalMatchedItems.push({
             product: {
-              _id: prod._id,
-              title: prod.title || prod.name || 'Sony WH-1000XM5',
-              category: prod.category,
-              brand: prod.brand,
-              price: prod.price,
-              discountPrice: prod.discountPrice,
-              images: prod.images,
-              stock: prod.stock,
+              _id: fullProd._id,
+              title: fullProd.title || fullProd.name || 'Product',
+              category: fullProd.category,
+              brand: fullProd.brand,
+              price: fullProd.price,
+              discountPrice: fullProd.discountPrice,
+              images: fullProd.images || (fullProd.image ? [fullProd.image] : []),
+              stock: fullProd.stock ?? 20,
             },
-            similarityScore: 0.97,
-            matchLabel: isBn ? 'খুব কাছাকাছি ম্যাচ' : 'Strong Visual Match',
-            matchedFeatures: ['Active Noise Cancellation', 'Spatial Audio'],
+            similarityScore: 0.92,
+            matchLabel: isBn ? 'খুব কাছাকাছি মিল' : 'High Visual Similarity',
+            matchedFeatures: [fullProd.category || 'Tech', fullProd.brand || 'Premium'].filter(Boolean),
           });
-          isCatalogAvailable = true;
-          isGadget = true;
         }
       }
     }
@@ -422,11 +463,13 @@ Respond ONLY with a valid JSON object in this exact schema without any markdown 
       alternativeItems,
     };
 
-    // Cache the visual response
-    visualSearchCache.set(cacheKey, {
-      data: responsePayload,
-      timestamp: Date.now(),
-    });
+    // Cache the visual response ONLY if AI successfully analyzed the image
+    if (aiMatchResult) {
+      visualSearchCache.set(cacheKey, {
+        data: responsePayload,
+        timestamp: Date.now(),
+      });
+    }
 
     return NextResponse.json({
       success: true,
