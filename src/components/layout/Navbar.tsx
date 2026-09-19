@@ -157,23 +157,20 @@ export const Navbar: React.FC = () => {
       )}
 
       <header
-        className={`sticky top-0 z-50 w-full transition-[padding] duration-300 ease-out pointer-events-none ${
-          isScrolled
+        className={`sticky top-0 z-50 w-full transition-[padding] duration-300 ease-out pointer-events-none ${isScrolled
             ? 'pt-2 sm:pt-3 px-3 sm:px-5 lg:px-8'
             : 'pt-0 px-0'
-        }`}
+          }`}
       >
         <div
-          className={`pointer-events-auto mx-auto transition-all duration-300 ease-out ${
-            isScrolled
+          className={`pointer-events-auto mx-auto transition-all duration-300 ease-out ${isScrolled
               ? 'max-w-6xl rounded-2xl sm:rounded-full bg-white/85 dark:bg-[#090d16]/85 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/90 shadow-xl shadow-slate-900/5 dark:shadow-black/40 px-3.5 sm:px-5 lg:px-6'
               : 'w-full max-w-7xl rounded-none bg-white dark:bg-[#090d16] border border-transparent border-b-slate-200/80 dark:border-b-slate-800/80 px-3 sm:px-6 lg:px-8 shadow-none'
-          }`}
+            }`}
         >
           <div
-            className={`flex items-center justify-between gap-2 sm:gap-3 lg:gap-4 transition-all duration-300 ${
-              isScrolled ? 'h-14 sm:h-15' : 'h-16 sm:h-18'
-            }`}
+            className={`flex items-center justify-between gap-2 sm:gap-3 lg:gap-4 transition-all duration-300 ${isScrolled ? 'h-14 sm:h-15' : 'h-16 sm:h-18'
+              }`}
           >
             {/* Brand Logo */}
             <BrandLogo size="md" />
@@ -208,11 +205,10 @@ export const Navbar: React.FC = () => {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`inline-flex items-center gap-1.5 px-2.5 xl:px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap shrink-0 transition-all ${
-                      isActive
+                    className={`inline-flex items-center gap-1.5 px-2.5 xl:px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap shrink-0 transition-all ${isActive
                         ? 'text-orange-600 dark:text-orange-400 bg-orange-500/10 border border-orange-500/30 font-bold shadow-xs'
                         : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-900/50'
-                    }`}
+                      }`}
                   >
                     <span>{link.label}</span>
                     {link.badge && (
@@ -230,11 +226,10 @@ export const Navbar: React.FC = () => {
               <LanguageToggle className="hidden lg:inline-flex" />
 
               <div
-                className={`transition-all duration-300 ease-out ${
-                  isScrolled
+                className={`transition-all duration-300 ease-out ${isScrolled
                     ? 'hidden lg:inline-flex opacity-100 scale-100'
                     : 'inline-flex opacity-100 scale-100'
-                }`}
+                  }`}
               >
                 <button
                   type="button"
@@ -254,9 +249,26 @@ export const Navbar: React.FC = () => {
                 </button>
               </div>
 
+              {/* Mobile/Tablet Only AI Camera Visual Search Button */}
+              <button
+                type="button"
+                onClick={() => setVisualSearchOpen(true)}
+                className="relative lg:hidden flex items-center justify-center p-2 rounded-xl text-slate-700 dark:text-slate-200 hover:text-orange-500 dark:hover:text-orange-400 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 hover:border-orange-500/60 transition-all cursor-pointer shadow-xs shrink-0 group"
+                title={isMounted ? (language === 'bn' ? 'এআই ক্যামেরা দিয়ে গ্যাজেট খুঁজুন' : 'AI Visual Product Search') : 'AI Visual Search'}
+                aria-label="AI Visual Search"
+              >
+                <div className="relative flex items-center justify-center">
+                  <Camera className="w-5 h-5 text-orange-500 dark:text-orange-400 group-hover:scale-110 transition-transform" />
+                  <span className="absolute -top-1.5 -right-2 px-1 py-0.2 rounded-full bg-slate-900 dark:bg-black border border-orange-500/60 text-orange-400 text-[8px] font-black tracking-tighter shadow-xs leading-none">
+                    AI
+                  </span>
+                </div>
+              </button>
+
+              {/* Desktop Only Wishlist Icon (Mobile moved to Hamburger Drawer) */}
               <Link
                 href="/wishlist"
-                className="relative p-2 rounded-xl text-slate-700 dark:text-slate-300 hover:text-orange-500 dark:hover:text-orange-400 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-orange-500/50 transition-all shadow-xs shrink-0"
+                className="relative hidden lg:inline-flex p-2 rounded-xl text-slate-700 dark:text-slate-300 hover:text-orange-500 dark:hover:text-orange-400 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-orange-500/50 transition-all shadow-xs shrink-0"
                 title={isMounted ? t('nav_wishlist') : 'Wishlist'}
               >
                 <Heart className="w-5 h-5" />
@@ -368,9 +380,8 @@ export const Navbar: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className={`relative lg:hidden p-2 rounded-xl text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer transition-all duration-300 ${
-                  isScrolled ? 'hover:border-orange-500/50 shadow-xs' : ''
-                }`}
+                className={`relative lg:hidden p-2 rounded-xl text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 cursor-pointer transition-all duration-300 ${isScrolled ? 'hover:border-orange-500/50 shadow-xs' : ''
+                  }`}
                 title="Open Navigation Menu"
               >
                 {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -388,11 +399,10 @@ export const Navbar: React.FC = () => {
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`px-3.5 py-2.5 rounded-2xl text-xs font-bold flex items-center justify-between transition-all ${
-                    pathname === link.href
+                  className={`px-3.5 py-2.5 rounded-2xl text-xs font-bold flex items-center justify-between transition-all ${pathname === link.href
                       ? 'text-orange-600 dark:text-orange-400 bg-orange-500/10 border border-orange-500/30 shadow-xs'
                       : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100/80 dark:hover:bg-slate-900/80'
-                  }`}
+                    }`}
                 >
                   <span>{link.label}</span>
                   {link.badge && (
@@ -402,6 +412,44 @@ export const Navbar: React.FC = () => {
                   )}
                 </Link>
               ))}
+
+              {/* Dedicated Mobile Wishlist Link */}
+              <Link
+                href="/wishlist"
+                onClick={() => setMobileMenuOpen(false)}
+                className={`px-3.5 py-2.5 rounded-2xl text-xs font-bold flex items-center justify-between transition-all ${pathname === '/wishlist'
+                    ? 'text-orange-600 dark:text-orange-400 bg-orange-500/10 border border-orange-500/30 shadow-xs'
+                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100/80 dark:hover:bg-slate-900/80'
+                  }`}
+              >
+                <span className="flex items-center gap-2.5">
+                  <Heart className="w-4 h-4 text-rose-500" />
+                  <span>{isMounted ? t('nav_wishlist') : 'Wishlist'}</span>
+                </span>
+                {isMounted && wishlistItems.length > 0 && (
+                  <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-rose-500 text-white shadow-xs">
+                    {language === 'bn' ? toBengaliNumber(wishlistItems.length) : wishlistItems.length}
+                  </span>
+                )}
+              </Link>
+
+              {/* Mobile AI Visual Camera Search Launcher */}
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  setVisualSearchOpen(true);
+                }}
+                className="w-full px-3.5 py-2.5 rounded-2xl text-xs font-bold flex items-center justify-between bg-gradient-to-r from-orange-500/10 via-amber-500/10 to-orange-500/10 hover:from-orange-500/20 hover:to-amber-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/25 transition-all shadow-xs cursor-pointer"
+              >
+                <span className="flex items-center gap-2.5">
+                  <Camera className="w-4 h-4 text-orange-500" />
+                  <span>{isMounted ? (language === 'bn' ? 'এআই ক্যামেরা দিয়ে গ্যাজেট খুঁজুন' : 'AI Visual Product Search') : 'AI Visual Search'}</span>
+                </span>
+                <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-full bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white">
+                  AI
+                </span>
+              </button>
 
               {isMounted && isAuthenticated && user?.role === 'admin' && (
                 <Link
@@ -455,21 +503,7 @@ export const Navbar: React.FC = () => {
               )}
             </div>
 
-            <div className="space-y-2 pt-1 border-t border-slate-200/60 dark:border-slate-800/60">
-              <div className="p-2 rounded-2xl bg-slate-100/70 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between gap-2">
-                <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2 pl-1.5">
-                  {theme === 'dark' ? <Moon className="w-4 h-4 text-orange-400" /> : <Sun className="w-4 h-4 text-orange-500" />}
-                  <span>{language === 'bn' ? (theme === 'dark' ? 'ডার্ক মোড' : 'লাইট মোড') : (theme === 'dark' ? 'Dark Theme' : 'Light Theme')}</span>
-                </span>
-                <button
-                  type="button"
-                  onClick={toggleTheme}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/90 dark:bg-slate-950/90 border border-slate-200/80 dark:border-slate-800/80 text-xs font-bold text-slate-800 dark:text-slate-200 hover:text-orange-500 dark:hover:text-orange-400 shadow-xs cursor-pointer transition-all"
-                >
-                  <span>{theme === 'dark' ? '☀️ ' + (language === 'bn' ? 'লাইট' : 'Light') : '🌙 ' + (language === 'bn' ? 'ডার্ক' : 'Dark')}</span>
-                </button>
-              </div>
-
+            <div className="pt-1 border-t border-slate-200/60 dark:border-slate-800/60">
               <div className="p-2 rounded-2xl bg-slate-100/70 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between gap-2">
                 <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 pl-1.5">
                   <span className="text-sm">🌐</span>
@@ -479,22 +513,20 @@ export const Navbar: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => language !== 'en' && useLanguageStore.getState().setLanguage('en')}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      language === 'en'
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${language === 'en'
                         ? 'bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white shadow-xs'
                         : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                    }`}
+                      }`}
                   >
                     English
                   </button>
                   <button
                     type="button"
                     onClick={() => language !== 'bn' && useLanguageStore.getState().setLanguage('bn')}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      language === 'bn'
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${language === 'bn'
                         ? 'bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white shadow-xs'
                         : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                    }`}
+                      }`}
                   >
                     বাংলা
                   </button>
