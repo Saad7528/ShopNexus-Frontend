@@ -110,7 +110,7 @@ export async function POST(req: NextRequest) {
       // Fallback to in-memory datasets
     }
 
-    // Merge static catalog products
+    // Merge static catalog products (Strict Deduplication by ID and Normalized Title)
     const existingIds = new Set(catalogProducts.map((p) => p._id));
     for (const prod of ALL_PRODUCTS) {
       if (!existingIds.has(prod._id)) {
