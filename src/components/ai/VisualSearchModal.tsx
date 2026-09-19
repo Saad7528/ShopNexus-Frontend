@@ -472,7 +472,7 @@ export const VisualSearchModal: React.FC<VisualSearchModalProps> = ({ isOpen, on
                       </div>
                       <div className="space-y-1">
                         <h4 className="text-xs font-black uppercase tracking-wider text-sky-700 dark:text-sky-300">
-                          {isBn ? 'এটি কোনো টেক গ্যাজেটের ছবি নয়' : 'Non-Gadget Image Detected'}
+                          {isBn ? 'নন-গ্যাজেট ছবি শনাক্তকৃত' : 'NON-GADGET IMAGE DETECTED'}
                         </h4>
                         <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
                           {aiResponseData.aiMessage ||
@@ -507,7 +507,7 @@ export const VisualSearchModal: React.FC<VisualSearchModalProps> = ({ isOpen, on
                         </div>
                         <div className="space-y-1">
                           <h4 className="text-xs font-black uppercase tracking-wider text-amber-700 dark:text-amber-300">
-                            {isBn ? 'গ্যাজেট শনাক্তকৃত (বর্তমানে শপের স্টকে নেই)' : 'Gadget Detected (Not in ShopNexus Stock)'}
+                            {isBn ? 'গ্যাজেট শনাক্তকৃত (বর্তমানে শপের স্টকে নেই)' : 'GADGET DETECTED (NOT IN SHOPNEXUS STOCK)'}
                           </h4>
                           <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
                             {aiResponseData.aiMessage ||
