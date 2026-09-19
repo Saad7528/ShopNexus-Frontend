@@ -422,7 +422,7 @@ Respond ONLY with a valid JSON object in this exact schema without any markdown 
       alternativeItems,
     };
 
-    // Cache the visual response
+    // Cache the visual response ONLY if AI successfully analyzed the image
     visualSearchCache.set(cacheKey, {
       data: responsePayload,
       timestamp: Date.now(),
