@@ -249,26 +249,28 @@ export const VisualSearchModal: React.FC<VisualSearchModalProps> = ({ isOpen, on
         }
       }}
     >
-      <div className="relative w-full max-w-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-7 shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
+      <div className="relative w-full max-w-lg sm:max-w-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 shadow-2xl overflow-hidden max-h-[88vh] flex flex-col">
         {/* Hidden Canvas for capturing camera snapshot */}
         <canvas ref={canvasRef} className="hidden" />
 
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800/80">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-orange-500/20 to-amber-500/20 border border-orange-500/30 flex items-center justify-center text-orange-600 dark:text-orange-400 shadow-sm">
-              <Camera className="w-5 h-5" />
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800/80">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-orange-500/20 to-amber-500/20 border border-orange-500/30 flex items-center justify-center text-orange-600 dark:text-orange-400 shadow-xs shrink-0">
+              <Camera className="w-4 h-4" />
             </div>
-            <div>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                {isBn ? 'এআই ভিজ্যুয়াল প্রোডাক্ট সার্চ' : 'AI Visual Product Search'}
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20 font-mono font-semibold">
-                  Gemini Vector Vision
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white truncate">
+                  {isBn ? 'এআই ভিজ্যুয়াল প্রোডাক্ট সার্চ' : 'AI Visual Product Search'}
+                </h2>
+                <span className="text-[9px] px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20 font-mono font-bold tracking-tight shrink-0">
+                  Gemini Vision
                 </span>
-              </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              </div>
+              <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
                 {isBn
-                  ? 'ছবি আপলোড করুন অথবা ক্যামেরা দিয়ে লাইভ ছবি তুলে মুহূর্তেই পণ্য খুঁজুন'
+                  ? 'ছবি আপলোড করুন অথবা ক্যামেরা দিয়ে লাইভ ছবি তুলে পণ্য খুঁজুন'
                   : 'Snap a photo or upload an image to find matching catalog gear'}
               </p>
             </div>
@@ -278,26 +280,26 @@ export const VisualSearchModal: React.FC<VisualSearchModalProps> = ({ isOpen, on
               stopCamera();
               onClose();
             }}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-colors cursor-pointer"
+            className="p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-colors cursor-pointer shrink-0 ml-2"
             title={isBn ? 'বন্ধ করুন (Esc)' : 'Close'}
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Error Notification */}
         {cameraError && (
-          <div className="mt-3 p-3 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2">
+          <div className="mt-2.5 p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{cameraError}</span>
+            <span className="text-[11px] leading-tight">{cameraError}</span>
           </div>
         )}
 
         {/* Main Content Area (Scrollable) */}
-        <div className="flex-1 overflow-y-auto my-4 space-y-4 pr-1">
+        <div className="flex-1 overflow-y-auto my-3 space-y-3 pr-0.5">
           {/* 📷 LIVE CAMERA VIEWFINDER MODE */}
           {isCameraActive ? (
-            <div className="relative rounded-3xl overflow-hidden bg-slate-950 border border-slate-800 flex flex-col items-center justify-center aspect-video sm:aspect-[4/3] max-h-[380px] shadow-inner">
+            <div className="relative rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 flex flex-col items-center justify-center aspect-video sm:aspect-[4/3] max-h-[340px] shadow-inner">
               <video
                 ref={videoRef}
                 autoPlay
@@ -308,15 +310,15 @@ export const VisualSearchModal: React.FC<VisualSearchModalProps> = ({ isOpen, on
 
               {/* Viewfinder Target Grid Overlay */}
               <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                <div className="w-48 h-48 sm:w-56 sm:h-56 border-2 border-dashed border-orange-500/70 rounded-3xl animate-pulse shadow-lg shadow-orange-500/20" />
+                <div className="w-40 h-40 sm:w-52 sm:h-52 border-2 border-dashed border-orange-500/70 rounded-2xl animate-pulse shadow-lg shadow-orange-500/20" />
               </div>
 
               {/* Camera Control Overlay Buttons */}
-              <div className="absolute bottom-4 inset-x-4 flex items-center justify-between gap-3 px-2">
+              <div className="absolute bottom-3 inset-x-3 flex items-center justify-between gap-2 px-1">
                 <button
                   type="button"
                   onClick={stopCamera}
-                  className="px-3.5 py-2 rounded-xl bg-slate-900/80 backdrop-blur-md hover:bg-slate-900 text-white text-xs font-bold border border-slate-700 transition-all cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl bg-slate-900/80 backdrop-blur-md hover:bg-slate-900 text-white text-xs font-bold border border-slate-700 transition-all cursor-pointer"
                 >
                   {isBn ? 'বাতিল' : 'Cancel'}
                 </button>
@@ -325,9 +327,9 @@ export const VisualSearchModal: React.FC<VisualSearchModalProps> = ({ isOpen, on
                 <button
                   type="button"
                   onClick={handleCapturePhoto}
-                  className="flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#ff5500] hover:to-[#ff8800] text-white text-xs font-black shadow-xl shadow-orange-500/40 hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                  className="flex items-center gap-1.5 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#ff5500] hover:to-[#ff8800] text-white text-xs font-black shadow-xl shadow-orange-500/40 hover:scale-105 active:scale-95 transition-all cursor-pointer"
                 >
-                  <Camera className="w-4 h-4" />
+                  <Camera className="w-3.5 h-3.5" />
                   <span>{isBn ? 'ছবি তুলুন ও খুঁজুন' : 'Snap & Search'}</span>
                 </button>
 
@@ -335,48 +337,48 @@ export const VisualSearchModal: React.FC<VisualSearchModalProps> = ({ isOpen, on
                 <button
                   type="button"
                   onClick={toggleCameraFacing}
-                  className="p-2.5 rounded-xl bg-slate-900/80 backdrop-blur-md hover:bg-slate-900 text-white border border-slate-700 transition-all cursor-pointer"
+                  className="p-2 rounded-xl bg-slate-900/80 backdrop-blur-md hover:bg-slate-900 text-white border border-slate-700 transition-all cursor-pointer"
                   title={isBn ? 'ক্যামেরা পরিবর্তন করুন' : 'Switch Camera'}
                 >
-                  <SwitchCamera className="w-4 h-4" />
+                  <SwitchCamera className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
           ) : !selectedImage ? (
             /* 📤 INITIAL UPLOAD / SNAP CHOOSER */
-            <div className="space-y-4">
+            <div className="space-y-3">
               {/* Option 1: Live Camera Button */}
               <button
                 type="button"
                 onClick={() => startCamera('environment')}
-                className="w-full p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-orange-500/10 via-amber-500/10 to-orange-500/5 hover:from-orange-500/20 hover:to-amber-500/20 border border-orange-500/30 text-slate-900 dark:text-white flex items-center justify-between gap-4 transition-all cursor-pointer group shadow-sm hover:scale-[1.01]"
+                className="w-full p-3 sm:p-3.5 rounded-2xl bg-gradient-to-r from-orange-500/10 via-amber-500/10 to-orange-500/5 hover:from-orange-500/20 hover:to-amber-500/20 border border-orange-500/30 text-slate-900 dark:text-white flex items-center justify-between gap-3 transition-all cursor-pointer group shadow-xs hover:scale-[1.01]"
               >
-                <div className="flex items-center gap-3.5">
-                  <div className="w-12 h-12 rounded-2xl bg-orange-500 text-white flex items-center justify-center shadow-lg shadow-orange-500/30 group-hover:scale-110 transition-transform">
-                    <Camera className="w-6 h-6" />
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-10 h-10 rounded-xl bg-orange-500 text-white flex items-center justify-center shadow-md shadow-orange-500/30 group-hover:scale-105 transition-transform shrink-0">
+                    <Camera className="w-5 h-5" />
                   </div>
-                  <div className="text-left">
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                  <div className="text-left min-w-0">
+                    <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">
                       {isBn ? 'লাইভ ক্যামেরা দিয়ে ছবি তুলুন' : 'Take a Live Photo'}
                     </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      {isBn ? 'আপনার ফোন বা ল্যাপটপের ক্যামেরা ব্যবহার করুন' : 'Use your smartphone or webcam to snap gear instantly'}
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                      {isBn ? 'ডিভাইসের ক্যামেরা দিয়ে লাইভ ক্যাপচার করুন' : 'Use smartphone or webcam to snap gear'}
                     </p>
                   </div>
                 </div>
-                <div className="px-3 py-1.5 rounded-xl bg-orange-500 text-white text-xs font-bold shrink-0">
+                <div className="px-3 py-1.5 rounded-xl bg-orange-500 text-white text-xs font-bold shrink-0 shadow-xs">
                   {isBn ? 'ক্যামেরা চালু করুন' : 'Open Camera'}
                 </div>
               </button>
 
               {/* Option 2: File Dropzone */}
-              <label className="flex flex-col items-center justify-center w-full h-36 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-800 hover:border-orange-500/60 bg-slate-50 dark:bg-slate-900/40 hover:bg-slate-100 dark:hover:bg-slate-900/80 cursor-pointer transition-all">
-                <div className="flex flex-col items-center justify-center py-4">
-                  <Upload className="w-7 h-7 text-orange-500 mb-2 animate-bounce" />
+              <label className="flex flex-col items-center justify-center w-full h-24 sm:h-28 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-800 hover:border-orange-500/60 bg-slate-50 dark:bg-slate-900/40 hover:bg-slate-100 dark:hover:bg-slate-900/80 cursor-pointer transition-all">
+                <div className="flex flex-col items-center justify-center py-2">
+                  <Upload className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500 mb-1 animate-bounce" />
                   <p className="text-xs font-bold text-slate-900 dark:text-white">
                     {isBn ? 'ছবি ড্রপ করুন অথবা ফাইল সিলেক্ট করুন' : 'Drag & drop or browse device photo'}
                   </p>
-                  <p className="text-[10px] text-slate-500 mt-1">PNG, JPG, WEBP (Max 10MB)</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">PNG, JPG, WEBP (Max 10MB)</p>
                 </div>
                 <input
                   type="file"
@@ -386,12 +388,12 @@ export const VisualSearchModal: React.FC<VisualSearchModalProps> = ({ isOpen, on
                 />
               </label>
 
-              {/* Option 3: Sample Photos */}
+              {/* Option 3: Sample Photos (Responsive Horizontal Scroll Pill Row) */}
               <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80">
                 <p className="text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-2">
                   {isBn ? 'অথবা স্যাম্পল ছবি দিয়ে টেস্ট করুন:' : 'Or try testing with a sample photo:'}
                 </p>
-                <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:grid sm:grid-cols-3">
                   {[
                     { label: isBn ? 'মেকানিক্যাল কিবোর্ড' : 'Mechanical Keyboard', url: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=400' },
                     { label: isBn ? 'এএনসি হেডফোন' : 'ANC Headphones', url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400' },
@@ -400,12 +402,12 @@ export const VisualSearchModal: React.FC<VisualSearchModalProps> = ({ isOpen, on
                     <button
                       key={idx}
                       onClick={() => handleSampleImage(sample.url)}
-                      className="flex items-center gap-2 p-2 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-orange-500/50 text-xs text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer shadow-xs group"
+                      className="flex items-center gap-2 p-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-orange-500/50 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer shadow-xs group shrink-0 min-w-max sm:min-w-0"
                     >
-                      <div className="relative w-9 h-9 rounded-xl overflow-hidden shrink-0 border border-slate-200 dark:border-slate-800">
+                      <div className="relative w-8 h-8 rounded-lg overflow-hidden shrink-0 border border-slate-200 dark:border-slate-800">
                         <Image src={sample.url} alt={sample.label} fill className="object-cover group-hover:scale-110 transition-transform" unoptimized />
                       </div>
-                      <span className="font-semibold text-[11px] truncate text-left">{sample.label}</span>
+                      <span className="font-semibold text-xs whitespace-nowrap sm:truncate text-left">{sample.label}</span>
                     </button>
                   ))}
                 </div>
@@ -465,13 +467,13 @@ export const VisualSearchModal: React.FC<VisualSearchModalProps> = ({ isOpen, on
                   </div>
                 ) : aiResponseData && !aiResponseData.isGadget ? (
                   /* 👤 CASE 1: Non-Gadget / Selfie / Human / Scenery Detected */
-                  <div className="p-4 sm:p-5 rounded-3xl bg-sky-500/10 dark:bg-sky-500/15 border border-sky-500/30 text-slate-900 dark:text-white space-y-3 shadow-sm">
-                    <div className="flex items-start gap-3">
-                      <div className="w-9 h-9 rounded-2xl bg-sky-500/20 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
-                        <AlertCircle className="w-5 h-5" />
+                  <div className="p-3 sm:p-4 rounded-2xl bg-sky-500/10 dark:bg-sky-500/15 border border-sky-500/30 text-slate-900 dark:text-white space-y-2.5 shadow-xs">
+                    <div className="flex items-start gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
+                        <AlertCircle className="w-4 h-4" />
                       </div>
-                      <div className="space-y-1">
-                        <h4 className="text-xs font-black uppercase tracking-wider text-sky-700 dark:text-sky-300">
+                      <div className="space-y-0.5 min-w-0">
+                        <h4 className="text-[11px] sm:text-xs font-black uppercase tracking-wider text-sky-700 dark:text-sky-300">
                           {isBn ? 'নন-গ্যাজেট ছবি শনাক্তকৃত' : 'NON-GADGET IMAGE DETECTED'}
                         </h4>
                         <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
@@ -484,13 +486,13 @@ export const VisualSearchModal: React.FC<VisualSearchModalProps> = ({ isOpen, on
                     </div>
 
                     <div className="flex items-center justify-between pt-2 border-t border-sky-500/20">
-                      <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                      <span className="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400">
                         {isBn ? 'গ্যাজেটের ছবি দিয়ে খুঁজুন:' : 'Try photographing a gadget:'}
                       </span>
                       <button
                         type="button"
                         onClick={() => startCamera('environment')}
-                        className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white text-xs font-bold hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-sm"
+                        className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white text-xs font-bold hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-xs"
                       >
                         {isBn ? 'ক্যামেরা খুলুন' : 'Open Camera'}
                       </button>
@@ -498,15 +500,15 @@ export const VisualSearchModal: React.FC<VisualSearchModalProps> = ({ isOpen, on
                   </div>
                 ) : aiResponseData && aiResponseData.isGadget && (!aiResponseData.isCatalogAvailable || results.length === 0) ? (
                   /* ⚠️ CASE 2: Gadget Detected but Out of Stock / Not in Catalog -> Show In-Stock Alternatives */
-                  <div className="space-y-3.5">
+                  <div className="space-y-3">
                     {/* Notice Box */}
-                    <div className="p-4 sm:p-5 rounded-3xl bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/30 text-slate-900 dark:text-white space-y-3 shadow-sm">
-                      <div className="flex items-start gap-3">
-                        <div className="w-9 h-9 rounded-2xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
-                          <AlertCircle className="w-5 h-5" />
+                    <div className="p-3 sm:p-4 rounded-2xl bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/30 text-slate-900 dark:text-white space-y-2.5 shadow-xs">
+                      <div className="flex items-start gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                          <AlertCircle className="w-4 h-4" />
                         </div>
-                        <div className="space-y-1">
-                          <h4 className="text-xs font-black uppercase tracking-wider text-amber-700 dark:text-amber-300">
+                        <div className="space-y-0.5 min-w-0">
+                          <h4 className="text-[11px] sm:text-xs font-black uppercase tracking-wider text-amber-700 dark:text-amber-300">
                             {isBn ? 'গ্যাজেট শনাক্তকৃত (বর্তমানে শপের স্টকে নেই)' : 'GADGET DETECTED (NOT IN SHOPNEXUS STOCK)'}
                           </h4>
                           <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">

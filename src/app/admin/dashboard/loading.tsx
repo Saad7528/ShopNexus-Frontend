@@ -21,14 +21,14 @@ export default function AdminDashboardLoading() {
 
       {/* Analytics Charts Skeleton Grid */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4 backdrop-blur-md">
+        <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6 space-y-4 backdrop-blur-md shadow-xs dark:shadow-none">
           <div className="flex items-center justify-between">
             <Skeleton className="h-5 w-44 rounded" />
             <Skeleton className="h-8 w-24 rounded-lg" />
           </div>
           <Skeleton className="h-64 w-full rounded-xl" />
         </div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4 backdrop-blur-md">
+        <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6 space-y-4 backdrop-blur-md shadow-xs dark:shadow-none">
           <div className="flex items-center justify-between">
             <Skeleton className="h-5 w-44 rounded" />
             <Skeleton className="h-8 w-24 rounded-lg" />
@@ -38,14 +38,14 @@ export default function AdminDashboardLoading() {
       </div>
 
       {/* Recent Activity Table Skeleton */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4 backdrop-blur-md">
+      <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6 space-y-4 backdrop-blur-md shadow-xs dark:shadow-none">
         <div className="flex items-center justify-between">
           <Skeleton className="h-5 w-48 rounded" />
           <Skeleton className="h-8 w-24 rounded-lg" />
         </div>
         <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-slate-800/40">
+            <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/40">
               <div className="flex items-center gap-3">
                 <Skeleton className="h-9 w-9 rounded-lg" />
                 <div className="space-y-1">
