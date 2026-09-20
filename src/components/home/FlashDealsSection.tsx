@@ -83,10 +83,7 @@ export function FlashDealsSection({ products }: FlashDealsSectionProps) {
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 2xl:grid-cols-6 gap-2.5 sm:gap-3.5">
           {products.map((prod, idx) => {
-            const visibilityClass =
-              idx < 3 ? 'block' :
-              idx < 5 ? 'hidden lg:block' :
-              'hidden 2xl:block';
+            const visibilityClass = idx === 5 ? 'block lg:hidden 2xl:block' : 'block';
 
             return (
               <div key={prod._id} className={visibilityClass}>
