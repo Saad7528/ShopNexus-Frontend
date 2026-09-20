@@ -28,7 +28,6 @@ import { useThemeStore } from '@/store/useThemeStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useLanguageStore } from '@/store/useLanguageStore';
 import { LanguageToggle } from '@/components/common/LanguageToggle';
-import DevTelemetryToggle from '@/components/admin/DevTelemetryToggle';
 
 import { AdminSecurityListener } from '@/components/admin/AdminSecurityListener';
 
@@ -374,10 +373,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
-            
-            {/* Dev Telemetry Toggle (Localhost only) */}
-            <DevTelemetryToggle compact />
-
             {/* 🌐 Admin Language Toggle (EN / বাং) */}
             <LanguageToggle />
 

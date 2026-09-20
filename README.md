@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <a href="https://shop-nexus-frontend-ten.vercel.app"><img src="https://img.shields.io/badge/Live_Demo-Vercel_Deployment-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo" /></a>
+  <a href="https://shop-nexus-frontend-ten.vercel.app"><img src="https://img.shields.io/badge/Live_Website-ShopNexus-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Website" /></a>
   <a href="https://nextjs.org"><img src="https://img.shields.io/badge/Next.js-15.1.0-black?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js 15" /></a>
   <a href="https://react.dev"><img src="https://img.shields.io/badge/React-19.0.0-blue?style=for-the-badge&logo=react&logoColor=white" alt="React 19" /></a>
   <a href="https://www.typescriptlang.org"><img src="https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" /></a>
@@ -15,7 +15,7 @@
 </p>
 
 <p align="center">
-  <a href="https://shop-nexus-frontend-ten.vercel.app" target="_blank"><strong>🌐 Live Demo Website</strong></a> •
+  <a href="https://shop-nexus-frontend-ten.vercel.app" target="_blank"><strong>🌐 Live Website</strong></a> •
   <a href="#-key-special-features-20-innovation-matrix"><strong>Explore 20+ Special Features</strong></a> •
   <a href="#-demo-credentials--2fa-security-configuration"><strong>Admin Demo Access</strong></a> •
   <a href="#-full-stack-system-architecture"><strong>Architecture</strong></a> •
@@ -41,7 +41,7 @@ To inspect and test the full administrative suite, live telemetry, inventory man
 
 | Field | Configuration / Value |
 |---|---|
-| **🌐 Live Production URL** | **[`https://shop-nexus-frontend-ten.vercel.app`](https://shop-nexus-frontend-ten.vercel.app)** |
+| **🌐 Live Website** | **[`https://shop-nexus-frontend-ten.vercel.app`](https://shop-nexus-frontend-ten.vercel.app)** |
 | **Login Portal** | [`https://shop-nexus-frontend-ten.vercel.app/login`](https://shop-nexus-frontend-ten.vercel.app/login) *(or `http://localhost:3000/login`)* |
 | **Super Admin Email** | `saad0174742@gmail.com` |
 | **Master Password** | `Nexus@Admin2026!` *(or `Saad@752800`)* |
