@@ -165,7 +165,7 @@ export default function AdminTrackingPage() {
 
   return (
     <RoleGuard allowedRoles={['admin']}>
-      <div className="space-y-8 max-w-7xl mx-auto">
+      <div className="space-y-8 max-w-7xl 2xl:max-w-[1780px] 3xl:max-w-[94vw] mx-auto">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-600 dark:text-orange-400 text-xs font-bold uppercase tracking-wider mb-2">

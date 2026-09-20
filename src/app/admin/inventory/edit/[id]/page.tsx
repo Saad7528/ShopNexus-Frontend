@@ -398,7 +398,7 @@ export default function EditProductPage() {
 
   return (
     <RoleGuard allowedRoles={['admin', 'vendor']}>
-      <div className="max-w-7xl mx-auto space-y-6 pb-16">
+      <div className="max-w-7xl 2xl:max-w-[1780px] 3xl:max-w-[94vw] mx-auto space-y-6 pb-16">
         {/* Toast Alert */}
         {toastMessage && (
           <div className="fixed top-20 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-slate-900/95 dark:bg-slate-900 border border-emerald-500/40 text-emerald-400 text-xs font-bold shadow-2xl backdrop-blur-xl animate-bounce">

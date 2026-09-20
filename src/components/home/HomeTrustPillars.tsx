@@ -11,7 +11,7 @@ export function HomeTrustPillars() {
   const isBn = isHydrated && language === 'bn';
 
   return (
-    <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+    <section className="max-w-7xl 2xl:max-w-[1600px] 3xl:max-w-[1780px] min-[2000px]:max-w-[86vw] mx-auto px-3 sm:px-6 lg:px-8">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
         <div className="p-2 sm:p-2.5 rounded-xl bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 shadow-xs flex items-center gap-2 group hover:border-orange-500/40 transition-colors">
           <div className="p-1.5 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20 shrink-0">

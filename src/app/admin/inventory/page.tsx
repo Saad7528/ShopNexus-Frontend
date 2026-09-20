@@ -223,7 +223,7 @@ function InventoryContent() {
 
   return (
     <RoleGuard allowedRoles={['admin']}>
-      <div className="space-y-6 sm:space-y-8 max-w-7xl mx-auto">
+      <div className="space-y-6 sm:space-y-8 max-w-7xl 2xl:max-w-[1780px] 3xl:max-w-[94vw] mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
           <div>
