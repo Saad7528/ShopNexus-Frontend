@@ -61,135 +61,8 @@ interface IOrder {
   activeIssue?: IOrderIssue;
 }
 
-const INITIAL_ORDERS: IOrder[] = [
-  {
-    id: 'ord-1',
-    orderNumber: 'NX-ORD-9021',
-    numericId: 9021,
-    customerName: 'Tanvir Hossain',
-    customerEmail: 'tanvir.dev@gmail.com',
-    customerPhone: '+880 1712-345678',
-    customerAddress: 'House 42, Road 11, Banani, Dhaka-1213',
-    items: [
-      { title: 'Sony WH-1000XM5 Wireless ANC', quantity: 1, price: 32500, sku: 'SKU-AUD-001' },
-      { title: 'Keychron Q1 Pro Custom Keyboard', quantity: 1, price: 17900, sku: 'SKU-KEY-003' },
-    ],
-    subtotal: 50400,
-    vatTax: 3780,
-    deliveryFee: 0,
-    total: 54180,
-    paymentMethod: 'bKash Online',
-    status: 'Shipped',
-    courier: 'Pathao Courier',
-    trackingCode: 'TRK-NX-88219',
-    createdAt: 'Today, 10:15 AM',
-    isToday: true,
-  },
-  {
-    id: 'ord-2',
-    orderNumber: 'NX-ORD-9018',
-    numericId: 9018,
-    customerName: 'Sarah Rahman',
-    customerEmail: 'sarah.audio@gmail.com',
-    customerPhone: '+880 1819-876543',
-    customerAddress: 'Flat 5B, Concord Tower, Gulshan-2, Dhaka',
-    items: [{ title: 'Bose QuietComfort Ultra Spatial Audio', quantity: 1, price: 38900, sku: 'SKU-AUD-004' }],
-    subtotal: 38900,
-    vatTax: 2917,
-    deliveryFee: 120,
-    total: 41937,
-    paymentMethod: 'Stripe Card',
-    status: 'Delivered',
-    courier: 'Steadfast Logistics',
-    trackingCode: 'TRK-NX-77402',
-    createdAt: 'Yesterday, 04:30 PM',
-    isToday: false,
-  },
-  {
-    id: 'ord-3',
-    orderNumber: 'NX-ORD-9025',
-    numericId: 9025,
-    customerName: 'Nusrat Jahan',
-    customerEmail: 'nusrat.designer@gmail.com',
-    customerPhone: '+880 1911-223344',
-    customerAddress: 'Sector 4, Uttara, Dhaka-1230',
-    items: [
-      { title: 'Apple Watch Ultra 2 Titanium', quantity: 1, price: 79900, sku: 'SKU-WR-002' },
-      { title: 'Razer Viper V2 Pro Mouse', quantity: 1, price: 11900, sku: 'SKU-GAM-005' },
-    ],
-    subtotal: 91800,
-    vatTax: 6885,
-    deliveryFee: 0,
-    total: 98685,
-    paymentMethod: 'Nagad Instant',
-    status: 'Processing',
-    courier: 'RedX Logistics',
-    trackingCode: 'TRK-NX-66311',
-    createdAt: 'Today, 11:45 AM',
-    isToday: true,
-  },
-  {
-    id: 'ord-4',
-    orderNumber: 'NX-ORD-9029',
-    numericId: 9029,
-    customerName: 'Mahmudul Hasan',
-    customerEmail: 'mahmud.ctg@yahoo.com',
-    customerPhone: '+880 1622-998877',
-    customerAddress: 'Nasirabad Housing, Chittagong',
-    items: [{ title: 'Shure SM7B Dynamic Studio Mic', quantity: 1, price: 36500, sku: 'SKU-CR-006' }],
-    subtotal: 36500,
-    vatTax: 2737,
-    deliveryFee: 150,
-    total: 39387,
-    paymentMethod: 'Cash on Delivery (COD)',
-    status: 'Confirmed',
-    courier: 'DHL Express',
-    trackingCode: 'TRK-NX-55104',
-    createdAt: 'Today, 12:10 PM',
-    isToday: true,
-  },
-  {
-    id: 'ord-5',
-    orderNumber: 'NX-ORD-9031',
-    numericId: 9031,
-    customerName: 'Raihan Kabir',
-    customerEmail: 'raihan.k@gmail.com',
-    customerPhone: '+880 1711-889922',
-    customerAddress: 'Dhanmondi 27, Dhaka-1209',
-    items: [{ title: 'Sony WH-1000XM5 Wireless ANC', quantity: 1, price: 32500, sku: 'SKU-AUD-001' }],
-    subtotal: 32500,
-    vatTax: 2437,
-    deliveryFee: 100,
-    total: 35037,
-    paymentMethod: 'Cash on Delivery (COD)',
-    status: 'Pending',
-    courier: 'Pathao Courier',
-    trackingCode: 'TRK-NX-99120',
-    createdAt: 'Today, 01:20 PM',
-    isToday: true,
-    hasPastReturnAlert: '⚠️ Past Return Alert (2 Returns): Advance courier charge recommended',
-  },
-  {
-    id: 'ord-6',
-    orderNumber: 'NX-ORD-9032',
-    numericId: 9032,
-    customerName: 'Zubair Hossain',
-    customerEmail: 'zubair.h@outlook.com',
-    customerPhone: '+880 1755-123456',
-    customerAddress: 'House 14, Road 3, Mirpur DOHS, Dhaka',
-    items: [{ title: 'Keychron Q1 Pro Custom Keyboard', quantity: 1, price: 17900, sku: 'SKU-KEY-003' }],
-    subtotal: 17900,
-    vatTax: 1342,
-    deliveryFee: 60,
-    total: 19302,
-    paymentMethod: 'bKash Online',
-    status: 'Confirmed',
-    courier: 'Steadfast Logistics',
-    trackingCode: 'TRK-NX-11409',
-    createdAt: 'Today, 02:40 PM',
-    isToday: true,
-  },
-];
+const INITIAL_ORDERS: IOrder[] = [];
+
 
 import { useAuthStore } from '@/store/useAuthStore';
 import { useLanguageStore } from '@/store/useLanguageStore';
@@ -199,7 +72,8 @@ export default function AdminOrdersPage() {
   const { language } = useLanguageStore();
   const isBn = language === 'bn';
   const { token } = useAuthStore();
-  const [orders, setOrders] = useState<IOrder[]>(INITIAL_ORDERS);
+  const [orders, setOrders] = useState<IOrder[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [activeFilter, setActiveFilter] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -218,14 +92,15 @@ export default function AdminOrdersPage() {
   const [copiedFeedback, setCopiedFeedback] = useState(false);
   
   // Range Filter State
-  const [rangeStart, setRangeStart] = useState('9018');
-  const [rangeEnd, setRangeEnd] = useState('9032');
+  const [rangeStart, setRangeStart] = useState('');
+  const [rangeEnd, setRangeEnd] = useState('');
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
   // Fetch live orders from MongoDB backend
   React.useEffect(() => {
     const fetchLiveOrders = async () => {
+      setIsLoading(true);
       try {
         let res = await fetch('/api/admin/orders', {
           headers: {
@@ -241,24 +116,32 @@ export default function AdminOrdersPage() {
           }).catch(() => null);
         }
 
-        if (!res || !res.ok) return;
+        if (!res || !res.ok) {
+          setIsLoading(false);
+          return;
+        }
         const data = await res.json().catch(() => null);
-        if (data?.data && Array.isArray(data.data) && data.data.length > 0) {
+        if (data?.data && Array.isArray(data.data)) {
           const mapped: IOrder[] = data.data.map((o: Record<string, unknown> & {
             _id?: string;
             trackingNumber?: string;
-            shippingAddress?: { fullName?: string; phoneNumber?: string; address?: string; city?: string };
+            shippingAddress?: { fullName?: string; phoneNumber?: string; streetAddress?: string; address?: string; city?: string };
             user?: { name?: string; email?: string };
             orderStatus?: string;
             paymentMethod?: string;
             paymentStatus?: string;
             totalAmount?: number;
+            subtotal?: number;
+            taxAmount?: number;
+            shippingFee?: number;
+            courier?: string;
             total?: number;
             createdAt?: string;
           }, idx: number) => {
             const rawStatus = (o.orderStatus || 'pending').toLowerCase();
             const statusMap: Record<string, IOrder['status']> = {
               pending: 'Pending',
+              confirmed: 'Confirmed',
               processing: 'Processing',
               shipped: 'Shipped',
               delivered: 'Delivered',
@@ -266,21 +149,37 @@ export default function AdminOrdersPage() {
             };
             const mappedStatus = statusMap[rawStatus] || 'Confirmed';
 
+            const trk = (o.trackingNumber || '').trim();
+            const orderNum = trk ? (trk.startsWith('NX-') ? trk : `NX-${trk.replace(/^NEX-/, '')}`) : `NX-${9100 + idx}`;
+            const digitsOnly = orderNum.replace(/\D/g, '');
+            const numericId = digitsOnly ? parseInt(digitsOnly.slice(-4)) : 9100 + idx;
+
+            const isToday = o.createdAt
+              ? new Date(o.createdAt).toDateString() === new Date().toDateString()
+              : true;
+
+            const formattedTime = o.createdAt
+              ? new Date(o.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+              : '12:00 PM';
+
+            const fullAddress = o.shippingAddress?.streetAddress
+              ? `${o.shippingAddress.streetAddress}, ${o.shippingAddress.city || 'Dhaka'}`
+              : (o.shippingAddress?.address || 'Dhaka, Bangladesh');
+
             return {
               id: String(o._id || `NX-ORD-${9100 + idx}`),
-              orderNumber: o.trackingNumber ? `NX-${o.trackingNumber.slice(-8)}` : `NX-ORD-${9100 + idx}`,
-              numericId: 9100 + idx,
+              orderNumber: orderNum,
+              numericId,
               customerName: o.shippingAddress?.fullName || o.user?.name || 'Valued Customer',
               customerEmail: o.user?.email || 'customer@nexus.io',
               customerPhone: o.shippingAddress?.phoneNumber || '+880 1700-000000',
-
+              customerAddress: fullAddress,
               items: (Array.isArray(o.items) ? o.items : []).map((it: { name?: string; quantity?: number; price?: number; product?: string }) => ({
-                title: it.name || 'Item',
+                title: it.name || 'Nexus Product',
                 quantity: it.quantity || 1,
                 price: it.price || 0,
                 sku: `SKU-${it.product?.toString().slice(-4) || 'GEN'}`,
               })),
-
               subtotal: o.subtotal || 0,
               vatTax: o.taxAmount || 0,
               deliveryFee: o.shippingFee || 0,
@@ -292,21 +191,27 @@ export default function AdminOrdersPage() {
                   ? 'Stripe Card'
                   : 'bKash Online',
               status: mappedStatus,
-              courier: 'Pathao Courier',
-              trackingCode: o.trackingNumber || `TRK-NX-${Date.now().toString().slice(-5)}`,
-              createdAt: o.createdAt ? new Date(o.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Today',
-              isToday: true,
+              courier: o.courier || 'Pathao Courier',
+              trackingCode: trk || orderNum,
+              createdAt: isToday ? `Today, ${formattedTime}` : `${new Date(o.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}, ${formattedTime}`,
+              isToday,
             };
           });
 
-          setOrders((prev) => {
-            const existingIds = new Set(mapped.map((m) => m.id));
-            const remainingDefault = prev.filter((p) => !existingIds.has(p.id));
-            return [...mapped, ...remainingDefault];
-          });
+          setOrders(mapped);
+
+          if (mapped.length > 0) {
+            const numIds = mapped.map((m) => m.numericId).filter((n) => !isNaN(n));
+            if (numIds.length > 0) {
+              setRangeStart(String(Math.min(...numIds)));
+              setRangeEnd(String(Math.max(...numIds)));
+            }
+          }
         }
       } catch (err) {
         console.error('Could not fetch live admin orders:', err);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -715,122 +620,154 @@ export default function AdminOrdersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
-                {filteredOrders.map((ord) => {
-                  const isChecked = selectedOrderIds.includes(ord.id);
-                  return (
-                    <tr
-                      key={ord.id}
-                      className={`hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors ${
-                        isChecked ? 'bg-orange-500/5 dark:bg-orange-500/10' : ''
-                      }`}
-                    >
-                      <td className="px-4 py-3.5">
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={() => handleToggleSelectOrder(ord.id)}
-                          className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
-                        />
-                      </td>
-                      <td className="px-4 py-3.5 whitespace-nowrap">
-                        <span className="font-mono font-black text-orange-600 dark:text-orange-400 block">
-                          {ord.orderNumber}
-                        </span>
-                        <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">
-                          {formatOrderDate(ord.createdAt)}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <div className="font-bold text-slate-900 dark:text-white">{ord.customerName}</div>
-                        <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono block">
-                          {isBn ? toBengaliNumber(ord.customerPhone) : ord.customerPhone}
-                        </span>
-                        {ord.hasPastReturnAlert && (
-                          <div className="mt-1 px-2 py-0.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-[9px] font-bold text-amber-700 dark:text-amber-300 inline-flex items-center gap-1">
-                            <AlertCircle className="w-3 h-3 text-amber-600 dark:text-amber-400 shrink-0" />
-                            <span>{ord.hasPastReturnAlert}</span>
-                          </div>
-                        )}
-                        {ord.activeIssue && (
-                          <div className="mt-1 px-2 py-0.5 rounded-lg bg-rose-500/15 border border-rose-500/30 text-[9px] font-bold text-rose-700 dark:text-rose-300 inline-flex items-center gap-1">
-                            <MessageSquare className="w-3 h-3 text-rose-600 dark:text-rose-400 shrink-0" />
-                            <span>{isBn ? 'ইস্যু রিপোর্ট:' : 'Issue Reported:'} {ord.activeIssue.title}</span>
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <div className="space-y-0.5">
-                          {ord.items.map((item, idx) => (
-                            <div key={idx} className="text-[11px] text-slate-700 dark:text-slate-300">
-                              {isBn ? `${toBengaliNumber(item.quantity)}x ` : `${item.quantity}x `}{item.title}
-                            </div>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3.5 font-mono font-black text-slate-900 dark:text-white text-sm whitespace-nowrap">
-                        {isBn ? `৳${toBengaliNumber(ord.total.toLocaleString('en-US'))}` : `৳${ord.total.toLocaleString()}`}
-                      </td>
-                      <td className="px-4 py-3.5 whitespace-nowrap">
-                        {renderPaymentBadge(ord.paymentMethod)}
-                      </td>
-                      <td className="px-4 py-3.5 whitespace-nowrap">
-                        <select
-                          value={ord.status}
-                          onChange={(e) => handleStatusChange(ord.id, e.target.value as IOrder['status'])}
-                          className={`px-2.5 py-1 rounded-xl text-[10px] font-bold border focus:outline-none cursor-pointer ${
-                            ord.status === 'Delivered'
-                              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
-                              : ord.status === 'Shipped'
-                              ? 'bg-blue-500/10 border-blue-500/30 text-blue-600 dark:text-blue-400'
-                              : ord.status === 'Processing'
-                              ? 'bg-purple-500/10 border-purple-500/30 text-purple-600 dark:text-purple-400'
-                              : ord.status === 'Confirmed'
-                              ? 'bg-orange-500/10 border-orange-500/30 text-orange-600 dark:text-orange-400'
-                              : ord.status === 'Cancelled'
-                              ? 'bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400'
-                              : 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400'
-                          }`}
-                        >
-                          <option value="Pending">{isBn ? 'পেন্ডিং' : 'Pending'}</option>
-                          <option value="Confirmed">{isBn ? 'নিশ্চিতকৃত' : 'Confirmed'}</option>
-                          <option value="Processing">{isBn ? 'প্রক্রিয়াধীন' : 'Processing'}</option>
-                          <option value="Shipped">{isBn ? 'শিপমেন্টে আছে' : 'Shipped'}</option>
-                          <option value="Delivered">{isBn ? 'ডেলিভার্ড' : 'Delivered'}</option>
-                          <option value="Cancelled">{isBn ? 'বাতিলকৃত' : 'Cancelled'}</option>
-                        </select>
-                      </td>
-                      <td className="px-4 py-3.5 text-right whitespace-nowrap">
-                        <div className="flex items-center justify-end gap-1.5">
-                          {/* 💬 Direct Report Issue to Customer Button */}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setReportingOrder(ord);
-                              setIssueCategory('address');
-                              setIssueNote('');
-                            }}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/30 font-bold text-[11px] transition-colors cursor-pointer"
-                            title={isBn ? 'গ্রাহককে সরাসরি ইস্যু রিপোর্ট ও মেসেজ পাঠান (WhatsApp/SMS)' : 'Report issue & message customer directly (WhatsApp/SMS)'}
-                          >
-                            <MessageSquare className="w-3 h-3 text-amber-500" />
-                            <span>{isBn ? 'রিপোর্ট' : 'Report'}</span>
-                          </button>
-
-                          {/* 🖨️ Invoice View & Print Button */}
-                          <button
-                            type="button"
-                            onClick={() => setSelectedInvoice(ord)}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-bold text-[11px] border border-slate-200 dark:border-slate-700 transition-all cursor-pointer shadow-2xs"
-                            title={isBn ? 'একক বারকোড ইনভয়েস দেখুন ও প্রিন্ট করুন' : 'View & Print Single Barcode Invoice'}
-                          >
-                            <Printer className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
-                            <span>{isBn ? 'ইনভয়েস' : 'Invoice'}</span>
-                          </button>
-                        </div>
-                      </td>
+                {isLoading ? (
+                  Array.from({ length: 5 }).map((_, idx) => (
+                    <tr key={`skel-${idx}`} className="animate-pulse">
+                      <td className="px-4 py-4"><div className="w-4 h-4 bg-slate-200 dark:bg-slate-800 rounded"></div></td>
+                      <td className="px-4 py-4"><div className="w-24 h-4 bg-slate-200 dark:bg-slate-800 rounded mb-1.5"></div><div className="w-16 h-3 bg-slate-200 dark:bg-slate-800 rounded"></div></td>
+                      <td className="px-4 py-4"><div className="w-32 h-4 bg-slate-200 dark:bg-slate-800 rounded mb-1.5"></div><div className="w-24 h-3 bg-slate-200 dark:bg-slate-800 rounded"></div></td>
+                      <td className="px-4 py-4"><div className="w-40 h-4 bg-slate-200 dark:bg-slate-800 rounded"></div></td>
+                      <td className="px-4 py-4"><div className="w-20 h-4 bg-slate-200 dark:bg-slate-800 rounded"></div></td>
+                      <td className="px-4 py-4"><div className="w-24 h-6 bg-slate-200 dark:bg-slate-800 rounded-full"></div></td>
+                      <td className="px-4 py-4"><div className="w-24 h-6 bg-slate-200 dark:bg-slate-800 rounded-xl"></div></td>
+                      <td className="px-4 py-4 text-right"><div className="w-20 h-7 bg-slate-200 dark:bg-slate-800 rounded-xl inline-block"></div></td>
                     </tr>
-                  );
-                })}
+                  ))
+                ) : filteredOrders.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="px-4 py-16 text-center text-slate-400">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <ShoppingCart className="w-10 h-10 text-slate-300 dark:text-slate-700 stroke-1" />
+                        <p className="font-bold text-sm text-slate-600 dark:text-slate-400">
+                          {isBn ? 'কোনো অর্ডার পাওয়া যায়নি' : 'No orders found'}
+                        </p>
+                        <p className="text-[11px] text-slate-400">
+                          {isBn ? 'সার্চ বা ফিল্টার পরিবর্তন করে পুনরায় চেষ্টা করুন।' : 'Try changing your search query or filter preset.'}
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredOrders.map((ord) => {
+                    const isChecked = selectedOrderIds.includes(ord.id);
+                    return (
+                      <tr
+                        key={ord.id}
+                        className={`hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors ${
+                          isChecked ? 'bg-orange-500/5 dark:bg-orange-500/10' : ''
+                        }`}
+                      >
+                        <td className="px-4 py-3.5">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => handleToggleSelectOrder(ord.id)}
+                            className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
+                          />
+                        </td>
+                        <td className="px-4 py-3.5 whitespace-nowrap">
+                          <span className="font-mono font-black text-orange-600 dark:text-orange-400 block">
+                            {ord.orderNumber}
+                          </span>
+                          <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">
+                            {formatOrderDate(ord.createdAt)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <div className="font-bold text-slate-900 dark:text-white">{ord.customerName}</div>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono block">
+                            {isBn ? toBengaliNumber(ord.customerPhone) : ord.customerPhone}
+                          </span>
+                          {ord.hasPastReturnAlert && (
+                            <div className="mt-1 px-2 py-0.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-[9px] font-bold text-amber-700 dark:text-amber-300 inline-flex items-center gap-1">
+                              <AlertCircle className="w-3 h-3 text-amber-600 dark:text-amber-400 shrink-0" />
+                              <span>{ord.hasPastReturnAlert}</span>
+                            </div>
+                          )}
+                          {ord.activeIssue && (
+                            <div className="mt-1 px-2 py-0.5 rounded-lg bg-rose-500/15 border border-rose-500/30 text-[9px] font-bold text-rose-700 dark:text-rose-300 inline-flex items-center gap-1">
+                              <AlertCircle className="w-3 h-3 text-rose-600 dark:text-rose-400 shrink-0" />
+                              <span>{ord.activeIssue.title}</span>
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <div className="space-y-0.5 max-w-[240px]">
+                            {ord.items.map((it, i) => (
+                              <div key={i} className="truncate text-slate-800 dark:text-slate-200">
+                                <span className="font-mono font-bold text-orange-600 dark:text-orange-400">
+                                  {isBn ? `${toBengaliNumber(it.quantity)}x ` : `${it.quantity}x `}
+                                </span>
+                                <span>{it.title}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3.5 whitespace-nowrap font-mono font-black text-slate-900 dark:text-white">
+                          ৳{isBn ? toBengaliNumber(ord.total.toLocaleString('en-US')) : ord.total.toLocaleString()}
+                        </td>
+                        <td className="px-4 py-3.5 whitespace-nowrap">
+                          {renderPaymentBadge(ord.paymentMethod)}
+                        </td>
+                        <td className="px-4 py-3.5 whitespace-nowrap">
+                          <select
+                            value={ord.status}
+                            onChange={(e) => handleStatusChange(ord.id, e.target.value as IOrder['status'])}
+                            className={`px-2.5 py-1 rounded-xl text-[10px] font-bold border focus:outline-none cursor-pointer ${
+                              ord.status === 'Delivered'
+                                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+                                : ord.status === 'Shipped'
+                                ? 'bg-blue-500/10 border-blue-500/30 text-blue-600 dark:text-blue-400'
+                                : ord.status === 'Processing'
+                                ? 'bg-purple-500/10 border-purple-500/30 text-purple-600 dark:text-purple-400'
+                                : ord.status === 'Confirmed'
+                                ? 'bg-orange-500/10 border-orange-500/30 text-orange-600 dark:text-orange-400'
+                                : ord.status === 'Cancelled'
+                                ? 'bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400'
+                                : 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400'
+                            }`}
+                          >
+                            <option value="Pending">{isBn ? 'পেন্ডিং' : 'Pending'}</option>
+                            <option value="Confirmed">{isBn ? 'নিশ্চিতকৃত' : 'Confirmed'}</option>
+                            <option value="Processing">{isBn ? 'প্রক্রিয়াধীন' : 'Processing'}</option>
+                            <option value="Shipped">{isBn ? 'শিপমেন্টে আছে' : 'Shipped'}</option>
+                            <option value="Delivered">{isBn ? 'ডেলিভার্ড' : 'Delivered'}</option>
+                            <option value="Cancelled">{isBn ? 'বাতিলকৃত' : 'Cancelled'}</option>
+                          </select>
+                        </td>
+                        <td className="px-4 py-3.5 text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end gap-1.5">
+                            {/* 💬 Direct Report Issue to Customer Button */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setReportingOrder(ord);
+                                setIssueCategory('address');
+                                setIssueNote('');
+                              }}
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/30 font-bold text-[11px] transition-colors cursor-pointer"
+                              title={isBn ? 'গ্রাহককে সরাসরি ইস্যু রিপোর্ট ও মেসেজ পাঠান (WhatsApp/SMS)' : 'Report issue & message customer directly (WhatsApp/SMS)'}
+                            >
+                              <MessageSquare className="w-3 h-3 text-amber-500" />
+                              <span>{isBn ? 'রিপোর্ট' : 'Report'}</span>
+                            </button>
+
+                            {/* 🖨️ Invoice View & Print Button */}
+                            <button
+                              type="button"
+                              onClick={() => setSelectedInvoice(ord)}
+                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-bold text-[11px] border border-slate-200 dark:border-slate-700 transition-all cursor-pointer shadow-2xs"
+                              title={isBn ? 'একক বারকোড ইনভয়েস দেখুন ও প্রিন্ট করুন' : 'View & Print Single Barcode Invoice'}
+                            >
+                              <Printer className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
+                              <span>{isBn ? 'ইনভয়েস' : 'Invoice'}</span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>
