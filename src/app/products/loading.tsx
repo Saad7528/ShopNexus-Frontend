@@ -6,7 +6,7 @@ export default function ProductsLoading() {
     <div className="min-h-screen bg-[var(--bg-main)] py-8 transition-colors duration-200">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-8">
         {/* Page Header Skeleton */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-800/80 pb-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 dark:border-slate-800/80 pb-6">
           <div className="space-y-2">
             <Skeleton className="h-8 w-64 rounded-lg" />
             <Skeleton className="h-4 w-96 rounded" />
@@ -21,7 +21,7 @@ export default function ProductsLoading() {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar Skeleton */}
           <div className="w-full lg:w-64 shrink-0 space-y-6">
-            <div className="rounded-2xl border border-slate-800/80 bg-slate-900/60 p-5 space-y-6 backdrop-blur-md">
+            <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900/60 p-5 space-y-6 backdrop-blur-md shadow-xs dark:shadow-none">
               <div className="space-y-3">
                 <Skeleton className="h-5 w-28 rounded" />
                 <div className="space-y-2">
@@ -30,7 +30,7 @@ export default function ProductsLoading() {
                   ))}
                 </div>
               </div>
-              <div className="space-y-3 pt-4 border-t border-slate-800/60">
+              <div className="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800/60">
                 <Skeleton className="h-5 w-24 rounded" />
                 <Skeleton className="h-4 w-full rounded" />
                 <Skeleton className="h-8 w-full rounded-lg" />
