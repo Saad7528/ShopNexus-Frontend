@@ -18,11 +18,11 @@ export const metadata: Metadata = {
     'ShopNexus is a high-performance e-commerce ecosystem delivering authentic mechanical keyboards, audiophile gear, wearables, and express nationwide delivery.',
 };
 
-const AUDIO_PRODUCTS = ALL_PRODUCTS.filter((p) => p.category === 'Audio').slice(0, 5);
-const WEARABLE_PRODUCTS = ALL_PRODUCTS.filter((p) => p.category === 'Wearables').slice(0, 5);
-const PERIPHERAL_PRODUCTS = ALL_PRODUCTS.filter((p) => p.category === 'Peripherals').slice(0, 5);
-const CREATOR_PRODUCTS = ALL_PRODUCTS.filter((p) => p.category === 'Creator Gear' || p.category === 'Smart Home').slice(0, 5);
-const FLASH_PRODUCTS = ALL_PRODUCTS.filter((p) => p.isFlashSale).slice(0, 5);
+const AUDIO_PRODUCTS = ALL_PRODUCTS.filter((p) => p.category === 'Audio').slice(0, 6);
+const WEARABLE_PRODUCTS = ALL_PRODUCTS.filter((p) => p.category === 'Wearables').slice(0, 6);
+const PERIPHERAL_PRODUCTS = ALL_PRODUCTS.filter((p) => p.category === 'Peripherals').slice(0, 6);
+const CREATOR_PRODUCTS = ALL_PRODUCTS.filter((p) => p.category === 'Creator Gear' || p.category === 'Smart Home').slice(0, 6);
+const FLASH_PRODUCTS = ALL_PRODUCTS.filter((p) => p.isFlashSale).slice(0, 6);
 
 export default function HomePage() {
   return (
@@ -51,7 +51,7 @@ export default function HomePage() {
       <AiSuperpowersSection />
 
       {/* 💬 9. CUSTOMER REVIEWS & 3D TESTIMONIAL SLIDER */}
-      <section className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+      <section className="max-w-7xl xl:max-w-[85vw] min-[2560px]:max-w-[75vw] mx-auto px-3 sm:px-6 lg:px-8">
         <TestimonialSlider />
       </section>
 

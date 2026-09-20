@@ -302,7 +302,7 @@ export default function ProductDetailPage() {
 
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f19] text-slate-900 dark:text-white p-3 sm:p-6 md:p-10 pt-4 sm:pt-8">
-        <div className="max-w-7xl mx-auto space-y-8 sm:space-y-12">
+        <div className="max-w-7xl xl:max-w-[85vw] min-[2560px]:max-w-[75vw] mx-auto space-y-8 sm:space-y-12">
           {/* Breadcrumb */}
           <div className="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
             <Link
@@ -585,7 +585,7 @@ export default function ProductDetailPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f19] text-slate-900 dark:text-white p-3 sm:p-6 md:p-10 pt-4 sm:pt-8">
-      <div className="max-w-7xl mx-auto space-y-8 sm:space-y-12">
+      <div className="max-w-7xl xl:max-w-[85vw] min-[2560px]:max-w-[75vw] mx-auto space-y-8 sm:space-y-12">
         {/* Breadcrumb Navigation */}
         <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
           <Link href="/" className="hover:text-orange-500 transition-colors">

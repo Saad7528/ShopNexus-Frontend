@@ -163,3 +163,43 @@ html.dark .animate-shimmer {
   animation: shimmerWave 1.8s infinite ease-in-out;
 }
 
+/* ShopNexus Golden Ratio Responsive Containers */
+.sn-container {
+  width: 100%;
+  max-width: 80rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .sn-container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .sn-container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+/* Laptop, Full HD (1080p), 2K Displays (1280px – 2559px) */
+@media (min-width: 1280px) {
+  .sn-container {
+    width: 85% !important;
+    max-width: 85vw !important;
+  }
+}
+
+/* Ultra-Wide and 4K Displays (>= 2560px) */
+@media (min-width: 2560px) {
+  .sn-container {
+    width: 75% !important;
+    max-width: 75vw !important;
+  }
+}
+

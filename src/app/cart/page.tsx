@@ -114,7 +114,7 @@ function CartContent() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+    <div className="max-w-7xl xl:max-w-[85vw] min-[2560px]:max-w-[75vw] mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
       {/* 🎉 Celebratory 1-Click Cart Recovery Banner */}
       {recoveryNotice && (
         <div className="p-4 rounded-3xl bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-orange-500/10 border border-emerald-500/30 text-slate-900 dark:text-white flex items-center justify-between gap-3 shadow-lg shadow-emerald-500/5 animate-in fade-in slide-in-from-top-2">
