@@ -32,7 +32,7 @@ export function StatCard({
         <div>
           <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">{title}</p>
           {loading ? (
-            <div className="h-8 w-28 bg-slate-800 animate-pulse rounded-lg mt-2" />
+            <div className="h-8 w-28 bg-slate-200 dark:bg-slate-800 animate-pulse rounded-lg mt-2" />
           ) : (
             <h4 className="text-2xl sm:text-3xl font-extrabold text-slate-100 mt-1 tracking-tight">
               {value}

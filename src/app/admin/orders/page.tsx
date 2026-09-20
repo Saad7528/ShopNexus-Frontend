@@ -534,7 +534,7 @@ export default function AdminOrdersPage() {
             <button
               type="button"
               onClick={selectTodayAllOrders}
-              className="inline-flex items-center justify-center gap-1.5 px-2.5 sm:px-3.5 py-2 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 text-[11px] sm:text-xs font-bold transition-all cursor-pointer shadow-sm text-center active:scale-95 truncate"
+              className="inline-flex items-center justify-center gap-1.5 px-2.5 sm:px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 text-[11px] sm:text-xs font-bold transition-all cursor-pointer shadow-xs text-center active:scale-95 truncate"
               title={isBn ? "স্ট্যাটাস নির্বিশেষে আজকের সকল অর্ডার বাছাই করুন" : "Select all today's orders regardless of status"}
             >
               <Calendar className="w-3.5 h-3.5 text-orange-500 shrink-0" />
@@ -642,17 +642,17 @@ export default function AdminOrdersPage() {
 
         {/* 🖨️ Floating / Sticky Batch Action Bar */}
         {selectedOrderIds.length > 0 && (
-          <div className="sticky top-20 z-30 p-3 sm:p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white border border-orange-500/40 shadow-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="sticky top-20 z-30 p-3 sm:p-4 rounded-2xl bg-white/95 dark:bg-[#0c1220]/95 text-slate-900 dark:text-white border border-orange-500/40 shadow-2xl shadow-slate-900/10 dark:shadow-black/70 backdrop-blur-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 duration-200">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-xl bg-orange-500 text-white flex items-center justify-center font-bold text-sm shadow-md">
                 {isBn ? toBengaliNumber(selectedOrderIds.length) : selectedOrderIds.length}
               </div>
               <div>
-                <h4 className="text-xs font-black uppercase tracking-wider text-orange-400">
+                <h4 className="text-xs font-black uppercase tracking-wider text-orange-600 dark:text-orange-400">
                   {isBn ? `ব্যাচ ইনভয়েস প্রস্তুত (${toBengaliNumber(selectedOrderIds.length)}টি অর্ডার নির্বাচিত)` : `Batch Invoicing Ready (${selectedOrderIds.length} Orders Selected)`}
                 </h4>
-                <p className="text-[11px] text-slate-300">
-                  {isBn ? 'মোট মূল্য:' : 'Total Value:'} <strong className="text-emerald-400 font-mono">{isBn ? `৳${toBengaliNumber(selectedOrdersList.reduce((acc, o) => acc + o.total, 0).toLocaleString('en-US'))} BDT` : `৳${selectedOrdersList.reduce((acc, o) => acc + o.total, 0).toLocaleString()} BDT`}</strong>
+                <p className="text-[11px] text-slate-600 dark:text-slate-300">
+                  {isBn ? 'মোট মূল্য:' : 'Total Value:'} <strong className="text-emerald-600 dark:text-emerald-400 font-mono">{isBn ? `৳${toBengaliNumber(selectedOrdersList.reduce((acc, o) => acc + o.total, 0).toLocaleString('en-US'))} BDT` : `৳${selectedOrdersList.reduce((acc, o) => acc + o.total, 0).toLocaleString()} BDT`}</strong>
                 </p>
               </div>
             </div>
@@ -670,9 +670,9 @@ export default function AdminOrdersPage() {
               <button
                 type="button"
                 onClick={() => setIsManifestModalOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
               >
-                <FileText className="w-3.5 h-3.5 text-indigo-400" />
+                <FileText className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
                 <span>{isBn ? 'কুরিয়ার ডিসপ্যাচ ম্যানিফেস্ট' : 'Courier Dispatch Manifest'}</span>
               </button>
             </div>

@@ -109,6 +109,18 @@ export const ChatbotWidget: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
 
+  // Close on Escape key press
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        closeChat();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, closeChat]);
+
   // Initialize Web Speech Recognition
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -295,87 +307,99 @@ export const ChatbotWidget: React.FC = () => {
 
   return (
     <>
+      {/* Outside Backdrop Overlay - Closes Chatbot on Mobile and Desktop outside click/tap */}
+      {isOpen && (
+        <div
+          onClick={closeChat}
+          onTouchStart={closeChat}
+          className="fixed inset-0 z-40 bg-slate-950/40 dark:bg-black/60 backdrop-blur-xs transition-opacity duration-300"
+          aria-hidden="true"
+        />
+      )}
+
       {!isOpen && (
         <button
           type="button"
           onClick={openChat}
-          className={`fixed bottom-6 right-6 z-40 flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-[#ff4400] to-[#ff8800] text-white font-bold text-xs shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 ${isCartOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+          className={`fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-40 flex items-center gap-2 p-3 sm:px-4 sm:py-3 rounded-full bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#ff5500] hover:to-[#ff8800] text-white font-bold text-xs shadow-xl shadow-orange-500/30 hover:scale-105 active:scale-95 transition-all duration-300 ${isCartOpen ? 'opacity-0 pointer-events-none' : 'opacity-100 animate-in fade-in-0 zoom-in-90 duration-200'}`}
+          title={language === 'bn' ? 'নেক্সাস এআই সহকারী চালু করুন' : 'Ask Nexus AI Assistant'}
+          aria-label="Ask Nexus AI"
         >
-          <Bot className="w-5 h-5" />
+          <Bot className="w-5 h-5 animate-pulse" />
           <span className="hidden sm:inline">{language === 'bn' ? 'নেক্সাস এআই সহকারী' : 'Ask Nexus AI'}</span>
         </button>
       )}
 
       {isOpen && (
         <div
-          className={`fixed z-50 transition-all duration-300 ${
+          className={`fixed z-50 transition-all duration-300 ease-out ${
             isFullScreen
-              ? 'inset-2 sm:inset-6 md:inset-10 w-auto h-auto rounded-3xl'
-              : 'bottom-4 right-4 sm:bottom-6 sm:right-6 w-[94vw] sm:w-105 h-150 max-h-[88vh] rounded-3xl'
-          } flex flex-col bg-white dark:bg-[#0b0f19] border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden backdrop-blur-2xl`}
+              ? 'inset-2 sm:inset-6 md:inset-10 w-auto h-auto rounded-2xl sm:rounded-3xl'
+              : 'bottom-3 right-3 left-3 sm:left-auto sm:bottom-6 sm:right-6 w-auto sm:w-96 sm:max-w-[420px] h-[60vh] sm:h-[530px] max-h-[75vh] rounded-2xl sm:rounded-3xl'
+          } flex flex-col bg-white dark:bg-[#0b0f19] border border-slate-200 dark:border-slate-800 shadow-2xl shadow-slate-950/25 dark:shadow-black/70 overflow-hidden backdrop-blur-2xl animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-3 duration-250`}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-5 py-3.5 bg-linear-to-r from-white via-slate-50 to-orange-50/40 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 border-b border-slate-200 dark:border-slate-800 shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-2xl bg-linear-to-tr from-[#ff4400] to-[#ff7700] text-white flex items-center justify-center shadow-md shadow-orange-500/25">
-                <Bot className="w-5 h-5" />
+          <div className="flex items-center justify-between px-3.5 sm:px-4 py-2.5 sm:py-3 bg-linear-to-r from-white via-slate-50 to-orange-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 border-b border-slate-200 dark:border-slate-800 shrink-0">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-xl bg-linear-to-tr from-[#ff4400] to-[#ff7700] text-white flex items-center justify-center shadow-xs shadow-orange-500/25 shrink-0">
+                <Bot className="w-4 h-4" />
               </div>
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <h3 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white">
-                    {language === 'bn' ? 'নেক্সাস এআই শপিং সহকারী' : 'Nexus AI Assistant'}
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">
+                    {language === 'bn' ? 'নেক্সাস এআই সহকারী' : 'Nexus AI Assistant'}
                   </h3>
-                  <span className="px-1.5 py-0.2 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[9px] font-bold">
+                  <span className="px-1.5 py-0.2 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[8px] sm:text-[9px] font-bold tracking-tight shrink-0">
                     {language === 'bn' ? 'জেমিনি লাইভ' : 'Gemini Live'}
                   </span>
                 </div>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                  {language === 'bn' ? 'বাজেট, সাউন্ড ও হার্ডওয়্যার সহকারী' : 'Budget, Sound & Hardware Guide'}
+                <p className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 truncate">
+                  {language === 'bn' ? 'বাজেট ও গ্যাজেট সহকারী' : 'Budget & Hardware Guide'}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5 sm:gap-1 shrink-0 ml-1">
               {/* Full Screen Toggle */}
               <button
                 type="button"
                 onClick={toggleFullScreen}
-                className="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 title={language === 'bn' ? (isFullScreen ? 'ছোট পর্দা করুন' : 'ফুল স্ক্রিন করুন') : (isFullScreen ? 'Minimize View' : 'Expand Full Screen')}
               >
-                {isFullScreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                {isFullScreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
               </button>
 
               {/* Clear History */}
               <button
                 type="button"
                 onClick={clearHistory}
-                className="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 title={language === 'bn' ? 'কথোপকথন রিসেট করুন' : 'Reset Conversation'}
               >
-                <RotateCcw className="w-4 h-4" />
+                <RotateCcw className="w-3.5 h-3.5" />
               </button>
 
               {/* Close Window */}
               <button
                 type="button"
                 onClick={closeChat}
-                className="p-2 rounded-xl text-slate-500 hover:text-rose-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-500 hover:text-rose-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 title={language === 'bn' ? 'সহকারী বন্ধ করুন' : 'Close Assistant'}
               >
-                <X className="w-4 h-4" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
 
           {/* Quick Prompts Bar */}
-          <div className="px-4 py-2 bg-slate-50 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800/80 flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
+          <div className="px-3 py-1.5 bg-slate-50 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800/80 flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
             {quickPrompts.map((qp, idx) => (
               <button
                 key={idx}
                 type="button"
                 onClick={() => handleSendMessage(qp.query, qp.budget, qp.category)}
-                className="px-2.5 py-1 rounded-xl bg-white dark:bg-slate-800 hover:bg-orange-500/10 dark:hover:bg-orange-500/20 border border-slate-200 dark:border-slate-700 text-[11px] font-semibold text-slate-700 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 whitespace-nowrap shadow-2xs transition-all active:scale-95 cursor-pointer"
+                className="px-2 py-0.5 rounded-lg bg-white dark:bg-slate-800 hover:bg-orange-500/10 dark:hover:bg-orange-500/20 border border-slate-200 dark:border-slate-700 text-[10px] sm:text-[11px] font-semibold text-slate-700 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 whitespace-nowrap shadow-2xs transition-all active:scale-95 cursor-pointer shrink-0"
               >
                 {qp.label}
               </button>
@@ -383,24 +407,24 @@ export const ChatbotWidget: React.FC = () => {
           </div>
 
           {/* Messages Feed */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="flex-1 overflow-y-auto p-3 sm:p-3.5 space-y-3">
             {messages.map((msg) => {
               const isUser = msg.sender === 'user';
               return (
-                <div key={msg.id} className={`flex items-start gap-2.5 ${isUser ? 'flex-row-reverse' : ''}`}>
+                <div key={msg.id} className={`flex items-start gap-2 ${isUser ? 'flex-row-reverse' : ''}`}>
                   <div
-                    className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 text-xs font-bold ${
+                    className={`w-6 h-6 sm:w-7 sm:h-7 rounded-xl flex items-center justify-center shrink-0 text-xs font-bold ${
                       isUser
                         ? 'bg-orange-500 text-white shadow-xs'
                         : 'bg-slate-100 dark:bg-slate-800 text-orange-600 dark:text-orange-400 border border-slate-200 dark:border-slate-700'
                     }`}
                   >
-                    {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+                    {isUser ? <User className="w-3.5 h-3.5" /> : <Bot className="w-3.5 h-3.5" />}
                   </div>
 
                   <div className={`max-w-[92%] sm:max-w-[88%] space-y-2 ${isUser ? 'text-right' : 'text-left'}`}>
                     <div
-                      className={`inline-block p-3.5 rounded-2xl text-xs sm:text-sm leading-relaxed ${
+                      className={`inline-block p-2.5 sm:p-3 rounded-2xl text-xs leading-relaxed ${
                         isUser
                           ? 'bg-linear-to-r from-[#ff4400] to-[#ff7700] text-white shadow-md rounded-tr-xs'
                           : 'bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 rounded-tl-xs'
@@ -410,8 +434,8 @@ export const ChatbotWidget: React.FC = () => {
 
                       {/* Text to Speech Readout Button for AI messages */}
                       {!isUser && (
-                        <div className="mt-2 pt-2 border-t border-slate-200/50 dark:border-slate-800/80 flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
-                          <span className="font-mono">{msg.timestamp}</span>
+                        <div className="mt-1.5 pt-1.5 border-t border-slate-200/50 dark:border-slate-800/80 flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
+                          <span className="font-mono text-[9px]">{msg.timestamp}</span>
                           <button
                             type="button"
                             onClick={() => handleSpeak(getMessageDisplay(msg), msg.id)}
@@ -420,13 +444,13 @@ export const ChatbotWidget: React.FC = () => {
                           >
                             {speakingMsgId === msg.id ? (
                               <>
-                                <VolumeX className="w-3.5 h-3.5 text-orange-500" />
-                                <span className="text-orange-500">{language === 'bn' ? 'থামুন' : 'Stop Speaking'}</span>
+                                <VolumeX className="w-3 h-3 text-orange-500" />
+                                <span className="text-orange-500 text-[10px]">{language === 'bn' ? 'থামুন' : 'Stop'}</span>
                               </>
                             ) : (
                               <>
-                                <Volume2 className="w-3.5 h-3.5" />
-                                <span>{language === 'bn' ? 'ভয়েস শুনুন' : 'Voice Readout'}</span>
+                                <Volume2 className="w-3 h-3" />
+                                <span className="text-[10px]">{language === 'bn' ? 'ভয়েস শুনুন' : 'Voice'}</span>
                               </>
                             )}
                           </button>
@@ -442,12 +466,12 @@ export const ChatbotWidget: React.FC = () => {
                           return (
                             <div
                               key={prod._id}
-                              className="p-3 rounded-2xl bg-white dark:bg-slate-900/95 border border-slate-200 dark:border-slate-800 hover:border-orange-500/50 shadow-xs flex items-center justify-between gap-3 transition-all group"
+                              className="p-2.5 rounded-2xl bg-white dark:bg-slate-900/95 border border-slate-200 dark:border-slate-800 hover:border-orange-500/50 shadow-xs flex items-center justify-between gap-2.5 transition-all group"
                             >
-                              <div className="flex items-center gap-3 min-w-0 flex-1">
+                              <div className="flex items-center gap-2.5 min-w-0 flex-1">
                                 <Link
                                   href={`/products/${prod._id}`}
-                                  className="relative w-12 h-12 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 shrink-0 border border-slate-200/60 dark:border-slate-800"
+                                  className="relative w-11 h-11 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 shrink-0 border border-slate-200/60 dark:border-slate-800"
                                 >
                                   <Image src={prod.image} alt={prod.title} fill className="object-cover group-hover:scale-105 transition-transform" unoptimized />
                                 </Link>
@@ -455,37 +479,37 @@ export const ChatbotWidget: React.FC = () => {
                                 <div className="flex-1 min-w-0">
                                   <Link
                                     href={`/products/${prod._id}`}
-                                    className="font-bold text-xs text-slate-900 dark:text-white hover:text-orange-600 dark:hover:text-orange-400 transition-colors line-clamp-2 leading-tight block"
+                                    className="font-bold text-[11px] sm:text-xs text-slate-900 dark:text-white hover:text-orange-600 dark:hover:text-orange-400 transition-colors line-clamp-2 leading-tight block"
                                     title={localizedProd.title}
                                   >
                                     {localizedProd.title}
                                   </Link>
-                                  <div className="flex items-center gap-2 mt-1">
-                                    <div className="flex items-center gap-1 text-[10px] text-amber-500 shrink-0 font-bold">
+                                  <div className="flex items-center gap-2 mt-0.5">
+                                    <div className="flex items-center gap-1 text-[9px] text-amber-500 shrink-0 font-bold">
                                       <Star className="w-2.5 h-2.5 fill-current" />
                                       <span>
                                         {language === 'bn' ? toBengaliNumber(prod.rating || 4.8) : (prod.rating || 4.8)}
                                       </span>
                                     </div>
-                                    <span className="font-mono font-black text-xs text-orange-600 dark:text-orange-400">
+                                    <span className="font-mono font-black text-[11px] text-orange-600 dark:text-orange-400">
                                       {formatCurrency(prod.discountPrice || prod.price, language)}
                                     </span>
                                   </div>
                                 </div>
                               </div>
 
-                              <div className="flex items-center gap-1.5 shrink-0">
+                              <div className="flex items-center gap-1 shrink-0">
                                 <button
                                   type="button"
                                   onClick={() => handleAddSuggestedToCart(prod)}
-                                  className="p-2.5 rounded-xl bg-linear-to-r from-[#ff4400] to-[#ff7700] hover:from-[#ff5500] hover:to-[#ff8800] text-white transition-all shadow-md shadow-orange-500/20 active:scale-95 cursor-pointer"
+                                  className="p-2 rounded-xl bg-linear-to-r from-[#ff4400] to-[#ff7700] hover:from-[#ff5500] hover:to-[#ff8800] text-white transition-all shadow-xs active:scale-95 cursor-pointer"
                                   title={language === 'bn' ? '১-ক্লিকে কার্টে যোগ করুন' : '1-Click Add to Cart'}
                                 >
                                   <ShoppingBag className="w-3.5 h-3.5" />
                                 </button>
                                 <Link
                                   href={`/products/${prod._id}`}
-                                  className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors"
+                                  className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors"
                                   title={language === 'bn' ? 'বিস্তারিত দেখুন' : 'View Details'}
                                 >
                                   <ArrowRight className="w-3.5 h-3.5" />
@@ -503,15 +527,15 @@ export const ChatbotWidget: React.FC = () => {
 
             {/* Loading Wave Indicator */}
             {isLoading && (
-              <div className="flex items-center gap-2.5 text-slate-500 dark:text-slate-400 text-xs">
-                <div className="w-7 h-7 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                  <Loader2 className="w-4 h-4 animate-spin text-orange-500" />
+              <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs">
+                <div className="w-6 h-6 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-orange-500" />
                 </div>
-                <div className="flex items-center gap-1.5 p-3 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                <div className="flex items-center gap-1 p-2.5 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
                   <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-bounce" />
                   <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-bounce [animation-delay:0.2s]" />
                   <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-bounce [animation-delay:0.4s]" />
-                  <span className="text-[11px] font-semibold ml-1">
+                  <span className="text-[10px] font-semibold ml-1">
                     {language === 'bn' ? 'শপনেক্সাস ক্যাটালগ অনুসন্ধান করা হচ্ছে...' : 'Analyzing ShopNexus catalog...'}
                   </span>
                 </div>
@@ -522,10 +546,10 @@ export const ChatbotWidget: React.FC = () => {
 
           {/* Voice Listening Bar Indicator */}
           {isListening && (
-            <div className="px-4 py-2 bg-gradient-to-r from-orange-500/15 via-rose-500/15 to-orange-500/15 border-t border-orange-500/30 flex items-center justify-between text-xs text-orange-600 dark:text-orange-400 font-bold animate-pulse">
-              <div className="flex items-center gap-2">
-                <Mic className="w-4 h-4 text-orange-500 animate-bounce" />
-                <span>{language === 'bn' ? 'শুনছি... আপনার পছন্দের কথা বলুন' : 'Listening... Speak now'}</span>
+            <div className="px-3 py-1.5 bg-gradient-to-r from-orange-500/15 via-rose-500/15 to-orange-500/15 border-t border-orange-500/30 flex items-center justify-between text-xs text-orange-600 dark:text-orange-400 font-bold animate-pulse">
+              <div className="flex items-center gap-1.5">
+                <Mic className="w-3.5 h-3.5 text-orange-500 animate-bounce" />
+                <span className="text-[11px]">{language === 'bn' ? 'শুনছি... আপনার পছন্দের কথা বলুন' : 'Listening... Speak now'}</span>
               </div>
               <button
                 type="button"
@@ -543,13 +567,13 @@ export const ChatbotWidget: React.FC = () => {
               e.preventDefault();
               handleSendMessage();
             }}
-            className="p-3 bg-white dark:bg-[#0b0f19] border-t border-slate-200 dark:border-slate-800 flex items-center gap-2 shrink-0"
+            className="p-2 sm:p-2.5 bg-white dark:bg-[#0b0f19] border-t border-slate-200 dark:border-slate-800 flex items-center gap-1.5 shrink-0"
           >
             {/* Voice Input Microphone Button */}
             <button
               type="button"
               onClick={toggleVoiceInput}
-              className={`p-2.5 rounded-xl border transition-all cursor-pointer ${
+              className={`p-2 rounded-xl border transition-all cursor-pointer shrink-0 ${
                 isListening
                   ? 'bg-rose-500 text-white border-rose-600 shadow-md shadow-rose-500/30 animate-pulse'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:text-orange-500 hover:border-orange-500'
@@ -578,17 +602,17 @@ export const ChatbotWidget: React.FC = () => {
                     ? 'আপনার কথা শুনছি...'
                     : 'Listening to your voice...'
                   : language === 'bn'
-                  ? 'বাংলায় আপনার পছন্দের গ্যাজেট সম্পর্কে জিজ্ঞাসা করুন...'
-                  : 'Ask about gadgets, sound specs, budget in English...'
+                  ? 'গ্যাজেট সম্পর্কে জিজ্ঞাসা করুন...'
+                  : 'Ask about gadgets, sound specs...'
               }
-              className="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-orange-500 font-sans shadow-inner"
+              className="flex-1 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-orange-500 font-sans shadow-inner min-w-0"
             />
 
             {/* Send Message Button */}
             <button
               type="submit"
               disabled={!inputText.trim() || isLoading}
-              className="p-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] disabled:opacity-40 text-white shadow-md shadow-orange-500/25 transition-all cursor-pointer"
+              className="p-2 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] disabled:opacity-40 text-white shadow-md shadow-orange-500/25 transition-all cursor-pointer shrink-0"
               title={language === 'bn' ? 'মেসেজ পাঠান' : 'Send Prompt'}
             >
               <Send className="w-4 h-4" />
