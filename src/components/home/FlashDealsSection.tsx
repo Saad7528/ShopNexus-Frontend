@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Zap, Clock } from 'lucide-react';
+import Link from 'next/link';
+import { Zap, Clock, ArrowRight } from 'lucide-react';
 import { ProductCard } from '@/components/products/ProductCard';
 import { Product } from '@/types/product';
 import { useLanguageStore } from '@/store/useLanguageStore';
@@ -31,6 +32,7 @@ export function FlashDealsSection({ products }: FlashDealsSectionProps) {
   }, []);
 
   const currentLang: Language = mounted ? language : 'bn';
+  const isBn = currentLang === 'bn';
   const hoursStr = String(timeLeft.hours).padStart(2, '0');
   const minutesStr = String(timeLeft.minutes).padStart(2, '0');
   const secondsStr = String(timeLeft.seconds).padStart(2, '0');
@@ -53,25 +55,45 @@ export function FlashDealsSection({ products }: FlashDealsSectionProps) {
             </div>
           </div>
 
-          {/* Countdown Clock */}
-          <div className="flex items-center gap-1 sm:gap-1.5 font-mono text-[10px] sm:text-xs font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-950/80 px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
-            <Clock className="w-3 h-3 text-orange-500 hidden xs:inline" />
-            <span className="text-orange-600 dark:text-orange-400">
-              {currentLang === 'bn' ? toBengaliNumber(hoursStr) : hoursStr}h
-            </span>:
-            <span>
-              {currentLang === 'bn' ? toBengaliNumber(minutesStr) : minutesStr}m
-            </span>:
-            <span className="text-rose-500 dark:text-rose-400">
-              {currentLang === 'bn' ? toBengaliNumber(secondsStr) : secondsStr}s
-            </span>
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {/* Countdown Clock */}
+            <div className="flex items-center gap-1 sm:gap-1.5 font-mono text-[10px] sm:text-xs font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-950/80 px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+              <Clock className="w-3 h-3 text-orange-500 hidden xs:inline" />
+              <span className="text-orange-600 dark:text-orange-400">
+                {currentLang === 'bn' ? toBengaliNumber(hoursStr) : hoursStr}h
+              </span>:
+              <span>
+                {currentLang === 'bn' ? toBengaliNumber(minutesStr) : minutesStr}m
+              </span>:
+              <span className="text-rose-500 dark:text-rose-400">
+                {currentLang === 'bn' ? toBengaliNumber(secondsStr) : secondsStr}s
+              </span>
+            </div>
+
+            {/* View All / See More Link */}
+            <Link
+              href="/flash-sales"
+              className="text-xs font-bold text-orange-600 dark:text-orange-400 hover:underline flex items-center gap-1 shrink-0"
+            >
+              <span>{isBn ? 'সব দেখুন' : 'View All'}</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 2xl:grid-cols-6 gap-2.5 sm:gap-3.5">
-          {products.map((prod) => (
-            <ProductCard key={prod._id} product={prod} />
-          ))}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 2xl:grid-cols-6 gap-2.5 sm:gap-3.5">
+          {products.map((prod, idx) => {
+            const visibilityClass =
+              idx < 3 ? 'block' :
+              idx < 5 ? 'hidden lg:block' :
+              'hidden 2xl:block';
+
+            return (
+              <div key={prod._id} className={visibilityClass}>
+                <ProductCard product={prod} />
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
