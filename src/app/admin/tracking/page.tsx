@@ -15,12 +15,13 @@ import {
 } from 'lucide-react';
 
 interface IParcel {
+  dbId: string;
   trackingId: string;
   orderId: string;
   customerName: string;
   phone: string;
   destination: string;
-  courierPartner: 'Pathao Courier' | 'RedX Logistics' | 'Steadfast' | 'DHL Express';
+  courierPartner: 'Pathao Courier' | 'RedX Logistics' | 'Steadfast' | 'DHL Express' | string;
   stageIndex: number; // 0: Placed, 1: Confirmed, 2: Packaging, 3: In Transit, 4: Delivered
   itemsCount: number;
   totalAmount: number;
@@ -29,6 +30,8 @@ interface IParcel {
 }
 
 interface RawParcelData {
+  id?: string;
+  _id?: string;
   trackingNumber: string;
   orderId: string;
   recipient?: { name?: string; phone?: string; address?: string };
@@ -40,60 +43,7 @@ interface RawParcelData {
   statusText?: string;
 }
 
-const INITIAL_PARCELS: IParcel[] = [
-  {
-    trackingId: 'TRK-NX-88219',
-    orderId: 'NX-ORD-9021',
-    customerName: 'Tanvir Hossain',
-    phone: '+880 1712-345678',
-    destination: 'House 42, Road 11, Banani, Dhaka-1213',
-    courierPartner: 'Pathao Courier',
-    stageIndex: 3, // In Transit
-    itemsCount: 2,
-    totalAmount: 54180,
-    lastUpdated: '10 mins ago',
-    estimatedDelivery: 'Today by 6:00 PM',
-  },
-  {
-    trackingId: 'TRK-NX-77402',
-    orderId: 'NX-ORD-9018',
-    customerName: 'Sarah Rahman',
-    phone: '+880 1819-876543',
-    destination: 'Flat 5B, Concord Tower, Gulshan-2, Dhaka',
-    courierPartner: 'Steadfast',
-    stageIndex: 4, // Delivered
-    itemsCount: 1,
-    totalAmount: 41937,
-    lastUpdated: '2 hours ago',
-    estimatedDelivery: 'Delivered',
-  },
-  {
-    trackingId: 'TRK-NX-66311',
-    orderId: 'NX-ORD-9025',
-    customerName: 'Nusrat Jahan',
-    phone: '+880 1911-223344',
-    destination: 'Sector 4, Uttara, Dhaka-1230',
-    courierPartner: 'RedX Logistics',
-    stageIndex: 2, // Packaging
-    itemsCount: 3,
-    totalAmount: 98685,
-    lastUpdated: '25 mins ago',
-    estimatedDelivery: 'Tomorrow, Aug 25',
-  },
-  {
-    trackingId: 'TRK-NX-55104',
-    orderId: 'NX-ORD-9029',
-    customerName: 'Mahmudul Hasan',
-    phone: '+880 1622-998877',
-    destination: 'Nasirabad Housing, Chittagong',
-    courierPartner: 'DHL Express',
-    stageIndex: 1, // Confirmed
-    itemsCount: 1,
-    totalAmount: 39387,
-    lastUpdated: '45 mins ago',
-    estimatedDelivery: 'Aug 26, 2026',
-  },
-];
+const INITIAL_PARCELS: IParcel[] = [];
 
 import { useAuthStore } from '@/store/useAuthStore';
 import { useLanguageStore } from '@/store/useLanguageStore';
@@ -112,8 +62,9 @@ export default function AdminTrackingPage() {
   const { language } = useLanguageStore();
   const isBn = language === 'bn';
   const [parcels, setParcels] = useState<IParcel[]>(INITIAL_PARCELS);
-  const [selectedParcel, setSelectedParcel] = useState<IParcel>(INITIAL_PARCELS[0]);
+  const [selectedParcel, setSelectedParcel] = useState<IParcel | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
   const [statusUpdatedToast, setStatusUpdatedToast] = useState<string | null>(null);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
@@ -121,39 +72,50 @@ export default function AdminTrackingPage() {
   // Fetch live tracking orders from MongoDB Atlas
   React.useEffect(() => {
     const fetchLiveParcels = async () => {
+      setIsLoading(true);
       try {
-        const res = await fetch(`${API_URL}/admin/tracking/parcels`, {
+        let res = await fetch('/api/admin/tracking/parcels', {
           headers: {
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
-        });
-        if (!res.ok) return;
-        const data = await res.json();
-        if (data?.data && Array.isArray(data.data) && data.data.length > 0) {
-          const mapped: IParcel[] = data.data.map((p: RawParcelData) => ({
-            trackingId: p.trackingNumber,
-            orderId: p.orderId,
-            customerName: p.recipient?.name || 'Customer',
-            phone: p.recipient?.phone || '+880 1700-000000',
-            destination: p.recipient?.address || 'Dhaka',
-            courierPartner: p.courier?.includes('Pathao') ? 'Pathao Courier' : 'Steadfast',
-            stageIndex: Math.min(4, Math.max(0, (p.currentStage || 3) - 1)),
-            itemsCount: p.items?.length || 1,
-            totalAmount: p.amount || 15000,
-            lastUpdated: p.lastUpdated || 'Just now',
-            estimatedDelivery: p.statusText === 'Delivered' ? 'Delivered' : 'Within 24-48h',
-          }));
+        }).catch(() => null);
 
-          setParcels((prev) => {
-            const existingIds = new Set(mapped.map((m) => m.trackingId));
-            return [...mapped, ...prev.filter((p) => !existingIds.has(p.trackingId))];
-          });
-          if (mapped.length > 0) {
-            setSelectedParcel(mapped[0]);
+        if ((!res || !res.ok) && API_URL && !API_URL.startsWith('/api') && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+          res = await fetch(`${API_URL}/admin/tracking/parcels`, {
+            headers: {
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+          }).catch(() => null);
+        }
+
+        if (res && res.ok) {
+          const data = await res.json();
+          if (data?.data && Array.isArray(data.data) && data.data.length > 0) {
+            const mapped: IParcel[] = data.data.map((p: RawParcelData) => ({
+              dbId: String(p.id || p._id || p.orderId),
+              trackingId: p.trackingNumber,
+              orderId: p.orderId,
+              customerName: p.recipient?.name || 'Customer',
+              phone: p.recipient?.phone || '+880 1700-000000',
+              destination: p.recipient?.address || 'Dhaka',
+              courierPartner: p.courier || 'Pathao Courier',
+              stageIndex: Math.min(4, Math.max(0, (p.currentStage || 1) - 1)),
+              itemsCount: p.items?.length || 1,
+              totalAmount: p.amount || 0,
+              lastUpdated: p.lastUpdated || 'Just now',
+              estimatedDelivery: p.statusText === 'Delivered' ? 'Delivered' : 'Within 24-48h',
+            }));
+
+            setParcels(mapped);
+            if (mapped.length > 0) {
+              setSelectedParcel(mapped[0]);
+            }
           }
         }
       } catch (err) {
         console.error('Error fetching live tracking parcels:', err);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -164,21 +126,22 @@ export default function AdminTrackingPage() {
     setParcels((prev) =>
       prev.map((p) => (p.trackingId === trackingId ? { ...p, stageIndex: newStage, lastUpdated: isBn ? 'এইমাত্র' : 'Just now' } : p))
     );
-    if (selectedParcel.trackingId === trackingId) {
-      setSelectedParcel((prev) => ({ ...prev, stageIndex: newStage, lastUpdated: isBn ? 'এইমাত্র' : 'Just now' }));
+    if (selectedParcel?.trackingId === trackingId) {
+      setSelectedParcel((prev) => (prev ? { ...prev, stageIndex: newStage, lastUpdated: isBn ? 'এইমাত্র' : 'Just now' } : null));
     }
     const stageName = isBn ? STAGES_CONFIG[newStage].labelBn : STAGES_CONFIG[newStage].labelEn;
     setStatusUpdatedToast(isBn ? `স্ট্যাটাস পরিবর্তন হয়ে "${stageName}" করা হয়েছে` : `Status updated to "${stageName}"`);
     setTimeout(() => setStatusUpdatedToast(null), 3000);
 
-    // Map stage to order status
-    const stageStatusMap = ['pending', 'processing', 'processing', 'shipped', 'delivered'];
+    // Map stage to order status state machine
+    const stageStatusMap = ['pending', 'confirmed', 'processing', 'shipped', 'delivered'];
     const targetStatus = stageStatusMap[newStage] || 'shipped';
 
     try {
       const parcelObj = parcels.find((p) => p.trackingId === trackingId);
-      if (parcelObj?.orderId) {
-        await fetch(`${API_URL}/admin/orders/${parcelObj.orderId}/status`, {
+      const targetId = parcelObj?.dbId || parcelObj?.orderId;
+      if (targetId) {
+        await fetch(`${API_URL}/admin/orders/${targetId}/status`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
@@ -187,7 +150,9 @@ export default function AdminTrackingPage() {
           body: JSON.stringify({ orderStatus: targetStatus }),
         });
       }
-    } catch {}
+    } catch (e) {
+      console.error('Failed to sync parcel status to DB:', e);
+    }
   };
 
   const filteredParcels = parcels.filter(
@@ -200,7 +165,7 @@ export default function AdminTrackingPage() {
 
   return (
     <RoleGuard allowedRoles={['admin']}>
-      <div className="space-y-8 max-w-7xl mx-auto">
+      <div className="space-y-8 max-w-7xl 2xl:max-w-[1780px] 3xl:max-w-[94vw] mx-auto">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-600 dark:text-orange-400 text-xs font-bold uppercase tracking-wider mb-2">
@@ -250,201 +215,222 @@ export default function AdminTrackingPage() {
               />
             </div>
 
-            <div className="space-y-2.5">
-              {filteredParcels.map((parcel) => {
-                const isSelected = parcel.trackingId === selectedParcel.trackingId;
-                const isDelivered = parcel.stageIndex === 4;
-                const stageLabel = isBn ? STAGES_CONFIG[parcel.stageIndex].labelBn : STAGES_CONFIG[parcel.stageIndex].labelEn;
+            {isLoading ? (
+              <div className="p-8 text-center bg-white dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800 text-slate-400 space-y-2">
+                <Truck className="w-6 h-6 animate-bounce text-orange-500 mx-auto" />
+                <p className="text-xs">{isBn ? 'লাইভ পার্সেল ডাটা লোড হচ্ছে...' : 'Loading parcels from MongoDB...'}</p>
+              </div>
+            ) : filteredParcels.length === 0 ? (
+              <div className="p-8 text-center bg-white dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800 text-slate-400 space-y-2">
+                <Package className="w-6 h-6 mx-auto text-slate-300 dark:text-slate-600" />
+                <p className="text-xs">{isBn ? 'কোনো পার্সেল পাওয়া যায়নি' : 'No parcels found'}</p>
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {filteredParcels.map((parcel) => {
+                  const isSelected = selectedParcel?.trackingId === parcel.trackingId;
+                  const isDelivered = parcel.stageIndex === 4;
+                  const stageLabel = isBn ? STAGES_CONFIG[parcel.stageIndex]?.labelBn : STAGES_CONFIG[parcel.stageIndex]?.labelEn;
 
-                return (
-                  <div
-                    key={parcel.trackingId}
-                    onClick={() => setSelectedParcel(parcel)}
-                    className={`p-4 rounded-2xl border transition-all cursor-pointer shadow-sm ${
-                      isSelected
-                        ? 'bg-orange-500/10 border-orange-500/50 shadow-md shadow-orange-500/10'
-                        : 'bg-white dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="font-mono font-bold text-xs text-orange-600 dark:text-orange-400">{parcel.trackingId}</span>
-                      <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                          isDelivered
-                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
-                            : 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400'
-                        }`}
-                      >
-                        {stageLabel}
-                      </span>
+                  return (
+                    <div
+                      key={parcel.trackingId}
+                      onClick={() => setSelectedParcel(parcel)}
+                      className={`p-4 rounded-2xl border transition-all cursor-pointer shadow-sm ${
+                        isSelected
+                          ? 'bg-orange-500/10 border-orange-500/50 shadow-md shadow-orange-500/10'
+                          : 'bg-white dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="font-mono font-bold text-xs text-orange-600 dark:text-orange-400">{parcel.trackingId}</span>
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                            isDelivered
+                              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+                              : 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400'
+                          }`}
+                        >
+                          {stageLabel}
+                        </span>
+                      </div>
+
+                      <div className="text-xs font-semibold text-slate-900 dark:text-white mb-1">{parcel.customerName}</div>
+
+                      <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                        <span className="flex items-center gap-1">
+                          <Building2 className="w-3 h-3 text-slate-400 dark:text-slate-500" />
+                          {parcel.courierPartner}
+                        </span>
+                        <span className="font-mono text-slate-900 dark:text-white font-semibold">
+                          {isBn ? `৳${toBengaliNumber(parcel.totalAmount.toLocaleString('en-US'))} BDT` : `৳${parcel.totalAmount.toLocaleString()} BDT`}
+                        </span>
+                      </div>
                     </div>
-
-                    <div className="text-xs font-semibold text-slate-900 dark:text-white mb-1">{parcel.customerName}</div>
-
-                    <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-                      <span className="flex items-center gap-1">
-                        <Building2 className="w-3 h-3 text-slate-400 dark:text-slate-500" />
-                        {parcel.courierPartner}
-                      </span>
-                      <span className="font-mono text-slate-900 dark:text-white font-semibold">
-                        {isBn ? `৳${toBengaliNumber(parcel.totalAmount.toLocaleString('en-US'))} BDT` : `৳${parcel.totalAmount.toLocaleString()} BDT`}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Right: Selected Parcel 5-Stage Live Timeline & Dispatch Control (7 cols) */}
           <div className="lg:col-span-7 space-y-6">
-            <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-lg font-black text-slate-900 dark:text-white font-mono">{selectedParcel.trackingId}</h2>
-                    <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">({selectedParcel.orderId})</span>
-                  </div>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                    {isBn ? 'কুরিয়ার ক্যারিয়ার:' : 'Carrier:'}{' '}
-                    <span className="text-orange-600 dark:text-orange-400 font-semibold">{selectedParcel.courierPartner}</span> •{' '}
-                    {isBn
-                      ? `আপডেট: ${selectedParcel.lastUpdated.replace('mins ago', 'মিনিট আগে').replace('hours ago', 'ঘণ্টা আগে').replace('Just now', 'এইমাত্র')}`
-                      : `Updated ${selectedParcel.lastUpdated}`}
-                  </p>
-                </div>
-
-                <div className="text-left sm:text-right">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">
-                    {isBn ? 'সম্ভাব্য ডেলিভারি' : 'Estimated Delivery'}
-                  </span>
-                  <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                    {isBn
-                      ? selectedParcel.estimatedDelivery
-                          .replace('Today by 6:00 PM', 'আজ সন্ধ্যা ৬:০০ এর মধ্যে')
-                          .replace('Delivered', 'ডেলিভার্ড')
-                          .replace('Tomorrow, Aug 25', 'আগামীকাল, ২৫ আগস্ট')
-                          .replace('Aug 26, 2026', '২৬ আগস্ট ২০২৬')
-                          .replace('Within 24-48h', '২৪-৪৮ ঘণ্টার মধ্যে')
-                      : selectedParcel.estimatedDelivery}
-                  </span>
-                </div>
+            {!selectedParcel ? (
+              <div className="p-12 text-center rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-slate-400 space-y-3">
+                <Truck className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto" />
+                <p className="text-xs font-semibold">
+                  {isBn ? 'বিস্তারিত দেখতে বাম পাশ থেকে একটি পার্সেল নির্বাচন করুন।' : 'Select a parcel from the list to view live tracking details.'}
+                </p>
               </div>
-
-              {/* 5-Stage Visual Progress Bar */}
-              <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-4">
-                  {isBn ? 'লাইভ ডেলিভারি মাইলস্টোন টাইমলাইন' : 'Live Dispatch Milestone Timeline'}
-                </h3>
-
-                <div className="relative flex items-center justify-between mb-8">
-                  <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1 bg-slate-200 dark:bg-slate-800 z-0">
-                    <div
-                      className="h-full bg-gradient-to-r from-orange-500 via-amber-500 to-emerald-500 transition-all duration-500"
-                      style={{ width: `${(selectedParcel.stageIndex / (STAGES_CONFIG.length - 1)) * 100}%` }}
-                    />
+            ) : (
+              <div className="p-6 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-lg font-black text-slate-900 dark:text-white font-mono">{selectedParcel.trackingId}</h2>
+                      <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">({selectedParcel.orderId})</span>
+                    </div>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                      {isBn ? 'কুরিয়ার ক্যারিয়ার:' : 'Carrier:'}{' '}
+                      <span className="text-orange-600 dark:text-orange-400 font-semibold">{selectedParcel.courierPartner}</span> •{' '}
+                      {isBn
+                        ? `আপডেট: ${selectedParcel.lastUpdated.replace('mins ago', 'মিনিট আগে').replace('hours ago', 'ঘণ্টা আগে').replace('Just now', 'এইমাত্র')}`
+                        : `Updated ${selectedParcel.lastUpdated}`}
+                    </p>
                   </div>
 
-                  {STAGES_CONFIG.map((stg, i) => {
-                    const isPassed = i <= selectedParcel.stageIndex;
-                    const isCurrent = i === selectedParcel.stageIndex;
-                    const label = isBn ? stg.labelBn : stg.labelEn;
+                  <div className="text-left sm:text-right">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">
+                      {isBn ? 'সম্ভাব্য ডেলিভারি' : 'Estimated Delivery'}
+                    </span>
+                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                      {isBn
+                        ? selectedParcel.estimatedDelivery
+                            .replace('Today by 6:00 PM', 'আজ সন্ধ্যা ৬:০০ এর মধ্যে')
+                            .replace('Delivered', 'ডেলিভার্ড')
+                            .replace('Tomorrow, Aug 25', 'আগামীকাল, ২৫ আগস্ট')
+                            .replace('Aug 26, 2026', '২৬ আগস্ট ২০২৬')
+                            .replace('Within 24-48h', '২৪-৪৮ ঘণ্টার মধ্যে')
+                        : selectedParcel.estimatedDelivery}
+                    </span>
+                  </div>
+                </div>
 
-                    return (
-                      <button
-                        key={stg.labelEn}
-                        type="button"
-                        onClick={() => updateStage(selectedParcel.trackingId, i)}
-                        className={`relative z-10 flex flex-col items-center group cursor-pointer`}
-                        title={isBn ? `স্ট্যাটাস "${label}"-এ সেট করতে ক্লিক করুন` : `Click to set status to ${label}`}
-                      >
-                        <div
-                          className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all shadow-md ${
-                            isPassed
-                              ? 'bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white shadow-orange-500/40 ring-4 ring-white dark:ring-slate-900'
-                              : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700'
-                          } ${isCurrent ? 'ring-2 ring-orange-500 scale-110' : ''}`}
+                {/* 5-Stage Visual Progress Bar */}
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-4">
+                    {isBn ? 'লাইভ ডেলিভারি মাইলস্টোন টাইমলাইন' : 'Live Dispatch Milestone Timeline'}
+                  </h3>
+
+                  <div className="relative flex items-center justify-between mb-8">
+                    <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1 bg-slate-200 dark:bg-slate-800 z-0">
+                      <div
+                        className="h-full bg-gradient-to-r from-orange-500 via-amber-500 to-emerald-500 transition-all duration-500"
+                        style={{ width: `${(selectedParcel.stageIndex / (STAGES_CONFIG.length - 1)) * 100}%` }}
+                      />
+                    </div>
+
+                    {STAGES_CONFIG.map((stg, i) => {
+                      const isPassed = i <= selectedParcel.stageIndex;
+                      const isCurrent = i === selectedParcel.stageIndex;
+                      const label = isBn ? stg.labelBn : stg.labelEn;
+
+                      return (
+                        <button
+                          key={stg.labelEn}
+                          type="button"
+                          onClick={() => updateStage(selectedParcel.trackingId, i)}
+                          className={`relative z-10 flex flex-col items-center group cursor-pointer`}
+                          title={isBn ? `স্ট্যাটাস "${label}"-এ সেট করতে ক্লিক করুন` : `Click to set status to ${label}`}
                         >
-                          {isPassed ? <CheckCircle2 className="w-4 h-4" /> : (isBn ? toBengaliNumber(i + 1) : i + 1)}
-                        </div>
-                        <span
-                          className={`text-[10px] font-bold mt-2 text-center transition-colors max-w-[70px] ${
-                            isPassed ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'
+                          <div
+                            className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all shadow-md ${
+                              isPassed
+                                ? 'bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white shadow-orange-500/40 ring-4 ring-white dark:ring-slate-900'
+                                : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700'
+                            } ${isCurrent ? 'ring-2 ring-orange-500 scale-110' : ''}`}
+                          >
+                            {isPassed ? <CheckCircle2 className="w-4 h-4" /> : (isBn ? toBengaliNumber(i + 1) : i + 1)}
+                          </div>
+                          <span
+                            className={`text-[10px] font-bold mt-2 text-center transition-colors max-w-[70px] ${
+                              isPassed ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'
+                            }`}
+                          >
+                            {label}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Quick Status Stage Shifter Buttons */}
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 space-y-3">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
+                    {isBn ? 'দ্রুত মাইলস্টোন পরিবর্তন (১-ক্লিক আপডেট):' : 'Quick Milestone Switcher (1-Click Update):'}
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {STAGES_CONFIG.map((stg, i) => {
+                      const label = isBn ? stg.labelBn : stg.labelEn;
+                      return (
+                        <button
+                          key={stg.labelEn}
+                          type="button"
+                          onClick={() => updateStage(selectedParcel.trackingId, i)}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                            selectedParcel.stageIndex === i
+                              ? 'bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white shadow-md shadow-orange-500/25'
+                              : 'bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-800'
                           }`}
                         >
                           {label}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Quick Status Stage Shifter Buttons */}
-              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 space-y-3">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
-                  {isBn ? 'দ্রুত মাইলস্টোন পরিবর্তন (১-ক্লিক আপডেট):' : 'Quick Milestone Switcher (1-Click Update):'}
-                </span>
-                <div className="flex flex-wrap gap-2">
-                  {STAGES_CONFIG.map((stg, i) => {
-                    const label = isBn ? stg.labelBn : stg.labelEn;
-                    return (
-                      <button
-                        key={stg.labelEn}
-                        type="button"
-                        onClick={() => updateStage(selectedParcel.trackingId, i)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                          selectedParcel.stageIndex === i
-                            ? 'bg-gradient-to-r from-[#ff4400] to-[#ff7700] text-white shadow-md shadow-orange-500/25'
-                            : 'bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-800'
-                        }`}
-                      >
-                        {label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Recipient & Logistics Breakdown */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800/80 space-y-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                    <User className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
-                    {isBn ? 'প্রাপকের বিবরণ' : 'Recipient Details'}
-                  </span>
-                  <div className="text-xs font-bold text-slate-900 dark:text-white">{selectedParcel.customerName}</div>
-                  <div className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
-                    <PhoneCall className="w-3 h-3 text-slate-400 dark:text-slate-500" />
-                    {selectedParcel.phone}
-                  </div>
-                  <div className="text-xs text-slate-600 dark:text-slate-400 flex items-start gap-1.5">
-                    <MapPin className="w-3 h-3 text-slate-400 dark:text-slate-500 flex-shrink-0 mt-0.5" />
-                    <span>{selectedParcel.destination}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800/80 space-y-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                    <Building2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                    {isBn ? 'কুরিয়ার ইন্টিগ্রেশন' : 'Courier Integration'}
-                  </span>
-                  <div className="text-xs font-bold text-slate-900 dark:text-white">{selectedParcel.courierPartner}</div>
-                  <div className="text-xs text-slate-600 dark:text-slate-400">
-                    {isBn ? 'প্যাকেজের আইটেম:' : 'Package Content:'}{' '}
-                    <span className="text-slate-900 dark:text-white font-semibold">
-                      {isBn ? `${toBengaliNumber(selectedParcel.itemsCount)}টি ভেরিফায়েড পণ্য` : `${selectedParcel.itemsCount} Verified Items`}
+                {/* Recipient & Logistics Breakdown */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800/80 space-y-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                      <User className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
+                      {isBn ? 'প্রাপকের বিবরণ' : 'Recipient Details'}
                     </span>
+                    <div className="text-xs font-bold text-slate-900 dark:text-white">{selectedParcel.customerName}</div>
+                    <div className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+                      <PhoneCall className="w-3 h-3 text-slate-400 dark:text-slate-500" />
+                      {selectedParcel.phone}
+                    </div>
+                    <div className="text-xs text-slate-600 dark:text-slate-400 flex items-start gap-1.5">
+                      <MapPin className="w-3 h-3 text-slate-400 dark:text-slate-500 flex-shrink-0 mt-0.5" />
+                      <span>{selectedParcel.destination}</span>
+                    </div>
                   </div>
-                  <div className="text-xs text-slate-600 dark:text-slate-400">
-                    {isBn ? 'পেমেন্ট গেটওয়ে:' : 'Payment Gateway:'}{' '}
-                    <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
-                      {isBn ? 'ভেরিফায়েড অনলাইন প্রি-পেইড' : 'Verified Online Pre-Paid'}
+
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800/80 space-y-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                      <Building2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                      {isBn ? 'কুরিয়ার ইন্টিগ্রেশন' : 'Courier Integration'}
                     </span>
+                    <div className="text-xs font-bold text-slate-900 dark:text-white">{selectedParcel.courierPartner}</div>
+                    <div className="text-xs text-slate-600 dark:text-slate-400">
+                      {isBn ? 'প্যাকেজের আইটেম:' : 'Package Content:'}{' '}
+                      <span className="text-slate-900 dark:text-white font-semibold">
+                        {isBn ? `${toBengaliNumber(selectedParcel.itemsCount)}টি ভেরিফায়েড পণ্য` : `${selectedParcel.itemsCount} Verified Items`}
+                      </span>
+                    </div>
+                    <div className="text-xs text-slate-600 dark:text-slate-400">
+                      {isBn ? 'পেমেন্ট গেটওয়ে:' : 'Payment Gateway:'}{' '}
+                      <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                        {isBn ? 'ভেরিফায়েড অনলাইন প্রি-পেইড' : 'Verified Online Pre-Paid'}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

@@ -402,6 +402,11 @@ export default function AdminDashboardPage() {
       totalRevenue?: number;
       totalOrders?: number;
       averageOrderValue?: number;
+      cancelledOrders?: number;
+      shippedOrders?: number;
+      deliveredOrders?: number;
+      returnRate?: number;
+      lowStockAlerts?: number;
     };
     salesTrends?: Array<{ month: string; revenue: number; orders: number }>;
   } | null>(null);
@@ -441,28 +446,22 @@ export default function AdminDashboardPage() {
   const { liveVisitorCount, telemetryMode } = useVisitorAnalyticsStore();
   const baseData = TIME_SERIES_DATA[timeRange];
 
-  const currentData = telemetryMode === 'real'
-    ? {
-        totalRevenue: liveMetrics?.summary?.totalRevenue ?? 0,
-        totalOrders: liveMetrics?.summary?.totalOrders ?? 0,
-        aov: liveMetrics?.summary?.averageOrderValue ?? 0,
-        growth: 'Live MongoDB Data',
-        chart: liveMetrics?.salesTrends && liveMetrics.salesTrends.length > 0
-          ? liveMetrics.salesTrends.map((t: { month: string; revenue: number; orders: number }) => ({ label: t.month, revenue: t.revenue, orders: t.orders }))
-          : baseData.chart,
-      }
-
-    : {
-        ...baseData,
-        totalRevenue: baseData.totalRevenue,
-        totalOrders: baseData.totalOrders,
-        aov: baseData.aov,
-        chart: baseData.chart,
-      };
+  const currentData = {
+    totalRevenue: liveMetrics?.summary?.totalRevenue !== undefined ? liveMetrics.summary.totalRevenue : baseData.totalRevenue,
+    totalOrders: liveMetrics?.summary?.totalOrders !== undefined ? liveMetrics.summary.totalOrders : baseData.totalOrders,
+    aov: liveMetrics?.summary?.averageOrderValue !== undefined ? liveMetrics.summary.averageOrderValue : baseData.aov,
+    returnRate: liveMetrics?.summary?.returnRate !== undefined ? liveMetrics.summary.returnRate : 0.8,
+    lowStockAlerts: liveMetrics?.summary?.lowStockAlerts !== undefined ? liveMetrics.summary.lowStockAlerts : 3,
+    cancelledOrders: liveMetrics?.summary?.cancelledOrders ?? 0,
+    growth: liveMetrics?.summary ? 'Live MongoDB Atlas' : baseData.growth,
+    chart: liveMetrics?.salesTrends && liveMetrics.salesTrends.length > 0
+      ? liveMetrics.salesTrends.map((t: { month: string; revenue: number; orders: number }) => ({ label: t.month, revenue: t.revenue, orders: t.orders }))
+      : baseData.chart,
+  };
 
   return (
     <RoleGuard allowedRoles={['admin']}>
-      <div className="space-y-8 max-w-7xl mx-auto">
+      <div className="space-y-8 max-w-7xl 2xl:max-w-[1780px] 3xl:max-w-[94vw] mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -596,12 +595,12 @@ export default function AdminDashboardPage() {
               </div>
             </div>
             <div className="mt-1.5 sm:mt-2.5 flex items-baseline justify-between">
-              <span className="text-base sm:text-2xl font-black text-emerald-600 dark:text-emerald-400">{isBn ? `${toBengaliNumber('0.8')}%` : '0.8%'}</span>
+              <span className="text-base sm:text-2xl font-black text-emerald-600 dark:text-emerald-400">{isBn ? `${toBengaliNumber(currentData.returnRate)}%` : `${currentData.returnRate}%`}</span>
               <span className="hidden sm:inline-block text-[10px] font-bold text-teal-600 dark:text-teal-400 opacity-0 group-hover:opacity-100 transition-opacity">
                 {isBn ? 'রেজিস্ট্রি →' : 'Registry →'}
               </span>
             </div>
-            <span className="text-[9px] sm:text-[10px] font-semibold text-slate-500 dark:text-slate-400 block mt-1 truncate">{isBn ? `${toBengaliNumber('12')}টি ফেরত` : '12 returned items'}</span>
+            <span className="text-[9px] sm:text-[10px] font-semibold text-slate-500 dark:text-slate-400 block mt-1 truncate">{isBn ? `${toBengaliNumber(currentData.cancelledOrders)}টি বাতিল/ফেরত` : `${currentData.cancelledOrders} cancelled/returns`}</span>
           </button>
 
           {/* 5. Stock Alerts (Interactive Link to Low Stock Inventory) */}
@@ -619,7 +618,7 @@ export default function AdminDashboardPage() {
               </div>
             </div>
             <div className="mt-1.5 sm:mt-2.5 flex items-baseline justify-between">
-              <span className="text-base sm:text-2xl font-black text-amber-600 dark:text-amber-400">{isBn ? `${toBengaliNumber('3')}টি পণ্য` : '3 items'}</span>
+              <span className="text-base sm:text-2xl font-black text-amber-600 dark:text-amber-400">{isBn ? `${toBengaliNumber(currentData.lowStockAlerts)}টি পণ্য` : `${currentData.lowStockAlerts} items`}</span>
               <span className="hidden sm:inline-block text-[10px] font-bold text-amber-600 dark:text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity">
                 {isBn ? 'দেখুন →' : 'View →'}
               </span>

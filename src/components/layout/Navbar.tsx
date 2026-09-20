@@ -164,8 +164,8 @@ export const Navbar: React.FC = () => {
       >
         <div
           className={`pointer-events-auto mx-auto transition-all duration-300 ease-out ${isScrolled
-              ? 'max-w-6xl rounded-2xl sm:rounded-full bg-white/85 dark:bg-[#090d16]/85 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/90 shadow-xl shadow-slate-900/5 dark:shadow-black/40 px-3.5 sm:px-5 lg:px-6'
-              : 'w-full max-w-7xl rounded-none bg-white dark:bg-[#090d16] border border-transparent border-b-slate-200/80 dark:border-b-slate-800/80 px-3 sm:px-6 lg:px-8 shadow-none'
+              ? 'max-w-6xl 2xl:max-w-[1536px] 3xl:max-w-[1720px] rounded-2xl sm:rounded-full bg-white/85 dark:bg-[#090d16]/85 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/90 shadow-xl shadow-slate-900/5 dark:shadow-black/40 px-3.5 sm:px-5 lg:px-8'
+              : 'w-full max-w-7xl 2xl:max-w-[1600px] 3xl:max-w-[1780px] min-[2000px]:max-w-[86vw] rounded-none bg-white dark:bg-[#090d16] border border-transparent border-b-slate-200/80 dark:border-b-slate-800/80 px-3 sm:px-6 lg:px-8 shadow-none'
             }`}
         >
           <div

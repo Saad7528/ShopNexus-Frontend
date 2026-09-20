@@ -273,19 +273,62 @@ function CheckoutContent() {
     }
   };
 
-  const completeOrderFinal = (trxId: string) => {
-    const mockOrderId = createMockOrderId();
+  const completeOrderFinal = async (trxId: string) => {
+    // Send order to MongoDB Backend via POST /api/orders
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+    const authState = useAuthStore.getState();
+    let dbOrderData: Record<string, unknown> & { _id?: string; trackingNumber?: string } | null = null;
+
+    try {
+      const res = await fetch(`${API_URL}/orders`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authState.token ? { Authorization: `Bearer ${authState.token}` } : {}),
+        },
+        body: JSON.stringify({
+          items: items.map((it) => ({
+            productId: it.productId || '6a940e77895b14becbca3670',
+            name: it.title,
+            price: it.price,
+            quantity: it.quantity,
+            image: it.image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80',
+          })),
+          shippingAddress: {
+            fullName: shippingAddress.fullName,
+            phoneNumber: shippingAddress.phoneNumber,
+            streetAddress: shippingAddress.streetAddress,
+            city: shippingAddress.city,
+            state: shippingAddress.state || 'Dhaka',
+            zipCode: shippingAddress.zipCode || '1213',
+            country: shippingAddress.country || 'Bangladesh',
+          },
+          paymentMethod: paymentMethod === 'stripe_card' ? 'stripe_card' : paymentMethod === 'cash_on_delivery' ? 'cash_on_delivery' : 'mfs_bkash_nagad',
+          courier: deliveryZone === 'inside_dhaka' ? 'Pathao Courier' : 'Steadfast Logistics',
+          shippingFee: deliveryFee,
+        }),
+      });
+      if (res.ok) {
+        const jsonRes = await res.json();
+        dbOrderData = jsonRes?.data;
+      }
+    } catch (err) {
+      console.error('Error saving order to backend DB:', err);
+    }
+
+    const finalOrderId = (dbOrderData?.trackingNumber as string) || (dbOrderData?._id as string) || createMockOrderId();
+    const finalTrackingNumber = (dbOrderData?.trackingNumber as string) || createTrackingNumber();
 
     // Show simulated SMS alert
     setSmsNotificationToast({
       phone: shippingAddress.phoneNumber,
-      msg: `ShopNexus Order #${mockOrderId} Confirmed! Total ৳${total.toLocaleString()} BDT. Trx: ${trxId}. Delivery via Pathao Express.`,
+      msg: `ShopNexus Order #${finalOrderId} Confirmed! Total ৳${total.toLocaleString()} BDT. Trx: ${trxId}. Delivery via ${deliveryZone === 'inside_dhaka' ? 'Pathao Courier Express' : 'Steadfast Logistics'}.`,
     });
 
     // Persist order to useOrderStore for customer order history
     const newOrderObj = {
-      id: createOrderId(),
-      orderNumber: mockOrderId,
+      id: (dbOrderData?._id as string) || createOrderId(),
+      orderNumber: finalOrderId,
       date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
       items: items.map((it, idx) => ({
         id: `item_${idx}`,
@@ -306,7 +349,7 @@ function CheckoutContent() {
           : 'Stripe Card (PAID)',
       paymentStatus: (paymentMethod === 'cash_on_delivery' ? 'PENDING' : 'PAID') as 'PAID' | 'PENDING',
       status: 'CONFIRMED' as const,
-      trackingNumber: createTrackingNumber(),
+      trackingNumber: finalTrackingNumber,
       carrier: deliveryZone === 'inside_dhaka' ? 'Pathao Courier Express' : 'Steadfast Logistics',
       estimatedDelivery: deliveryZone === 'inside_dhaka' ? 'Tomorrow, within 24h' : 'Within 48-72h',
       shippingAddress: `${shippingAddress.streetAddress}, ${shippingAddress.city}, ${shippingAddress.country}`,
@@ -314,36 +357,6 @@ function CheckoutContent() {
 
     // Save to persistent customer order history
     useOrderStore.getState().addOrder(newOrderObj);
-
-    // Send order to MongoDB Backend via POST /api/orders
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-    const authState = useAuthStore.getState();
-    fetch(`${API_URL}/orders`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(authState.token ? { Authorization: `Bearer ${authState.token}` } : {}),
-      },
-      body: JSON.stringify({
-        items: items.map((it) => ({
-          productId: it.productId,
-          name: it.title,
-          price: it.price,
-          quantity: it.quantity,
-          image: it.image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80',
-        })),
-        shippingAddress: {
-          fullName: shippingAddress.fullName,
-          phoneNumber: shippingAddress.phoneNumber,
-          streetAddress: shippingAddress.streetAddress,
-          city: shippingAddress.city,
-          state: shippingAddress.state || 'Dhaka',
-          zipCode: shippingAddress.zipCode || '1213',
-          country: shippingAddress.country || 'Bangladesh',
-        },
-        paymentMethod: paymentMethod === 'stripe_card' ? 'stripe_card' : paymentMethod === 'cash_on_delivery' ? 'cash_on_delivery' : 'mfs_bkash_nagad',
-      }),
-    }).catch((err) => console.error('Error saving order to backend DB:', err));
 
     // Auto-credit newly earned loyalty points (10 pts per ৳100 product subtotal)
     if (earnedLoyaltyPoints > 0) {
@@ -362,13 +375,13 @@ function CheckoutContent() {
 
     setTimeout(() => {
       clearCart();
-      router.push(`/checkout/success?orderId=${mockOrderId}&total=${total}&trx=${trxId}`);
-    }, 2800);
+      router.push(`/checkout/success?orderId=${finalOrderId}&total=${total}&trx=${trxId}`);
+    }, 1600);
   };
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f19] text-slate-900 dark:text-white p-4 sm:p-6 md:p-10">
-      <div className="max-w-7xl mx-auto space-y-8">
+      <div className="max-w-7xl 2xl:max-w-[1600px] 3xl:max-w-[1780px] min-[2000px]:max-w-[86vw] mx-auto space-y-8">
         {/* Top bar */}
         <div className="flex items-center justify-between">
           <Link

@@ -208,7 +208,7 @@ export const TestimonialSlider: React.FC = () => {
       </div>
 
       <div
-        className="relative max-w-5xl mx-auto px-4 sm:px-6"
+        className="relative max-w-5xl 2xl:max-w-6xl 3xl:max-w-[70vw] mx-auto px-4 sm:px-6"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >

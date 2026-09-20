@@ -34,20 +34,77 @@ const STEP_DEFINITIONS = [
 ];
 
 function getStepIndex(status: string): number {
-  switch (status?.toUpperCase()) {
-    case 'PLACED':
-      return 0;
-    case 'CONFIRMED':
+  switch (status?.toLowerCase()) {
+    case 'placed':
+    case 'pending':
       return 1;
-    case 'PACKAGING':
+    case 'confirmed':
       return 2;
-    case 'SHIPPED':
+    case 'packaging':
+    case 'processing':
       return 3;
-    case 'DELIVERED':
+    case 'shipped':
+    case 'in_transit':
       return 4;
+    case 'delivered':
+      return 5;
     default:
       return 1;
   }
+}
+
+interface LiveTrackedItem {
+  name: string;
+  price: number;
+  quantity: number;
+  image?: string;
+}
+
+interface LiveMilestoneStage {
+  key: string;
+  stepNumber: number;
+  labelEn: string;
+  labelBn: string;
+  descEn: string;
+  descBn: string;
+  completed: boolean;
+  active: boolean;
+  time: string;
+  date: string;
+}
+
+interface LiveTrackedOrder {
+  _id?: string;
+  orderNumber: string;
+  trackingNumber: string;
+  status: string;
+  paymentStatus?: string;
+  paymentMethod?: string;
+  subtotal?: number;
+  taxAmount?: number;
+  shippingFee?: number;
+  discountAmount?: number;
+  totalAmount?: number;
+  total?: number;
+  courier?: string;
+  carrier?: string;
+  estimatedDelivery?: string;
+  shippingAddress?:
+    | {
+        fullName?: string;
+        phoneNumber?: string;
+        streetAddress?: string;
+        city?: string;
+        state?: string;
+        zipCode?: string;
+        country?: string;
+      }
+    | string;
+  items?: LiveTrackedItem[];
+  currentStage?: number;
+  stages?: LiveMilestoneStage[];
+  createdAt?: string;
+  date?: string;
 }
 
 function TrackingContent() {
@@ -61,30 +118,86 @@ function TrackingContent() {
     setQuery(initialQuery);
   }
 
-  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(Boolean(initialQuery.trim()));
+  const [isSearching, setIsSearching] = useState(false);
+  const [liveOrder, setLiveOrder] = useState<LiveTrackedOrder | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
   const mounted = useHydrated();
+
+  const { orders } = useOrderStore();
+  const { language } = useLanguageStore();
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
   // Ensure page scrolls to top on navigation/mount
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [initialQuery]);
 
-  const { orders } = useOrderStore();
-  const { language } = useLanguageStore();
+  const activeSearchTerm = hasSubmitted ? query.trim() : initialQuery.trim();
 
-  const activeSearchTerm = hasSubmitted ? query : initialQuery;
-  const searchedOrder = useMemo(() => {
-    if (!activeSearchTerm.trim()) return null;
-    const clean = activeSearchTerm.trim().toLowerCase();
-    return orders.find(
-      (o) =>
-        o.orderNumber?.toLowerCase() === clean ||
-        o.trackingNumber?.toLowerCase() === clean ||
-        o.id?.toLowerCase() === clean ||
-        o.shippingAddress?.toLowerCase().includes(clean)
-    ) || null;
-  }, [activeSearchTerm, orders]);
+  // Live Backend Database Query
+  useEffect(() => {
+    if (!activeSearchTerm) {
+      setLiveOrder(null);
+      return;
+    }
+
+    const fetchOrderLive = async () => {
+      setIsSearching(true);
+      const clean = activeSearchTerm.replace(/^[#\s]+/, '');
+      try {
+        let res = await fetch(`${API_URL}/orders/track/${encodeURIComponent(clean)}`).catch(() => null);
+        
+        if ((!res || !res.ok) && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+          res = await fetch(`http://localhost:5000/api/orders/track/${encodeURIComponent(clean)}`).catch(() => null);
+        }
+
+        if (res && res.ok) {
+          const json = await res.json();
+          if (json?.success && json?.data) {
+            setLiveOrder(json.data);
+            setIsSearching(false);
+            return;
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching live tracked order:', err);
+      }
+
+      // Local fallback if offline or recently placed in store
+      const cleanLower = clean.toLowerCase();
+      const localFound = orders.find(
+        (o) =>
+          o.orderNumber?.toLowerCase() === cleanLower ||
+          o.trackingNumber?.toLowerCase() === cleanLower ||
+          o.id?.toLowerCase() === cleanLower
+      );
+
+      if (localFound) {
+        setLiveOrder({
+          orderNumber: localFound.orderNumber,
+          trackingNumber: localFound.trackingNumber || localFound.orderNumber,
+          status: localFound.status,
+          paymentMethod: localFound.paymentMethod,
+          totalAmount: localFound.total,
+          total: localFound.total,
+          carrier: localFound.carrier,
+          courier: localFound.carrier,
+          estimatedDelivery: localFound.estimatedDelivery,
+          shippingAddress: localFound.shippingAddress,
+          items: localFound.items,
+          currentStage: getStepIndex(localFound.status),
+          date: localFound.date,
+        });
+      } else {
+        setLiveOrder(null);
+      }
+      setIsSearching(false);
+    };
+
+    fetchOrderLive();
+  }, [activeSearchTerm, API_URL, orders]);
 
   const hasSearched = hasSubmitted || Boolean(initialQuery.trim());
 
@@ -94,19 +207,29 @@ function TrackingContent() {
   };
 
   const handleCopyTrackingLink = () => {
-    if (typeof window !== 'undefined' && searchedOrder) {
-      const url = `${window.location.origin}/track?id=${encodeURIComponent(searchedOrder.orderNumber || searchedOrder.trackingNumber)}`;
+    if (typeof window !== 'undefined' && liveOrder) {
+      const url = `${window.location.origin}/track?id=${encodeURIComponent(liveOrder.orderNumber || liveOrder.trackingNumber)}`;
       navigator.clipboard.writeText(url);
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 2500);
     }
   };
 
-  const activeStepIdx = searchedOrder ? getStepIndex(searchedOrder.status) : 0;
+  const activeStepIdx = liveOrder
+    ? liveOrder.currentStage !== undefined && liveOrder.currentStage > 0
+      ? liveOrder.currentStage
+      : getStepIndex(liveOrder.status)
+    : 0;
+
+  const formattedAddress = typeof liveOrder?.shippingAddress === 'string'
+    ? liveOrder.shippingAddress
+    : liveOrder?.shippingAddress?.streetAddress
+    ? `${liveOrder.shippingAddress.streetAddress}, ${liveOrder.shippingAddress.city || 'Dhaka'}${liveOrder.shippingAddress.country ? `, ${liveOrder.shippingAddress.country}` : ''}`
+    : '';
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#070a12] text-slate-900 dark:text-white py-10 sm:py-16 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto space-y-8">
+      <div className="max-w-5xl 2xl:max-w-6xl 3xl:max-w-[75vw] mx-auto space-y-8">
         
         {/* Header Section */}
         <div className="text-center space-y-3">
@@ -119,8 +242,8 @@ function TrackingContent() {
           </h1>
           <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 max-w-xl mx-auto">
             {mounted && language === 'bn'
-              ? 'লগইন ছাড়াই আপনার Order ID (যেমন: NX-ORD-9021) অথবা কুরিয়ার ট্র্যাকিং কোড দিয়ে তাৎক্ষণিক ডেলিভারি স্ট্যাটাস দেখুন।'
-              : 'No login required. Enter your Order ID (e.g. NX-ORD-9021) or Tracking Code to view 24h courier dispatch progress.'}
+              ? 'লগইন ছাড়াই আপনার Order ID (যেমন: NX-839-6144) অথবা কুরিয়ার ট্র্যাকিং কোড দিয়ে তাৎক্ষণিক ডেলিভারি স্ট্যাটাস দেখুন।'
+              : 'No login required. Enter your Order ID (e.g. NX-839-6144) or Tracking Code to view 24h courier dispatch progress.'}
           </p>
         </div>
 
@@ -133,8 +256,8 @@ function TrackingContent() {
                 type="text"
                 placeholder={
                   mounted && language === 'bn'
-                    ? 'অর্ডার নম্বর বা ট্র্যাকিং কোড লিখুন (যেমন: NX-ORD-9021)...'
-                    : 'Enter Order ID or Tracking Code (e.g. NX-ORD-9021)...'
+                    ? 'অর্ডার নম্বর বা ট্র্যাকিং কোড লিখুন (যেমন: NX-839-6144)...'
+                    : 'Enter Order ID or Tracking Code (e.g. NX-839-6144)...'
                 }
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
@@ -143,43 +266,56 @@ function TrackingContent() {
             </div>
             <button
               type="submit"
-              className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-sm shadow-lg shadow-orange-500/25 transition-all cursor-pointer flex items-center justify-center gap-2"
+              disabled={isSearching}
+              className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white font-bold text-sm shadow-lg shadow-orange-500/25 transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-70"
             >
-              <Search className="w-4 h-4" />
-              <span>{mounted && language === 'bn' ? 'সার্চ করুন' : 'Track Order'}</span>
+              {isSearching ? <Truck className="w-4 h-4 animate-bounce" /> : <Search className="w-4 h-4" />}
+              <span>{isSearching ? (mounted && language === 'bn' ? 'খোঁজা হচ্ছে...' : 'Tracking...') : (mounted && language === 'bn' ? 'সার্চ করুন' : 'Track Order')}</span>
             </button>
           </form>
 
           {/* Quick Demo Test Buttons */}
           <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800/80 text-xs">
             <span className="text-slate-500 dark:text-slate-400 font-medium">
-              {mounted && language === 'bn' ? 'ডেমো ট্র্যাকিং দেখতে ক্লিক করুন:' : 'Try Demo Order ID:'}
+              {mounted && language === 'bn' ? 'লাইভ ডাটাবেস ট্র্যাকিং দেখতে ক্লিক করুন:' : 'Try Live Database Tracking:'}
             </span>
             <button
               type="button"
               onClick={() => {
-                setQuery('NX-ORD-9021');
+                setQuery('NX-839-6144');
                 setHasSubmitted(true);
               }}
               className="px-2.5 py-1 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 font-mono font-semibold border border-orange-500/20 transition-colors cursor-pointer"
             >
-              NX-ORD-9021
+              NX-839-6144
             </button>
             <button
               type="button"
               onClick={() => {
-                setQuery('NX-ORD-8814');
+                setQuery('NX-376-9540');
                 setHasSubmitted(true);
               }}
               className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-mono font-semibold border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
             >
-              NX-ORD-8814
+              NX-376-9540
             </button>
           </div>
         </div>
 
         {/* Result Section */}
-        {hasSearched && searchedOrder && (
+        {hasSearched && isSearching && (
+          <div className="rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-8 shadow-xl backdrop-blur-xl text-center space-y-3 animate-pulse">
+            <Truck className="w-10 h-10 text-orange-500 mx-auto animate-bounce" />
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+              {mounted && language === 'bn' ? 'ডাটাবেস থেকে রিয়েল-টাইম তথ্য খোঁজা হচ্ছে...' : 'Fetching live order details from database...'}
+            </h3>
+            <p className="text-xs text-slate-500">
+              {mounted && language === 'bn' ? 'দয়া করে একটু অপেক্ষা করুন' : 'Please wait a moment'}
+            </p>
+          </div>
+        )}
+
+        {hasSearched && !isSearching && liveOrder && (
           <div className="rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-2xl backdrop-blur-2xl space-y-8 animate-fadeIn">
             
             {/* Top Order Summary Bar */}
@@ -188,14 +324,14 @@ function TrackingContent() {
                 <div className="flex items-center gap-2">
                   <span className="text-xs uppercase font-bold text-slate-500 dark:text-slate-400">Order ID:</span>
                   <span className="font-mono text-base font-extrabold text-orange-600 dark:text-orange-400">
-                    #{searchedOrder.orderNumber}
+                    #{liveOrder.orderNumber}
                   </span>
                   <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25">
-                    {searchedOrder.status}
+                    {liveOrder.status}
                   </span>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5" /> Placed on {searchedOrder.date || 'Recent Order'}
+                  <Calendar className="w-3.5 h-3.5" /> Placed on {liveOrder.createdAt ? new Date(liveOrder.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : (liveOrder.date || 'Recent Order')}
                 </p>
               </div>
 
@@ -215,7 +351,7 @@ function TrackingContent() {
             <div className="space-y-4">
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-orange-500" />
-                <span>{mounted && language === 'bn' ? 'পার্সেল জার্নি স্ট্যাটাস' : 'Parcel Journey Milestones'}</span>
+                <span>{mounted && language === 'bn' ? 'পার্সেল জার্নি স্ট্যাটাস (লাইভ স্টেট মেশিন)' : 'Parcel Journey Milestones (Live)'}</span>
               </h3>
 
               {/* Stepper Bar for Desktop & Tablet */}
@@ -296,10 +432,10 @@ function TrackingContent() {
                   {mounted && language === 'bn' ? 'কুরিয়ার পার্টনার' : 'Courier Partner'}
                 </span>
                 <p className="text-xs font-bold text-slate-900 dark:text-white">
-                  {searchedOrder.carrier || 'Pathao Courier Express'}
+                  {liveOrder.courier || liveOrder.carrier || 'Pathao Courier Express'}
                 </p>
                 <p className="font-mono text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">
-                  TRK: {searchedOrder.trackingNumber || 'TRK-NX-88219'}
+                  TRK: {liveOrder.trackingNumber || 'TRK-NX-88219'}
                 </p>
               </div>
 
@@ -309,10 +445,10 @@ function TrackingContent() {
                   {mounted && language === 'bn' ? 'প্রত্যাশিত ডেলিভারি (ETA)' : 'Estimated Delivery'}
                 </span>
                 <p className="text-xs font-bold text-slate-900 dark:text-white">
-                  {searchedOrder.estimatedDelivery || (searchedOrder.status === 'DELIVERED' ? 'Delivered' : 'Within 24 - 48 Hours')}
+                  {liveOrder.estimatedDelivery ? (typeof liveOrder.estimatedDelivery === 'string' && liveOrder.estimatedDelivery.includes('T') ? new Date(liveOrder.estimatedDelivery).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : liveOrder.estimatedDelivery) : (liveOrder.status?.toLowerCase() === 'delivered' ? 'Delivered' : 'Within 24 - 48 Hours')}
                 </p>
                 <p className="text-[11px] text-slate-500">
-                  {mounted && language === 'bn' ? 'পাঠাও এক্সপ্রেস লাইভ হাব আপডেট' : 'Live dispatch hub updates'}
+                  {mounted && language === 'bn' ? 'লাইভ হাব আপডেট' : 'Live dispatch hub updates'}
                 </p>
               </div>
 
@@ -322,35 +458,35 @@ function TrackingContent() {
                   {mounted && language === 'bn' ? 'পেমেন্ট ও সর্বমোট' : 'Payment & Total'}
                 </span>
                 <p className="font-mono text-xs font-bold text-slate-900 dark:text-white">
-                  {mounted ? formatCurrency(searchedOrder.total || 0, language) : `৳${(searchedOrder.total || 0).toLocaleString()}`}
+                  {mounted ? formatCurrency(liveOrder.totalAmount || liveOrder.total || 0, language) : `৳${(liveOrder.totalAmount || liveOrder.total || 0).toLocaleString()}`}
                 </p>
                 <p className="text-[11px] text-slate-500">
-                  {searchedOrder.paymentMethod || 'Cash on Delivery'}
+                  {liveOrder.paymentMethod || 'Cash on Delivery'}
                 </p>
               </div>
             </div>
 
             {/* Delivery Destination */}
-            {searchedOrder.shippingAddress && (
+            {formattedAddress && (
               <div className="flex items-start gap-3 p-4 rounded-2xl bg-orange-500/5 border border-orange-500/15 text-xs">
                 <MapPin className="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />
                 <div>
                   <span className="font-bold text-slate-900 dark:text-white block mb-0.5">
                     {mounted && language === 'bn' ? 'ডেলিভারি গন্তব্য ঠিকানা:' : 'Delivery Destination:'}
                   </span>
-                  <p className="text-slate-600 dark:text-slate-300">{searchedOrder.shippingAddress}</p>
+                  <p className="text-slate-600 dark:text-slate-300">{formattedAddress}</p>
                 </div>
               </div>
             )}
 
             {/* Items in this Order */}
-            {searchedOrder.items && searchedOrder.items.length > 0 && (
+            {liveOrder.items && liveOrder.items.length > 0 && (
               <div className="space-y-3">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  {mounted && language === 'bn' ? `অর্ডারের পণ্যসমূহ (${searchedOrder.items.length} টি)` : `Package Contents (${searchedOrder.items.length} items)`}
+                  {mounted && language === 'bn' ? `অর্ডারের পণ্যসমূহ (${liveOrder.items.length} টি)` : `Package Contents (${liveOrder.items.length} items)`}
                 </h4>
                 <div className="divide-y divide-slate-100 dark:divide-slate-800 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
-                  {searchedOrder.items.map((item, idx) => (
+                  {liveOrder.items.map((item, idx) => (
                     <div key={idx} className="p-3.5 bg-slate-50/50 dark:bg-slate-950/50 flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3">
                         <div className="relative w-11 h-11 rounded-xl overflow-hidden bg-slate-200 dark:bg-slate-800 shrink-0 border border-slate-200 dark:border-slate-700">
@@ -399,7 +535,7 @@ function TrackingContent() {
         )}
 
         {/*  Not Found State */}
-        {hasSearched && !searchedOrder && (
+        {hasSearched && !isSearching && !liveOrder && (
           <div className="rounded-3xl bg-rose-500/5 dark:bg-rose-500/10 border border-rose-500/25 p-8 text-center space-y-3 animate-fadeIn">
             <AlertCircle className="w-10 h-10 text-rose-500 mx-auto" />
             <h3 className="text-base font-bold text-slate-900 dark:text-white">

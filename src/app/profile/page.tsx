@@ -220,7 +220,7 @@ function ProfileContent() {
         onChange={handleImageUpload}
       />
 
-      <div className="max-w-7xl mx-auto space-y-8">
+      <div className="max-w-7xl 2xl:max-w-[1600px] 3xl:max-w-[1780px] min-[2000px]:max-w-[86vw] mx-auto space-y-8">
         {/* Profile Header Card */}
         <div className="relative rounded-3xl overflow-hidden bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-6 sm:p-8 backdrop-blur-2xl shadow-xl">
           <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-6">

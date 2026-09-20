@@ -50,7 +50,7 @@ export default function FlashSalesPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+    <div className="max-w-7xl 2xl:max-w-[1600px] 3xl:max-w-[1780px] min-[2000px]:max-w-[86vw] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
       {/* Flash Sale Banner */}
       <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-orange-50/90 via-white to-amber-50/60 dark:from-orange-950/40 dark:via-slate-900 dark:to-[#090d16] border border-orange-200 dark:border-orange-500/30 p-6 sm:p-10 mb-8 sm:mb-10 shadow-xl">
         <div className="absolute top-0 right-0 w-80 h-80 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -109,7 +109,7 @@ export default function FlashSalesPage() {
       </div>
 
       {/* Compact Responsive Product Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 2xl:grid-cols-6 gap-2.5 sm:gap-4">
         {flashProducts.map((product) => (
           <ProductCard key={product._id} product={product} />
         ))}
