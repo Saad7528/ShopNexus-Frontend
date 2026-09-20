@@ -1212,9 +1212,9 @@ export default function VisitorAnalyticsPage() {
         {activeTab === 'geo' && (
           <div className="space-y-6">
             {/* Geo-Fencing Policy Mode Switch Bar */}
-            <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-900 to-slate-800 text-white border border-slate-700 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="p-4 rounded-2xl bg-white dark:bg-slate-900/90 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className={`p-2.5 rounded-xl ${geoPolicyMode === 'domestic_only' ? 'bg-emerald-500 text-white' : 'bg-blue-500/20 text-blue-400'}`}>
+                <div className={`p-2.5 rounded-xl ${geoPolicyMode === 'domestic_only' ? 'bg-emerald-500 text-white shadow-xs' : 'bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400'}`}>
                   <ShieldCheck className="w-5 h-5" />
                 </div>
                 <div>
@@ -1222,15 +1222,15 @@ export default function VisitorAnalyticsPage() {
                     <span>{isBn ? 'জিও-ফেন্সিং ও কান্ট্রি ফায়ারওয়াল মোড:' : 'Geo-Fencing & Country Firewall Mode:'}</span>
                     <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider font-bold ${
                       geoPolicyMode === 'domestic_only'
-                        ? 'bg-emerald-500 text-white animate-pulse'
-                        : 'bg-blue-500/30 text-blue-300'
+                        ? 'bg-emerald-500 text-white animate-pulse shadow-2xs'
+                        : 'bg-blue-500/15 text-blue-700 dark:bg-blue-500/30 dark:text-blue-300'
                     }`}>
                       {geoPolicyMode === 'domestic_only'
                         ? (isBn ? '🇧🇩 কেবল অভ্যন্তরীণ হোয়াইটলিস্ট' : '🇧🇩 Domestic Whitelist Only')
                         : (isBn ? '🌐 গ্লোবাল উইথ সিলেক্টিভ ব্যান' : '🌐 Global with Selective Bans')}
                     </span>
                   </h4>
-                  <p className="text-[11px] text-slate-300 mt-0.5">
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                     {geoPolicyMode === 'domestic_only'
                       ? (isBn
                           ? 'কেবলমাত্র বাংলাদেশের ভিজিটরদের ব্রাউজ ও অর্ডার করতে অনুমতি দেওয়া হয়েছে। সকল আন্তর্জাতিক ট্রাফিক ব্লকড।'
@@ -1243,7 +1243,7 @@ export default function VisitorAnalyticsPage() {
               </div>
 
               {/* Policy Toggle Buttons */}
-              <div className="flex items-center p-1 rounded-xl bg-slate-950/60 border border-slate-700 shrink-0 self-start sm:self-auto">
+              <div className="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 shrink-0 self-start sm:self-auto">
                 <button
                   type="button"
                   onClick={() => {
@@ -1252,8 +1252,8 @@ export default function VisitorAnalyticsPage() {
                   }}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     geoPolicyMode === 'global'
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'text-slate-400 hover:text-white'
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   {isBn ? '🌐 গ্লোবাল মোড' : '🌐 Global Mode'}
@@ -1266,8 +1266,8 @@ export default function VisitorAnalyticsPage() {
                   }}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     geoPolicyMode === 'domestic_only'
-                      ? 'bg-emerald-600 text-white shadow-sm'
-                      : 'text-slate-400 hover:text-white'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   {isBn ? '🇧🇩 শুধু বাংলাদেশ' : '🇧🇩 Bangladesh Only'}
