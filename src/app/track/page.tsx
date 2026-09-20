@@ -229,7 +229,7 @@ function TrackingContent() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#070a12] text-slate-900 dark:text-white py-10 sm:py-16 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto space-y-8">
+      <div className="max-w-5xl 2xl:max-w-6xl 3xl:max-w-[75vw] mx-auto space-y-8">
         
         {/* Header Section */}
         <div className="text-center space-y-3">

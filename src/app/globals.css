@@ -163,3 +163,98 @@ html.dark .animate-shimmer {
   animation: shimmerWave 1.8s infinite ease-in-out;
 }
 
+/* Responsive Dynamic Wide-Screen Container Utilities (80-85% coverage on 2K/4K/Ultrawide) */
+.nexus-container {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  max-width: 100%;
+}
+
+@media (min-width: 640px) {
+  .nexus-container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .nexus-container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+    max-width: 1280px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .nexus-container {
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+    max-width: 1480px;
+  }
+}
+
+@media (min-width: 1680px) {
+  .nexus-container {
+    padding-left: 3rem;
+    padding-right: 3rem;
+    max-width: 1680px;
+  }
+}
+
+@media (min-width: 1920px) {
+  .nexus-container {
+    max-width: 85vw;
+  }
+}
+
+/* Wide Container for Admin Tables, Dashboards & Big Hubs */
+.nexus-container-wide {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  max-width: 100%;
+}
+
+@media (min-width: 640px) {
+  .nexus-container-wide {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .nexus-container-wide {
+    padding-left: 2rem;
+    padding-right: 2rem;
+    max-width: 1400px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .nexus-container-wide {
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+    max-width: 1600px;
+  }
+}
+
+@media (min-width: 1680px) {
+  .nexus-container-wide {
+    padding-left: 3rem;
+    padding-right: 3rem;
+    max-width: 1780px;
+  }
+}
+
+@media (min-width: 1920px) {
+  .nexus-container-wide {
+    max-width: 88vw;
+  }
+}
+
+
