@@ -49,6 +49,7 @@ export const VisualSearchModal: React.FC<VisualSearchModalProps> = ({ isOpen, on
   const [isScanning, setIsScanning] = useState(false);
   const [scanningStep, setScanningStep] = useState<string>('');
   const [results, setResults] = useState<VisualMatchedResult[]>([]);
+  const [recommendedResults, setRecommendedResults] = useState<VisualMatchedResult[]>([]);
   const [alternativeResults, setAlternativeResults] = useState<VisualMatchedResult[]>([]);
   const [detectedCategory, setDetectedCategory] = useState<string>('');
   const [tags, setTags] = useState<string[]>([]);
@@ -88,6 +89,7 @@ export const VisualSearchModal: React.FC<VisualSearchModalProps> = ({ isOpen, on
     setPrevIsOpen(isOpen);
     setSelectedImage(null);
     setResults([]);
+    setRecommendedResults([]);
     setAlternativeResults([]);
     setDetectedCategory('');
     setTags([]);
@@ -183,6 +185,7 @@ export const VisualSearchModal: React.FC<VisualSearchModalProps> = ({ isOpen, on
   const runVisualSearch = async (imageInput: string) => {
     setIsScanning(true);
     setResults([]);
+    setRecommendedResults([]);
     setAlternativeResults([]);
     setDetectedCategory('');
     setTags([]);
@@ -208,6 +211,7 @@ export const VisualSearchModal: React.FC<VisualSearchModalProps> = ({ isOpen, on
       const data = await res.json();
       if (data.success && data.data) {
         setResults(data.data.matchedItems || []);
+        setRecommendedResults(data.data.recommendedItems || []);
         setAlternativeResults(data.data.alternativeItems || []);
         setDetectedCategory(data.data.detectedCategory || '');
         setTags(data.data.queryVisualTags || []);
@@ -509,13 +513,13 @@ export const VisualSearchModal: React.FC<VisualSearchModalProps> = ({ isOpen, on
                         </div>
                         <div className="space-y-0.5 min-w-0">
                           <h4 className="text-[11px] sm:text-xs font-black uppercase tracking-wider text-amber-700 dark:text-amber-300">
-                            {isBn ? 'গ্যাজেট শনাক্তকৃত (বর্তমানে শপের স্টকে নেই)' : 'GADGET DETECTED (NOT IN SHOPNEXUS STOCK)'}
+                            {isBn ? 'গ্যাজেট শনাক্তকৃত (ওয়েবসাইটে পণ্যটি বর্তমানে নেই)' : 'GADGET DETECTED (CURRENTLY NOT IN STOCK)'}
                           </h4>
                           <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
                             {aiResponseData.aiMessage ||
                               (isBn
-                                ? `শনাক্তকৃত গ্যাজেট: "${detectedTitle}"। দুঃখিত, এই নির্দিষ্ট পণ্যটি বা ব্র্যান্ডের আইটেমটি বর্তমানে আমাদের ShopNexus ক্যাটালগে উপলব্ধ নেই। তবে সমজাতীয় বিকল্প পণ্য নিচে দেওয়া হলো:`
-                                : `Detected Gear: "${detectedTitle}". Sorry, this specific gadget model is not currently available in our ShopNexus catalog. Here are top matching alternatives below:`)}
+                                ? `শনাক্তকৃত গ্যাজেট: "${detectedTitle}"। আমাদের ওয়েবসাইটে এই পণ্যটি বর্তমানে উপলব্ধ নেই। তবে আমাদের স্টকে থাকা সমজাতীয় বিকল্প পণ্য নিচে দেওয়া হলো:`
+                                : `Detected Gear: "${detectedTitle}". This product is currently not available on our website. Here are top in-stock alternatives below:`)}
                           </p>
                         </div>
                       </div>
@@ -656,92 +660,195 @@ export const VisualSearchModal: React.FC<VisualSearchModalProps> = ({ isOpen, on
                     </button>
                   </div>
                 ) : (
-                  /* ✅ CASE 4: In-Catalog Matches Found */
-                  results.map((match, idx) => {
-                    const prod = match.product;
-                    const scorePercent = Math.round(match.similarityScore * 100);
-                    const effectivePrice = prod.discountPrice || prod.price || 0;
-                    const originalPrice = prod.price ?? 0;
+                  /* ✅ CASE 4: In-Catalog Matches Found (1-3 items) + Recommendations for remaining */
+                  <div className="space-y-3">
+                    {/* Visual Matches List */}
+                    <div className="space-y-2">
+                      {results.map((match, idx) => {
+                        const prod = match.product;
+                        const scorePercent = Math.round(match.similarityScore * 100);
+                        const effectivePrice = prod.discountPrice || prod.price || 0;
+                        const originalPrice = prod.price ?? 0;
 
-                    return (
-                      <div
-                        key={idx}
-                        className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800/80 hover:border-orange-500/50 flex items-center justify-between gap-3 transition-all shadow-xs group"
-                      >
-                        <div className="flex items-center gap-3.5 min-w-0">
-                          <div className="relative w-14 h-14 rounded-2xl overflow-hidden bg-white dark:bg-slate-950 shrink-0 border border-slate-200 dark:border-slate-800">
-                            <Image
-                              src={prod.images?.[0] || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200'}
-                              alt={prod.title}
-                              fill
-                              className="object-cover group-hover:scale-105 transition-transform"
-                              unoptimized
-                            />
-                          </div>
+                        return (
+                          <div
+                            key={idx}
+                            className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800/80 hover:border-orange-500/50 flex items-center justify-between gap-3 transition-all shadow-xs group"
+                          >
+                            <div className="flex items-center gap-3.5 min-w-0">
+                              <div className="relative w-14 h-14 rounded-2xl overflow-hidden bg-white dark:bg-slate-950 shrink-0 border border-slate-200 dark:border-slate-800">
+                                <Image
+                                  src={prod.images?.[0] || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200'}
+                                  alt={prod.title}
+                                  fill
+                                  className="object-cover group-hover:scale-105 transition-transform"
+                                  unoptimized
+                                />
+                              </div>
 
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                                {isBn ? `${toBengaliNumber(scorePercent)}% মিল` : `${scorePercent}% Match`}
-                              </span>
-                              <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 truncate">
-                                {prod.category}
-                              </span>
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                    {isBn ? `${toBengaliNumber(scorePercent)}% মিল` : `${scorePercent}% Match`}
+                                  </span>
+                                  <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 truncate">
+                                    {prod.category}
+                                  </span>
+                                </div>
+
+                                <h4 className="text-xs font-bold text-slate-900 dark:text-white truncate max-w-[260px] sm:max-w-[340px] mt-1">
+                                  {prod.title}
+                                </h4>
+
+                                {/* BDT Currency Price */}
+                                <div className="flex items-center gap-2 mt-0.5">
+                                  <span className="text-xs font-black text-orange-600 dark:text-orange-400">
+                                    {isBn ? `৳${toBengaliNumber(effectivePrice.toLocaleString('en-US'))}` : `৳${effectivePrice.toLocaleString()}`}
+                                  </span>
+                                  {Boolean(prod.discountPrice && originalPrice > prod.discountPrice) && (
+                                    <span className="text-[10px] text-slate-400 line-through">
+                                      {isBn ? `৳${toBengaliNumber(originalPrice.toLocaleString('en-US'))}` : `৳${originalPrice.toLocaleString()}`}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
                             </div>
 
-                            <h4 className="text-xs font-bold text-slate-900 dark:text-white truncate max-w-[260px] sm:max-w-[340px] mt-1">
-                              {prod.title}
-                            </h4>
+                            {/* Actions: Add to Cart & View Product */}
+                            <div className="flex items-center gap-2 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  addItem({
+                                    productId: prod._id,
+                                    title: prod.title,
+                                    price: effectivePrice,
+                                    image: prod.images?.[0] || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200',
+                                    quantity: 1,
+                                    stock: prod.stock || 20,
+                                    vendorName: 'ShopNexus Official',
+                                  });
+                                  onClose();
+                                  openDrawer();
+                                }}
+                                className="p-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#ff5500] hover:to-[#ff8800] text-white transition-all cursor-pointer shadow-md shadow-orange-500/25 hover:scale-105 active:scale-95"
+                                title={isBn ? 'কার্টে যুক্ত করুন' : 'Add to Cart'}
+                              >
+                                <ShoppingBag className="w-4 h-4" />
+                              </button>
 
-                            {/* BDT Currency Price */}
-                            <div className="flex items-center gap-2 mt-0.5">
-                              <span className="text-xs font-black text-orange-600 dark:text-orange-400">
-                                {isBn ? `৳${toBengaliNumber(effectivePrice.toLocaleString('en-US'))}` : `৳${effectivePrice.toLocaleString()}`}
-                              </span>
-                              {Boolean(prod.discountPrice && originalPrice > prod.discountPrice) && (
-                                <span className="text-[10px] text-slate-400 line-through">
-                                  {isBn ? `৳${toBengaliNumber(originalPrice.toLocaleString('en-US'))}` : `৳${originalPrice.toLocaleString()}`}
-                                </span>
-                              )}
+                              <Link
+                                href={`/products/${prod._id}`}
+                                onClick={onClose}
+                                className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer border border-slate-200 dark:border-slate-700"
+                                title={isBn ? 'বিস্তারিত দেখুন' : 'View Details'}
+                              >
+                                <ArrowRight className="w-4 h-4" />
+                              </Link>
                             </div>
                           </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* ✨ 'আপনারা দেখতে পারেন' / 'You May Also Like' Recommendations (when 1 or 2 items matched) */}
+                    {recommendedResults.length > 0 && (
+                      <div className="pt-2 space-y-2">
+                        <div className="flex items-center gap-2 px-1 pt-2 border-t border-slate-200 dark:border-slate-800">
+                          <Sparkles className="w-3.5 h-3.5 text-orange-500 shrink-0" />
+                          <h5 className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                            {isBn ? '✨ আপনারা দেখতে পারেন' : '✨ You May Also Like'}
+                          </h5>
                         </div>
 
-                        {/* Actions: Add to Cart & View Product */}
-                        <div className="flex items-center gap-2 shrink-0">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              addItem({
-                                productId: prod._id,
-                                title: prod.title,
-                                price: effectivePrice,
-                                image: prod.images?.[0] || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200',
-                                quantity: 1,
-                                stock: prod.stock || 20,
-                                vendorName: 'ShopNexus Official',
-                              });
-                              onClose();
-                              openDrawer();
-                            }}
-                            className="p-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#ff5500] hover:to-[#ff8800] text-white transition-all cursor-pointer shadow-md shadow-orange-500/25 hover:scale-105 active:scale-95"
-                            title={isBn ? 'কার্টে যুক্ত করুন' : 'Add to Cart'}
-                          >
-                            <ShoppingBag className="w-4 h-4" />
-                          </button>
+                        <div className="space-y-2">
+                          {recommendedResults.map((rec, recIdx) => {
+                            const prod = rec.product;
+                            const effectivePrice = prod.discountPrice || prod.price || 0;
+                            const originalPrice = prod.price ?? 0;
 
-                          <Link
-                            href={`/products/${prod._id}`}
-                            onClick={onClose}
-                            className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer border border-slate-200 dark:border-slate-700"
-                            title={isBn ? 'বিস্তারিত দেখুন' : 'View Details'}
-                          >
-                            <ArrowRight className="w-4 h-4" />
-                          </Link>
+                            return (
+                              <div
+                                key={recIdx}
+                                className="p-3.5 rounded-2xl bg-slate-50/80 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800/80 hover:border-orange-500/40 flex items-center justify-between gap-3 transition-all shadow-xs group"
+                              >
+                                <div className="flex items-center gap-3.5 min-w-0">
+                                  <div className="relative w-14 h-14 rounded-2xl overflow-hidden bg-white dark:bg-slate-950 shrink-0 border border-slate-200 dark:border-slate-800">
+                                    <Image
+                                      src={prod.images?.[0] || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200'}
+                                      alt={prod.title}
+                                      fill
+                                      className="object-cover group-hover:scale-105 transition-transform"
+                                      unoptimized
+                                    />
+                                  </div>
+
+                                  <div className="min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20">
+                                        {isBn ? 'জনপ্রিয় পছন্দ' : 'Popular Pick'}
+                                      </span>
+                                      <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 truncate">
+                                        {prod.category}
+                                      </span>
+                                    </div>
+
+                                    <h4 className="text-xs font-bold text-slate-900 dark:text-white truncate max-w-[260px] sm:max-w-[340px] mt-1">
+                                      {prod.title}
+                                    </h4>
+
+                                    <div className="flex items-center gap-2 mt-0.5">
+                                      <span className="text-xs font-black text-orange-600 dark:text-orange-400">
+                                        {isBn ? `৳${toBengaliNumber(effectivePrice.toLocaleString('en-US'))}` : `৳${effectivePrice.toLocaleString()}`}
+                                      </span>
+                                      {Boolean(prod.discountPrice && originalPrice > prod.discountPrice) && (
+                                        <span className="text-[10px] text-slate-400 line-through">
+                                          {isBn ? `৳${toBengaliNumber(originalPrice.toLocaleString('en-US'))}` : `৳${originalPrice.toLocaleString()}`}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Actions: Add to Cart & View Product */}
+                                <div className="flex items-center gap-2 shrink-0">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      addItem({
+                                        productId: prod._id,
+                                        title: prod.title,
+                                        price: effectivePrice,
+                                        image: prod.images?.[0] || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200',
+                                        quantity: 1,
+                                        stock: prod.stock || 20,
+                                        vendorName: prod.vendorName || 'ShopNexus Official',
+                                      });
+                                      onClose();
+                                      openDrawer();
+                                    }}
+                                    className="p-2.5 rounded-xl bg-gradient-to-r from-[#ff4400] to-[#ff7700] hover:from-[#ff5500] hover:to-[#ff8800] text-white transition-all cursor-pointer shadow-md shadow-orange-500/25 hover:scale-105 active:scale-95"
+                                    title={isBn ? 'কার্টে যুক্ত করুন' : 'Add to Cart'}
+                                  >
+                                    <ShoppingBag className="w-4 h-4" />
+                                  </button>
+
+                                  <Link
+                                    href={`/products/${prod._id}`}
+                                    onClick={onClose}
+                                    className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer border border-slate-200 dark:border-slate-700"
+                                    title={isBn ? 'বিস্তারিত দেখুন' : 'View Details'}
+                                  >
+                                    <ArrowRight className="w-4 h-4" />
+                                  </Link>
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
-                    );
-                  })
+                    )}
+                  </div>
                 )}
               </div>
             </div>

@@ -185,9 +185,19 @@ The current user interface language is ENGLISH.
 
 ${targetLanguageInstruction}
 
+CRITICAL OCR & PRODUCT BOX DIRECTIVE:
+If a person is holding a product box, retail packaging, or electronic device in front of the camera (e.g. "Wireless Microphone", "F11-2", "Lavalier Microphone", "Transmitter/Receiver", "Earbuds", "Mechanical Keyboard"):
+1. ALWAYS prioritize and focus on the gadget/box being presented in the foreground, completely ignoring the human background!
+2. Read all visible text printed on the box/device (e.g. "F11-2", "Wireless Microphone", "无线收音麦克风", "Lavalier", "Gaming Mouse", etc.).
+3. If the box/device mentions or depicts a microphone, wireless mic, or audio gear:
+   - "detectedCategory" MUST be "Audio"
+   - "detectedItem" MUST be "ওয়্যারলেস মাইক্রোফোন" (or specific model in Bengali) when language is Bengali, or "Wireless Lavalier Microphone" when language is English.
+   - "visualTags" MUST include ["মাইক্রোফোন", "ওয়্যারলেস-অডিও", "ল্যাভালিয়ার"] (or English equivalents).
+   - "categoryType" MUST be "tech_gadget" and "isGadget": true.
+
 Analyze the uploaded image with high precision across 3 possible cases:
 
-Case A: The image shows a HUMAN, SELFIE, FACE, PORTRAIT, PET, SCENERY, RANDOM NON-TECH OBJECT (food, clothes, furniture), or CODE/SCREENSHOT.
+Case A: The image shows a HUMAN, SELFIE, FACE, PORTRAIT, PET, SCENERY, RANDOM NON-TECH OBJECT (food, clothes, furniture), or CODE/SCREENSHOT without any tech gadget box held in hand.
 - categoryType: "human_or_selfie" | "non_tech_object" | "screenshot_or_ui"
 - isGadget: false
 - isCatalogAvailable: false
@@ -207,12 +217,12 @@ Case B: The image shows a TECH GADGET / ELECTRONICS PRODUCT that MATCHES or IS V
 - visualTags: 3 to 5 relevant technical tags in the required language.
 - matchedProductIds: Top 1-3 matching catalog IDs with similarityScore (0.85 to 0.99), confidence ("high" | "exact"), and matchedFeatures.
 
-Case C: The image shows a REAL TECH GADGET / DEVICE that is NOT DIRECTLY STOCKED in the ShopNexus Catalog (e.g. Selfie Stick / Tripod, Smartphone / iPhone with MagSafe Case, Drone, DSLR Camera, Tablet, VR Headset, Power Bank).
+Case C: The image shows a REAL TECH GADGET / DEVICE that is NOT DIRECTLY STOCKED in the ShopNexus Catalog (e.g. Wireless Lavalier Microphone / F11-2, Selfie Stick / Tripod, Smartphone / iPhone with MagSafe Case, Drone, DSLR Camera, Tablet, VR Headset, Power Bank).
 - categoryType: "tech_gadget"
 - isGadget: true
 - isCatalogAvailable: false
-- detectedCategory: Closest related category ("Creator Gear", "Peripherals", "Wearables", "Audio", "Gaming", "Smart Home", or "Electronics")
-- detectedItem: Specific name of the gadget / device in the required language (e.g. "Q07 Bluetooth Selfie Stick & Tripod").
+- detectedCategory: Closest related category ("Audio" for all microphones/recorders, "Creator Gear" for tripods/lights, "Peripherals", "Wearables", "Gaming", "Smart Home", or "Electronics")
+- detectedItem: Specific name of the gadget / device in the required language (e.g. "ওয়্যারলেস মাইক্রোফোন" / "Wireless Lavalier Microphone", "Q07 Bluetooth Selfie Stick & Tripod").
 - aiMessage: Notice in the required language explaining that this specific gadget model was recognized, but is currently not in direct inventory, with best alternative tech recommendations provided below.
 - visualTags: 3 to 5 descriptive tags in the required language.
 - matchedProductIds: []
@@ -318,53 +328,84 @@ Respond ONLY with a valid JSON object matching this schema without markdown code
     let detectedCategory = aiMatchResult?.detectedCategory || '';
 
     // Smart Category & Subtype Inference
-    const lowerDetection = `${detectedItemTitle} ${queryVisualTags.join(' ')}`.toLowerCase();
-    const isSelfieOrTripod = lowerDetection.includes('selfie') || lowerDetection.includes('tripod') || lowerDetection.includes('stick') || lowerDetection.includes('gimbal') || lowerDetection.includes('mount');
-    const isMicrophone = lowerDetection.includes('microphone') || lowerDetection.includes('mic') || lowerDetection.includes('lavalier') || lowerDetection.includes('podcast') || lowerDetection.includes('vocal');
-    const isHeadphonesOrSpeakers = (lowerDetection.includes('headphone') || lowerDetection.includes('earphone') || lowerDetection.includes('earbud') || lowerDetection.includes('speaker') || lowerDetection.includes('headset') || lowerDetection.includes('airpod')) && !isMicrophone;
-    const isWatchOrWearable = lowerDetection.includes('watch') || lowerDetection.includes('wearable') || lowerDetection.includes('fitness') || lowerDetection.includes('band') || lowerDetection.includes('tracker') || lowerDetection.includes('glasses');
-    const isKeyboardOrMouse = lowerDetection.includes('keyboard') || lowerDetection.includes('mouse') || lowerDetection.includes('keycap') || lowerDetection.includes('desk') || lowerDetection.includes('peripheral');
-    const isCameraOrCreator = lowerDetection.includes('camera') || lowerDetection.includes('stream') || lowerDetection.includes('light') || lowerDetection.includes('lens') || lowerDetection.includes('dji') || isSelfieOrTripod;
+    const lowerDetection = `${detectedItemTitle} ${queryVisualTags.join(' ')} ${aiMessage}`.toLowerCase();
+    const isMicrophone =
+      lowerDetection.includes('microphone') ||
+      lowerDetection.includes('মাইক্রোফোন') ||
+      lowerDetection.includes('মাইক') ||
+      lowerDetection.includes('mic') ||
+      lowerDetection.includes('lavalier') ||
+      lowerDetection.includes('podcast') ||
+      lowerDetection.includes('vocal') ||
+      lowerDetection.includes('f11') ||
+      lowerDetection.includes('k9') ||
+      lowerDetection.includes('k8') ||
+      lowerDetection.includes('wireless mic') ||
+      lowerDetection.includes('sound recording');
 
-    if (!detectedCategory || detectedCategory === 'General' || isSelfieOrTripod) {
-      if (isSelfieOrTripod || isCameraOrCreator) {
-        detectedCategory = 'Creator Gear';
-      } else if (isMicrophone) {
-        detectedCategory = 'Audio';
-      } else if (isHeadphonesOrSpeakers) {
-        detectedCategory = 'Audio';
-      } else if (isWatchOrWearable) {
-        detectedCategory = 'Wearables';
-      } else if (isKeyboardOrMouse) {
-        detectedCategory = 'Peripherals';
-      } else if (lowerDetection.includes('game') || lowerDetection.includes('controller') || lowerDetection.includes('console') || lowerDetection.includes('joystick')) {
-        detectedCategory = 'Gaming';
-      } else if (lowerDetection.includes('home') || lowerDetection.includes('smart bulb') || lowerDetection.includes('vacuum') || lowerDetection.includes('router')) {
-        detectedCategory = 'Smart Home';
-      } else {
-        detectedCategory = isGadget ? 'Creator Gear' : 'General';
-      }
+    const isSelfieOrTripod =
+      (lowerDetection.includes('selfie') || lowerDetection.includes('tripod') || lowerDetection.includes('stick') || lowerDetection.includes('gimbal') || lowerDetection.includes('mount') || lowerDetection.includes('সেলফি') || lowerDetection.includes('ট্রাইপড')) &&
+      !isMicrophone;
+
+    const isHeadphonesOrSpeakers =
+      (lowerDetection.includes('headphone') || lowerDetection.includes('earphone') || lowerDetection.includes('earbud') || lowerDetection.includes('speaker') || lowerDetection.includes('headset') || lowerDetection.includes('airpod') || lowerDetection.includes('হেডফোন')) &&
+      !isMicrophone;
+
+    const isWatchOrWearable =
+      lowerDetection.includes('watch') || lowerDetection.includes('wearable') || lowerDetection.includes('fitness') || lowerDetection.includes('band') || lowerDetection.includes('tracker') || lowerDetection.includes('glasses') || lowerDetection.includes('স্মার্টওয়াচ');
+
+    const isKeyboardOrMouse =
+      lowerDetection.includes('keyboard') || lowerDetection.includes('mouse') || lowerDetection.includes('keycap') || lowerDetection.includes('desk') || lowerDetection.includes('peripheral') || lowerDetection.includes('কীবোর্ড') || lowerDetection.includes('মাউস');
+
+    const isCameraOrCreator =
+      (lowerDetection.includes('camera') || lowerDetection.includes('stream') || lowerDetection.includes('light') || lowerDetection.includes('lens') || lowerDetection.includes('dji') || isSelfieOrTripod) &&
+      !isMicrophone;
+
+    // Strict category resolution: Microphone MUST ALWAYS be 'Audio'
+    if (isMicrophone) {
+      detectedCategory = 'Audio';
+    } else if (isHeadphonesOrSpeakers) {
+      detectedCategory = 'Audio';
+    } else if (isSelfieOrTripod || isCameraOrCreator) {
+      detectedCategory = 'Creator Gear';
+    } else if (isWatchOrWearable) {
+      detectedCategory = 'Wearables';
+    } else if (isKeyboardOrMouse) {
+      detectedCategory = 'Peripherals';
+    } else if (lowerDetection.includes('game') || lowerDetection.includes('controller') || lowerDetection.includes('console') || lowerDetection.includes('joystick')) {
+      detectedCategory = 'Gaming';
+    } else if (lowerDetection.includes('home') || lowerDetection.includes('smart bulb') || lowerDetection.includes('vacuum') || lowerDetection.includes('router')) {
+      detectedCategory = 'Smart Home';
+    } else if (!detectedCategory || detectedCategory === 'General') {
+      detectedCategory = isGadget ? 'Audio' : 'General';
     }
 
     // Direct Match Validation (Must Strictly Match Product Type)
     // IMPORTANT: Selfie Sticks and unstocked items must NEVER match Headphones!
     if (aiMatchResult && isGadget && !isSelfieOrTripod && Array.isArray(aiMatchResult.matchedProductIds) && aiMatchResult.matchedProductIds.length > 0) {
+      let matchIdx = 0;
       for (const match of aiMatchResult.matchedProductIds) {
         const fullProd = catalogProducts.find(
           (p) => p._id === match.id || p.id === match.id || p.slug === match.id
         );
         if (fullProd) {
           const prodTitleLower = (fullProd.title || fullProd.name || '').toLowerCase();
-          const prodCatLower = (fullProd.category || '').toLowerCase();
 
-          // Strict type guard: A microphone query must only match microphones, not headphones!
-          if (isMicrophone && !prodTitleLower.includes('mic') && !prodTitleLower.includes('sm7b') && !prodTitleLower.includes('podcast')) {
+          // Strict type guard: A microphone query must only match genuine audio microphones, not headphones, smart home mugs, or mice!
+          const isProdAudio = (fullProd.category || '').toLowerCase() === 'audio';
+          const isProdMic = /\b(mic|mics|microphone|microphones|lavalier|podcast|sm7b|mv7|shure|condenser)\b/i.test(prodTitleLower);
+
+          if (isMicrophone && (!isProdAudio || !isProdMic)) {
             continue;
           }
           // A headphone query must only match headphones, not microphones or speakers!
-          if (isHeadphonesOrSpeakers && (prodTitleLower.includes('mic') || prodTitleLower.includes('microphone'))) {
+          if (isHeadphonesOrSpeakers && (isProdMic || prodTitleLower.includes('microphone'))) {
             continue;
           }
+
+          const dynamicScore = match.similarityScore
+            ? Math.min(0.98, Math.max(0.85, match.similarityScore))
+            : Math.max(0.84, 0.96 - matchIdx * 0.05);
 
           finalMatchedItems.push({
             product: {
@@ -377,10 +418,12 @@ Respond ONLY with a valid JSON object matching this schema without markdown code
               images: fullProd.images || (fullProd.image ? [fullProd.image] : []),
               stock: fullProd.stock ?? 20,
             },
-            similarityScore: match.similarityScore || 0.95,
+            similarityScore: dynamicScore,
             matchLabel: match.confidence === 'exact' ? (isBn ? 'নিখুঁত মিল' : 'Exact Visual Match') : (isBn ? 'শনাক্তকৃত মিল' : 'Detected Match'),
             matchedFeatures: match.matchedFeatures || [fullProd.category || 'Tech Gadget'],
           });
+          matchIdx++;
+          if (finalMatchedItems.length >= 3) break;
         }
       }
     }
@@ -391,7 +434,9 @@ Respond ONLY with a valid JSON object matching this schema without markdown code
         const titleLower = (p.title || p.name || '').toLowerCase();
         
         if (isMicrophone) {
-          return titleLower.includes('mic') || titleLower.includes('sm7b') || titleLower.includes('shure');
+          const isAudio = (p.category || '').toLowerCase() === 'audio';
+          const isMic = /\b(mic|mics|microphone|microphones|lavalier|podcast|sm7b|mv7|shure|condenser)\b/i.test(titleLower);
+          return isAudio && isMic;
         }
         if (isHeadphonesOrSpeakers) {
           return (titleLower.includes('headphone') || titleLower.includes('wh-1000') || titleLower.includes('quietcomfort') || titleLower.includes('airpods') || titleLower.includes('momentum') || titleLower.includes('speaker') || titleLower.includes('stanmore')) && !titleLower.includes('mic');
@@ -406,7 +451,7 @@ Respond ONLY with a valid JSON object matching this schema without markdown code
       });
 
       if (directCandidates.length > 0) {
-        for (const fullProd of directCandidates.slice(0, 3)) {
+        directCandidates.slice(0, 3).forEach((fullProd, idx) => {
           finalMatchedItems.push({
             product: {
               _id: fullProd._id,
@@ -418,20 +463,64 @@ Respond ONLY with a valid JSON object matching this schema without markdown code
               images: fullProd.images || (fullProd.image ? [fullProd.image] : []),
               stock: fullProd.stock ?? 20,
             },
-            similarityScore: 0.92,
-            matchLabel: isBn ? 'খুব কাছাকাছি মিল' : 'High Visual Similarity',
+            similarityScore: Math.max(0.82, 0.95 - idx * 0.06),
+            matchLabel: isBn ? 'শনাক্তকৃত মিল' : 'Detected Match',
             matchedFeatures: [fullProd.category || 'Tech', fullProd.brand || 'Premium'].filter(Boolean),
           });
-        }
+        });
       }
     }
 
-    // 💡 5. Fetch 2-4 Alternative Products if Gadget is Out of Stock or Not in Direct Catalog
-    let alternativeItems: VisualMatchedItem[] = [];
-    if (isGadget && finalMatchedItems.length === 0) {
-      const categoryProds = catalogProducts.filter(
+    // 🌟 5. Build "You May Also Like" / "আপনারা দেখতে পারেন" Recommendations (when 1 or 2 items match)
+    const recommendedItems: VisualMatchedItem[] = [];
+    if (isGadget && finalMatchedItems.length > 0 && finalMatchedItems.length < 3) {
+      const matchedIds = new Set(finalMatchedItems.map((item) => item.product._id));
+      const remainingSlots = 3 - finalMatchedItems.length;
+
+      // Filter catalog items that are not in matchedItems
+      const unselectedCatalog = catalogProducts.filter((p) => !matchedIds.has(p._id));
+      const sameCatUnselected = unselectedCatalog.filter(
         (p) => p.category?.toLowerCase() === detectedCategory.toLowerCase()
       );
+      const recommendationCandidates =
+        sameCatUnselected.length >= remainingSlots ? sameCatUnselected : unselectedCatalog;
+
+      recommendationCandidates.slice(0, remainingSlots).forEach((p) => {
+        recommendedItems.push({
+          product: {
+            _id: p._id,
+            title: p.title || p.name || 'Product',
+            category: p.category,
+            brand: p.brand,
+            price: p.price,
+            discountPrice: p.discountPrice,
+            images: p.images || (p.image ? [p.image] : []),
+            stock: p.stock ?? 20,
+          },
+          similarityScore: 0,
+          matchLabel: isBn ? 'জনপ্রিয় পছন্দ' : 'Popular Pick',
+          matchedFeatures: [p.category, p.brand].filter((item): item is string => Boolean(item)),
+        });
+      });
+    }
+
+    // 💡 6. Fetch 2-4 Alternative Products if Gadget is Out of Stock or Not in Direct Catalog (0 matches)
+    let alternativeItems: VisualMatchedItem[] = [];
+    if (isGadget && finalMatchedItems.length === 0) {
+      let categoryProds: VisualCatalogItem[] = [];
+
+      if (isMicrophone) {
+        // Strict audio / mic alternative filtering
+        categoryProds = catalogProducts.filter((p) => {
+          const cat = (p.category || '').toLowerCase();
+          const title = (p.title || p.name || '').toLowerCase();
+          return cat === 'audio' || title.includes('mic') || title.includes('headphone') || title.includes('audio');
+        });
+      } else {
+        categoryProds = catalogProducts.filter(
+          (p) => p.category?.toLowerCase() === detectedCategory.toLowerCase()
+        );
+      }
       
       const candidateList = categoryProds.length >= 2 ? categoryProds : catalogProducts;
       alternativeItems = candidateList.slice(0, 4).map((p, idx) => ({
@@ -460,6 +549,7 @@ Respond ONLY with a valid JSON object matching this schema without markdown code
       aiMessage,
       queryVisualTags: queryVisualTags.length > 0 ? queryVisualTags : ['visual-search', 'ai-vision'],
       matchedItems: finalMatchedItems,
+      recommendedItems,
       alternativeItems,
     };
 
