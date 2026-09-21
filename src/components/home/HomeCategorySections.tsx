@@ -34,7 +34,7 @@ export function HomeCategorySections({
   return (
     <div className="space-y-6 sm:space-y-12">
       {/* 🎧 4. AUDIO & ACOUSTICS SECTION */}
-      <section className="max-w-7xl lg:max-w-[85vw] xl:max-w-[85vw] min-[2560px]:max-w-[75vw] mx-auto px-3 sm:px-6 lg:px-8">
+      <section className="max-w-7xl lg:max-w-[85vw] xl:max-w-[85vw] min-[2560px]:max-w-[75vw] min-[4000px]:max-w-[70vw] mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-3 sm:mb-5">
           <div>
             <div className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider mb-0.5">
@@ -50,12 +50,13 @@ export function HomeCategorySections({
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-6 min-[2400px]:grid-cols-7 gap-2.5 sm:gap-3.5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5 min-[1800px]:grid-cols-7 min-[4000px]:grid-cols-8 gap-2.5 sm:gap-3.5">
           {audioProducts.map((prod, idx) => {
             const visibilityClass =
               idx < 5 ? 'block' :
-              idx === 5 ? 'block lg:hidden 2xl:block' :
-              'hidden min-[2400px]:block';
+              idx === 5 ? 'block lg:hidden min-[1800px]:block' :
+              idx === 6 ? 'hidden min-[1800px]:block' :
+              'hidden min-[4000px]:block';
 
             return (
               <div key={prod._id} className={visibilityClass}>
@@ -67,7 +68,7 @@ export function HomeCategorySections({
       </section>
 
       {/* ⌚ 5. TITANIUM WEARABLES & WATCHES */}
-      <section className="max-w-7xl lg:max-w-[85vw] xl:max-w-[85vw] min-[2560px]:max-w-[75vw] mx-auto px-3 sm:px-6 lg:px-8">
+      <section className="max-w-7xl lg:max-w-[85vw] xl:max-w-[85vw] min-[2560px]:max-w-[75vw] min-[4000px]:max-w-[70vw] mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-3 sm:mb-5">
           <div>
             <div className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider mb-0.5">
@@ -83,12 +84,13 @@ export function HomeCategorySections({
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-6 min-[2400px]:grid-cols-7 gap-2.5 sm:gap-3.5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5 min-[1800px]:grid-cols-7 min-[4000px]:grid-cols-8 gap-2.5 sm:gap-3.5">
           {wearableProducts.map((prod, idx) => {
             const visibilityClass =
               idx < 5 ? 'block' :
-              idx === 5 ? 'block lg:hidden 2xl:block' :
-              'hidden min-[2400px]:block';
+              idx === 5 ? 'block lg:hidden min-[1800px]:block' :
+              idx === 6 ? 'hidden min-[1800px]:block' :
+              'hidden min-[4000px]:block';
 
             return (
               <div key={prod._id} className={visibilityClass}>
@@ -100,7 +102,7 @@ export function HomeCategorySections({
       </section>
 
       {/* ⌨️ 6. MECHANICAL KEYBOARDS & WORKSPACE */}
-      <section className="max-w-7xl lg:max-w-[85vw] xl:max-w-[85vw] min-[2560px]:max-w-[75vw] mx-auto px-3 sm:px-6 lg:px-8">
+      <section className="max-w-7xl lg:max-w-[85vw] xl:max-w-[85vw] min-[2560px]:max-w-[75vw] min-[4000px]:max-w-[70vw] mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-3 sm:mb-5">
           <div>
             <div className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider mb-0.5">
@@ -116,12 +118,13 @@ export function HomeCategorySections({
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-6 min-[2400px]:grid-cols-7 gap-2.5 sm:gap-3.5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5 min-[1800px]:grid-cols-7 min-[4000px]:grid-cols-8 gap-2.5 sm:gap-3.5">
           {peripheralProducts.map((prod, idx) => {
             const visibilityClass =
               idx < 5 ? 'block' :
-              idx === 5 ? 'block lg:hidden 2xl:block' :
-              'hidden min-[2400px]:block';
+              idx === 5 ? 'block lg:hidden min-[1800px]:block' :
+              idx === 6 ? 'hidden min-[1800px]:block' :
+              'hidden min-[4000px]:block';
 
             return (
               <div key={prod._id} className={visibilityClass}>
@@ -133,7 +136,7 @@ export function HomeCategorySections({
       </section>
 
       {/* 🏠 7. SMART HOME & CREATOR GEAR */}
-      <section className="max-w-7xl lg:max-w-[85vw] xl:max-w-[85vw] min-[2560px]:max-w-[75vw] mx-auto px-3 sm:px-6 lg:px-8">
+      <section className="max-w-7xl lg:max-w-[85vw] xl:max-w-[85vw] min-[2560px]:max-w-[75vw] min-[4000px]:max-w-[70vw] mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-3 sm:mb-5">
           <div>
             <div className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider mb-0.5">
@@ -149,12 +152,13 @@ export function HomeCategorySections({
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-6 min-[2400px]:grid-cols-7 gap-2.5 sm:gap-3.5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5 min-[1800px]:grid-cols-7 min-[4000px]:grid-cols-8 gap-2.5 sm:gap-3.5">
           {creatorProducts.map((prod, idx) => {
             const visibilityClass =
               idx < 5 ? 'block' :
-              idx === 5 ? 'block lg:hidden 2xl:block' :
-              'hidden min-[2400px]:block';
+              idx === 5 ? 'block lg:hidden min-[1800px]:block' :
+              idx === 6 ? 'hidden min-[1800px]:block' :
+              'hidden min-[4000px]:block';
 
             return (
               <div key={prod._id} className={visibilityClass}>

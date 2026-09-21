@@ -38,7 +38,7 @@ export function FlashDealsSection({ products }: FlashDealsSectionProps) {
   const secondsStr = String(timeLeft.seconds).padStart(2, '0');
 
   return (
-    <section className="max-w-7xl lg:max-w-[85vw] xl:max-w-[85vw] min-[2560px]:max-w-[75vw] mx-auto px-3 sm:px-6 lg:px-8">
+    <section className="max-w-7xl lg:max-w-[85vw] xl:max-w-[85vw] min-[2560px]:max-w-[75vw] min-[4000px]:max-w-[70vw] mx-auto px-3 sm:px-6 lg:px-8">
       <div className="p-3.5 sm:p-6 rounded-3xl bg-linear-to-r from-orange-50/80 via-white to-amber-50/60 dark:from-amber-500/10 dark:via-orange-500/10 dark:to-rose-500/10 border border-orange-200 dark:border-orange-500/20 shadow-sm backdrop-blur-xl">
         <div className="flex items-center justify-between gap-2 mb-3.5 sm:mb-5">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
@@ -81,12 +81,13 @@ export function FlashDealsSection({ products }: FlashDealsSectionProps) {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-6 min-[2400px]:grid-cols-7 gap-2.5 sm:gap-3.5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5 min-[1800px]:grid-cols-7 min-[4000px]:grid-cols-8 gap-2.5 sm:gap-3.5">
           {products.map((prod, idx) => {
             const visibilityClass =
               idx < 5 ? 'block' :
-              idx === 5 ? 'block lg:hidden 2xl:block' :
-              'hidden min-[2400px]:block';
+              idx === 5 ? 'block lg:hidden min-[1800px]:block' :
+              idx === 6 ? 'hidden min-[1800px]:block' :
+              'hidden min-[4000px]:block';
 
             return (
               <div key={prod._id} className={visibilityClass}>

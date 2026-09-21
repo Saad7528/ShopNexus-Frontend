@@ -40,7 +40,7 @@ export default function NotFound() {
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none -z-10" />
 
       {/* 🌟 1. Top Bar Controls (Logo on left, Language + Theme Toggle on right) */}
-      <header className="w-full max-w-7xl lg:max-w-[85vw] xl:max-w-[85vw] min-[2560px]:max-w-[75vw] mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between z-20">
+      <header className="w-full max-w-7xl lg:max-w-[85vw] xl:max-w-[85vw] min-[2560px]:max-w-[75vw] min-[4000px]:max-w-[70vw] mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between z-20">
         <BrandLogo size="md" className="transform hover:scale-105 transition-transform duration-300" />
 
         <div className="flex items-center gap-2.5">

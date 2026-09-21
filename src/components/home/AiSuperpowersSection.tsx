@@ -70,7 +70,7 @@ export function AiSuperpowersSection() {
   const isBn = mounted && language === 'bn';
 
   return (
-    <section className="max-w-7xl lg:max-w-[85vw] xl:max-w-[85vw] min-[2560px]:max-w-[75vw] mx-auto px-3 sm:px-6 lg:px-8">
+    <section className="max-w-7xl lg:max-w-[85vw] xl:max-w-[85vw] min-[2560px]:max-w-[75vw] min-[4000px]:max-w-[70vw] mx-auto px-3 sm:px-6 lg:px-8">
       <div className="p-4 sm:p-8 rounded-3xl bg-slate-100/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow-sm backdrop-blur-xl">
         <div className="text-center max-w-2xl mx-auto mb-4 sm:mb-8">
           <span className="px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-600 dark:text-orange-400 text-xs font-bold uppercase tracking-wider">

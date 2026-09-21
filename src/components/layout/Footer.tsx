@@ -105,7 +105,7 @@ export const Footer: React.FC = () => {
 
   return (
     <footer className="border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 mt-10 sm:mt-12">
-      <div className="max-w-7xl lg:max-w-[85vw] xl:max-w-[85vw] min-[2560px]:max-w-[75vw] mx-auto px-4 sm:px-6 lg:px-8 py-7 sm:py-9">
+      <div className="max-w-7xl lg:max-w-[85vw] xl:max-w-[85vw] min-[2560px]:max-w-[75vw] min-[4000px]:max-w-[70vw] mx-auto px-4 sm:px-6 lg:px-8 py-7 sm:py-9">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-7 lg:gap-9">
           {/* 1. Brand Column */}
           <div className="space-y-3">

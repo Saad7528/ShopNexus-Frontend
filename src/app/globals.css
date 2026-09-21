@@ -198,3 +198,10 @@ html.dark .animate-shimmer {
   }
 }
 
+/* 8K Displays (>= 4000px) */
+@media (min-width: 4000px) {
+  .sn-container {
+    width: 70% !important;
+    max-width: 70vw !important;
+  }
+}
