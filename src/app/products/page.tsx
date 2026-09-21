@@ -263,7 +263,7 @@ export default function ProductsPage() {
   return (
     <Suspense
       fallback={
-        <div className="max-w-7xl mx-auto px-4 py-20 text-center text-slate-400 text-sm">
+        <div className="max-w-7xl 2xl:max-w-[1600px] 3xl:max-w-[1780px] min-[2000px]:max-w-[86vw] mx-auto px-4 py-20 text-center text-slate-400 text-sm">
           Loading official hardware catalog...
         </div>
       }

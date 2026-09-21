@@ -111,7 +111,7 @@ export default async function VendorShopPage({ params }: ShopPageProps) {
             <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Store Catalog ({storeProducts.length} Items)</h2>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 3xl:grid-cols-5 gap-4 sm:gap-6">
             {storeProducts.map((product) => (
               <div
                 key={product.id}
