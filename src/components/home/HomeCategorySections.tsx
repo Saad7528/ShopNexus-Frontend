@@ -50,9 +50,9 @@ export function HomeCategorySections({
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-6 min-[2560px]:grid-cols-7 gap-2.5 sm:gap-3.5">
+        <div className="home-products-grid">
           {audioProducts.map((prod, idx) => (
-            <div key={prod._id} className={idx === 6 ? 'hidden min-[2560px]:block' : 'block'}>
+            <div key={prod._id} className={idx === 6 ? 'home-product-7th' : ''}>
               <ProductCard product={prod} />
             </div>
           ))}
@@ -76,9 +76,9 @@ export function HomeCategorySections({
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-6 min-[2560px]:grid-cols-7 gap-2.5 sm:gap-3.5">
+        <div className="home-products-grid">
           {wearableProducts.map((prod, idx) => (
-            <div key={prod._id} className={idx === 6 ? 'hidden min-[2560px]:block' : 'block'}>
+            <div key={prod._id} className={idx === 6 ? 'home-product-7th' : ''}>
               <ProductCard product={prod} />
             </div>
           ))}
@@ -102,9 +102,9 @@ export function HomeCategorySections({
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-6 min-[2560px]:grid-cols-7 gap-2.5 sm:gap-3.5">
+        <div className="home-products-grid">
           {peripheralProducts.map((prod, idx) => (
-            <div key={prod._id} className={idx === 6 ? 'hidden min-[2560px]:block' : 'block'}>
+            <div key={prod._id} className={idx === 6 ? 'home-product-7th' : ''}>
               <ProductCard product={prod} />
             </div>
           ))}
@@ -128,9 +128,9 @@ export function HomeCategorySections({
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-6 min-[2560px]:grid-cols-7 gap-2.5 sm:gap-3.5">
+        <div className="home-products-grid">
           {creatorProducts.map((prod, idx) => (
-            <div key={prod._id} className={idx === 6 ? 'hidden min-[2560px]:block' : 'block'}>
+            <div key={prod._id} className={idx === 6 ? 'home-product-7th' : ''}>
               <ProductCard product={prod} />
             </div>
           ))}

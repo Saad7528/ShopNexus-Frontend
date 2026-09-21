@@ -233,7 +233,7 @@ function ProductsContent() {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 min-[1800px]:grid-cols-5 min-[2560px]:grid-cols-6 min-[4000px]:grid-cols-7 gap-2.5 sm:gap-3.5">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 min-[1800px]:grid-cols-5 min-[2560px]:grid-cols-6 catalog-products-grid gap-2.5 sm:gap-3.5">
               {products.map((product) => (
                 <ProductCard key={product._id} product={product} />
               ))}

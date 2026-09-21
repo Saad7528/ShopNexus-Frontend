@@ -205,3 +205,46 @@ html.dark .animate-shimmer {
     max-width: 70vw !important;
   }
 }
+
+/* 📺 4K & 8K Deterministic Single-Row Grids (>= 1920px / 2560px) */
+.home-products-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.625rem;
+}
+
+@media (min-width: 640px) {
+  .home-products-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.875rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .home-products-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 2000px) {
+  .home-products-grid {
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+  }
+}
+
+.home-product-7th {
+  display: none !important;
+}
+
+@media (min-width: 2000px) {
+  .home-product-7th {
+    display: block !important;
+  }
+}
+
+/* 📦 Catalog 6-Column Grid for 4K / 8K */
+@media (min-width: 2000px) {
+  .catalog-products-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  }
+}
