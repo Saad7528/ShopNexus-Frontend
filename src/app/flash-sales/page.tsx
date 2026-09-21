@@ -109,7 +109,7 @@ export default function FlashSalesPage() {
       </div>
 
       {/* Compact Responsive Product Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 2xl:grid-cols-6 gap-3.5 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 2xl:grid-cols-6 min-[2400px]:grid-cols-7 gap-3.5 sm:gap-4">
         {flashProducts.map((product) => (
           <ProductCard key={product._id} product={product} />
         ))}
