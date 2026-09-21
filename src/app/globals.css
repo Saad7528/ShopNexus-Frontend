@@ -163,98 +163,154 @@ html.dark .animate-shimmer {
   animation: shimmerWave 1.8s infinite ease-in-out;
 }
 
-/* Responsive Dynamic Wide-Screen Container Utilities (80-85% coverage on 2K/4K/Ultrawide) */
-.nexus-container {
+/* ShopNexus Golden Ratio Responsive Containers */
+.sn-container {
   width: 100%;
+  max-width: 80rem;
   margin-left: auto;
   margin-right: auto;
   padding-left: 1rem;
   padding-right: 1rem;
-  max-width: 100%;
 }
 
 @media (min-width: 640px) {
-  .nexus-container {
+  .sn-container {
     padding-left: 1.5rem;
     padding-right: 1.5rem;
   }
 }
 
-@media (min-width: 1024px) {
-  .nexus-container {
+/* 1024px - 1200px: 100% width with balanced side padding */
+@media (min-width: 1024px) and (max-width: 1200px) {
+  .sn-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+  }
+
+  section.max-w-7xl,
+  div.max-w-7xl,
+  header.max-w-7xl {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+/* 1201px – 2559px: Exactly 85% width */
+@media (min-width: 1201px) {
+  .sn-container {
+    width: 85% !important;
+    max-width: 85vw !important;
     padding-left: 2rem;
     padding-right: 2rem;
-    max-width: 1280px;
   }
 }
 
-@media (min-width: 1440px) {
-  .nexus-container {
-    padding-left: 2.5rem;
-    padding-right: 2.5rem;
-    max-width: 1480px;
+/* Ultra-Wide and 4K Displays (>= 2560px) */
+@media (min-width: 2560px) {
+  .sn-container {
+    width: 75% !important;
+    max-width: 75vw !important;
   }
 }
 
-@media (min-width: 1680px) {
-  .nexus-container {
-    padding-left: 3rem;
-    padding-right: 3rem;
-    max-width: 1680px;
+/* 8K Displays (>= 4000px) */
+@media (min-width: 4000px) {
+  .sn-container {
+    width: 70% !important;
+    max-width: 70vw !important;
   }
 }
 
-@media (min-width: 1920px) {
-  .nexus-container {
-    max-width: 85vw;
-  }
-}
-
-/* Wide Container for Admin Tables, Dashboards & Big Hubs */
-.nexus-container-wide {
-  width: 100%;
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: 1rem;
-  padding-right: 1rem;
-  max-width: 100%;
+/* 📺 Responsive Single-Row Grids */
+.home-products-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.625rem;
 }
 
 @media (min-width: 640px) {
-  .nexus-container-wide {
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
+  .home-products-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.875rem;
   }
 }
 
+/* 1024px - 1439px: EXACTLY 5 COLUMNS */
 @media (min-width: 1024px) {
-  .nexus-container-wide {
-    padding-left: 2rem;
-    padding-right: 2rem;
-    max-width: 1400px;
+  .home-products-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 }
 
+/* 1440px - 1999px: EXACTLY 6 COLUMNS */
 @media (min-width: 1440px) {
-  .nexus-container-wide {
-    padding-left: 2.5rem;
-    padding-right: 2.5rem;
-    max-width: 1600px;
+  .home-products-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 }
 
-@media (min-width: 1680px) {
-  .nexus-container-wide {
-    padding-left: 3rem;
-    padding-right: 3rem;
-    max-width: 1780px;
+/* >= 2000px: EXACTLY 7 COLUMNS */
+@media (min-width: 2000px) {
+  .home-products-grid {
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
   }
 }
 
-@media (min-width: 1920px) {
-  .nexus-container-wide {
-    max-width: 88vw;
+/* 6th Card: visible on mobile & tablet, HIDDEN on 1024px-1439px, visible on >=1440px */
+.home-product-6th {
+  display: block;
+}
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .home-product-6th {
+    display: none !important;
   }
 }
 
+/* 7th Card: HIDDEN everywhere except >= 2000px */
+.home-product-7th {
+  display: none !important;
+}
+
+@media (min-width: 2000px) {
+  .home-product-7th {
+    display: block !important;
+  }
+}
+
+/* 📦 Catalog (/products) Grids */
+.catalog-products-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.625rem;
+}
+
+@media (min-width: 640px) {
+  .catalog-products-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.875rem;
+  }
+}
+
+/* 1024px - 1439px: EXACTLY 4 COLUMNS */
+@media (min-width: 1024px) {
+  .catalog-products-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
+
+/* 1440px - 1999px: EXACTLY 5 COLUMNS */
+@media (min-width: 1440px) {
+  .catalog-products-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  }
+}
+
+/* >= 2000px (4K / 8K): EXACTLY 6 COLUMNS */
+@media (min-width: 2000px) {
+  .catalog-products-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  }
+}
 

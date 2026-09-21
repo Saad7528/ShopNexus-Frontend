@@ -23,7 +23,7 @@ export default function VendorDashboardPage() {
   return (
     <RoleGuard allowedRoles={['vendor', 'admin']}>
       <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f19] text-slate-900 dark:text-white p-6 md:p-10">
-        <div className="max-w-7xl 2xl:max-w-[1600px] 3xl:max-w-[1780px] min-[2000px]:max-w-[86vw] mx-auto space-y-8">
+        <div className="max-w-7xl lg:max-w-[85vw] xl:max-w-[85vw] min-[2560px]:max-w-[75vw] min-[4000px]:max-w-[70vw] mx-auto space-y-8">
           {/* Header with Store Banner Preview */}
           <div className="relative rounded-3xl overflow-hidden border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/50 backdrop-blur-xl shadow-sm">
             <div className="relative h-48 md:h-64 w-full bg-slate-200 dark:bg-slate-800">
