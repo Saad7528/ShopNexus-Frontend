@@ -50,9 +50,11 @@ export function HomeCategorySections({
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-6 gap-2.5 sm:gap-3.5">
-          {audioProducts.map((prod) => (
-            <ProductCard key={prod._id} product={prod} />
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-6 min-[2560px]:grid-cols-7 gap-2.5 sm:gap-3.5">
+          {audioProducts.map((prod, idx) => (
+            <div key={prod._id} className={idx === 6 ? 'hidden min-[2560px]:block' : 'block'}>
+              <ProductCard product={prod} />
+            </div>
           ))}
         </div>
       </section>
@@ -74,9 +76,11 @@ export function HomeCategorySections({
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-6 gap-2.5 sm:gap-3.5">
-          {wearableProducts.map((prod) => (
-            <ProductCard key={prod._id} product={prod} />
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-6 min-[2560px]:grid-cols-7 gap-2.5 sm:gap-3.5">
+          {wearableProducts.map((prod, idx) => (
+            <div key={prod._id} className={idx === 6 ? 'hidden min-[2560px]:block' : 'block'}>
+              <ProductCard product={prod} />
+            </div>
           ))}
         </div>
       </section>
@@ -98,9 +102,11 @@ export function HomeCategorySections({
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-6 gap-2.5 sm:gap-3.5">
-          {peripheralProducts.map((prod) => (
-            <ProductCard key={prod._id} product={prod} />
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-6 min-[2560px]:grid-cols-7 gap-2.5 sm:gap-3.5">
+          {peripheralProducts.map((prod, idx) => (
+            <div key={prod._id} className={idx === 6 ? 'hidden min-[2560px]:block' : 'block'}>
+              <ProductCard product={prod} />
+            </div>
           ))}
         </div>
       </section>
@@ -122,9 +128,11 @@ export function HomeCategorySections({
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-6 gap-2.5 sm:gap-3.5">
-          {creatorProducts.map((prod) => (
-            <ProductCard key={prod._id} product={prod} />
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-6 min-[2560px]:grid-cols-7 gap-2.5 sm:gap-3.5">
+          {creatorProducts.map((prod, idx) => (
+            <div key={prod._id} className={idx === 6 ? 'hidden min-[2560px]:block' : 'block'}>
+              <ProductCard product={prod} />
+            </div>
           ))}
         </div>
       </section>
