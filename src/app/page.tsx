@@ -51,7 +51,7 @@ export default function HomePage() {
       <AiSuperpowersSection />
 
       {/* 💬 9. CUSTOMER REVIEWS & 3D TESTIMONIAL SLIDER */}
-      <section className="max-w-7xl xl:max-w-[85vw] min-[2560px]:max-w-[75vw] mx-auto px-3 sm:px-6 lg:px-8">
+      <section className="max-w-7xl lg:max-w-[85vw] xl:max-w-[85vw] min-[2560px]:max-w-[75vw] mx-auto px-3 sm:px-6 lg:px-8">
         <TestimonialSlider />
       </section>
 

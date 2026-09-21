@@ -381,7 +381,7 @@ function CheckoutContent() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f19] text-slate-900 dark:text-white p-4 sm:p-6 md:p-10">
-      <div className="max-w-7xl xl:max-w-[85vw] min-[2560px]:max-w-[75vw] mx-auto space-y-8">
+      <div className="max-w-7xl lg:max-w-[85vw] xl:max-w-[85vw] min-[2560px]:max-w-[75vw] mx-auto space-y-8">
         {/* Top bar */}
         <div className="flex items-center justify-between">
           <Link

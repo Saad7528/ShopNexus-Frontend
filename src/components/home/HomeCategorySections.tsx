@@ -34,7 +34,7 @@ export function HomeCategorySections({
   return (
     <div className="space-y-6 sm:space-y-12">
       {/* 🎧 4. AUDIO & ACOUSTICS SECTION */}
-      <section className="max-w-7xl xl:max-w-[85vw] min-[2560px]:max-w-[75vw] mx-auto px-3 sm:px-6 lg:px-8">
+      <section className="max-w-7xl lg:max-w-[85vw] xl:max-w-[85vw] min-[2560px]:max-w-[75vw] mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-3 sm:mb-5">
           <div>
             <div className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider mb-0.5">
@@ -64,7 +64,7 @@ export function HomeCategorySections({
       </section>
 
       {/* ⌚ 5. TITANIUM WEARABLES & WATCHES */}
-      <section className="max-w-7xl xl:max-w-[85vw] min-[2560px]:max-w-[75vw] mx-auto px-3 sm:px-6 lg:px-8">
+      <section className="max-w-7xl lg:max-w-[85vw] xl:max-w-[85vw] min-[2560px]:max-w-[75vw] mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-3 sm:mb-5">
           <div>
             <div className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider mb-0.5">
@@ -94,7 +94,7 @@ export function HomeCategorySections({
       </section>
 
       {/* ⌨️ 6. MECHANICAL KEYBOARDS & WORKSPACE */}
-      <section className="max-w-7xl xl:max-w-[85vw] min-[2560px]:max-w-[75vw] mx-auto px-3 sm:px-6 lg:px-8">
+      <section className="max-w-7xl lg:max-w-[85vw] xl:max-w-[85vw] min-[2560px]:max-w-[75vw] mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-3 sm:mb-5">
           <div>
             <div className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider mb-0.5">
@@ -124,7 +124,7 @@ export function HomeCategorySections({
       </section>
 
       {/* 🏠 7. SMART HOME & CREATOR GEAR */}
-      <section className="max-w-7xl xl:max-w-[85vw] min-[2560px]:max-w-[75vw] mx-auto px-3 sm:px-6 lg:px-8">
+      <section className="max-w-7xl lg:max-w-[85vw] xl:max-w-[85vw] min-[2560px]:max-w-[75vw] mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-3 sm:mb-5">
           <div>
             <div className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider mb-0.5">

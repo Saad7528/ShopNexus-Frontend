@@ -38,7 +38,7 @@ export function FlashDealsSection({ products }: FlashDealsSectionProps) {
   const secondsStr = String(timeLeft.seconds).padStart(2, '0');
 
   return (
-    <section className="max-w-7xl xl:max-w-[85vw] min-[2560px]:max-w-[75vw] mx-auto px-3 sm:px-6 lg:px-8">
+    <section className="max-w-7xl lg:max-w-[85vw] xl:max-w-[85vw] min-[2560px]:max-w-[75vw] mx-auto px-3 sm:px-6 lg:px-8">
       <div className="p-3.5 sm:p-6 rounded-3xl bg-linear-to-r from-orange-50/80 via-white to-amber-50/60 dark:from-amber-500/10 dark:via-orange-500/10 dark:to-rose-500/10 border border-orange-200 dark:border-orange-500/20 shadow-sm backdrop-blur-xl">
         <div className="flex items-center justify-between gap-2 mb-3.5 sm:mb-5">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">

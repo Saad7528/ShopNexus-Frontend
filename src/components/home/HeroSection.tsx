@@ -320,7 +320,7 @@ export const HeroSection: React.FC = () => {
   return (
     <div className="space-y-2.5 mt-2.5 sm:mt-3.5 sm:space-y-3.5 relative">
       {/* 🔔 1. LIVE SOCIAL PROOF TICKER */}
-      <section className="max-w-7xl xl:max-w-[85vw] min-[2560px]:max-w-[75vw] mx-auto px-3 sm:px-6 lg:px-8">
+      <section className="max-w-7xl lg:max-w-[85vw] xl:max-w-[85vw] min-[2560px]:max-w-[75vw] mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-3 px-3.5 py-1.5 rounded-xl bg-orange-500/10 dark:bg-orange-500/15 border border-orange-500/25 text-[11px] sm:text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-xs backdrop-blur-md">
           <div className="min-w-0 truncate">
             <span>{mounted ? liveNotices[noticeIndex] : '🔥 Live Shopping Drops'}</span>
@@ -335,7 +335,7 @@ export const HeroSection: React.FC = () => {
       </section>
 
       {/* 🌟 2. ANIMATED MEGA CAMPAIGN BANNER */}
-      <section className="max-w-7xl xl:max-w-[85vw] min-[2560px]:max-w-[75vw] mx-auto px-3 sm:px-6 lg:px-8">
+      <section className="max-w-7xl lg:max-w-[85vw] xl:max-w-[85vw] min-[2560px]:max-w-[75vw] mx-auto px-3 sm:px-6 lg:px-8">
         <div className="relative overflow-hidden rounded-2xl bg-linear-to-r from-[#ffaa00] via-[#ff7700] to-[#ff3300] p-2.5 sm:p-3 text-white shadow-md shadow-orange-500/20 border border-amber-300/40">
           <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/15 to-transparent -translate-x-full animate-[shimmer_3s_infinite]" />
 
@@ -384,7 +384,7 @@ export const HeroSection: React.FC = () => {
       <section
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
-        className="hidden lg:block relative max-w-7xl xl:max-w-[85vw] min-[2560px]:max-w-[75vw] mx-auto px-4 sm:px-6 lg:px-8"
+        className="hidden lg:block relative max-w-7xl lg:max-w-[85vw] xl:max-w-[85vw] min-[2560px]:max-w-[75vw] mx-auto px-4 sm:px-6 lg:px-8"
       >
         <div className="grid grid-cols-12 gap-3.5 items-stretch">
           {/* 🌟 8 COLS (2/3 WIDTH): Main Campaign Mega Slider (Big Product Image & 3s Transition) */}
@@ -692,7 +692,7 @@ export const HeroSection: React.FC = () => {
 
 
       {/* 🌟 4. ONE-TAP CATEGORY FILTER CHIPS */}
-      <section className="max-w-7xl xl:max-w-[85vw] min-[2560px]:max-w-[75vw] mx-auto px-3 sm:px-6 lg:px-8">
+      <section className="max-w-7xl lg:max-w-[85vw] xl:max-w-[85vw] min-[2560px]:max-w-[75vw] mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
           <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider shrink-0 mr-1 hidden sm:inline">
             {isBn ? 'কুইক এক্সপ্লোর:' : 'Quick Explore:'}

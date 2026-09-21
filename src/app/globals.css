@@ -180,18 +180,13 @@ html.dark .animate-shimmer {
   }
 }
 
+/* Laptop, Desktop, Full HD (1080p), 2K Displays (1024px – 2559px) */
 @media (min-width: 1024px) {
-  .sn-container {
-    padding-left: 2rem;
-    padding-right: 2rem;
-  }
-}
-
-/* Laptop, Full HD (1080p), 2K Displays (1280px – 2559px) */
-@media (min-width: 1280px) {
   .sn-container {
     width: 85% !important;
     max-width: 85vw !important;
+    padding-left: 2rem;
+    padding-right: 2rem;
   }
 }
 
