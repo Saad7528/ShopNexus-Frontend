@@ -52,7 +52,7 @@ export function HomeCategorySections({
 
         <div className="home-products-grid">
           {audioProducts.map((prod, idx) => (
-            <div key={prod._id} className={idx === 6 ? 'home-product-7th' : ''}>
+            <div key={prod._id} className={idx === 5 ? 'home-product-6th' : idx === 6 ? 'home-product-7th' : ''}>
               <ProductCard product={prod} />
             </div>
           ))}
@@ -78,7 +78,7 @@ export function HomeCategorySections({
 
         <div className="home-products-grid">
           {wearableProducts.map((prod, idx) => (
-            <div key={prod._id} className={idx === 6 ? 'home-product-7th' : ''}>
+            <div key={prod._id} className={idx === 5 ? 'home-product-6th' : idx === 6 ? 'home-product-7th' : ''}>
               <ProductCard product={prod} />
             </div>
           ))}
@@ -104,7 +104,7 @@ export function HomeCategorySections({
 
         <div className="home-products-grid">
           {peripheralProducts.map((prod, idx) => (
-            <div key={prod._id} className={idx === 6 ? 'home-product-7th' : ''}>
+            <div key={prod._id} className={idx === 5 ? 'home-product-6th' : idx === 6 ? 'home-product-7th' : ''}>
               <ProductCard product={prod} />
             </div>
           ))}
@@ -130,7 +130,7 @@ export function HomeCategorySections({
 
         <div className="home-products-grid">
           {creatorProducts.map((prod, idx) => (
-            <div key={prod._id} className={idx === 6 ? 'home-product-7th' : ''}>
+            <div key={prod._id} className={idx === 5 ? 'home-product-6th' : idx === 6 ? 'home-product-7th' : ''}>
               <ProductCard product={prod} />
             </div>
           ))}

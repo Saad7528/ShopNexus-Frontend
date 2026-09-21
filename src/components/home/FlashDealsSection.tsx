@@ -83,7 +83,7 @@ export function FlashDealsSection({ products }: FlashDealsSectionProps) {
 
         <div className="home-products-grid">
           {products.map((prod, idx) => (
-            <div key={prod._id} className={idx === 6 ? 'home-product-7th' : ''}>
+            <div key={prod._id} className={idx === 5 ? 'home-product-6th' : idx === 6 ? 'home-product-7th' : ''}>
               <ProductCard product={prod} />
             </div>
           ))}
