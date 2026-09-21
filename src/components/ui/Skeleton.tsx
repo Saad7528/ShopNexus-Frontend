@@ -78,7 +78,7 @@ export function ProductGridSkeleton({ count = 8 }: { count?: number }) {
  */
 export function ProductDetailSkeleton() {
   return (
-    <div className="mx-auto max-w-7xl 2xl:max-w-[1600px] 3xl:max-w-[1780px] min-[2000px]:max-w-[86vw] px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl lg:max-w-[85vw] xl:max-w-[85vw] min-[2560px]:max-w-[75vw] min-[4000px]:max-w-[70vw] px-4 py-8 sm:px-6 lg:px-8">
       {/* Breadcrumb Skeleton */}
       <div className="mb-6 flex items-center gap-2">
         <Skeleton className="h-4 w-16" />

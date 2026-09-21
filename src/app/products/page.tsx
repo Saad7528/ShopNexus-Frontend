@@ -116,7 +116,7 @@ function ProductsContent() {
     (minPrice > 0 || (typeof maxPrice === 'number' && maxPrice < 150000) ? 1 : 0);
 
   return (
-    <div className="max-w-7xl 2xl:max-w-[1600px] 3xl:max-w-[1780px] min-[2000px]:max-w-[86vw] mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10">
+    <div className="max-w-7xl lg:max-w-[85vw] xl:max-w-[85vw] min-[2560px]:max-w-[75vw] min-[4000px]:max-w-[70vw] mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10">
       {/* Header Banner */}
       <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-orange-50/90 via-white to-amber-50/60 dark:from-[#0b1120] dark:via-slate-900 dark:to-[#090d16] border border-orange-200 dark:border-orange-500/20 p-5 sm:p-10 mb-6 sm:mb-10 shadow-xl backdrop-blur-2xl">
         <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -233,7 +233,7 @@ function ProductsContent() {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 3xl:grid-cols-5 gap-2.5 sm:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 min-[1800px]:grid-cols-5 min-[2560px]:grid-cols-6 catalog-products-grid gap-2.5 sm:gap-3.5">
               {products.map((product) => (
                 <ProductCard key={product._id} product={product} />
               ))}

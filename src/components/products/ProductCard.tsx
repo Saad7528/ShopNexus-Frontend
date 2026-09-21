@@ -275,18 +275,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       </div>
 
       {/* 2. Compact Product Details */}
-      <div className="flex flex-col flex-1 p-2 sm:p-2.5 justify-between gap-1 sm:gap-1.5">
+      <div className="flex flex-col flex-1 p-2 sm:p-2.5 min-[2400px]:p-3 justify-between gap-1 sm:gap-1.5">
         <div>
           {/* Product Title */}
           <h3
-            className="font-bold text-slate-900 dark:text-slate-100 group-hover:text-orange-600 dark:group-hover:text-orange-400 line-clamp-2 text-[10.5px] sm:text-xs tracking-tight leading-snug transition-colors mb-0.5"
+            className="font-bold text-slate-900 dark:text-slate-100 group-hover:text-orange-600 dark:group-hover:text-orange-400 line-clamp-2 text-[10.5px] sm:text-xs min-[2400px]:text-sm tracking-tight leading-snug transition-colors mb-0.5"
             title={productTitle}
           >
             {productTitle}
           </h3>
           {isCombo && (
             <p 
-              className="text-[9px] text-orange-600 dark:text-orange-400 font-medium line-clamp-1 mb-0.5"
+              className="text-[9px] min-[2400px]:text-xs text-orange-600 dark:text-orange-400 font-medium line-clamp-1 mb-0.5"
               title={localized ? localized.description : product.description}
             >
               {localized ? localized.description : (language === 'bn' ? product.description : (product.description_en || 'Special curated hardware combo bundle.'))}
@@ -296,12 +296,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           {/* Rating */}
           <div className="flex items-center gap-1">
             <div className="flex items-center text-amber-500 dark:text-amber-400">
-              <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-amber-500 dark:fill-amber-400" />
-              <span className="ml-0.5 text-[9px] sm:text-[10px] font-bold text-slate-700 dark:text-slate-200">
+              <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 min-[2400px]:w-3.5 min-[2400px]:h-3.5 fill-amber-500 dark:fill-amber-400" />
+              <span className="ml-0.5 text-[9px] sm:text-[10px] min-[2400px]:text-xs font-bold text-slate-700 dark:text-slate-200">
                 {localized ? localized.ratingFormatted : (product.averageRating ?? 5.0).toFixed(1)}
               </span>
             </div>
-            <span className="text-[8.5px] sm:text-[9px] text-slate-400 dark:text-slate-500">
+            <span className="text-[8.5px] sm:text-[9px] min-[2400px]:text-[10px] text-slate-400 dark:text-slate-500">
               ({localized ? localized.reviewsFormatted : (product.totalReviews ?? 0)})
             </span>
           </div>
@@ -310,16 +310,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         {/* 3. Price & Action Buttons */}
         <div className="pt-1 border-t border-slate-100 dark:border-slate-800/60 space-y-1">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-xs sm:text-sm font-black text-slate-900 dark:text-white font-mono">
+            <span className="text-xs sm:text-sm min-[2400px]:text-base font-black text-slate-900 dark:text-white font-mono">
               {mounted ? formatCurrency(displayPrice, language) : `৳${displayPrice.toLocaleString()}`}
             </span>
             {hasDiscount && (
-              <span className="text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-500 line-through font-mono">
+              <span className="text-[9px] sm:text-[10px] min-[2400px]:text-xs text-slate-400 dark:text-slate-500 line-through font-mono">
                 {mounted ? formatCurrency(originalPrice, language) : `৳${originalPrice.toLocaleString()}`}
               </span>
             )}
             {hasDiscount && discountPercent > 0 && (
-              <span className="ml-auto text-[8.5px] sm:text-[9px] font-extrabold px-1.5 py-0.5 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 font-mono leading-none">
+              <span className="ml-auto text-[8.5px] sm:text-[9px] min-[2400px]:text-[10px] font-extrabold px-1.5 py-0.5 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 font-mono leading-none">
                 {mounted && language === 'bn' ? `-${toBengaliNumber(discountPercent)}%` : `-${discountPercent}%`}
               </span>
             )}
@@ -329,7 +329,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             <button
               type="button"
               onClick={handleToggleWishlist}
-              className={`w-full flex items-center justify-center gap-1.5 py-1.5 sm:py-2 px-2 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-bold border transition-all cursor-pointer active:scale-95 whitespace-nowrap ${
+              className={`w-full flex items-center justify-center gap-1.5 py-1.5 sm:py-2 min-[2400px]:py-2.5 px-2 rounded-md sm:rounded-lg text-[10px] sm:text-xs min-[2400px]:text-sm font-bold border transition-all cursor-pointer active:scale-95 whitespace-nowrap ${
                 isFavorite
                   ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-400 text-rose-600 dark:text-rose-400'
                   : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700/80 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200'
@@ -348,7 +348,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               <button
                 type="button"
                 onClick={handleBuyNow}
-                className="flex items-center justify-center gap-0.5 py-1 sm:py-1.5 px-1 sm:px-2 rounded-md sm:rounded-lg bg-linear-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white text-[9px] sm:text-xs font-bold shadow-xs shadow-orange-500/25 transition-all cursor-pointer active:scale-95 whitespace-nowrap"
+                className="flex items-center justify-center gap-0.5 py-1 sm:py-1.5 min-[2400px]:py-2 px-1 sm:px-2 min-[2400px]:px-3 rounded-md sm:rounded-lg bg-linear-to-r from-[#ff4400] to-[#ff7700] hover:from-[#e63d00] hover:to-[#ff6600] text-white text-[9px] sm:text-xs min-[2400px]:text-xs font-bold shadow-xs shadow-orange-500/25 transition-all cursor-pointer active:scale-95 whitespace-nowrap"
                 title={mounted ? t('btn_buy_now') : 'Buy Now'}
               >
                 <Zap className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-current" />
@@ -359,7 +359,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               <button
                 type="button"
                 onClick={handleAddToCart}
-                className={`flex items-center justify-center gap-0.5 py-1 sm:py-1.5 px-1 sm:px-2 rounded-md sm:rounded-lg text-[9px] sm:text-xs font-bold border transition-all cursor-pointer active:scale-95 whitespace-nowrap ${
+                className={`flex items-center justify-center gap-0.5 py-1 sm:py-1.5 min-[2400px]:py-2 px-1 sm:px-2 min-[2400px]:px-3 rounded-md sm:rounded-lg text-[9px] sm:text-xs min-[2400px]:text-xs font-bold border transition-all cursor-pointer active:scale-95 whitespace-nowrap ${
                   isButtonAdded
                     ? 'bg-emerald-600 border-emerald-600 text-white shadow-xs shadow-emerald-600/25'
                     : 'border-orange-500/30 bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400'
