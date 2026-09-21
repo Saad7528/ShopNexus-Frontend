@@ -180,8 +180,25 @@ html.dark .animate-shimmer {
   }
 }
 
-/* Laptop, Desktop, Full HD (1080p), 2K Displays (1024px – 2559px) */
-@media (min-width: 1024px) {
+/* 1024px - 1200px: 100% width with balanced side padding */
+@media (min-width: 1024px) and (max-width: 1200px) {
+  .sn-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+  }
+
+  section.max-w-7xl,
+  div.max-w-7xl,
+  header.max-w-7xl {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+/* 1201px – 2559px: Exactly 85% width */
+@media (min-width: 1201px) {
   .sn-container {
     width: 85% !important;
     max-width: 85vw !important;
