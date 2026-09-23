@@ -108,7 +108,7 @@ export default function AdminOrdersPage() {
           },
         }).catch(() => null);
 
-        if ((!res || !res.ok) && API_URL && !API_URL.startsWith('/api') && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+        if ((!res || !res.ok) && API_URL && !API_URL.startsWith('/api')) {
           res = await fetch(`${API_URL}/admin/orders`, {
             headers: {
               ...(token ? { Authorization: `Bearer ${token}` } : {}),
