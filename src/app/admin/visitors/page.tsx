@@ -126,7 +126,7 @@ export default function VisitorAnalyticsPage() {
         const json = await res.json();
         if (json?.data) syncBackendSessions(json.data);
       }
-    } catch (_e) {}
+    } catch (_e) { }
     if (telemetryMode === 'demo') simulateLiveUpdate();
     setTimeout(() => {
       setIsRefreshing(false);
@@ -298,33 +298,33 @@ export default function VisitorAnalyticsPage() {
   const deviceData =
     telemetryMode === 'real'
       ? [
-          {
-            type: 'Desktop',
-            icon: Monitor,
-            count: desktopCount,
-            pct: totalSessionsCount > 0 ? Math.round((desktopCount / totalSessionsCount) * 100) : 0,
-            color: 'from-blue-500 to-indigo-500',
-          },
-          {
-            type: 'Mobile',
-            icon: Smartphone,
-            count: mobileCount,
-            pct: totalSessionsCount > 0 ? Math.round((mobileCount / totalSessionsCount) * 100) : 0,
-            color: 'from-orange-500 to-amber-500',
-          },
-          {
-            type: 'Tablet',
-            icon: Tablet,
-            count: tabletCount,
-            pct: totalSessionsCount > 0 ? Math.round((tabletCount / totalSessionsCount) * 100) : 0,
-            color: 'from-emerald-500 to-teal-500',
-          },
-        ]
+        {
+          type: 'Desktop',
+          icon: Monitor,
+          count: desktopCount,
+          pct: totalSessionsCount > 0 ? Math.round((desktopCount / totalSessionsCount) * 100) : 0,
+          color: 'from-blue-500 to-indigo-500',
+        },
+        {
+          type: 'Mobile',
+          icon: Smartphone,
+          count: mobileCount,
+          pct: totalSessionsCount > 0 ? Math.round((mobileCount / totalSessionsCount) * 100) : 0,
+          color: 'from-orange-500 to-amber-500',
+        },
+        {
+          type: 'Tablet',
+          icon: Tablet,
+          count: tabletCount,
+          pct: totalSessionsCount > 0 ? Math.round((tabletCount / totalSessionsCount) * 100) : 0,
+          color: 'from-emerald-500 to-teal-500',
+        },
+      ]
       : [
-          { type: 'Mobile', icon: Smartphone, count: Math.round(liveVisitorCount * 0.64), pct: 64, color: 'from-orange-500 to-amber-500' },
-          { type: 'Desktop', icon: Monitor, count: Math.round(liveVisitorCount * 0.29), pct: 29, color: 'from-blue-500 to-indigo-500' },
-          { type: 'Tablet', icon: Tablet, count: Math.round(liveVisitorCount * 0.07), pct: 7, color: 'from-emerald-500 to-teal-500' },
-        ];
+        { type: 'Mobile', icon: Smartphone, count: Math.round(liveVisitorCount * 0.64), pct: 64, color: 'from-orange-500 to-amber-500' },
+        { type: 'Desktop', icon: Monitor, count: Math.round(liveVisitorCount * 0.29), pct: 29, color: 'from-blue-500 to-indigo-500' },
+        { type: 'Tablet', icon: Tablet, count: Math.round(liveVisitorCount * 0.07), pct: 7, color: 'from-emerald-500 to-teal-500' },
+      ];
 
   // Dynamic OS Distribution
   const osDistribution = React.useMemo(() => {
@@ -392,42 +392,42 @@ export default function VisitorAnalyticsPage() {
   const countryData =
     telemetryMode === 'real'
       ? [
-          {
-            country: 'Bangladesh',
-            countryBn: 'বাংলাদেশ',
-            code: 'BD',
-            flag: '🇧🇩',
-            count: countryCounts['BD'] || 0,
-            pct: totalSessionsCount > 0 ? Math.round(((countryCounts['BD'] || 0) / totalSessionsCount) * 100) : 0,
-            isPrimary: true,
-          },
-          {
-            country: 'United States',
-            countryBn: 'যুক্তরাষ্ট্র',
-            code: 'US',
-            flag: '🇺🇸',
-            count: countryCounts['US'] || 0,
-            pct: totalSessionsCount > 0 ? Math.round(((countryCounts['US'] || 0) / totalSessionsCount) * 100) : 0,
-            isPrimary: false,
-          },
-          {
-            country: 'United Kingdom',
-            countryBn: 'যুক্তরাজ্য',
-            code: 'GB',
-            flag: '🇬🇧',
-            count: countryCounts['GB'] || 0,
-            pct: totalSessionsCount > 0 ? Math.round(((countryCounts['GB'] || 0) / totalSessionsCount) * 100) : 0,
-            isPrimary: false,
-          },
-        ]
+        {
+          country: 'Bangladesh',
+          countryBn: 'বাংলাদেশ',
+          code: 'BD',
+          flag: '🇧🇩',
+          count: countryCounts['BD'] || 0,
+          pct: totalSessionsCount > 0 ? Math.round(((countryCounts['BD'] || 0) / totalSessionsCount) * 100) : 0,
+          isPrimary: true,
+        },
+        {
+          country: 'United States',
+          countryBn: 'যুক্তরাষ্ট্র',
+          code: 'US',
+          flag: '🇺🇸',
+          count: countryCounts['US'] || 0,
+          pct: totalSessionsCount > 0 ? Math.round(((countryCounts['US'] || 0) / totalSessionsCount) * 100) : 0,
+          isPrimary: false,
+        },
+        {
+          country: 'United Kingdom',
+          countryBn: 'যুক্তরাজ্য',
+          code: 'GB',
+          flag: '🇬🇧',
+          count: countryCounts['GB'] || 0,
+          pct: totalSessionsCount > 0 ? Math.round(((countryCounts['GB'] || 0) / totalSessionsCount) * 100) : 0,
+          isPrimary: false,
+        },
+      ]
       : [
-          { country: 'Bangladesh', countryBn: 'বাংলাদেশ', code: 'BD', flag: '🇧🇩', count: Math.round(liveVisitorCount * 0.76), pct: 76, isPrimary: true },
-          { country: 'United States', countryBn: 'যুক্তরাষ্ট্র', code: 'US', flag: '🇺🇸', count: Math.round(liveVisitorCount * 0.11), pct: 11, isPrimary: false },
-          { country: 'United Kingdom', countryBn: 'যুক্তরাজ্য', code: 'GB', flag: '🇬🇧', count: Math.round(liveVisitorCount * 0.05), pct: 5, isPrimary: false },
-          { country: 'United Arab Emirates', countryBn: 'সংযুক্ত আরব আমিরাত', code: 'AE', flag: '🇦🇪', count: Math.round(liveVisitorCount * 0.04), pct: 4, isPrimary: false },
-          { country: 'Canada', countryBn: 'কানাডা', code: 'CA', flag: '🇨🇦', count: Math.round(liveVisitorCount * 0.02), pct: 2, isPrimary: false },
-          { country: 'Other Regions', countryBn: 'অন্যান্য আন্তর্জাতিক অঞ্চল', code: 'UN', flag: '🌐', count: Math.round(liveVisitorCount * 0.02), pct: 2, isPrimary: false },
-        ];
+        { country: 'Bangladesh', countryBn: 'বাংলাদেশ', code: 'BD', flag: '🇧🇩', count: Math.round(liveVisitorCount * 0.76), pct: 76, isPrimary: true },
+        { country: 'United States', countryBn: 'যুক্তরাষ্ট্র', code: 'US', flag: '🇺🇸', count: Math.round(liveVisitorCount * 0.11), pct: 11, isPrimary: false },
+        { country: 'United Kingdom', countryBn: 'যুক্তরাজ্য', code: 'GB', flag: '🇬🇧', count: Math.round(liveVisitorCount * 0.05), pct: 5, isPrimary: false },
+        { country: 'United Arab Emirates', countryBn: 'সংযুক্ত আরব আমিরাত', code: 'AE', flag: '🇦🇪', count: Math.round(liveVisitorCount * 0.04), pct: 4, isPrimary: false },
+        { country: 'Canada', countryBn: 'কানাডা', code: 'CA', flag: '🇨🇦', count: Math.round(liveVisitorCount * 0.02), pct: 2, isPrimary: false },
+        { country: 'Other Regions', countryBn: 'অন্যান্য আন্তর্জাতিক অঞ্চল', code: 'UN', flag: '🌐', count: Math.round(liveVisitorCount * 0.02), pct: 2, isPrimary: false },
+      ];
 
   // Selected Country Info & City Matrix
   const activeCountryData = COUNTRY_REGIONS_MAP[selectedCountryCode] || COUNTRY_REGIONS_MAP.BD;
@@ -500,7 +500,7 @@ export default function VisitorAnalyticsPage() {
   ];
 
   return (
-    <div className="space-y-6 max-w-7xl 2xl:max-w-[1780px] 3xl:max-w-[94vw] mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto">
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-2xl border border-slate-700 text-xs font-bold animate-bounce">
@@ -538,11 +538,10 @@ export default function VisitorAnalyticsPage() {
                 key={filter}
                 type="button"
                 onClick={() => setTimeFilter(filter)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  timeFilter === filter
-                    ? 'bg-white dark:bg-slate-900 text-orange-600 dark:text-orange-400 shadow-xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                }`}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${timeFilter === filter
+                  ? 'bg-white dark:bg-slate-900 text-orange-600 dark:text-orange-400 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
               >
                 {timeFilterLabels[filter]}
               </button>
@@ -663,11 +662,10 @@ export default function VisitorAnalyticsPage() {
         <button
           type="button"
           onClick={() => setKpiFilter(kpiFilter === 'live' ? 'all' : 'live')}
-          className={`p-4 rounded-2xl text-left transition-all cursor-pointer relative group ${
-            kpiFilter === 'live'
-              ? 'bg-emerald-500/15 border-2 border-emerald-500 shadow-lg shadow-emerald-500/10'
-              : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-emerald-500/50 shadow-xs'
-          }`}
+          className={`p-4 rounded-2xl text-left transition-all cursor-pointer relative group ${kpiFilter === 'live'
+            ? 'bg-emerald-500/15 border-2 border-emerald-500 shadow-lg shadow-emerald-500/10'
+            : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-emerald-500/50 shadow-xs'
+            }`}
           title={isBn ? 'সক্রিয় লাইভ ক্রেতা অনুযায়ী ফিল্টার করুন' : 'Click to filter table by Active Live Shoppers'}
         >
           <div className="flex items-center justify-between">
@@ -699,11 +697,10 @@ export default function VisitorAnalyticsPage() {
         <button
           type="button"
           onClick={() => setKpiFilter(kpiFilter === 'pageviews' ? 'all' : 'pageviews')}
-          className={`p-4 rounded-2xl text-left transition-all cursor-pointer relative group ${
-            kpiFilter === 'pageviews'
-              ? 'bg-blue-500/15 border-2 border-blue-500 shadow-lg shadow-blue-500/10'
-              : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-blue-500/50 shadow-xs'
-          }`}
+          className={`p-4 rounded-2xl text-left transition-all cursor-pointer relative group ${kpiFilter === 'pageviews'
+            ? 'bg-blue-500/15 border-2 border-blue-500 shadow-lg shadow-blue-500/10'
+            : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-blue-500/50 shadow-xs'
+            }`}
           title={isBn ? 'উচ্চ পেজভিউ সেশন ফিল্টার করুন (৫+ ভিউ)' : 'Click to filter High Pageview Sessions (5+ hits)'}
         >
           <div className="flex items-center justify-between">
@@ -717,12 +714,12 @@ export default function VisitorAnalyticsPage() {
               {telemetryMode === 'real'
                 ? (isBn ? toBengaliNumber(totalPageviewsCount.toLocaleString('en-US')) : totalPageviewsCount.toLocaleString())
                 : timeFilter === 'live'
-                ? (isBn ? '১,৮৪০' : '1,840')
-                : timeFilter === 'today'
-                ? (isBn ? '১৪,২৯০' : '14,290')
-                : timeFilter === 'week'
-                ? (isBn ? '৮৯,৪০০' : '89,400')
-                : (isBn ? '২,৪৮,১০০' : '248,100')}
+                  ? (isBn ? '১,৮৪০' : '1,840')
+                  : timeFilter === 'today'
+                    ? (isBn ? '১৪,২৯০' : '14,290')
+                    : timeFilter === 'week'
+                      ? (isBn ? '৮৯,৪০০' : '89,400')
+                      : (isBn ? '২,৪৮,১০০' : '248,100')}
             </span>
             <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400">
               {isBn ? 'হিটস' : 'Hits'}
@@ -742,11 +739,10 @@ export default function VisitorAnalyticsPage() {
         <button
           type="button"
           onClick={() => setKpiFilter(kpiFilter === 'duration' ? 'all' : 'duration')}
-          className={`p-4 rounded-2xl text-left transition-all cursor-pointer relative group ${
-            kpiFilter === 'duration'
-              ? 'bg-amber-500/15 border-2 border-amber-500 shadow-lg shadow-amber-500/10'
-              : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-amber-500/50 shadow-xs'
-          }`}
+          className={`p-4 rounded-2xl text-left transition-all cursor-pointer relative group ${kpiFilter === 'duration'
+            ? 'bg-amber-500/15 border-2 border-amber-500 shadow-lg shadow-amber-500/10'
+            : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-amber-500/50 shadow-xs'
+            }`}
           title={isBn ? 'দীর্ঘ সময় অবস্থানরত সেশন ফিল্টার করুন (২০০ সে.+)' : 'Click to filter Deep Engagement Sessions (200s+)'}
         >
           <div className="flex items-center justify-between">
@@ -777,11 +773,10 @@ export default function VisitorAnalyticsPage() {
         <button
           type="button"
           onClick={() => setKpiFilter(kpiFilter === 'bounced' ? 'all' : 'bounced')}
-          className={`p-4 rounded-2xl text-left transition-all cursor-pointer relative group ${
-            kpiFilter === 'bounced'
-              ? 'bg-purple-500/15 border-2 border-purple-500 shadow-lg shadow-purple-500/10'
-              : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-purple-500/50 shadow-xs'
-          }`}
+          className={`p-4 rounded-2xl text-left transition-all cursor-pointer relative group ${kpiFilter === 'bounced'
+            ? 'bg-purple-500/15 border-2 border-purple-500 shadow-lg shadow-purple-500/10'
+            : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-purple-500/50 shadow-xs'
+            }`}
           title={isBn ? 'বাউন্সড সেশন এবং প্রস্থান কারণ দেখুন' : 'Click to view Bounced Sessions and exit reasons'}
         >
           <div className="flex items-center justify-between">
@@ -812,11 +807,10 @@ export default function VisitorAnalyticsPage() {
         <button
           type="button"
           onClick={() => setKpiFilter(kpiFilter === 'cart' ? 'all' : 'cart')}
-          className={`p-4 rounded-2xl text-left transition-all cursor-pointer relative group col-span-2 sm:col-span-2 lg:col-span-1 ${
-            kpiFilter === 'cart'
-              ? 'bg-orange-500/15 border-2 border-orange-500 shadow-lg shadow-orange-500/10'
-              : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-orange-500/50 shadow-xs'
-          }`}
+          className={`p-4 rounded-2xl text-left transition-all cursor-pointer relative group col-span-2 sm:col-span-2 lg:col-span-1 ${kpiFilter === 'cart'
+            ? 'bg-orange-500/15 border-2 border-orange-500 shadow-lg shadow-orange-500/10'
+            : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-orange-500/50 shadow-xs'
+            }`}
           title={isBn ? 'সক্রিয় কার্ট ক্রেতা ও কার্ট মূল্য দেখুন' : 'Click to view Active Cart Shoppers & Cart Values'}
         >
           <div className="flex items-center justify-between">
@@ -879,11 +873,10 @@ export default function VisitorAnalyticsPage() {
           <button
             type="button"
             onClick={() => setActiveTab('sessions')}
-            className={`flex items-center gap-2 px-4 py-3 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === 'sessions'
-                ? 'border-orange-500 text-orange-600 dark:text-orange-400'
-                : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
+            className={`flex items-center gap-2 px-4 py-3 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'sessions'
+              ? 'border-orange-500 text-orange-600 dark:text-orange-400'
+              : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
           >
             <Radio className="w-4 h-4" />
             <span>{isBn ? `লাইভ সেশন ও আইপি অ্যাক্সেস কন্ট্রোল (${toBengaliNumber(filteredSessions.length)})` : `Live Sessions & IP Access Control (${filteredSessions.length})`}</span>
@@ -892,11 +885,10 @@ export default function VisitorAnalyticsPage() {
           <button
             type="button"
             onClick={() => setActiveTab('geo')}
-            className={`flex items-center gap-2 px-4 py-3 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === 'geo'
-                ? 'border-orange-500 text-orange-600 dark:text-orange-400'
-                : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
+            className={`flex items-center gap-2 px-4 py-3 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'geo'
+              ? 'border-orange-500 text-orange-600 dark:text-orange-400'
+              : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
           >
             <Globe className="w-4 h-4" />
             <span>{isBn ? 'জিও-লোকেশন ও সিটি ম্যাট্রিক্স' : 'Geo-Location & City Matrix'}</span>
@@ -905,11 +897,10 @@ export default function VisitorAnalyticsPage() {
           <button
             type="button"
             onClick={() => setActiveTab('devices')}
-            className={`flex items-center gap-2 px-4 py-3 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === 'devices'
-                ? 'border-orange-500 text-orange-600 dark:text-orange-400'
-                : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
+            className={`flex items-center gap-2 px-4 py-3 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'devices'
+              ? 'border-orange-500 text-orange-600 dark:text-orange-400'
+              : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
           >
             <Smartphone className="w-4 h-4" />
             <span>{isBn ? 'ডিভাইস ও ব্রাউজার' : 'Devices & Browsers'}</span>
@@ -918,11 +909,10 @@ export default function VisitorAnalyticsPage() {
           <button
             type="button"
             onClick={() => setActiveTab('sources')}
-            className={`flex items-center gap-2 px-4 py-3 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === 'sources'
-                ? 'border-orange-500 text-orange-600 dark:text-orange-400'
-                : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
+            className={`flex items-center gap-2 px-4 py-3 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'sources'
+              ? 'border-orange-500 text-orange-600 dark:text-orange-400'
+              : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
           >
             <Compass className="w-4 h-4" />
             <span>{isBn ? 'ট্রাফিক সোর্স' : 'Traffic Acquisition Sources'}</span>
@@ -931,11 +921,10 @@ export default function VisitorAnalyticsPage() {
           <button
             type="button"
             onClick={() => setActiveTab('blocked')}
-            className={`flex items-center gap-2 px-4 py-3 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === 'blocked'
-                ? 'border-rose-500 text-rose-600 dark:text-rose-400'
-                : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
+            className={`flex items-center gap-2 px-4 py-3 text-xs font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'blocked'
+              ? 'border-rose-500 text-rose-600 dark:text-rose-400'
+              : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
           >
             <ShieldX className="w-4 h-4" />
             <span>{isBn ? `ব্লকড আইপি শিল্ড (${blockedIPs.length})` : `Blocked IPs Shield (${blockedIPs.length})`}</span>
@@ -987,19 +976,27 @@ export default function VisitorAnalyticsPage() {
               </div>
             </div>
 
-            {/* Sessions Table with Fixed Spacious Layout and Non-wrapping Badges */}
+            {/* Sessions Table: Fully Responsive (Swipeable on Mobile/Tablet, 100% Screen-Fit on Desktop/Laptop) */}
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+              {/* Mobile/Tablet Swipe Hint */}
+              <div className="px-4 py-2 bg-slate-50/80 dark:bg-slate-800/40 text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 xl:hidden">
+                <span className="flex items-center gap-1.5 font-medium">
+                  <span>👉</span>
+                  <span>{isBn ? 'মোবাইল/ট্যাবলেটে সম্পূর্ণ কলাম দেখতে ডানে-বামে স্ক্রল করুন' : 'Scroll horizontally on mobile/tablet to view all telemetry columns'}</span>
+                </span>
+                <span className="text-[10px] font-mono text-slate-400">7 Columns</span>
+              </div>
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs min-w-[1000px]">
+                <table className="w-full text-left text-xs min-w-[900px] xl:min-w-0 xl:table-fixed">
                   <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-bold uppercase text-[10px]">
                     <tr>
-                      <th className="py-3 px-4 w-[180px]">{isBn ? 'ভিজিটর ও অবস্থান' : 'Visitor & Location'}</th>
-                      <th className="py-3 px-4 w-[180px]">{isBn ? 'আইপি ও নেটওয়ার্ক আইএসপি' : 'IP & Network ISP'}</th>
-                      <th className="py-3 px-4 w-[230px]">{isBn ? 'ডিভাইস ও সুনির্দিষ্ট মডেল' : 'Device & Exact Model'}</th>
-                      <th className="py-3 px-4 w-[240px]">{isBn ? 'বর্তমান পেজ ও কার্যক্রম' : 'Current Page & Activity'}</th>
-                      <th className="py-3 px-4 w-[150px]">{isBn ? 'সেশনের স্থায়িত্ব' : 'Session Duration'}</th>
-                      <th className="py-3 px-4 w-[130px]">{isBn ? 'স্ট্যাটাস' : 'Status'}</th>
-                      <th className="py-3 px-4 text-right w-[110px]">{isBn ? 'অ্যাকশন' : 'Action'}</th>
+                      <th className="py-3 px-3 xl:w-[16%]">{isBn ? 'ভিজিটর ও অবস্থান' : 'Visitor & Location'}</th>
+                      <th className="py-3 px-2.5 xl:w-[14%]">{isBn ? 'আইপি ও আইএসপি' : 'IP & Network ISP'}</th>
+                      <th className="py-3 px-2.5 xl:w-[18%]">{isBn ? 'ডিভাইস ও মডেল' : 'Device & Exact Model'}</th>
+                      <th className="py-3 px-2.5 xl:w-[18%]">{isBn ? 'পেজ ও কার্যক্রম' : 'Current Page & Activity'}</th>
+                      <th className="py-3 px-2.5 xl:w-[13%]">{isBn ? 'স্থায়িত্ব' : 'Session Duration'}</th>
+                      <th className="py-3 px-2 xl:w-[10%] text-center">{isBn ? 'স্ট্যাটাস' : 'Status'}</th>
+                      <th className="py-3 pr-4 pl-2 text-right xl:w-[11%]">{isBn ? 'অ্যাকশন' : 'Action'}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
@@ -1016,8 +1013,8 @@ export default function VisitorAnalyticsPage() {
                             <p className="text-xs text-slate-500">
                               {telemetryMode === 'real'
                                 ? (isBn
-                                    ? 'রিয়েল টেলিমেট্রি মোড কেবল গ্রাহকদের স্টোরফ্রন্ট ব্রাউজিং ট্র্যাক করে (অ্যাডমিন পোর্টাল অন্তর্ভুক্ত নয়)। লাইভ দেখতে অন্য ট্যাবে বা ফোনে /products বা /cart খুলুন।'
-                                    : 'Real telemetry mode only tracks customer storefront activity (admin portal is excluded). Open any storefront page (/products, /cart) in another tab or mobile device to see live telemetry.')
+                                  ? 'রিয়েল টেলিমেট্রি মোড কেবল গ্রাহকদের স্টোরফ্রন্ট ব্রাউজিং ট্র্যাক করে (অ্যাডমিন পোর্টাল অন্তর্ভুক্ত নয়)। লাইভ দেখতে অন্য ট্যাবে বা ফোনে /products বা /cart খুলুন।'
+                                  : 'Real telemetry mode only tracks customer storefront activity (admin portal is excluded). Open any storefront page (/products, /cart) in another tab or mobile device to see live telemetry.')
                                 : (isBn ? 'আপনার সার্চ কি-ওয়ার্ড বা ফিল্টার পরিবর্তন করুন।' : 'Try changing your search keywords or KPI filter.')}
                             </p>
                             {kpiFilter !== 'all' && (
@@ -1040,20 +1037,19 @@ export default function VisitorAnalyticsPage() {
                           <tr
                             key={sess.id}
                             onClick={() => setSelectedJourneySession(sess)}
-                            className={`hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors cursor-pointer ${
-                              sess.isCartActive ? 'bg-orange-500/5 dark:bg-orange-500/5' : ''
-                            } ${sess.isBounced ? 'bg-purple-500/5 dark:bg-purple-500/5' : ''}`}
+                            className={`hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors cursor-pointer ${sess.isCartActive ? 'bg-orange-500/5 dark:bg-orange-500/5' : ''
+                              } ${sess.isBounced ? 'bg-purple-500/5 dark:bg-purple-500/5' : ''}`}
                             title={isBn ? 'সম্পূর্ণ রুট জার্নি ও ডিভাইস স্পেক দেখতে ক্লিক করুন' : 'Click row to inspect complete Route Journey & Device Specs'}
                           >
                             {/* Visitor & Location & Contact Lead */}
-                            <td className="py-3.5 px-4">
-                              <div className="flex items-center gap-2.5">
-                                <span className="text-xl shrink-0" title={sess.country}>{sess.flag}</span>
-                                <div className="min-w-0">
+                            <td className="py-3 px-3">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className="text-lg shrink-0" title={sess.country}>{sess.flag}</span>
+                                <div className="min-w-0 overflow-hidden">
                                   <span className="font-bold text-slate-900 dark:text-white block truncate text-xs hover:text-orange-600 dark:hover:text-orange-400">
                                     {sess.customerName || sess.city}
                                   </span>
-                                  <div className="flex items-center gap-1.5 text-[10px] text-slate-500 truncate mt-0.5">
+                                  <div className="flex items-center gap-1 text-[10px] text-slate-500 truncate mt-0.5">
                                     <span className="truncate">{sess.city}</span>
                                     {sess.contactPhone && (
                                       <>
@@ -1069,29 +1065,28 @@ export default function VisitorAnalyticsPage() {
                             </td>
 
                             {/* IP & ISP */}
-                            <td className="py-3.5 px-4 font-mono">
-                              <span className="font-bold text-slate-800 dark:text-slate-200 block text-[11px]">
+                            <td className="py-3 px-2.5 font-mono overflow-hidden">
+                              <span className="font-bold text-slate-800 dark:text-slate-200 block text-[11px] truncate">
                                 {sess.ip}
                               </span>
-                              <span className="text-[10px] text-slate-500 font-sans truncate max-w-[160px] block">
+                              <span className="text-[10px] text-slate-500 font-sans truncate block">
                                 {sess.isp}
                               </span>
                             </td>
 
                             {/* Device & Exact Model Number */}
-                            <td className="py-3.5 px-4">
-                              <div className="flex items-center gap-2.5">
-                                <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 shrink-0">
+                            <td className="py-3 px-2.5 overflow-hidden">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <div className="p-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 shrink-0">
                                   {sess.device === 'Mobile' ? (
-                                    <Smartphone className="w-4 h-4 text-orange-500" />
+                                    <Smartphone className="w-3.5 h-3.5 text-orange-500" />
                                   ) : sess.device === 'Desktop' ? (
-                                    <Monitor className="w-4 h-4 text-blue-500" />
+                                    <Monitor className="w-3.5 h-3.5 text-blue-500" />
                                   ) : (
-                                    <Tablet className="w-4 h-4 text-emerald-500" />
+                                    <Tablet className="w-3.5 h-3.5 text-emerald-500" />
                                   )}
                                 </div>
-                                <div className="min-w-0">
-                                  {/* Exact Hardware Model */}
+                                <div className="min-w-0 overflow-hidden">
                                   <span className="font-bold text-slate-900 dark:text-white block text-xs truncate">
                                     {sess.deviceModel}
                                   </span>
@@ -1103,24 +1098,24 @@ export default function VisitorAnalyticsPage() {
                             </td>
 
                             {/* Current Page & Activity with Route Journey Badge */}
-                            <td className="py-3.5 px-4">
-                              <div className="flex items-center gap-2 whitespace-nowrap">
-                                <span className="font-bold font-mono text-orange-600 dark:text-orange-400 text-xs">
+                            <td className="py-3 px-2.5 overflow-hidden">
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <span className="font-bold font-mono text-orange-600 dark:text-orange-400 text-xs truncate">
                                   {sess.currentUrl}
                                 </span>
                                 {sess.isCartActive && (
                                   <span
-                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white text-[10px] font-bold tracking-tight shadow-xs whitespace-nowrap shrink-0"
+                                    className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white text-[9px] font-bold tracking-tight shrink-0"
                                     title={sess.cartItemsSummary ? `Cart: ${sess.cartItemsSummary} (৳${sess.cartValueBDT?.toLocaleString()})` : 'Active Cart'}
                                   >
-                                    <ShoppingBag className="w-3 h-3" />
-                                    <span>{isBn ? 'সক্রিয় কার্ট' : 'Cart Active'}</span>
+                                    <ShoppingBag className="w-2.5 h-2.5" />
+                                    <span>{isBn ? 'কার্ট' : 'Cart'}</span>
                                   </span>
                                 )}
                               </div>
-                              <div className="flex items-center gap-1.5 text-[10px] text-slate-500 truncate max-w-[210px] mt-0.5">
-                                <span className="px-1.5 py-0.2 rounded-md bg-slate-100 dark:bg-slate-800 font-mono font-semibold text-[9px] text-slate-600 dark:text-slate-400">
-                                  {isBn ? `${routeCount}টি রুট` : `${routeCount} ${routeCount > 1 ? 'routes' : 'route'}`}
+                              <div className="flex items-center gap-1 text-[10px] text-slate-500 truncate mt-0.5">
+                                <span className="px-1 py-0.2 rounded bg-slate-100 dark:bg-slate-800 font-mono font-semibold text-[9px] text-slate-600 dark:text-slate-400 shrink-0">
+                                  {isBn ? `${routeCount} রুট` : `${routeCount}r`}
                                 </span>
                                 <span>•</span>
                                 <span className="truncate">{sess.referrer}</span>
@@ -1128,70 +1123,62 @@ export default function VisitorAnalyticsPage() {
                             </td>
 
                             {/* Session Duration & Hits */}
-                            <td className="py-3.5 px-4 font-mono text-[11px]">
-                              <span className="text-slate-800 dark:text-slate-200 font-bold block">
+                            <td className="py-3 px-2.5 font-mono text-[11px] overflow-hidden">
+                              <span className="text-slate-800 dark:text-slate-200 font-bold block truncate">
                                 {Math.floor(sess.durationSeconds / 60)}m {sess.durationSeconds % 60}s
                               </span>
-                              <span className="text-[10px] text-slate-500 font-sans">
-                                {sess.pageviews} {isBn ? 'ভিউ' : 'views'} • {sess.lastActiveAt}
+                              <span className="text-[10px] text-slate-500 font-sans block truncate">
+                                {sess.pageviews} {isBn ? 'ভিউ' : 'v'} • {sess.lastActiveAt}
                               </span>
                             </td>
 
                             {/* Status */}
-                            <td className="py-3.5 px-4 whitespace-nowrap">
-                              {isBlocked ? (
-                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-[10px] font-bold shrink-0">
-                                  <ShieldX className="w-3 h-3" />
-                                  <span>{isBn ? 'ব্লকড' : 'Blocked'}</span>
-                                </span>
-                              ) : sess.status === 'bot' ? (
-                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25 text-[10px] font-bold shrink-0 whitespace-nowrap">
-                                  <Cpu className="w-3 h-3" />
-                                  <span>{isBn ? 'সার্চ স্পাইডার' : 'Search Spider'}</span>
-                                </span>
-                              ) : sess.isBounced ? (
-                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/25 text-[10px] font-bold shrink-0 whitespace-nowrap">
-                                  <span>{isBn ? 'বাউন্সড' : 'Bounced'}</span>
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-bold shrink-0 whitespace-nowrap">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                  <span>{isBn ? 'সক্রিয়' : 'Active'}</span>
-                                </span>
-                              )}
+                            <td className="py-3 px-2 text-center whitespace-nowrap overflow-hidden">
+                              <div className="flex items-center justify-center">
+                                {isBlocked ? (
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-[10px] font-bold">
+                                    <ShieldX className="w-3 h-3" />
+                                    <span>{isBn ? 'ব্লকড' : 'Blocked'}</span>
+                                  </span>
+                                ) : sess.status === 'bot' ? (
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25 text-[10px] font-bold">
+                                    <Cpu className="w-3 h-3" />
+                                    <span>{isBn ? 'রোবট' : 'Bot'}</span>
+                                  </span>
+                                ) : sess.isBounced ? (
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/25 text-[10px] font-bold">
+                                    <span>{isBn ? 'বাউন্সড' : 'Bounced'}</span>
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-bold">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                    <span>{isBn ? 'সক্রিয়' : 'Active'}</span>
+                                  </span>
+                                )}
+                              </div>
                             </td>
 
-                            {/* Action Buttons: Journey Inspect + Block */}
-                            <td className="py-3.5 px-4 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                              <div className="flex items-center justify-end gap-1.5">
-                                <button
-                                  type="button"
-                                  onClick={() => setSelectedJourneySession(sess)}
-                                  className="inline-flex items-center gap-1 px-2 py-1 rounded-xl bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/25 text-[11px] font-bold transition-all cursor-pointer active:scale-95"
-                                  title={isBn ? 'রুট নেভিগেশন টাইমলাইন পর্যালোচনা করুন' : 'Inspect Route Navigation Timeline'}
-                                >
-                                  <Layers className="w-3.5 h-3.5" />
-                                  <span>{isBn ? 'জার্নি' : 'Journey'}</span>
-                                </button>
-
+                            {/* Action Button: Block / Unblock Only */}
+                            <td className="py-3 pr-4 pl-2 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                              <div className="flex items-center justify-end">
                                 {isBlocked ? (
                                   <button
                                     type="button"
                                     onClick={() => handleUnblock(sess.ip)}
-                                    className="inline-flex items-center gap-1 px-2 py-1 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 text-[11px] font-bold transition-all cursor-pointer active:scale-95"
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 text-[10px] font-bold transition-all cursor-pointer active:scale-95 shadow-xs"
                                     title={isBn ? 'এই আইপি অ্যাড্রেস আনব্লক করুন' : 'Unblock this IP Address'}
                                   >
-                                    <Unlock className="w-3.5 h-3.5" />
+                                    <Unlock className="w-3 h-3" />
                                     <span>{isBn ? 'আনব্লক' : 'Unblock'}</span>
                                   </button>
                                 ) : (
                                   <button
                                     type="button"
                                     onClick={() => setSelectedIPToBlock(sess.ip)}
-                                    className="inline-flex items-center gap-1 px-2 py-1 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/25 text-[11px] font-bold transition-all cursor-pointer active:scale-95"
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/25 text-[10px] font-bold transition-all cursor-pointer active:scale-95 shadow-xs"
                                     title={isBn ? 'এই আইপি অ্যাড্রেস ব্লক করুন' : 'Block this IP Address'}
                                   >
-                                    <Ban className="w-3.5 h-3.5" />
+                                    <Ban className="w-3 h-3" />
                                     <span>{isBn ? 'ব্লক' : 'Block'}</span>
                                   </button>
                                 )}
@@ -1220,11 +1207,10 @@ export default function VisitorAnalyticsPage() {
                 <div>
                   <h4 className="text-xs sm:text-sm font-black flex items-center gap-2">
                     <span>{isBn ? 'জিও-ফেন্সিং ও কান্ট্রি ফায়ারওয়াল মোড:' : 'Geo-Fencing & Country Firewall Mode:'}</span>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider font-bold ${
-                      geoPolicyMode === 'domestic_only'
-                        ? 'bg-emerald-500 text-white animate-pulse shadow-2xs'
-                        : 'bg-blue-500/15 text-blue-700 dark:bg-blue-500/30 dark:text-blue-300'
-                    }`}>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider font-bold ${geoPolicyMode === 'domestic_only'
+                      ? 'bg-emerald-500 text-white animate-pulse shadow-2xs'
+                      : 'bg-blue-500/15 text-blue-700 dark:bg-blue-500/30 dark:text-blue-300'
+                      }`}>
                       {geoPolicyMode === 'domestic_only'
                         ? (isBn ? '🇧🇩 কেবল অভ্যন্তরীণ হোয়াইটলিস্ট' : '🇧🇩 Domestic Whitelist Only')
                         : (isBn ? '🌐 গ্লোবাল উইথ সিলেক্টিভ ব্যান' : '🌐 Global with Selective Bans')}
@@ -1233,11 +1219,11 @@ export default function VisitorAnalyticsPage() {
                   <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                     {geoPolicyMode === 'domestic_only'
                       ? (isBn
-                          ? 'কেবলমাত্র বাংলাদেশের ভিজিটরদের ব্রাউজ ও অর্ডার করতে অনুমতি দেওয়া হয়েছে। সকল আন্তর্জাতিক ট্রাফিক ব্লকড।'
-                          : 'Only Bangladesh visitors are permitted to browse and place orders. All international traffic is blocked.')
+                        ? 'কেবলমাত্র বাংলাদেশের ভিজিটরদের ব্রাউজ ও অর্ডার করতে অনুমতি দেওয়া হয়েছে। সকল আন্তর্জাতিক ট্রাফিক ব্লকড।'
+                        : 'Only Bangladesh visitors are permitted to browse and place orders. All international traffic is blocked.')
                       : (isBn
-                          ? 'সাধারণভাবে গ্লোবাল ট্রাফিক অনুমোদিত। আপনি নিচে যেকোনো একক দেশ ব্লক করতে পারেন।'
-                          : 'Global traffic is allowed by default. You can selectively block any individual country below.')}
+                        ? 'সাধারণভাবে গ্লোবাল ট্রাফিক অনুমোদিত। আপনি নিচে যেকোনো একক দেশ ব্লক করতে পারেন।'
+                        : 'Global traffic is allowed by default. You can selectively block any individual country below.')}
                   </p>
                 </div>
               </div>
@@ -1250,11 +1236,10 @@ export default function VisitorAnalyticsPage() {
                     setGeoPolicyMode('global');
                     showToast(isBn ? 'সিলেক্টিভ ব্যান সহ গ্লোবাল ট্রাফিক মোডে পরিবর্তিত হয়েছে।' : 'Switched to Global Traffic Mode with selective country bans.');
                   }}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                    geoPolicyMode === 'global'
-                      ? 'bg-blue-600 text-white shadow-xs'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                  }`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${geoPolicyMode === 'global'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    }`}
                 >
                   {isBn ? '🌐 গ্লোবাল মোড' : '🌐 Global Mode'}
                 </button>
@@ -1264,11 +1249,10 @@ export default function VisitorAnalyticsPage() {
                     setGeoPolicyMode('domestic_only');
                     showToast(isBn ? 'ডোমেস্টিক হোয়াইটলিস্ট সক্রিয়: কেবল বাংলাদেশ ট্রাফিক অনুমোদিত।' : 'Domestic Whitelist Active: Only Bangladesh traffic is now permitted.');
                   }}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                    geoPolicyMode === 'domestic_only'
-                      ? 'bg-emerald-600 text-white shadow-xs'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                  }`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${geoPolicyMode === 'domestic_only'
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    }`}
                 >
                   {isBn ? '🇧🇩 শুধু বাংলাদেশ' : '🇧🇩 Bangladesh Only'}
                 </button>
@@ -1303,11 +1287,10 @@ export default function VisitorAnalyticsPage() {
                       <div
                         key={c.code}
                         onClick={() => setSelectedCountry(c.code)}
-                        className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
-                          isSelected
-                            ? 'bg-blue-500/10 dark:bg-blue-950/30 border-blue-500/50 shadow-sm ring-1 ring-blue-500/30'
-                            : 'bg-slate-50/70 dark:bg-slate-800/40 border-slate-200/70 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800/70'
-                        }`}
+                        className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${isSelected
+                          ? 'bg-blue-500/10 dark:bg-blue-950/30 border-blue-500/50 shadow-sm ring-1 ring-blue-500/30'
+                          : 'bg-slate-50/70 dark:bg-slate-800/40 border-slate-200/70 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800/70'
+                          }`}
                       >
                         <div className="flex items-center gap-3 min-w-0">
                           <span className="text-2xl shrink-0">{c.flag}</span>
@@ -1418,9 +1401,8 @@ export default function VisitorAnalyticsPage() {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <div
-                              className={`w-2 h-2 rounded-full shrink-0 ${
-                                cityLiveCount > 0 ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400 opacity-40'
-                              }`}
+                              className={`w-2 h-2 rounded-full shrink-0 ${cityLiveCount > 0 ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400 opacity-40'
+                                }`}
                             />
                             <div>
                               <span className="text-xs font-bold text-slate-900 dark:text-white block">
@@ -1635,13 +1617,12 @@ export default function VisitorAnalyticsPage() {
                       {selectedJourneySession.customerName || (isBn ? 'গেস্ট ক্রেতা' : 'Guest Shopper')}
                     </h3>
                     <span
-                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                        selectedJourneySession.status === 'active'
-                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
-                          : selectedJourneySession.status === 'blocked'
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${selectedJourneySession.status === 'active'
+                        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                        : selectedJourneySession.status === 'blocked'
                           ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
                           : 'bg-slate-200/60 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
-                      }`}
+                        }`}
                     >
                       {selectedJourneySession.status === 'active' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />}
                       {selectedJourneySession.status.toUpperCase()}
@@ -1740,11 +1721,10 @@ export default function VisitorAnalyticsPage() {
                     return (
                       <div
                         key={`${route.path}-${rIdx}`}
-                        className={`p-3.5 rounded-2xl border transition-all ${
-                          isCurrent
-                            ? 'bg-orange-500/5 dark:bg-orange-500/10 border-orange-500/40 shadow-xs ring-1 ring-orange-500/20'
-                            : 'bg-white dark:bg-slate-800/60 border-slate-200 dark:border-slate-800'
-                        }`}
+                        className={`p-3.5 rounded-2xl border transition-all ${isCurrent
+                          ? 'bg-orange-500/5 dark:bg-orange-500/10 border-orange-500/40 shadow-xs ring-1 ring-orange-500/20'
+                          : 'bg-white dark:bg-slate-800/60 border-slate-200 dark:border-slate-800'
+                          }`}
                       >
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center gap-2 min-w-0">

@@ -301,16 +301,8 @@ export default function AbandonedCartsPage() {
     };
     runFetch();
 
-    // Auto-refresh telemetry every 15 seconds
-    const interval = setInterval(() => {
-      if (isMounted) {
-        fetchAbandonedCarts(false);
-      }
-    }, 15000);
-
     return () => {
       isMounted = false;
-      clearInterval(interval);
     };
   }, [fetchAbandonedCarts]);
 
@@ -437,7 +429,7 @@ export default function AbandonedCartsPage() {
 
   return (
     <RoleGuard allowedRoles={['admin']}>
-      <div className="space-y-8 max-w-7xl 2xl:max-w-[1780px] 3xl:max-w-[94vw] mx-auto pb-16">
+      <div className="space-y-8 max-w-7xl mx-auto pb-16">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -667,37 +659,37 @@ export default function AbandonedCartsPage() {
                 ))}
               </div>
 
-              {/* 💻 Desktop Table Layout (Visible on Large Screens) */}
+              {/* 💻 Desktop Table Layout (Visible on Large Screens & Responsive on 1440px) */}
               <div className="hidden lg:block rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 backdrop-blur-xl overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300">
+                  <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300 min-w-[880px] xl:min-w-0 xl:table-fixed">
                     <thead className="bg-slate-50 dark:bg-slate-950/80 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
                       <tr>
-                        <th className="px-5 py-3.5 whitespace-nowrap min-w-[150px]">{isBn ? 'কাস্টমার ও তথ্য' : 'Customer'}</th>
-                        <th className="px-5 py-3.5 min-w-[200px]">{isBn ? 'পরিত্যক্ত পণ্যসমূহ' : 'Cart Items'}</th>
-                        <th className="px-5 py-3.5 whitespace-nowrap min-w-[120px]">{isBn ? 'কার্ট ভ্যালু (৳)' : 'Cart Total (৳ BDT)'}</th>
-                        <th className="px-5 py-3.5 whitespace-nowrap min-w-[120px]">{isBn ? 'পরিত্যক্ত হওয়ার সময়' : 'Drop-off Time'}</th>
-                        <th className="px-5 py-3.5 whitespace-nowrap min-w-[130px]">{isBn ? 'রিকভারি স্ট্যাটাস' : 'Recovery Status'}</th>
-                        <th className="px-5 py-3.5 whitespace-nowrap min-w-[150px] text-right">{isBn ? 'রিকভারি অ্যাকশন' : 'Recovery Action'}</th>
+                        <th className="px-3.5 py-3.5 whitespace-nowrap xl:w-[18%]">{isBn ? 'কাস্টমার ও তথ্য' : 'Customer'}</th>
+                        <th className="px-3.5 py-3.5 xl:w-[24%]">{isBn ? 'পরিত্যক্ত পণ্যসমূহ' : 'Cart Items'}</th>
+                        <th className="px-3.5 py-3.5 whitespace-nowrap xl:w-[15%]">{isBn ? 'কার্ট ভ্যালু (৳)' : 'Cart Total (৳ BDT)'}</th>
+                        <th className="px-3.5 py-3.5 whitespace-nowrap xl:w-[13%]">{isBn ? 'পরিত্যক্ত হওয়ার সময়' : 'Drop-off Time'}</th>
+                        <th className="px-3.5 py-3.5 whitespace-nowrap xl:w-[15%]">{isBn ? 'রিকভারি স্ট্যাটাস' : 'Recovery Status'}</th>
+                        <th className="px-3.5 py-3.5 whitespace-nowrap xl:w-[15%] text-right">{isBn ? 'রিকভারি অ্যাকশন' : 'Recovery Action'}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
                       {filteredCarts.map((cart) => (
                         <tr key={cart.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-                          <td className="px-5 py-3.5 whitespace-nowrap">
-                            <div className="font-bold text-slate-900 dark:text-white">{cart.customerName || (isBn ? 'গেস্ট ক্রেতা' : 'Guest Shopper')}</div>
+                          <td className="px-3.5 py-3.5 whitespace-nowrap">
+                            <div className="font-bold text-slate-900 dark:text-white truncate max-w-[170px]">{cart.customerName || (isBn ? 'গেস্ট ক্রেতা' : 'Guest Shopper')}</div>
                             {cart.customerPhone ? (
                               <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-semibold mt-0.5">
-                                <Phone className="w-3 h-3 text-emerald-500" /> {cart.customerPhone}
+                                <Phone className="w-3 h-3 text-emerald-500 shrink-0" /> {cart.customerPhone}
                               </span>
                             ) : (
                               <span className="text-[10px] text-amber-500/90 dark:text-amber-400 flex items-center gap-1 font-bold mt-0.5">
-                                <AlertCircle className="w-3 h-3 text-amber-500" /> {isBn ? 'ফোন নম্বর নেই' : 'No Phone Provided'}
+                                <AlertCircle className="w-3 h-3 text-amber-500 shrink-0" /> {isBn ? 'ফোন নম্বর নেই' : 'No Phone Provided'}
                               </span>
                             )}
-                            <span className="text-[10px] text-slate-400 dark:text-slate-500 block mt-0.5">{cart.customerEmail || (isBn ? 'কোনো ইমেইল রেকর্ড নেই' : 'No email recorded')}</span>
+                            <span className="text-[10px] text-slate-400 dark:text-slate-500 block truncate max-w-[170px] mt-0.5">{cart.customerEmail || (isBn ? 'কোনো ইমেইল নেই' : 'No email recorded')}</span>
                           </td>
-                          <td className="px-5 py-3.5">
+                          <td className="px-3.5 py-3.5">
                             <div className="space-y-1.5 max-w-xs">
                               {(cart.items || []).map((item, idx) => (
                                 <div key={item.id || idx} className="flex items-center gap-2">
@@ -709,11 +701,11 @@ export default function AbandonedCartsPage() {
                                     )}
                                   </div>
                                   <div className="min-w-0">
-                                    <div className="text-[11px] font-semibold text-slate-800 dark:text-slate-200 truncate">
+                                    <div className="text-[11px] font-semibold text-slate-800 dark:text-slate-200 truncate max-w-[150px]">
                                       <span className="whitespace-nowrap">{isBn ? toBengaliNumber(item.quantity) : item.quantity}x</span> {item.title}
                                     </div>
                                     {item.variant && (
-                                      <span className="text-[10px] text-slate-400 dark:text-slate-500 block truncate">
+                                      <span className="text-[10px] text-slate-400 dark:text-slate-500 block truncate max-w-[150px]">
                                         {isBn ? 'ভ্যারিয়েন্ট:' : 'Variant:'} {item.variant}
                                       </span>
                                     )}
@@ -722,15 +714,15 @@ export default function AbandonedCartsPage() {
                               ))}
                             </div>
                           </td>
-                          <td className="px-5 py-3.5 font-mono font-black text-slate-900 dark:text-white text-sm whitespace-nowrap">
+                          <td className="px-3.5 py-3.5 font-mono font-black text-slate-900 dark:text-white text-sm whitespace-nowrap">
                             {isBn ? `৳${toBengaliNumber((cart.cartTotal || 0).toLocaleString('en-US'))}` : `৳${(cart.cartTotal || 0).toLocaleString()}`}
                           </td>
-                          <td className="px-5 py-3.5 whitespace-nowrap">
+                          <td className="px-3.5 py-3.5 whitespace-nowrap">
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-mono text-slate-600 dark:text-slate-400">
                               <Clock className="w-3 h-3" /> {cart.timeAgo || (isBn ? 'সম্প্রতি' : 'Recently')}
                             </span>
                           </td>
-                          <td className="px-5 py-3.5 whitespace-nowrap">
+                          <td className="px-3.5 py-3.5 whitespace-nowrap">
                             <div className="space-y-1">
                               <select
                                 value={cart.status}
@@ -758,21 +750,24 @@ export default function AbandonedCartsPage() {
                               )}
                             </div>
                           </td>
-                          <td className="px-5 py-3.5 text-right whitespace-nowrap">
-                            {cart.status === 'Recovered' ? (
-                              <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1">
-                                <CheckCircle2 className="w-3.5 h-3.5" /> {isBn ? 'অর্ডার কনভার্টেড 🎉' : 'Order Converted 🎉'}
-                              </span>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={() => handleOpenRecoveryModal(cart)}
-                                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-600/25 transition-all cursor-pointer hover:scale-105"
-                              >
-                                <MessageCircle className="w-3.5 h-3.5" />
-                                <span>{isBn ? 'WhatsApp রিকভারি' : 'WhatsApp Recovery'}</span>
-                              </button>
-                            )}
+                          <td className="px-3.5 py-3.5 text-right whitespace-nowrap">
+                            <div className="flex items-center justify-end">
+                              {cart.status === 'Recovered' ? (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs whitespace-nowrap border border-emerald-500/20" title={isBn ? 'অর্ডার কনভার্টেড' : 'Order Converted'}>
+                                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-500" />
+                                  <span>{isBn ? 'কনভার্টেড 🎉' : 'Converted 🎉'}</span>
+                                </span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenRecoveryModal(cart)}
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-600/25 transition-all cursor-pointer hover:scale-105 active:scale-95 whitespace-nowrap"
+                                >
+                                  <MessageCircle className="w-3.5 h-3.5 shrink-0" />
+                                  <span>{isBn ? 'হোয়াটসঅ্যাপ' : 'WhatsApp'}</span>
+                                </button>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))}
