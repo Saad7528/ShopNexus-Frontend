@@ -288,7 +288,7 @@ export default function NewComboBundlePage() {
 
   return (
     <RoleGuard allowedRoles={['admin']}>
-      <div className="max-w-7xl 2xl:max-w-[1780px] 3xl:max-w-[94vw] mx-auto space-y-6 pb-20">
+      <div className="max-w-7xl mx-auto space-y-6 pb-20">
         {/* Toast Notification */}
         {toastMessage && (
           <div className="fixed top-6 right-6 z-50 px-5 py-3.5 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-xs shadow-2xl border border-slate-700/50 dark:border-slate-300 flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-200">

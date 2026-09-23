@@ -80,7 +80,7 @@ export default function AdminTrackingPage() {
           },
         }).catch(() => null);
 
-        if ((!res || !res.ok) && API_URL && !API_URL.startsWith('/api') && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+        if ((!res || !res.ok) && API_URL && !API_URL.startsWith('/api')) {
           res = await fetch(`${API_URL}/admin/tracking/parcels`, {
             headers: {
               ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -89,7 +89,7 @@ export default function AdminTrackingPage() {
         }
 
         if (res && res.ok) {
-          const data = await res.json();
+          const data = await res.json().catch(() => null);
           if (data?.data && Array.isArray(data.data) && data.data.length > 0) {
             const mapped: IParcel[] = data.data.map((p: RawParcelData) => ({
               dbId: String(p.id || p._id || p.orderId),
@@ -141,13 +141,22 @@ export default function AdminTrackingPage() {
       const parcelObj = parcels.find((p) => p.trackingId === trackingId);
       const targetId = parcelObj?.dbId || parcelObj?.orderId;
       if (targetId) {
-        await fetch(`${API_URL}/admin/orders/${targetId}/status`, {
+        await fetch(`/api/admin/orders/${targetId}/status`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
           body: JSON.stringify({ orderStatus: targetStatus }),
+        }).catch(async () => {
+          await fetch(`${API_URL}/admin/orders/${targetId}/status`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            body: JSON.stringify({ orderStatus: targetStatus }),
+          });
         });
       }
     } catch (e) {
@@ -165,7 +174,7 @@ export default function AdminTrackingPage() {
 
   return (
     <RoleGuard allowedRoles={['admin']}>
-      <div className="space-y-8 max-w-7xl 2xl:max-w-[1780px] 3xl:max-w-[94vw] mx-auto">
+      <div className="space-y-8 max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-600 dark:text-orange-400 text-xs font-bold uppercase tracking-wider mb-2">
