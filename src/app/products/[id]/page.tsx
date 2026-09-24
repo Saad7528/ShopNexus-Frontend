@@ -232,7 +232,7 @@ export default function ProductDetailPage() {
   if (isLoadingApi && !rawProduct) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f19] text-slate-900 dark:text-white p-3 sm:p-6 md:p-10 pt-4 sm:pt-8">
-        <div className="max-w-7xl 2xl:max-w-[1600px] 3xl:max-w-[1780px] min-[2000px]:max-w-[86vw] mx-auto space-y-8 animate-pulse">
+        <div className="max-w-7xl mx-auto space-y-8 animate-pulse">
           {/* Breadcrumb Skeleton */}
           <div className="h-5 w-48 bg-slate-200 dark:bg-slate-800 rounded-lg" />
 

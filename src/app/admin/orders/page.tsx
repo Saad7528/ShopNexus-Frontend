@@ -108,7 +108,7 @@ export default function AdminOrdersPage() {
           },
         }).catch(() => null);
 
-        if ((!res || !res.ok) && API_URL && !API_URL.startsWith('/api') && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+        if ((!res || !res.ok) && API_URL && !API_URL.startsWith('/api')) {
           res = await fetch(`${API_URL}/admin/orders`, {
             headers: {
               ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -411,7 +411,7 @@ export default function AdminOrdersPage() {
 
   return (
     <RoleGuard allowedRoles={['admin']}>
-      <div className="space-y-6 max-w-7xl 2xl:max-w-[1780px] 3xl:max-w-[94vw] mx-auto pb-16">
+      <div className="space-y-6 max-w-7xl mx-auto pb-16">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
           <div>
