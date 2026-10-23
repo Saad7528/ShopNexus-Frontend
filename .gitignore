@@ -51,3 +51,8 @@ config.bat
 
 api.js
 director.js
+
+*.orc
+*.eot
+.env*.local
+*.env
